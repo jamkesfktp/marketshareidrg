@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1920, initial-scale=1">
+  <title>05 — Ringkasan Eksekutif</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="deck-page">
+  <main class="slide">
+    <header class="slide-header">
+      <div class="slide-header-main">
+        <p class="eyebrow">Ringkasan eksekutif</p>
+        <h1>Market share harus diambil dari RS peer per layanan dan tingkat kompetensi</h1>
+        <p class="headline-message">Model baru memisahkan volume eksisting, pool kompetensi setara, dan capture incremental.</p>
+      </div>
+      <div class="page-chip"><strong>05</strong><span>/ 06</span></div>
+    </header>
+
+    <section class="summary-layout">
+      <article class="section-card summary-hero">
+        <div>
+          <span class="hero-kicker">Market kompetensi setara</span>
+          <div class="hero-share" id="summaryMatchedMarket">—</div>
+          <p class="hero-statement"><b id="summaryPeerHospitals">—</b> RS peer pada <b id="summaryMatchedServices">—</b> layanan membentuk pool yang relevan.</p>
+        </div>
+        <div class="hero-mini-grid">
+          <div class="hero-mini"><span>Eksisting Moewardi</span><strong id="summaryExistingCases">—</strong></div>
+          <div class="hero-mini"><span>Capture 20%</span><strong>+<span id="summaryCapturedCases">—</span></strong></div>
+          <div class="hero-mini"><span>Total kasus baru</span><strong id="summaryProjectedCases">—</strong></div>
+          <div class="hero-mini"><span>Total iDRG baru</span><strong id="summaryProjectedIdrg">—</strong></div>
+        </div>
+      </article>
+
+      <div class="summary-right">
+        <div class="summary-columns">
+          <article class="section-card summary-card">
+            <h2>Temuan kunci</h2>
+            <ul class="executive-list">
+              <li><strong id="summaryMissingService">—</strong> adalah layanan ke-24 yang tidak terpetakan pada workbook.</li>
+              <li><strong>Neoplasma Utama:</strong> <span id="summaryNeoplasmaPool">—</span> kasus pada <span id="summaryNeoplasmaPeers">—</span> RS kompetensi setara.</li>
+              <li><strong>iDRG <span id="summaryDeltaPct">—</span></strong> terhadap INA-CBG pada matched-market case mix.</li>
+            </ul>
+          </article>
+          <article class="section-card summary-card">
+            <h2>Rekomendasi strategis</h2>
+            <ul class="executive-list recommendations">
+              <li>Gunakan <strong>20% sebagai skenario kerja</strong>: <span id="summaryCapturedCases2">—</span> kasus incremental.</li>
+              <li>Kelola akuisisi <strong>per layanan dan RS peer</strong>, bukan dari total market regional.</li>
+              <li>Validasi <strong>kapasitas dan margin iDRG</strong> sebelum target volume ditetapkan.</li>
+            </ul>
+          </article>
+        </div>
+        <article class="section-card decision-bar">
+          <div class="decision-title">Keputusan direksi</div>
+          <div class="decision-item"><span class="decision-index">1</span>Setujui skenario volume</div>
+          <div class="decision-item"><span class="decision-index">2</span>Tetapkan layanan prioritas</div>
+          <div class="decision-item"><span class="decision-index">3</span>Validasi tarif & kapasitas</div>
+        </article>
+      </div>
+    </section>
+
+    <footer class="slide-footer">
+      <span class="footer-source">Metode final: matched competency market; layanan Forensik dicatat eksplisit sebagai tidak terpetakan.</span>
+      <span class="footer-brand">RS Dr. Moewardi · Market Share Regional</span>
+    </footer>
+  </main>
+  <script src="../js/chart.umd.min.js"></script>
+  <script src="../js/data.js"></script>
+  <script src="../js/charts.js"></script>
+  <script>MarketCharts.initSlide5();</script>
+</body>
+</html>

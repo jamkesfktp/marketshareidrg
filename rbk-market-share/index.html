@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Simulator Market Share Regional Rumah Sakit</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="simulator-app">
+  <main class="viewport-stage" aria-label="Simulator market share regional rumah sakit">
+    <div class="deck-scaler" id="deckScaler">
+      <div class="deck-shell">
+        <header class="global-toolbar">
+          <div class="brand-block">
+            <span class="brand-mark" aria-hidden="true">RBK</span>
+            <div>
+              <strong>Simulator Market Share Regional</strong>
+              <span>Kasus dan pendapatan iDRG · 24 layanan</span>
+            </div>
+          </div>
+          <label class="target-picker" for="targetHospital">
+            <span>RS target simulasi</span>
+            <select id="targetHospital" aria-label="Pilih rumah sakit target"></select>
+          </label>
+          <div class="target-meta" id="targetMeta" aria-live="polite"></div>
+        </header>
+
+        <div class="slide-stack">
+          <section class="slide is-active" data-slide="0" aria-labelledby="slide1Title">
+            <div class="slide-heading">
+              <div><p class="eyebrow">01 · Data eksisting RS target</p><h1 id="slide1Title">Profil eksisting rumah sakit</h1><p id="slide1Subtitle"></p></div>
+              <span class="slide-chip">Baseline</span>
+            </div>
+            <div id="existingSlide" class="slide-content"></div>
+          </section>
+
+          <section class="slide" data-slide="1" aria-labelledby="slide2Title" hidden>
+            <div class="slide-heading">
+              <div><p class="eyebrow">02 · Market regional global</p><h1 id="slide2Title">Peta kasus regional menurut tingkat keparahan</h1><p>D–M–U–P berasal dari kolom Tingkat Keparahan Kasus (Klaim).</p></div>
+              <span class="slide-chip">Regional</span>
+            </div>
+            <div id="regionalSlide" class="slide-content"></div>
+          </section>
+
+          <section class="slide" data-slide="2" aria-labelledby="slide3Title" hidden>
+            <div class="slide-heading">
+              <div><p class="eyebrow">03 · Addressable market</p><h1 id="slide3Title">Kemampuan RS target pada seluruh layanan</h1><p id="slide3Subtitle"></p></div>
+              <span class="slide-chip">24 layanan</span>
+            </div>
+            <div id="addressableSlide" class="slide-content"></div>
+          </section>
+
+          <section class="slide" data-slide="3" aria-labelledby="slide4Title" hidden>
+            <div class="slide-heading compact-heading">
+              <div><p class="eyebrow">04 · Simulator seluruh layanan</p><h1 id="slide4Title">Capture pasar eksternal dan retensi kasus eksisting</h1><p>Persentase global berlaku pada semua layanan kecuali layanan yang diberi override.</p></div>
+              <span class="slide-chip">Dinamis</span>
+            </div>
+            <div id="simulatorSlide" class="slide-content"></div>
+          </section>
+
+          <section class="slide" data-slide="4" aria-labelledby="slide5Title" hidden>
+            <div class="slide-heading compact-heading">
+              <div><p class="eyebrow">05 · Kompetitor dan override layanan</p><h1 id="slide5Title">Drill-down persaingan per layanan dan keparahan</h1><p>Target share adalah benchmark pembagian pasar; override mengubah proyeksi simulator.</p></div>
+              <span class="slide-chip">Drill-down</span>
+            </div>
+            <div id="competitionSlide" class="slide-content"></div>
+          </section>
+
+          <section class="slide" data-slide="5" aria-labelledby="slide6Title" hidden>
+            <div class="slide-heading">
+              <div><p class="eyebrow">06 · Ringkasan hasil</p><h1 id="slide6Title">Dampak skenario terhadap RS target</h1><p id="slide6Subtitle"></p></div>
+              <span class="slide-chip">Proyeksi</span>
+            </div>
+            <div id="summarySlide" class="slide-content"></div>
+          </section>
+        </div>
+
+        <nav class="deck-controls" aria-label="Navigasi slide">
+          <button id="previousSlide" type="button" aria-label="Slide sebelumnya">← Sebelum</button>
+          <div class="slide-dots" id="slideDots" aria-label="Daftar slide"></div>
+          <span class="deck-counter" id="slideCounter">1 / 6</span>
+          <button id="nextSlide" type="button" aria-label="Slide berikutnya">Berikut →</button>
+        </nav>
+      </div>
+    </div>
+  </main>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
