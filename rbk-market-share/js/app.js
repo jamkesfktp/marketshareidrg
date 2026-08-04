@@ -596,6 +596,119 @@
     container.querySelectorAll(".slide-dot").forEach((button) => button.addEventListener("click", () => showSlide(Number(button.dataset.index))));
   }
 
+  function freezeExportControls(sourceRoot, cloneRoot) {
+    const sourceControls = [...sourceRoot.querySelectorAll("select, input")];
+    const cloneControls = [...cloneRoot.querySelectorAll("select, input")];
+    sourceControls.forEach((sourceControl, index) => {
+      const cloneControl = cloneControls[index];
+      if (!cloneControl) return;
+      const replacement = document.createElement("span");
+      replacement.className = "pptx-static-control";
+
+      if (sourceControl.tagName === "SELECT") {
+        replacement.textContent = sourceControl.selectedOptions[0]?.textContent || "—";
+      } else if (sourceControl.type === "checkbox") {
+        replacement.classList.add("pptx-static-checkbox");
+        replacement.textContent = sourceControl.checked ? "Aktif" : "Nonaktif";
+        [...cloneControl.parentNode.childNodes]
+          .filter((node) => node.nodeType === Node.TEXT_NODE)
+          .forEach((node) => node.remove());
+      } else {
+        replacement.textContent = sourceControl.value || "0";
+      }
+
+      if (sourceControl.disabled) replacement.classList.add("is-disabled");
+      cloneControl.replaceWith(replacement);
+    });
+  }
+
+  function removeDuplicateExportIds(root) {
+    root.querySelectorAll("[id]").forEach((element) => element.removeAttribute("id"));
+    root.querySelectorAll("[for]").forEach((element) => element.removeAttribute("for"));
+    root.querySelectorAll("[aria-labelledby]").forEach((element) => element.removeAttribute("aria-labelledby"));
+  }
+
+  function buildPptxExportPages() {
+    const exportStage = document.createElement("div");
+    exportStage.className = "pptx-export-stage";
+    exportStage.setAttribute("aria-hidden", "true");
+    const headerSource = document.querySelector(".global-toolbar");
+    const sourceSlides = [...document.querySelectorAll(".slide-stack > .slide")];
+    const target = targetHospital();
+
+    const pages = sourceSlides.map((sourceSlide, index) => {
+      const page = document.createElement("section");
+      page.className = "pptx-export-page";
+      page.dataset.pptxNotes = `Sumber data: Laporan_Agregat_iDRG_Simulasi_2.xlsx. RS target: ${target.name}. Parameter simulasi mengikuti nilai dashboard saat ekspor.`;
+
+      const headerClone = headerSource.cloneNode(true);
+      freezeExportControls(headerSource, headerClone);
+      removeDuplicateExportIds(headerClone);
+
+      const slideClone = sourceSlide.cloneNode(true);
+      slideClone.hidden = false;
+      slideClone.classList.remove("is-active");
+      freezeExportControls(sourceSlide, slideClone);
+      removeDuplicateExportIds(slideClone);
+
+      const footer = document.createElement("footer");
+      footer.className = "pptx-export-footer";
+      footer.innerHTML = `<strong>Simulator Market Share Regional</strong><span>${escapeHtml(target.name)} · ${index + 1} / ${sourceSlides.length}</span>`;
+      page.append(headerClone, slideClone, footer);
+      exportStage.appendChild(page);
+      return page;
+    });
+
+    document.body.appendChild(exportStage);
+    return { exportStage, pages };
+  }
+
+  const waitForExportLayout = () => new Promise((resolve) => {
+    window.requestAnimationFrame(() => window.requestAnimationFrame(resolve));
+  });
+
+  async function exportDashboardToPptx() {
+    const button = document.getElementById("exportPptx");
+    const status = document.getElementById("exportStatus");
+    const defaultLabel = "Export PPTX";
+    let exportStage;
+
+    button.disabled = true;
+    button.setAttribute("aria-busy", "true");
+    button.textContent = "Membuat PPTX…";
+    status.textContent = "Sedang membuat file PowerPoint.";
+
+    try {
+      if (!window.domToPptx?.exportToPptx) throw new Error("Library dom-to-pptx tidak tersedia.");
+      const built = buildPptxExportPages();
+      exportStage = built.exportStage;
+      if (document.fonts?.ready) await document.fonts.ready;
+      await waitForExportLayout();
+
+      const target = targetHospital();
+      const exportDate = new Date().toISOString().slice(0, 10);
+      await window.domToPptx.exportToPptx(built.pages, {
+        fileName: `market-share-idrg-${target.code}-${exportDate}.pptx`,
+        autoEmbedFonts: false,
+        svgAsVector: true,
+      });
+
+      button.textContent = "PPTX terunduh";
+      status.textContent = "File PowerPoint berhasil dibuat dan diunduh.";
+    } catch (error) {
+      console.error("PPTX export failed", error);
+      button.textContent = "Ekspor gagal";
+      status.textContent = `Ekspor PowerPoint gagal: ${error.message}`;
+    } finally {
+      exportStage?.remove();
+      button.removeAttribute("aria-busy");
+      window.setTimeout(() => {
+        button.disabled = false;
+        button.textContent = defaultLabel;
+      }, 2400);
+    }
+  }
+
   function resizeDeck() {
     const scale = Math.min((window.innerWidth - 20) / 1920, (window.innerHeight - 20) / 1080);
     const scaler = document.getElementById("deckScaler");
@@ -610,6 +723,7 @@
   populateSlideDots();
   document.getElementById("previousSlide").addEventListener("click", () => showSlide(state.activeSlide - 1));
   document.getElementById("nextSlide").addEventListener("click", () => showSlide(state.activeSlide + 1));
+  document.getElementById("exportPptx").addEventListener("click", exportDashboardToPptx);
   document.addEventListener("keydown", (event) => {
     if (["INPUT", "SELECT", "TEXTAREA"].includes(event.target.tagName)) return;
     if (["ArrowRight", "PageDown", " "].includes(event.key)) showSlide(state.activeSlide + 1);

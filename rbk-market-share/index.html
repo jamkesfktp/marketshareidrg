@@ -79,12 +79,15 @@
           <button id="previousSlide" type="button" aria-label="Slide sebelumnya">← Sebelum</button>
           <div class="slide-dots" id="slideDots" aria-label="Daftar slide"></div>
           <span class="deck-counter" id="slideCounter">1 / 6</span>
+          <button id="exportPptx" class="export-pptx-button" type="button">Export PPTX</button>
           <button id="nextSlide" type="button" aria-label="Slide berikutnya">Berikut →</button>
+          <span id="exportStatus" class="sr-only" aria-live="polite"></span>
         </nav>
       </div>
     </div>
   </main>
   <script src="js/data.js"></script>
+  <script src="js/dom-to-pptx.bundle.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
