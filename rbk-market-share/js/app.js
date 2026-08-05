@@ -1048,8 +1048,9 @@
     const presetBtn = document.getElementById("presetMoewardiBtn");
     if (presetBtn) {
       presetBtn.addEventListener("click", () => {
+        console.log("Preset Moewardi clicked!");
         const moewardiProvTerms = ['DI YOGYAKARTA', 'JAWA TENGAH', 'JAWA TIMUR', 'DIY'];
-        const moewardiCityTerms = ['SURAKARTA', 'SUKOHARJO', 'KARANGANYAR', 'SRAGEN', 'BOYOLALI', 'WONOGIRI', 'KLATEN', 'PACITAN', 'NGAWI', 'MADIUN', 'YOGYAKARTA', 'SLEMAN', 'SEMARANG'];
+        const moewardiCityTerms = ['SURAKARTA', 'SUKOHARJO', 'KARANGANYAR', 'SRAGEN', 'BOYOLALI', 'WONOGIRI', 'KLATEN', 'PACITAN', 'NGAWI', 'MADIUN', 'YOGYAKARTA', 'SLEMAN', 'SEMARANG', 'KARANGASEM'];
         
         document.querySelectorAll('#provDropdown input[type="checkbox"], #cityDropdown input[type="checkbox"]').forEach(cb => cb.checked = false);
         
