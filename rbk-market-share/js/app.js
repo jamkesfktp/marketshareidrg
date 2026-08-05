@@ -34,7 +34,7 @@
     selectedService: data.services.includes("JIWA") ? "JIWA" : data.services[0],
     selectedSeverity: 4,
     targetShare: 50,
-    scenarios: [100, 75, 50, 25, 15, 0],
+    scenarios: [100, 75, 50, 25, 15, 0].map(val => ({ tambah: val, kurang: val })),
     globalRates: {
       capture: { 1: 0, 2: 0, 3: 20, 4: 20 },
       retention: { 1: 50, 2: 50, 3: 100, 4: 100 },
@@ -590,12 +590,13 @@
     const existingIna = target.total[INA];
     const existingKasus = target.total[CASES];
 
-    const generateRow = (index, pct) => {
-      const p = pct / 100;
-      const tambahKasus = baseTambahanKasus * p;
-      const tambahRp = baseTambahanPendapatan * p;
-      const kurangKasus = basePenguranganKasus * p;
-      const kurangRp = basePenguranganPendapatan * p;
+    const generateRow = (index, scn) => {
+      const pTambah = scn.tambah / 100;
+      const pKurang = scn.kurang / 100;
+      const tambahKasus = baseTambahanKasus * pTambah;
+      const tambahRp = baseTambahanPendapatan * pTambah;
+      const kurangKasus = basePenguranganKasus * pKurang;
+      const kurangRp = basePenguranganPendapatan * pKurang;
       
       const netKasus = tambahKasus - kurangKasus;
       const pctNetKasus = existingKasus ? netKasus / existingKasus : 0;
@@ -605,10 +606,10 @@
 
       return `<tr>
         <td style="font-weight: 700; text-align: left; padding-left: 10px; background-color: #f8f9fa;">Skenario ${index + 1}</td>
-        <td class="b-left-green b-top-green b-bottom-green"><input type="number" class="scenario-input" data-index="${index}" value="${pct}"></td>
+        <td class="b-left-green b-top-green b-bottom-green"><input type="number" class="scenario-input" data-index="${index}" data-type="tambah" value="${scn.tambah}"></td>
         <td class="b-top-green b-bottom-green">${formatNumber(tambahKasus)}</td>
         <td class="b-right-green b-top-green b-bottom-green">${formatMatrixMoney(tambahRp)}</td>
-        <td class="b-left-red b-top-red b-bottom-red"><input type="number" class="scenario-input" disabled value="${pct}" style="background:transparent; border:none; color:#333;"></td>
+        <td class="b-left-red b-top-red b-bottom-red"><input type="number" class="scenario-input" data-index="${index}" data-type="kurang" value="${scn.kurang}"></td>
         <td class="b-top-red b-bottom-red">${formatNumber(kurangKasus)}</td>
         <td class="b-right-red b-top-red b-bottom-red">${formatMatrixMoney(kurangRp)}</td>
         <td>${formatSignedNumber(netKasus)}</td>
@@ -653,16 +654,21 @@
           </tr>
         </thead>
         <tbody>
-          ${state.scenarios.map((pct, i) => generateRow(i, pct)).join("")}
+          ${state.scenarios.map((scn, i) => generateRow(i, scn)).join("")}
         </tbody>
       </table>
     `;
 
-    document.querySelectorAll('.scenario-input:not([disabled])').forEach(input => {
+    document.querySelectorAll('.scenario-input').forEach(input => {
       input.addEventListener('change', (e) => {
         const idx = e.target.dataset.index;
+        const type = e.target.dataset.type;
         const val = parseFloat(e.target.value) || 0;
-        state.scenarios[idx] = val;
+        if (type === "tambah") {
+          state.scenarios[idx].tambah = val;
+        } else {
+          state.scenarios[idx].kurang = val;
+        }
         renderScenarioSlide();
       });
     });
@@ -1060,6 +1066,16 @@
             cb.checked = true;
           }
         });
+
+        // Set Target RS ke RS Moewardi
+        if (originalData.hospitals.some(h => h.code === "3372015")) {
+          state.targetCode = "3372015";
+          const input = document.getElementById("targetHospitalInput");
+          if (input) {
+            const h = originalData.hospitals.find(h => h.code === "3372015");
+            input.value = `${h.name} · ${h.city}`;
+          }
+        }
 
         applyFilters();
         updateButtonLabels();
