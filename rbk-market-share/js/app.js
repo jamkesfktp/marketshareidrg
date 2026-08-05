@@ -939,7 +939,7 @@
     if (presetBtn) {
       presetBtn.addEventListener("click", () => {
         const moewardiProvTerms = ['DI YOGYAKARTA', 'JAWA TENGAH', 'JAWA TIMUR', 'DIY'];
-        const moewardiCityTerms = ['SURAKARTA', 'SUKOHARJO', 'KARANGANYAR', 'SRAGEN', 'BOYOLALI', 'WONOGIRI', 'KLATEN', 'PACITAN', 'NGAWI', 'MADIUN', 'YOGYAKARTA', 'SLEMAN', 'SEMARANG', 'KARANG ASEM', 'KARANGASEM'];
+        const moewardiCityTerms = ['SURAKARTA', 'SUKOHARJO', 'KARANGANYAR', 'SRAGEN', 'BOYOLALI', 'WONOGIRI', 'KLATEN', 'PACITAN', 'NGAWI', 'MADIUN', 'YOGYAKARTA', 'SLEMAN', 'SEMARANG'];
         
         document.querySelectorAll('#provDropdown input[type="checkbox"], #cityDropdown input[type="checkbox"]').forEach(cb => cb.checked = false);
         
@@ -953,6 +953,37 @@
         document.querySelectorAll('#cityDropdown input[type="checkbox"]').forEach(cb => {
           const val = cb.value.toUpperCase();
           if (moewardiCityTerms.some(term => val.includes(term))) {
+            cb.checked = true;
+          }
+        });
+
+        applyFilters();
+        updateButtonLabels();
+      });
+    }
+
+    // Preset Jabar EX BEBODEPOK logic
+    const presetJabarBtn = document.getElementById("presetJabarBtn");
+    if (presetJabarBtn) {
+      presetJabarBtn.addEventListener("click", () => {
+        const excludedTerms = ['BEKASI', 'BOGOR', 'DEPOK'];
+        const jabarCities = Array.from(new Set(
+          data.hospitals
+            .filter(h => h.province && h.province.toUpperCase() === 'JAWA BARAT')
+            .map(h => h.city.toUpperCase())
+        ));
+        const includedCities = jabarCities.filter(city => !excludedTerms.some(term => city.includes(term)));
+        
+        document.querySelectorAll('#provDropdown input[type="checkbox"], #cityDropdown input[type="checkbox"]').forEach(cb => cb.checked = false);
+        
+        document.querySelectorAll('#provDropdown input[type="checkbox"]').forEach(cb => {
+          if (cb.value.toUpperCase() === 'JAWA BARAT') {
+            cb.checked = true;
+          }
+        });
+
+        document.querySelectorAll('#cityDropdown input[type="checkbox"]').forEach(cb => {
+          if (includedCities.includes(cb.value.toUpperCase())) {
             cb.checked = true;
           }
         });
