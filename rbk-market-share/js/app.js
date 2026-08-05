@@ -371,18 +371,28 @@
       <div class="existing-matrix-wrap">
         <table class="existing-matrix-table comparison-matrix-table" aria-label="Perbandingan kasus dan iDRG RS target dengan RS lainnya per layanan dan tingkat keparahan">
           <thead>
-            <tr><th rowspan="3" class="matrix-no">No</th><th rowspan="3" class="matrix-service">Layanan RS</th><th rowspan="3" class="matrix-competency">Kompetensi</th><th colspan="8" class="comparison-target-heading">${escapeHtml(target.name)}</th><th colspan="8" class="comparison-other-heading">RS lainnya</th></tr>
-            <tr>${severityRanks.map((rank) => `<th colspan="2" class="comparison-target">${levelNames[rank]}</th>`).join("")}${severityRanks.map((rank) => `<th colspan="2" class="comparison-other ${rank === 1 ? "comparison-other-start" : ""}">${levelNames[rank]}</th>`).join("")}</tr>
-            <tr>${severityRanks.map(() => `<th class="comparison-target">Kasus</th><th class="comparison-target">iDRG</th>`).join("")}${severityRanks.map((rank) => `<th class="comparison-other ${rank === 1 ? "comparison-other-start" : ""}">Kasus</th><th class="comparison-other">iDRG</th>`).join("")}</tr>
+            <tr><th rowspan="2" class="matrix-no">No</th><th rowspan="2" class="matrix-service">Layanan RS</th><th rowspan="2" class="matrix-competency">Kompetensi</th>${severityRanks.map((rank) => `<th colspan="4" class="comparison-target-heading" style="border-left: 2px solid #007b83;">${levelNames[rank]}</th>`).join("")}</tr>
+            <tr>${severityRanks.map((rank) => `<th class="comparison-target" style="border-left: 2px solid #007b83;">Kasus RS</th><th class="comparison-other">Kasus Regional</th><th class="comparison-target">iDRG RS</th><th class="comparison-other">iDRG Regional</th>`).join("")}</tr>
           </thead>
           <tbody>
             ${data.services.map((service, index) => {
               const targetItem = target.services?.[service];
               const competency = getCompetency(target, service);
-              return `<tr><td class="matrix-no">${index + 1}</td><td class="matrix-service">${escapeHtml(formatService(service))}</td><td class="matrix-competency">${levelNames[competency]}</td>${metricCells((rank) => severityMetric(targetItem, rank), "comparison-target")}${metricCells((rank) => subtractMetrics(severityMetric(regionalService(service), rank), severityMetric(targetItem, rank)), "comparison-other")}</tr>`;
+              
+              const combinedCells = severityRanks.map(rank => {
+                const targetVal = severityMetric(targetItem, rank);
+                const otherVal = subtractMetrics(severityMetric(regionalService(service), rank), severityMetric(targetItem, rank));
+                return `<td class="num comparison-target" style="border-left: 2px solid #007b83;">${displayCases(targetVal[CASES])}</td><td class="num comparison-other">${displayCases(otherVal[CASES])}</td><td class="num comparison-target">${displayMoney(targetVal[IDRG])}</td><td class="num comparison-other">${displayMoney(otherVal[IDRG])}</td>`;
+              }).join("");
+              
+              return `<tr><td class="matrix-no">${index + 1}</td><td class="matrix-service">${escapeHtml(formatService(service))}</td><td class="matrix-competency">${levelNames[competency]}</td>${combinedCells}</tr>`;
             }).join("")}
           </tbody>
-          <tfoot><tr><td></td><td colspan="2">Total D–M–U–P</td>${metricCells((rank) => targetSeverityTotals[rank], "comparison-target")}${metricCells((rank) => otherSeverityTotals[rank], "comparison-other")}</tr></tfoot>
+          <tfoot><tr><td></td><td colspan="2">Total D–M–U–P</td>${severityRanks.map(rank => {
+            const targetVal = targetSeverityTotals[rank];
+            const otherVal = otherSeverityTotals[rank];
+            return `<td class="num comparison-target" style="border-left: 2px solid #007b83;">${displayCases(targetVal[CASES])}</td><td class="num comparison-other">${displayCases(otherVal[CASES])}</td><td class="num comparison-target">${displayMoney(targetVal[IDRG])}</td><td class="num comparison-other">${displayMoney(otherVal[IDRG])}</td>`;
+          }).join("")}</tr></tfoot>
         </table>
       </div>`;
   }
@@ -667,18 +677,76 @@
     document.querySelectorAll(".slide-dot").forEach((dot, dotIndex) => dot.classList.toggle("is-active", dotIndex === state.activeSlide));
   }
 
+  let isHospitalSearchSetup = false;
+
   function populateHospitalSelector() {
-    const selector = document.getElementById("targetHospital");
-    selector.innerHTML = data.hospitals.map((hospital) => `<option value="${escapeHtml(hospital.code)}" ${hospital.code === state.targetCode ? "selected" : ""}>${escapeHtml(hospital.name)} · ${escapeHtml(hospital.city)}</option>`).join("");
-    selector.onchange = () => {
-      state.targetCode = selector.value;
-      const target = targetHospital();
-      if (!getCompetency(target, state.selectedService)) {
-        state.selectedService = data.services.find((service) => getCompetency(target, service) > 0) || data.services[0];
-      }
-      state.selectedSeverity = getCompetency(target, state.selectedService) || 1;
-      renderAll();
+    const input = document.getElementById("targetHospitalInput");
+    const dropdown = document.getElementById("targetHospitalDropdown");
+    
+    if (!input || !dropdown) return;
+
+    window.renderHospitalList = (searchTerm = "") => {
+      const term = searchTerm.toLowerCase();
+      const filtered = data.hospitals.filter(h => 
+        h.name.toLowerCase().includes(term) || h.city.toLowerCase().includes(term) || h.code.toLowerCase().includes(term)
+      );
+      
+      dropdown.innerHTML = filtered.map(hospital => `
+        <div class="search-select-item ${hospital.code === state.targetCode ? 'is-active' : ''}" data-code="${escapeHtml(hospital.code)}">
+          <strong>${escapeHtml(hospital.name)}</strong>
+          <span>${escapeHtml(hospital.city)}</span>
+        </div>
+      `).join("");
+      
+      dropdown.querySelectorAll(".search-select-item").forEach(item => {
+        item.addEventListener("click", () => {
+          state.targetCode = item.dataset.code;
+          const target = targetHospital();
+          input.value = `${target.name} · ${target.city}`;
+          dropdown.classList.remove("is-open");
+          
+          if (!getCompetency(target, state.selectedService)) {
+            state.selectedService = data.services.find((service) => getCompetency(target, service) > 0) || data.services[0];
+          }
+          state.selectedSeverity = getCompetency(target, state.selectedService) || 1;
+          renderAll();
+          window.renderHospitalList();
+        });
+      });
     };
+
+    window.renderHospitalList();
+
+    const target = targetHospital();
+    if (target) {
+      input.value = `${target.name} · ${target.city}`;
+    } else {
+      input.value = "";
+    }
+
+    if (!isHospitalSearchSetup) {
+      isHospitalSearchSetup = true;
+      input.addEventListener("input", (e) => {
+        dropdown.classList.add("is-open");
+        window.renderHospitalList(e.target.value);
+      });
+      
+      input.addEventListener("focus", () => {
+        dropdown.classList.add("is-open");
+        window.renderHospitalList(""); 
+        input.select();
+      });
+
+      document.addEventListener("click", (e) => {
+        if (!e.target.closest("#hospitalSelectWrapper")) {
+          dropdown.classList.remove("is-open");
+          const currentTarget = targetHospital();
+          if (currentTarget) {
+            input.value = `${currentTarget.name} · ${currentTarget.city}`;
+          }
+        }
+      });
+    }
   }
 
   function populateSlideDots() {

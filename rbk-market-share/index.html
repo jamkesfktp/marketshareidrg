@@ -19,10 +19,13 @@
             </div>
           </div>
           <div class="toolbar-controls">
-            <label class="target-picker" for="targetHospital">
+            <div class="target-picker custom-search-select" id="hospitalSelectWrapper">
               <span>RS target simulasi</span>
-              <select id="targetHospital" aria-label="Pilih rumah sakit target"></select>
-            </label>
+              <div class="search-select-container">
+                <input type="text" id="targetHospitalInput" placeholder="Cari RS (nama/kota)..." autocomplete="off" aria-label="Cari RS target">
+                <div class="search-select-dropdown" id="targetHospitalDropdown"></div>
+              </div>
+            </div>
             <div class="target-picker filter-picker custom-multi">
               <span>Filter Provinsi</span>
               <div class="multi-select-container" id="provContainer">
