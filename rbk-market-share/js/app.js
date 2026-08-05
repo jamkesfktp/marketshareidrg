@@ -679,8 +679,17 @@
     const target = targetHospital();
     if (!target) return;
     
-    const container = document.getElementById("dynamicServiceSlides");
-    if (!container) return;
+    let container = document.getElementById("dynamicServiceSlides");
+    if (!container) {
+      container = document.createElement("div");
+      container.id = "dynamicServiceSlides";
+      const stack = document.querySelector(".slide-stack");
+      if (stack) {
+        stack.appendChild(container);
+      } else {
+        return;
+      }
+    }
     
     // Extract available services for the target hospital
     const availableServices = data.services.filter(service => getCompetency(target, service) > 0);
@@ -1063,7 +1072,7 @@
     exportStage.className = "pptx-export-stage";
     exportStage.setAttribute("aria-hidden", "true");
     const headerSource = document.querySelector(".global-toolbar");
-    const sourceSlides = [...document.querySelectorAll(".slide-stack > .slide")];
+    const sourceSlides = [...document.querySelectorAll(".slide")];
     const target = targetHospital();
 
     const pages = sourceSlides.map((sourceSlide, index) => {
