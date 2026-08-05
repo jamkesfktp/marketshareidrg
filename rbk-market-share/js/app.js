@@ -890,14 +890,40 @@
     
     const buildCheckboxes = (items, container, filterType) => {
       if (!container) return;
-      container.innerHTML = items.map(item => `
-        <label class="checkbox-label">
+      
+      const searchHtml = `
+        <div class="multi-select-search-container">
+          <input type="text" class="multi-select-search" placeholder="Cari..." autocomplete="off">
+        </div>
+        <div class="multi-select-options">
+      `;
+      
+      const optionsHtml = items.map(item => `
+        <label class="checkbox-label" data-search="${escapeHtml(item.toLowerCase())}">
           <input type="checkbox" value="${escapeHtml(item)}" data-filter="${filterType}">
           <span>${escapeHtml(item)}</span>
         </label>
       `).join("");
       
-      container.querySelectorAll('input').forEach(input => {
+      container.innerHTML = searchHtml + optionsHtml + `</div>`;
+      
+      const searchInput = container.querySelector('.multi-select-search');
+      const labels = container.querySelectorAll('.checkbox-label');
+      
+      searchInput.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        labels.forEach(label => {
+          if (label.dataset.search.includes(term)) {
+            label.style.display = 'flex';
+          } else {
+            label.style.display = 'none';
+          }
+        });
+      });
+
+      searchInput.addEventListener('click', (e) => e.stopPropagation());
+      
+      container.querySelectorAll('input[type="checkbox"]').forEach(input => {
         input.addEventListener('change', () => {
           applyFilters();
           updateButtonLabels();
