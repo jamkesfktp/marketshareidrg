@@ -717,8 +717,8 @@
       
       // Sama seperti slide 9, base tambahan = external, base pengurangan = existing target
       // External = regional - targetExisting
-      const targetKasusArr = target.services[service] ? metric(target.services[service].total) : [0,0,0];
-      const regionalKasusArr = data.regional.services[service] ? metric(data.regional.services[service].total) : [0,0,0];
+      const targetKasusArr = target.services[service] ? target.services[service].total : [0,0,0];
+      const regionalKasusArr = data.regional.services[service] ? data.regional.services[service].total : [0,0,0];
       const externalKasus = Math.max(0, regionalKasusArr[CASES] - targetKasusArr[CASES]);
       const externalIdrg = Math.max(0, regionalKasusArr[IDRG] - targetKasusArr[IDRG]);
       
