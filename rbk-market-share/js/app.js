@@ -1,8 +1,9 @@
 (function marketShareSimulator() {
   "use strict";
 
-  const data = window.marketSimulatorData;
-  if (!data) throw new Error("Dataset simulator tidak tersedia.");
+  const originalData = window.marketSimulatorData;
+  if (!originalData) throw new Error("Dataset simulator tidak tersedia.");
+  let data = originalData;
 
   const CASES = 0;
   const INA = 1;
@@ -10,14 +11,22 @@
   const severityRanks = [1, 2, 3, 4];
   const levelNames = { 0: "Tidak terpetakan", 1: "Dasar", 2: "Madya", 3: "Utama", 4: "Paripurna" };
   const shortLevelNames = { 1: "D", 2: "M", 3: "U", 4: "P" };
-  const hospitalByCode = new Map(data.hospitals.map((hospital) => [hospital.code, hospital]));
-  const hospitalClassCounts = ["A", "B", "C", "D"].reduce((counts, className) => {
-    counts[className] = data.hospitals.filter((hospital) => String(hospital.class || "").trim().toUpperCase() === className).length;
-    return counts;
-  }, {});
+  
+  let hospitalByCode = new Map();
+  let hospitalClassCounts = {};
+  
+  function updateDataState() {
+    hospitalByCode = new Map(data.hospitals.map((hospital) => [hospital.code, hospital]));
+    hospitalClassCounts = ["A", "B", "C", "D"].reduce((counts, className) => {
+      counts[className] = data.hospitals.filter((hospital) => String(hospital.class || "").trim().toUpperCase() === className).length;
+      return counts;
+    }, {});
+  }
+  updateDataState();
+  
   const defaultTarget = hospitalByCode.has(data.meta.defaultTargetCode)
     ? data.meta.defaultTargetCode
-    : data.hospitals[0]?.code;
+    : (data.hospitals.length > 0 ? data.hospitals[0].code : "");
 
   const state = {
     targetCode: defaultTarget,
@@ -83,6 +92,16 @@
     if (absolute >= 1e9) return `${sign}Rp${compactFormatter.format(absolute / 1e9)} M`;
     if (absolute >= 1e6) return `${sign}Rp${compactFormatter.format(absolute / 1e6)} Jt`;
     return `${sign}Rp${numberFormatter.format(absolute)}`;
+  };
+  const formatMatrixMoney = (value) => {
+    const numeric = Number(value) || 0;
+    const absolute = Math.abs(numeric);
+    const sign = numeric < 0 ? "−" : "";
+    if (absolute >= 1e12) return `${sign}${compactFormatter.format(absolute / 1e12)} T`;
+    if (absolute >= 1e9) return `${sign}${compactFormatter.format(absolute / 1e9)} M`;
+    if (absolute >= 1e6) return `${sign}${compactFormatter.format(absolute / 1e6)} JT`;
+    if (absolute >= 1e3) return `${sign}${compactFormatter.format(absolute / 1e3)} RB`;
+    return `${sign}${numberFormatter.format(absolute)}`;
   };
   const formatPercent = (value) => `${decimalFormatter.format((Number(value) || 0) * 100)}%`;
 
@@ -229,54 +248,42 @@
   function renderExistingSlide() {
     const target = targetHospital();
     const delta = target.total[IDRG] - target.total[INA];
-    const maxSeverityCases = Math.max(...severityRanks.map((rank) => severityMetric(target, rank)[CASES]), 1);
-    const topServices = Object.entries(target.services)
-      .map(([service, item]) => ({ service, item }))
-      .sort((a, b) => b.item.total[CASES] - a.item.total[CASES])
-      .slice(0, 4);
-    const mappedCount = data.services.filter((service) => getCompetency(target, service) > 0).length;
+    const deltaPercent = target.total[INA] ? delta / target.total[INA] : 0;
+    const unclassifiedCases = metric(target.unclassified)[CASES];
+    const severityTotals = Object.fromEntries(severityRanks.map((rank) => [rank,
+      sumMetrics(data.services.map((service) => severityMetric(target.services?.[service], rank))),
+    ]));
+    const rankedServices = data.services
+      .map((service) => ({ service, total: metric(target.services?.[service]?.total) }))
+      .sort((a, b) => b.total[CASES] - a.total[CASES] || a.service.localeCompare(b.service));
+    const displayCases = (value) => value ? formatNumber(value) : "—";
+    const displayMoney = (value) => value ? formatMatrixMoney(value) : "—";
 
-    document.getElementById("slide1Title").textContent = `Profil eksisting ${target.name}`;
-    document.getElementById("slide1Subtitle").textContent = `${target.city} · kelas ${target.class || "—"} · kode RS ${target.code}`;
+    document.getElementById("slide1Title").textContent = `Kasus Eksisting Per Layanan - ${target.name}`;
     document.getElementById("existingSlide").innerHTML = `
-      <div class="kpi-grid">
-        <article class="kpi-card is-primary"><div class="kpi-label">Kasus eksisting</div><div class="kpi-value">${formatNumber(target.total[CASES])}</div><div class="kpi-note">Seluruh layanan dan tingkat keparahan</div></article>
-        <article class="kpi-card"><div class="kpi-label">Pendapatan INA-CBG</div><div class="kpi-value">${formatMoney(target.total[INA])}</div><div class="kpi-note">Baseline klaim</div></article>
-        <article class="kpi-card"><div class="kpi-label">Pendapatan iDRG</div><div class="kpi-value">${formatMoney(target.total[IDRG])}</div><div class="kpi-note">Skenario 2 workbook</div></article>
-        <article class="kpi-card ${delta < 0 ? "is-negative" : "is-positive"}"><div class="kpi-label">Selisih iDRG vs INA-CBG</div><div class="kpi-value">${formatMoney(delta)}</div><div class="kpi-note">${formatPercent(target.total[INA] ? delta / target.total[INA] : 0)}</div></article>
+      <div class="existing-report-kpis">
+        <article class="existing-report-kpi kpi-cases"><span>Total Kasus:</span><strong>${formatNumber(target.total[CASES])}</strong><em>Jumlah kasus eklaim</em></article>
+        <article class="existing-report-kpi kpi-ina"><span>Pendapatan INA-CBG:</span><strong>${formatMoney(target.total[INA])}</strong><em>Dari data 8 bulan</em></article>
+        <article class="existing-report-kpi kpi-idrg"><span>Pendapatan iDRG:</span><strong>${formatMoney(target.total[IDRG])}</strong><em>Klaim uji coba iDRG</em></article>
+        <article class="existing-report-kpi kpi-difference ${delta < 0 ? "is-loss" : "is-gain"}"><span>Selisih Pendapatan:</span><strong>${formatMoney(delta)}</strong><em>iDRG − INA-CBG</em></article>
+        <article class="existing-report-kpi kpi-percentage ${delta < 0 ? "is-loss" : "is-gain"}"><span>Persentase:</span><strong>${formatPercent(deltaPercent)}</strong><em>Dari pendapatan INA-CBG</em></article>
       </div>
-      <div class="two-column existing-layout">
-        <article class="panel profile-panel">
-          <div class="hospital-identity"><span class="hospital-icon" aria-hidden="true">✚</span><div><h2>${escapeHtml(target.name)}</h2><p>${escapeHtml(target.city)}, ${escapeHtml(target.province)}</p></div></div>
-          <div>
-            <div class="fact-grid">
-              <div class="fact"><span>Kelas RS</span><strong>Kelas ${escapeHtml(target.class || "—")}</strong></div>
-              <div class="fact"><span>Cakupan layanan</span><strong>${mappedCount}/24</strong></div>
-            </div>
-            <div class="panel-heading" style="margin-top:18px"><h2>Kasus menurut keparahan</h2><span>D–M–U–P</span></div>
-            <div class="severity-bars">
-              ${severityRanks.map((rank) => {
-                const cases = severityMetric(target, rank)[CASES];
-                return `<div class="metric-bar-row"><span>${levelNames[rank]}</span><div class="bar-track"><div class="bar-fill level-${rank}" style="width:${Math.max((cases / maxSeverityCases) * 100, cases ? 1 : 0)}%"></div></div><strong>${formatNumber(cases)}</strong></div>`;
-              }).join("")}
-            </div>
-          </div>
-          <div class="profile-note"><strong>${formatNumber(metric(target.unclassified)[CASES])} kasus</strong> belum memiliki klasifikasi tingkat keparahan ICD dan dipertahankan sebagai baseline, tetapi tidak masuk pool capture D–M–U–P.</div>
-        </article>
-        <div class="existing-right">
-          <article class="panel">
-            <div class="panel-heading"><h2>Peta kompetensi 24 layanan</h2><span>${mappedCount} terpetakan · ${24 - mappedCount} belum terpetakan</span></div>
-            <div class="competency-grid">
-              ${data.services.map((service) => `<div class="competency-row"><span>${escapeHtml(formatService(service))}</span>${levelBadge(getCompetency(target, service))}</div>`).join("")}
-            </div>
-          </article>
-          <article class="panel">
-            <div class="panel-heading"><h2>Empat layanan dengan kasus terbesar</h2><span>Eksisting RS target</span></div>
-            <table class="compact-table"><thead><tr><th>Layanan</th><th class="num">Kasus</th><th class="num">iDRG</th><th>Kompetensi</th></tr></thead><tbody>
-              ${topServices.map(({ service, item }) => `<tr><td class="service-name">${escapeHtml(formatService(service))}</td><td class="num">${formatNumber(item.total[CASES])}</td><td class="num">${formatMoney(item.total[IDRG])}</td><td>${levelBadge(item.competency)}</td></tr>`).join("")}
-            </tbody></table>
-          </article>
-        </div>
+      <div class="existing-matrix-wrap">
+        <table class="existing-matrix-table" aria-label="Kasus eksisting per layanan diurutkan berdasarkan persentase kasus terbesar">
+          <thead>
+            <tr><th rowspan="2" class="matrix-no">No</th><th rowspan="2" class="matrix-service">Layanan RS</th><th rowspan="2" class="matrix-competency">Kompetensi</th><th rowspan="2" class="matrix-total matrix-summary">Total Kasus</th><th rowspan="2" class="matrix-share matrix-summary">% Kasus</th><th rowspan="2" class="matrix-total-ina matrix-summary">Total INA-CBG</th><th rowspan="2" class="matrix-total-idrg matrix-summary">Total iDRG</th>${severityRanks.map((rank) => `<th colspan="3">${levelNames[rank]}</th>`).join("")}</tr>
+            <tr>${severityRanks.map(() => `<th>Kasus</th><th>INA-CBG</th><th>iDRG</th>`).join("")}</tr>
+          </thead>
+          <tbody>
+            ${rankedServices.map(({ service, total }, index) => {
+              const item = target.services?.[service];
+              const competency = getCompetency(target, service);
+              const caseShare = target.total[CASES] ? total[CASES] / target.total[CASES] : 0;
+              return `<tr><td class="matrix-no">${index + 1}</td><td class="matrix-service">${escapeHtml(formatService(service))}</td><td class="matrix-competency">${levelNames[competency]}</td><td class="matrix-total matrix-summary num">${displayCases(total[CASES])}</td><td class="matrix-share matrix-summary num">${formatPercent(caseShare)}</td><td class="matrix-total-ina matrix-summary num">${displayMoney(total[INA])}</td><td class="matrix-total-idrg matrix-summary num">${displayMoney(total[IDRG])}</td>${severityRanks.map((rank) => { const value = severityMetric(item, rank); return `<td class="num">${displayCases(value[CASES])}</td><td class="num">${displayMoney(value[INA])}</td><td class="num">${displayMoney(value[IDRG])}</td>`; }).join("")}</tr>`;
+            }).join("")}
+          </tbody>
+          <tfoot><tr><td></td><td colspan="2">Total D–M–U–P · ${formatNumber(unclassifiedCases)} kasus belum terklasifikasi</td><td class="matrix-total matrix-summary num">${formatNumber(target.total[CASES])}</td><td class="matrix-share matrix-summary num">100%</td><td class="matrix-total-ina matrix-summary num">${formatMatrixMoney(target.total[INA])}</td><td class="matrix-total-idrg matrix-summary num">${formatMatrixMoney(target.total[IDRG])}</td>${severityRanks.map((rank) => { const value = severityTotals[rank]; return `<td class="num">${formatNumber(value[CASES])}</td><td class="num">${formatMatrixMoney(value[INA])}</td><td class="num">${formatMatrixMoney(value[IDRG])}</td>`; }).join("")}</tr></tfoot>
+        </table>
       </div>`;
   }
 
@@ -327,10 +334,93 @@
         <article class="kpi-card"><div class="kpi-label">Layanan terpetakan</div><div class="kpi-value">${result.mappedServices}/24</div><div class="kpi-note">Kemampuan target pada sumber</div></article>
       </div>
       <article class="panel addressable-table-panel">
-        <div class="table-wrap"><table class="compact-table"><thead><tr><th>Layanan</th><th>Kompetensi target</th><th>Keparahan yang mampu dilayani</th><th class="num">Kasus regional eligible</th><th class="num">Eksisting eligible</th><th class="num">External pool</th><th class="num">iDRG external</th><th class="num">Kompetitor setara</th></tr></thead><tbody>
+        <div class="table-wrap addressable-table-wrap"><table class="compact-table addressable-matrix-table"><colgroup><col class="addressable-service-col"><col class="addressable-competency-col"><col class="addressable-capability-col"><col class="addressable-number-col"><col class="addressable-number-col"><col class="addressable-number-col"><col class="addressable-money-col"><col class="addressable-competitor-col"></colgroup><thead><tr><th>Layanan</th><th>Kompetensi target</th><th>Keparahan yang mampu dilayani</th><th class="num">Kasus regional eligible</th><th class="num">Eksisting eligible</th><th class="num">External pool</th><th class="num">iDRG external</th><th class="num">Kompetitor setara</th></tr></thead><tbody>
           ${result.rows.map((row) => `<tr class="${row.competency ? "" : "is-disabled"}"><td class="service-name">${escapeHtml(formatService(row.service))}</td><td>${levelBadge(row.competency)}</td><td>${capabilityCells(row.competency)}</td><td class="num">${formatNumber(row.eligibleRegional[CASES])}</td><td class="num">${formatNumber(row.eligibleExisting[CASES])}</td><td class="num">${formatNumber(row.external[CASES])}</td><td class="num">${formatMoney(row.external[IDRG])}</td><td class="num">${formatNumber(row.competitors)}</td></tr>`).join("")}
         </tbody></table></div>
       </article>`;
+  }
+
+  function renderComparisonSlide() {
+    const target = targetHospital();
+    const regionalTotal = metric(data.regional.total);
+    const delta = regionalTotal[IDRG] - regionalTotal[INA];
+    const deltaPercent = regionalTotal[INA] ? delta / regionalTotal[INA] : 0;
+    const targetSeverityTotals = Object.fromEntries(severityRanks.map((rank) => [rank,
+      sumMetrics(data.services.map((service) => severityMetric(target.services?.[service], rank))),
+    ]));
+    const otherSeverityTotals = Object.fromEntries(severityRanks.map((rank) => [rank,
+      subtractMetrics(severityMetric(data.regional, rank), targetSeverityTotals[rank]),
+    ]));
+    const displayCases = (value) => value ? formatNumber(value) : "—";
+    const displayMoney = (value) => value ? formatMatrixMoney(value) : "—";
+    const metricCells = (item, sideClass) => severityRanks.map((rank) => {
+      const value = item(rank);
+      const startClass = rank === 1 ? ` ${sideClass}-start` : "";
+      return `<td class="num ${sideClass}${startClass}">${displayCases(value[CASES])}</td><td class="num ${sideClass}">${displayMoney(value[IDRG])}</td>`;
+    }).join("");
+
+    document.getElementById("comparisonSlideTitle").textContent = `Kasus Target vs RS Lain Per Layanan - ${target.name}`;
+    document.getElementById("comparisonSlide").innerHTML = `
+      <div class="existing-report-kpis">
+        <article class="existing-report-kpi kpi-cases"><span>Total Kasus Regional:</span><strong>${formatNumber(regionalTotal[CASES])}</strong><em>Seluruh rumah sakit regional</em></article>
+        <article class="existing-report-kpi kpi-ina"><span>INA-CBG Regional:</span><strong>${formatMoney(regionalTotal[INA])}</strong><em>Pendapatan regional</em></article>
+        <article class="existing-report-kpi kpi-idrg"><span>iDRG Regional:</span><strong>${formatMoney(regionalTotal[IDRG])}</strong><em>Potensi pendapatan regional</em></article>
+        <article class="existing-report-kpi kpi-difference ${delta < 0 ? "is-loss" : "is-gain"}"><span>Selisih Regional:</span><strong>${formatMoney(delta)}</strong><em>iDRG - INA-CBG regional</em></article>
+        <article class="existing-report-kpi kpi-percentage ${delta < 0 ? "is-loss" : "is-gain"}"><span>Persentase Regional:</span><strong>${formatPercent(deltaPercent)}</strong><em>Dari pendapatan INA-CBG regional</em></article>
+      </div>
+      <div class="existing-matrix-wrap">
+        <table class="existing-matrix-table comparison-matrix-table" aria-label="Perbandingan kasus dan iDRG RS target dengan RS lainnya per layanan dan tingkat keparahan">
+          <thead>
+            <tr><th rowspan="3" class="matrix-no">No</th><th rowspan="3" class="matrix-service">Layanan RS</th><th rowspan="3" class="matrix-competency">Kompetensi</th><th colspan="8" class="comparison-target-heading">${escapeHtml(target.name)}</th><th colspan="8" class="comparison-other-heading">RS lainnya</th></tr>
+            <tr>${severityRanks.map((rank) => `<th colspan="2" class="comparison-target">${levelNames[rank]}</th>`).join("")}${severityRanks.map((rank) => `<th colspan="2" class="comparison-other ${rank === 1 ? "comparison-other-start" : ""}">${levelNames[rank]}</th>`).join("")}</tr>
+            <tr>${severityRanks.map(() => `<th class="comparison-target">Kasus</th><th class="comparison-target">iDRG</th>`).join("")}${severityRanks.map((rank) => `<th class="comparison-other ${rank === 1 ? "comparison-other-start" : ""}">Kasus</th><th class="comparison-other">iDRG</th>`).join("")}</tr>
+          </thead>
+          <tbody>
+            ${data.services.map((service, index) => {
+              const targetItem = target.services?.[service];
+              const competency = getCompetency(target, service);
+              return `<tr><td class="matrix-no">${index + 1}</td><td class="matrix-service">${escapeHtml(formatService(service))}</td><td class="matrix-competency">${levelNames[competency]}</td>${metricCells((rank) => severityMetric(targetItem, rank), "comparison-target")}${metricCells((rank) => subtractMetrics(severityMetric(regionalService(service), rank), severityMetric(targetItem, rank)), "comparison-other")}</tr>`;
+            }).join("")}
+          </tbody>
+          <tfoot><tr><td></td><td colspan="2">Total D–M–U–P</td>${metricCells((rank) => targetSeverityTotals[rank], "comparison-target")}${metricCells((rank) => otherSeverityTotals[rank], "comparison-other")}</tr></tfoot>
+        </table>
+      </div>`;
+  }
+
+  function renderRegionalProfileSlide() {
+    const target = targetHospital();
+    const classifiedCases = sumMetrics(severityRanks.map((rank) => severityMetric(data.regional, rank)))[CASES];
+    const leadingSeverity = severityRanks
+      .map((rank) => ({ rank, value: severityMetric(data.regional, rank) }))
+      .sort((a, b) => b.value[CASES] - a.value[CASES])[0];
+    const topHospitals = [...data.hospitals]
+      .sort((a, b) => b.total[CASES] - a.total[CASES])
+      .slice(0, 5);
+
+    document.getElementById("regionalProfileSlideTitle").textContent = `Profil & Kasus Regional - ${target.name}`;
+    document.getElementById("regionalProfileSlide").innerHTML = `
+      <div class="regional-profile-layout">
+        <div class="regional-map-column">
+          <div class="regional-map-crop" role="img" aria-label="Peta ilustratif wilayah regional Jawa Tengah"><img src="assets/regional-profile-reference.png" alt=""></div>
+          <strong>Regional wilayah Jawa Tengah</strong>
+        </div>
+        <div class="regional-profile-main">
+          <section class="regional-profile-summary" aria-label="Ringkasan profil regional">
+            <div>
+              <h2>Sebaran RS aktif: ${formatNumber(data.hospitals.length)}</h2>
+              <div class="regional-class-line">A: ${formatNumber(hospitalClassCounts.A)} <span>|</span> B: ${formatNumber(hospitalClassCounts.B)} <span>|</span> C: ${formatNumber(hospitalClassCounts.C)} <span>|</span> D: ${formatNumber(hospitalClassCounts.D)}</div>
+              <dl><div><dt>Total kasus regional</dt><dd>${formatNumber(data.regional.total[CASES])} kasus</dd></div><div><dt>Pendapatan INA-CBG regional</dt><dd>${formatMoney(data.regional.total[INA])}</dd></div><div><dt>Potensi iDRG regional</dt><dd>${formatMoney(data.regional.total[IDRG])}</dd></div></dl>
+            </div>
+            <img src="assets/icons/hospital.svg" alt="" aria-hidden="true">
+          </section>
+          <div class="regional-profile-tables">
+            <table class="regional-severity-table" aria-label="Distribusi kasus regional berdasarkan tingkat keparahan"><thead><tr><th>Tingkat</th><th class="num">Kasus</th><th class="num">%</th></tr></thead><tbody>${severityRanks.map((rank) => { const value = severityMetric(data.regional, rank); return `<tr><td>${levelNames[rank]}</td><td class="num">${formatNumber(value[CASES])}</td><td class="num">${formatPercent(classifiedCases ? value[CASES] / classifiedCases : 0)}</td></tr>`; }).join("")}</tbody><tfoot><tr><td>Total regional</td><td class="num">${formatNumber(classifiedCases)}</td><td class="num">100%</td></tr></tfoot></table>
+            <table class="regional-ranking-table" aria-label="Lima rumah sakit dengan jumlah kasus terbesar"><thead><tr><th>No</th><th>Rumah sakit</th><th>Kelas</th><th class="num">Kasus</th></tr></thead><tbody>${topHospitals.map((hospital, index) => `<tr class="${hospital.code === target.code ? "is-target" : ""}"><td>${index + 1}</td><td>${escapeHtml(hospital.name)}</td><td>${escapeHtml(hospital.class || "—")}</td><td class="num">${formatNumber(hospital.total[CASES])}</td></tr>`).join("")}</tbody></table>
+          </div>
+          <aside class="regional-profile-insight"><strong>Ringkasan regional</strong><ul><li>Terdapat ${formatNumber(data.regional.total[CASES])} kasus pada layanan regional yang dianalisis.</li><li>Kasus terbanyak berada pada tingkat ${levelNames[leadingSeverity.rank]}: ${formatPercent(leadingSeverity.value[CASES] / classifiedCases)} (${formatNumber(leadingSeverity.value[CASES])} kasus).</li></ul></aside>
+        </div>
+      </div>
+      <p class="regional-profile-footnote">*Terdapat ${formatNumber(metric(data.regional.unclassified)[CASES])} kasus yang belum memiliki mapping tingkat keparahan.</p>`;
   }
 
   function renderSimulatorSlide() {
@@ -431,7 +521,7 @@
     const overrideCount = Object.values(state.overrides).filter((item) => item.enabled).length;
     const caseShareBefore = target.total[CASES] / data.regional.total[CASES];
     const caseShareAfter = result.projected[CASES] / data.regional.total[CASES];
-    document.getElementById("slide6Subtitle").textContent = `${target.name} · seluruh layanan · parameter dapat diubah pada slide simulator.`;
+    document.getElementById("slide8Subtitle").textContent = `${target.name} · seluruh layanan · parameter dapat diubah pada slide simulator.`;
     const ranked = (rows, emptyText) => rows.length
       ? rows.map((row, index) => `<div class="ranked-row"><span class="rank-number">${index + 1}</span><span>${escapeHtml(formatService(row.service))}</span><strong class="${deltaClass(row.delta[CASES])}">${formatSignedNumber(row.delta[CASES])}</strong></div>`).join("")
       : `<div class="empty-state"><div><strong>${emptyText}</strong><span>Ubah parameter simulasi untuk melihat dampak.</span></div></div>`;
@@ -470,6 +560,8 @@
     renderExistingSlide();
     renderRegionalSlide();
     renderAddressableSlide();
+    renderComparisonSlide();
+    renderRegionalProfileSlide();
     renderSimulatorSlide();
     renderCompetitionSlide();
     renderSummarySlide();
@@ -578,7 +670,7 @@
   function populateHospitalSelector() {
     const selector = document.getElementById("targetHospital");
     selector.innerHTML = data.hospitals.map((hospital) => `<option value="${escapeHtml(hospital.code)}" ${hospital.code === state.targetCode ? "selected" : ""}>${escapeHtml(hospital.name)} · ${escapeHtml(hospital.city)}</option>`).join("");
-    selector.addEventListener("change", () => {
+    selector.onchange = () => {
       state.targetCode = selector.value;
       const target = targetHospital();
       if (!getCompetency(target, state.selectedService)) {
@@ -586,7 +678,7 @@
       }
       state.selectedSeverity = getCompetency(target, state.selectedService) || 1;
       renderAll();
-    });
+    };
   }
 
   function populateSlideDots() {
@@ -719,6 +811,159 @@
     scaler.style.top = `${Math.max((window.innerHeight - height) / 2, 0)}px`;
   }
 
+  function populateFilters() {
+    const provinces = [...new Set(originalData.hospitals.map(h => h.province).filter(Boolean))].sort();
+    const cities = [...new Set(originalData.hospitals.map(h => h.city).filter(Boolean))].sort();
+    
+    const provDropdown = document.getElementById("provDropdown");
+    const cityDropdown = document.getElementById("cityDropdown");
+    const provBtn = document.getElementById("provBtn");
+    const cityBtn = document.getElementById("cityBtn");
+    
+    const buildCheckboxes = (items, container, filterType) => {
+      if (!container) return;
+      container.innerHTML = items.map(item => `
+        <label class="checkbox-label">
+          <input type="checkbox" value="${escapeHtml(item)}" data-filter="${filterType}">
+          <span>${escapeHtml(item)}</span>
+        </label>
+      `).join("");
+      
+      container.querySelectorAll('input').forEach(input => {
+        input.addEventListener('change', () => {
+          applyFilters();
+          updateButtonLabels();
+        });
+      });
+    };
+    
+    buildCheckboxes(provinces, provDropdown, "province");
+    buildCheckboxes(cities, cityDropdown, "city");
+    
+    const toggleDropdown = (btn, dropdown) => {
+      if (!btn || !dropdown) return;
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const isOpen = dropdown.classList.contains("is-open");
+        document.querySelectorAll(".multi-select-dropdown").forEach(d => d.classList.remove("is-open"));
+        if (!isOpen) dropdown.classList.add("is-open");
+      });
+    };
+    
+    toggleDropdown(provBtn, provDropdown);
+    toggleDropdown(cityBtn, cityDropdown);
+    
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest(".custom-multi")) {
+        document.querySelectorAll(".multi-select-dropdown").forEach(d => d.classList.remove("is-open"));
+      }
+    });
+  }
+
+  function updateButtonLabels() {
+    const provBtn = document.getElementById("provBtn");
+    const cityBtn = document.getElementById("cityBtn");
+    
+    const getChecked = (dropdown) => Array.from(dropdown?.querySelectorAll("input:checked") || []).map(i => i.value);
+    
+    const selProv = getChecked(document.getElementById("provDropdown"));
+    const selCity = getChecked(document.getElementById("cityDropdown"));
+    
+    if (provBtn) {
+      provBtn.textContent = selProv.length === 0 ? "Semua Provinsi" : 
+                           (selProv.length === 1 ? selProv[0] : `${selProv.length} Provinsi dipilih`);
+    }
+    if (cityBtn) {
+      cityBtn.textContent = selCity.length === 0 ? "Semua Kab/Kota" : 
+                           (selCity.length === 1 ? selCity[0] : `${selCity.length} Kab/Kota dipilih`);
+    }
+  }
+
+  function computeRegionalFromHospitals(hospitals) {
+    const regional = {
+      total: [0, 0, 0],
+      severity: {},
+      unclassified: [0, 0, 0],
+      services: {}
+    };
+    for (const h of hospitals) {
+      regional.total[0] += h.total[0];
+      regional.total[1] += h.total[1];
+      regional.total[2] += h.total[2];
+      
+      if (h.unclassified) {
+        regional.unclassified[0] += h.unclassified[0] || 0;
+        regional.unclassified[1] += h.unclassified[1] || 0;
+        regional.unclassified[2] += h.unclassified[2] || 0;
+      }
+      
+      for (const sev in h.severity) {
+        if (!regional.severity[sev]) regional.severity[sev] = [0, 0, 0];
+        regional.severity[sev][0] += h.severity[sev][0];
+        regional.severity[sev][1] += h.severity[sev][1];
+        regional.severity[sev][2] += h.severity[sev][2];
+      }
+      
+      for (const svc in h.services) {
+        if (!regional.services[svc]) {
+          regional.services[svc] = { competency: 0, total: [0,0,0], severity: {} };
+        }
+        const s = h.services[svc];
+        const rs = regional.services[svc];
+        
+        rs.total[0] += s.total[0];
+        rs.total[1] += s.total[1];
+        rs.total[2] += s.total[2];
+        
+        if (s.unclassified) {
+          if (!rs.unclassified) rs.unclassified = [0,0,0];
+          rs.unclassified[0] += s.unclassified[0];
+          rs.unclassified[1] += s.unclassified[1];
+          rs.unclassified[2] += s.unclassified[2];
+        }
+        
+        for (const sev in s.severity) {
+          if (!rs.severity[sev]) rs.severity[sev] = [0, 0, 0];
+          rs.severity[sev][0] += s.severity[sev][0];
+          rs.severity[sev][1] += s.severity[sev][1];
+          rs.severity[sev][2] += s.severity[sev][2];
+        }
+      }
+    }
+    return regional;
+  }
+
+  function applyFilters() {
+    const getChecked = (dropdown) => Array.from(dropdown?.querySelectorAll("input:checked") || []).map(i => i.value);
+    
+    const selectedProvinces = getChecked(document.getElementById("provDropdown"));
+    const selectedCities = getChecked(document.getElementById("cityDropdown"));
+    
+    const filteredHospitals = originalData.hospitals.filter(h => {
+      let passProv = selectedProvinces.length === 0 || selectedProvinces.includes(h.province);
+      let passCity = selectedCities.length === 0 || selectedCities.includes(h.city);
+      return passProv && passCity;
+    });
+    
+    data = {
+      ...originalData,
+      hospitals: filteredHospitals,
+      regional: computeRegionalFromHospitals(filteredHospitals)
+    };
+    
+    updateDataState();
+    
+    if (!hospitalByCode.has(state.targetCode) && filteredHospitals.length > 0) {
+      state.targetCode = filteredHospitals[0].code;
+    } else if (filteredHospitals.length === 0) {
+      state.targetCode = "";
+    }
+    
+    populateHospitalSelector();
+    renderAll();
+  }
+
+  populateFilters();
   populateHospitalSelector();
   populateSlideDots();
   document.getElementById("previousSlide").addEventListener("click", () => showSlide(state.activeSlide - 1));
