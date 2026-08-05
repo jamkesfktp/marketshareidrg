@@ -35,6 +35,7 @@
     selectedSeverity: 4,
     targetShare: 50,
     scenarios: [100, 75, 50, 25, 15, 0].map(val => ({ tambah: val, kurang: val })),
+    serviceScenarios: {},
     globalRates: {
       capture: { 1: 0, 2: 0, 3: 20, 4: 20 },
       retention: { 1: 50, 2: 50, 3: 100, 4: 100 },
@@ -674,6 +675,157 @@
     });
   }
 
+  function renderDynamicServiceSlides() {
+    const target = targetHospital();
+    if (!target) return;
+    
+    const container = document.getElementById("dynamicServiceSlides");
+    if (!container) return;
+    
+    // Extract available services for the target hospital
+    const availableServices = data.services.filter(service => getCompetency(target, service) > 0);
+    
+    let html = "";
+    
+    availableServices.forEach((service, idx) => {
+      const targetCompetency = getCompetency(target, service);
+      // Hitung kompetitor (RS lain yang punya kompetensi >= targetCompetency)
+      const competitors = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= targetCompetency).length;
+      
+      // Hitung Persentase Default
+      if (!state.serviceScenarios[service]) {
+        const c = competitors > 0 ? competitors : 1;
+        let base = Math.floor(100 / c) + 5;
+        state.serviceScenarios[service] = Array(6).fill().map((_, i) => {
+          let val = base - (i * 5);
+          if (val < 0) val = 0;
+          return { tambah: val, kurang: val };
+        });
+      }
+      
+      const targetExistingService = target.services[service] ? target.services[service].total : [0, 0, 0];
+      const regionalExistingService = data.regional.services[service] ? data.regional.services[service].total : [0, 0, 0];
+      
+      const targetKasus = targetExistingService[CASES];
+      const regionalKasus = regionalExistingService[CASES];
+      const targetIdrg = targetExistingService[IDRG];
+      const regionalIdrg = regionalExistingService[IDRG];
+      const regionalIna = regionalExistingService[INA];
+      
+      const potensiRegional = regionalIdrg - regionalIna;
+      const selisih = potensiRegional - targetIdrg;
+      
+      // Sama seperti slide 9, base tambahan = external, base pengurangan = existing target
+      // External = regional - targetExisting
+      const targetKasusArr = target.services[service] ? metric(target.services[service].total) : [0,0,0];
+      const regionalKasusArr = data.regional.services[service] ? metric(data.regional.services[service].total) : [0,0,0];
+      const externalKasus = Math.max(0, regionalKasusArr[CASES] - targetKasusArr[CASES]);
+      const externalIdrg = Math.max(0, regionalKasusArr[IDRG] - targetKasusArr[IDRG]);
+      
+      const baseTambahanKasus = externalKasus;
+      const baseTambahanPendapatan = externalIdrg;
+      const basePenguranganKasus = targetKasusArr[CASES] || 0;
+      const basePenguranganPendapatan = targetKasusArr[INA] || 0;
+      const existingIna = targetKasusArr[INA] || 0;
+      const existingKasus = targetKasusArr[CASES] || 0;
+      
+      const generateRow = (index, scn) => {
+        const pTambah = scn.tambah / 100;
+        const pKurang = scn.kurang / 100;
+        const tambahKasus = baseTambahanKasus * pTambah;
+        const tambahRp = baseTambahanPendapatan * pTambah;
+        const kurangKasus = basePenguranganKasus * pKurang;
+        const kurangRp = basePenguranganPendapatan * pKurang;
+        
+        const netKasus = tambahKasus - kurangKasus;
+        const pctNetKasus = existingKasus ? netKasus / existingKasus : 0;
+        const netRp = tambahRp - kurangRp;
+        
+        const pctKenaikan = existingIna ? netRp / existingIna : 0;
+
+        return `<tr>
+          <td style="font-weight: 700; text-align: left; padding-left: 10px; background-color: #f8f9fa;">Skenario ${index + 1}</td>
+          <td class="b-left-green b-top-green b-bottom-green"><input type="number" class="dynamic-scenario-input" data-service="${escapeHtml(service)}" data-index="${index}" data-type="tambah" value="${scn.tambah}"></td>
+          <td class="b-top-green b-bottom-green">${formatNumber(tambahKasus)}</td>
+          <td class="b-right-green b-top-green b-bottom-green">${formatMatrixMoney(tambahRp)}</td>
+          <td class="b-left-red b-top-red b-bottom-red"><input type="number" class="dynamic-scenario-input" data-service="${escapeHtml(service)}" data-index="${index}" data-type="kurang" value="${scn.kurang}"></td>
+          <td class="b-top-red b-bottom-red">${formatNumber(kurangKasus)}</td>
+          <td class="b-right-red b-top-red b-bottom-red">${formatMatrixMoney(kurangRp)}</td>
+          <td>${formatSignedNumber(netKasus)}</td>
+          <td>${formatPercent(pctNetKasus)}</td>
+          <td>${formatSignedMatrixMoney(netRp)}</td>
+          <td class="b-left-yellow b-top-yellow b-bottom-yellow">${formatMatrixMoney(existingIna)}</td>
+          <td class="b-right-yellow b-top-yellow b-bottom-yellow" style="background:#fffcf0;"><strong>${formatPercent(pctKenaikan)}</strong></td>
+        </tr>`;
+      };
+      
+      html += `
+        <section class="slide" data-slide="${9 + idx}" aria-labelledby="dynamicSlide${idx}Title">
+          <div class="slide-heading compact-heading">
+            <div><p class="eyebrow">${String(10 + idx).padStart(2, '0')} · Simulasi Kasus Market Share</p><h1 id="dynamicSlide${idx}Title">Simulasi Kasus Market Share - <span style="color: #ffc107;">layanan ${escapeHtml(service)}</span></h1><p>Data Mirroring Uji Coba iDRG</p></div>
+            <span class="slide-chip">Layanan</span>
+          </div>
+          <div class="slide-content" style="padding-top: 10px;">
+            <div class="existing-report-kpis">
+              <article class="existing-report-kpi kpi-total"><span>Total Kasus RS:</span><strong>${formatNumber(targetKasus)}</strong><em>Jumlah kasus eklaim</em></article>
+              <article class="existing-report-kpi kpi-total"><span>Total Kasus Regional:</span><strong>${formatNumber(regionalKasus)}</strong><em>Dari data 8 bulan</em></article>
+              <article class="existing-report-kpi kpi-idrg"><span>Pendapatan iDRG RS:</span><strong>${formatMoney(targetIdrg)}</strong><em>Klaim uji coba iDRG</em></article>
+              <article class="existing-report-kpi kpi-ina"><span>Potensi iDRG Regional:</span><strong>${formatMoney(potensiRegional)}</strong><em>iDRG - INA CBGs</em></article>
+              <article class="existing-report-kpi kpi-difference ${selisih < 0 ? "is-loss" : "is-gain"}"><span>Selisih:</span><strong>${formatMoney(selisih)}</strong><em>Dari Pendapatan iDRG RS</em></article>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; margin-bottom: 0.5rem; font-size: 14px; font-weight: 500;">
+              <div>Kompetensi Layanan RS : <span style="background: var(--amber-300); padding: 4px 8px; border-radius: 4px; font-weight: bold; color: var(--amber-900);">Kompetensi ${levelNames[targetCompetency]}</span></div>
+              <div style="font-weight: bold; color: var(--slate-800);">RS Regional yang memiliki Kompetensi Setara/ kompetitor : ${competitors} RS</div>
+            </div>
+            <table class="scenario-table">
+              <thead>
+                <tr>
+                  <th rowspan="2">Skenario</th>
+                  <th colspan="3">Tambahan Kasus<br>Utama & Paripurna</th>
+                  <th colspan="3">Pengurangan Kasus<br>Dasar & Madya</th>
+                  <th colspan="3">Net +/- Pasca iDRG & RBKP</th>
+                  <th rowspan="2">Pendapatan<br>Eksisting INA<br>CBG (Rp M)</th>
+                  <th rowspan="2">% Kenaikan<br>thd INA-CBG<br>Eksisting</th>
+                </tr>
+                <tr>
+                  <th>Persentase<br>(%)</th>
+                  <th>Jumlah<br>Kasus</th>
+                  <th>Tambahan<br>Pendapatan<br>(Rp M)</th>
+                  <th>Persentase<br>(%)</th>
+                  <th>Jumlah<br>Kasus</th>
+                  <th>Pengurangan<br>Pendapatan<br>(Rp M)</th>
+                  <th>+/-<br>Jumlah<br>Kasus</th>
+                  <th>% thd total<br>kasus<br>eksisting</th>
+                  <th>+/-<br>Pendapatan<br>(Rp M)</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${state.serviceScenarios[service].map((scn, i) => generateRow(i, scn)).join("")}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      `;
+    });
+    
+    container.innerHTML = html;
+    
+    container.querySelectorAll('.dynamic-scenario-input').forEach(input => {
+      input.addEventListener('change', (e) => {
+        const srv = e.target.dataset.service;
+        const idx = e.target.dataset.index;
+        const type = e.target.dataset.type;
+        const val = parseFloat(e.target.value) || 0;
+        if (type === "tambah") {
+          state.serviceScenarios[srv][idx].tambah = val;
+        } else {
+          state.serviceScenarios[srv][idx].kurang = val;
+        }
+        renderDynamicServiceSlides();
+      });
+    });
+  }
+
   function renderAll() {
     updateTargetMeta();
     renderExistingSlide();
@@ -685,6 +837,14 @@
     renderSimulatorSlide();
     renderCompetitionSlide();
     renderSummarySlide();
+    renderDynamicServiceSlides();
+    populateSlideDots();
+    
+    // Ensure active slide is not out of bounds after dynamically removing slides
+    const slides = document.querySelectorAll(".slide");
+    if (state.activeSlide >= slides.length) {
+      state.activeSlide = slides.length - 1;
+    }
     showSlide(state.activeSlide);
   }
 
@@ -1050,7 +1210,7 @@
       presetBtn.addEventListener("click", () => {
         console.log("Preset Moewardi clicked!");
         const moewardiProvTerms = ['DI YOGYAKARTA', 'JAWA TENGAH', 'JAWA TIMUR', 'DIY'];
-        const moewardiCityTerms = ['SURAKARTA', 'SUKOHARJO', 'KARANGANYAR', 'SRAGEN', 'BOYOLALI', 'WONOGIRI', 'KLATEN', 'PACITAN', 'NGAWI', 'MADIUN', 'YOGYAKARTA', 'SLEMAN', 'SEMARANG', 'KARANGASEM'];
+        const moewardiCityTerms = ['SURAKARTA', 'SUKOHARJO', 'KARANGANYAR', 'SRAGEN', 'BOYOLALI', 'WONOGIRI', 'KLATEN', 'PACITAN', 'NGAWI', 'MADIUN', 'YOGYAKARTA', 'SLEMAN', 'SEMARANG'];
         
         document.querySelectorAll('#provDropdown input[type="checkbox"], #cityDropdown input[type="checkbox"]').forEach(cb => cb.checked = false);
         
