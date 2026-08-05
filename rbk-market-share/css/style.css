@@ -647,6 +647,24 @@ tr.is-disabled td { color: #9aa4b2; background: #fafbfc; }
 .pptx-static-checkbox { width: auto !important; height: 28px !important; padding: 0 9px !important; color: var(--green); font-size: 12px; font-weight: 800; }
 .pptx-static-control.is-disabled { color: #7b8798; background: #f2f4f7; }
 
+.preset-moewardi-btn {
+  height: 48px;
+  padding: 0 15px;
+  font-size: 13px;
+  font-weight: 700;
+  background: #fdfdfd;
+  color: #0aa7ad;
+  border: 1px solid #0aa7ad;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+.preset-moewardi-btn:hover {
+  background: #0aa7ad;
+  color: white;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
 }

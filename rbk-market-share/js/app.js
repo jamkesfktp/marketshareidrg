@@ -934,6 +934,34 @@
     buildCheckboxes(provinces, provDropdown, "province");
     buildCheckboxes(cities, cityDropdown, "city");
     
+    // Preset Moewardi logic
+    const presetBtn = document.getElementById("presetMoewardiBtn");
+    if (presetBtn) {
+      presetBtn.addEventListener("click", () => {
+        const moewardiProvTerms = ['DI YOGYAKARTA', 'JAWA TENGAH', 'JAWA TIMUR', 'DIY'];
+        const moewardiCityTerms = ['SURAKARTA', 'SUKOHARJO', 'KARANGANYAR', 'SRAGEN', 'BOYOLALI', 'WONOGIRI', 'KLATEN', 'PACITAN', 'NGAWI', 'MADIUN', 'YOGYAKARTA', 'SLEMAN', 'SEMARANG', 'KARANG ASEM', 'KARANGASEM'];
+        
+        document.querySelectorAll('#provDropdown input[type="checkbox"], #cityDropdown input[type="checkbox"]').forEach(cb => cb.checked = false);
+        
+        document.querySelectorAll('#provDropdown input[type="checkbox"]').forEach(cb => {
+          const val = cb.value.toUpperCase();
+          if (moewardiProvTerms.some(term => val.includes(term))) {
+            cb.checked = true;
+          }
+        });
+
+        document.querySelectorAll('#cityDropdown input[type="checkbox"]').forEach(cb => {
+          const val = cb.value.toUpperCase();
+          if (moewardiCityTerms.some(term => val.includes(term))) {
+            cb.checked = true;
+          }
+        });
+
+        applyFilters();
+        updateButtonLabels();
+      });
+    }
+
     const toggleDropdown = (btn, dropdown) => {
       if (!btn || !dropdown) return;
       btn.addEventListener("click", (e) => {
