@@ -34,6 +34,7 @@
     selectedService: data.services.includes("JIWA") ? "JIWA" : data.services[0],
     selectedSeverity: 4,
     targetShare: 50,
+    scenarios: [100, 75, 50, 25, 15, 0],
     globalRates: {
       capture: { 1: 0, 2: 0, 3: 20, 4: 20 },
       retention: { 1: 50, 2: 50, 3: 100, 4: 100 },
@@ -565,6 +566,108 @@
     document.getElementById("targetMeta").innerHTML = `<strong>${escapeHtml(target.city || "Lokasi tidak tersedia")}</strong><span>Kelas ${escapeHtml(target.class || "—")} · kode ${escapeHtml(target.code)} · ${formatNumber(target.total[CASES])} kasus</span>`;
   }
 
+  function renderScenarioSlide() {
+    const target = targetHospital();
+    if (!target) return;
+
+    const formatSignedMatrixMoney = (val) => (val > 0 ? "+" : "") + formatMatrixMoney(val);
+
+    const regionalUtama = severityMetric(data.regional, 3);
+    const regionalParipurna = severityMetric(data.regional, 4);
+    
+    const targetUtama = sumMetrics(data.services.map(s => severityMetric(target.services?.[s], 3)));
+    const targetParipurna = sumMetrics(data.services.map(s => severityMetric(target.services?.[s], 4)));
+    
+    const targetDasar = sumMetrics(data.services.map(s => severityMetric(target.services?.[s], 1)));
+    const targetMadya = sumMetrics(data.services.map(s => severityMetric(target.services?.[s], 2)));
+
+    const baseTambahanKasus = (regionalUtama[CASES] + regionalParipurna[CASES]) - (targetUtama[CASES] + targetParipurna[CASES]);
+    const baseTambahanPendapatan = (regionalUtama[IDRG] + regionalParipurna[IDRG]) - (targetUtama[IDRG] + targetParipurna[IDRG]);
+
+    const basePenguranganKasus = targetDasar[CASES] + targetMadya[CASES];
+    const basePenguranganPendapatan = targetDasar[INA] + targetMadya[INA];
+
+    const existingIna = target.total[INA];
+    const existingKasus = target.total[CASES];
+
+    const generateRow = (index, pct) => {
+      const p = pct / 100;
+      const tambahKasus = baseTambahanKasus * p;
+      const tambahRp = baseTambahanPendapatan * p;
+      const kurangKasus = basePenguranganKasus * p;
+      const kurangRp = basePenguranganPendapatan * p;
+      
+      const netKasus = tambahKasus - kurangKasus;
+      const pctNetKasus = existingKasus ? netKasus / existingKasus : 0;
+      const netRp = tambahRp - kurangRp;
+      
+      const pctKenaikan = existingIna ? netRp / existingIna : 0;
+
+      return `<tr>
+        <td style="font-weight: 700; text-align: left; padding-left: 10px; background-color: #f8f9fa;">Skenario ${index + 1}</td>
+        <td class="b-left-green b-top-green b-bottom-green"><input type="number" class="scenario-input" data-index="${index}" value="${pct}"></td>
+        <td class="b-top-green b-bottom-green">${formatNumber(tambahKasus)}</td>
+        <td class="b-right-green b-top-green b-bottom-green">${formatMatrixMoney(tambahRp)}</td>
+        <td class="b-left-red b-top-red b-bottom-red"><input type="number" class="scenario-input" disabled value="${pct}" style="background:transparent; border:none; color:#333;"></td>
+        <td class="b-top-red b-bottom-red">${formatNumber(kurangKasus)}</td>
+        <td class="b-right-red b-top-red b-bottom-red">${formatMatrixMoney(kurangRp)}</td>
+        <td>${formatSignedNumber(netKasus)}</td>
+        <td>${formatPercent(pctNetKasus)}</td>
+        <td>${formatSignedMatrixMoney(netRp)}</td>
+        <td class="b-left-yellow b-top-yellow b-bottom-yellow">${formatMatrixMoney(existingIna)}</td>
+        <td class="b-right-yellow b-top-yellow b-bottom-yellow" style="background:#fffcf0;"><strong>${formatPercent(pctKenaikan)}</strong></td>
+      </tr>`;
+    };
+
+    const deltaIdrg = target.total[IDRG] - target.total[INA];
+    const deltaPercentIdrg = existingIna ? deltaIdrg / existingIna : 0;
+
+    document.getElementById("scenarioSlide").innerHTML = `
+      <div class="existing-report-kpis" style="margin-bottom: 20px;">
+        <article class="existing-report-kpi kpi-cases"><span>Total Kasus:</span><strong>${formatNumber(target.total[CASES])}</strong><em>Jumlah kasus eklaim</em></article>
+        <article class="existing-report-kpi kpi-ina"><span>Pendapatan INA CBGs:</span><strong>${formatMoney(target.total[INA])}</strong><em>Dari data 8 bulan</em></article>
+        <article class="existing-report-kpi kpi-idrg"><span>Pendapatan iDRG:</span><strong>${formatMoney(target.total[IDRG])}</strong><em>Klaim uji coba iDRG</em></article>
+        <article class="existing-report-kpi kpi-difference ${deltaIdrg < 0 ? "is-loss" : "is-gain"}"><span>Selisih Pendapatan:</span><strong>${formatMoney(deltaIdrg)}</strong><em>iDRG - INA CBGs</em></article>
+        <article class="existing-report-kpi kpi-percentage ${deltaIdrg < 0 ? "is-loss" : "is-gain"}"><span>Persentase:</span><strong>${formatPercent(deltaPercentIdrg)}</strong><em>Dari Pendapatan INACBG</em></article>
+      </div>
+      <table class="scenario-table">
+        <thead>
+          <tr>
+            <th rowspan="2">Skenario</th>
+            <th colspan="3">Tambahan Kasus<br>Utama & Paripurna</th>
+            <th colspan="3">Pengurangan Kasus<br>Dasar & Madya</th>
+            <th colspan="3">Net +/- Pasca iDRG & RBKP</th>
+            <th rowspan="2">Pendapatan<br>Eksisting INA<br>CBG RS (Rp M)</th>
+            <th rowspan="2">% Kenaikan<br>thd INA-CBG<br>Eksisting</th>
+          </tr>
+          <tr>
+            <th>Persentase<br>(%)</th>
+            <th>Jumlah<br>Kasus</th>
+            <th>Tambahan<br>Pendapatan<br>(Rp M)</th>
+            <th>Persentase<br>(%)</th>
+            <th>Jumlah<br>Kasus</th>
+            <th>Pengurangan<br>Pendapatan<br>(Rp M)</th>
+            <th>+/-<br>Jumlah<br>Kasus</th>
+            <th>% thd total<br>kasus<br>eksisting</th>
+            <th>+/-<br>Pendapatan<br>(Rp M)</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${state.scenarios.map((pct, i) => generateRow(i, pct)).join("")}
+        </tbody>
+      </table>
+    `;
+
+    document.querySelectorAll('.scenario-input:not([disabled])').forEach(input => {
+      input.addEventListener('change', (e) => {
+        const idx = e.target.dataset.index;
+        const val = parseFloat(e.target.value) || 0;
+        state.scenarios[idx] = val;
+        renderScenarioSlide();
+      });
+    });
+  }
+
   function renderAll() {
     updateTargetMeta();
     renderExistingSlide();
@@ -572,6 +675,7 @@
     renderAddressableSlide();
     renderComparisonSlide();
     renderRegionalProfileSlide();
+    renderScenarioSlide();
     renderSimulatorSlide();
     renderCompetitionSlide();
     renderSummarySlide();
