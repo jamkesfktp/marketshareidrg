@@ -705,7 +705,7 @@
       // Hitung Persentase Default
       if (!state.serviceScenarios[service]) {
         const c = competitors > 0 ? competitors : 1;
-        let base = (100 / c) + 5;
+        let base = (100 / c) + (competitors > 0 ? 5 : 0);
         state.serviceScenarios[service] = Array(6).fill().map((_, i) => {
           let val = base - (i * 5);
           if (val < 0) val = 0;
@@ -824,9 +824,9 @@
       input.addEventListener('change', (e) => {
         const srv = e.target.dataset.service;
         const idx = e.target.dataset.index;
-        const type = e.target.dataset.type;
+        const field = e.target.dataset.field;
         const val = parseFloat(e.target.value) || 0;
-        if (type === "tambah") {
+        if (field === "tambah") {
           state.serviceScenarios[srv][idx].tambah = val;
         } else {
           state.serviceScenarios[srv][idx].kurang = val;
@@ -837,6 +837,15 @@
   }
 
   function renderAll() {
+    // Simpan fokus saat ini agar tidak hilang saat re-render
+    const activeEl = document.activeElement;
+    let focusData = null;
+    let selectionStart = 0;
+    if (activeEl && activeEl.tagName === "INPUT" && activeEl.classList.contains("dynamic-scenario-input")) {
+      focusData = { service: activeEl.dataset.service, index: activeEl.dataset.index, field: activeEl.dataset.field };
+      try { selectionStart = activeEl.selectionStart; } catch(e) {}
+    }
+
     updateTargetMeta();
     renderExistingSlide();
     renderRegionalSlide();
@@ -850,6 +859,18 @@
     renderDynamicServiceSlides();
     populateSlideDots();
     
+    // Kembalikan fokus
+    if (focusData) {
+      setTimeout(() => {
+        const selector = `.dynamic-scenario-input[data-service="${focusData.service.replace(/"/g, '\\"')}"][data-index="${focusData.index}"][data-field="${focusData.field}"]`;
+        const inputToFocus = document.querySelector(selector);
+        if (inputToFocus) {
+          inputToFocus.focus();
+          try { inputToFocus.setSelectionRange(selectionStart, selectionStart); } catch(e) {}
+        }
+      }, 0);
+    }
+
     // Ensure active slide is not out of bounds after dynamically removing slides
     const slides = document.querySelectorAll(".slide");
     if (state.activeSlide >= slides.length) {
