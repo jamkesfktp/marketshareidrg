@@ -1702,6 +1702,55 @@
       return;
     }
     
+    function applyStyles(ws, isSheet5 = false) {
+      if (!ws['!ref']) return;
+      const range = XLSX.utils.decode_range(ws['!ref']);
+      const colWidths = [];
+      const border = {
+        top: { style: 'thin', color: { rgb: "000000" } },
+        bottom: { style: 'thin', color: { rgb: "000000" } },
+        left: { style: 'thin', color: { rgb: "000000" } },
+        right: { style: 'thin', color: { rgb: "000000" } }
+      };
+      for (let R = range.s.r; R <= range.e.r; ++R) {
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+          const cellRef = XLSX.utils.encode_cell({c:C, r:R});
+          if (!ws[cellRef]) continue;
+          if (!ws[cellRef].s) ws[cellRef].s = {};
+          
+          ws[cellRef].s.border = border;
+          ws[cellRef].s.alignment = { wrapText: true, vertical: 'center' };
+          
+          let isHeader = false;
+          const val = ws[cellRef].v;
+          if (isSheet5) {
+            if (typeof val === 'string' && (val.startsWith("Layanan:") || val.startsWith("Kompetensi") || val.startsWith("Skenario") || val.includes("Tambahan Kasus") || val.includes("Pengurangan Kasus") || val.includes("Net Kasus") || val.includes("Net Pendapatan") || val === "% T" || val === "% K" || val === "Kasus" || val === "INA (Rp)" || val === "% Net Kasus" || val === "Net Rp" || val === "Eksisting" || val === "% Kenaikan")) {
+              isHeader = true;
+            }
+          } else {
+            if (R === 0) isHeader = true;
+          }
+          
+          if (isHeader) {
+            ws[cellRef].s.font = { bold: true, color: { rgb: "FFFFFF" } };
+            ws[cellRef].s.fill = { fgColor: { rgb: "4F46E5" } };
+            ws[cellRef].s.alignment.horizontal = "center";
+          } else if (ws[cellRef].t === 'n') {
+            if (ws[cellRef].v > 1000 || ws[cellRef].v < -1000) {
+              ws[cellRef].s.numFmt = "#,##0";
+            } else if (Math.abs(ws[cellRef].v) > 0 && Math.abs(ws[cellRef].v) <= 1 && !Number.isInteger(ws[cellRef].v)) {
+              ws[cellRef].s.numFmt = "0.0%";
+            }
+          }
+          
+          let len = val ? val.toString().length : 10;
+          if (!colWidths[C]) colWidths[C] = 10;
+          if (len > colWidths[C]) colWidths[C] = len > 30 ? 30 : len;
+        }
+      }
+      ws['!cols'] = colWidths.map(w => ({ wch: w + 2 }));
+    }
+    
     const target = targetHospital();
     if (!target) return;
     
@@ -1717,6 +1766,7 @@
       ]);
     });
     const ws1 = XLSX.utils.aoa_to_sheet(ws1_data);
+    applyStyles(ws1, false);
     XLSX.utils.book_append_sheet(wb, ws1, "1_Data_Seluruh_RS");
     
     // SHEET 2: KASUS REGIONAL VS TARGET
@@ -1768,6 +1818,7 @@
       ]);
     });
     const ws2 = XLSX.utils.aoa_to_sheet(ws2_data);
+    applyStyles(ws2, false);
     XLSX.utils.book_append_sheet(wb, ws2, "2_Kasus_Regional_Vs_Target");
     
     // SHEET 3: REKAP LAYANAN & KOMPETITOR
@@ -1792,6 +1843,7 @@
       ]);
     });
     const ws3 = XLSX.utils.aoa_to_sheet(ws3_data);
+    applyStyles(ws3, false);
     XLSX.utils.book_append_sheet(wb, ws3, "3_Rekap_Kompetitor");
     
     // SHEET 4: SIMULASI GLOBAL (RUMUS EXCEL)
@@ -1872,6 +1924,7 @@
     ]);
     
     const ws4 = XLSX.utils.aoa_to_sheet(ws4_data);
+    applyStyles(ws4, false);
     XLSX.utils.book_append_sheet(wb, ws4, "4_Simulasi_Global");
     
     // Helper for excel columns
@@ -2019,6 +2072,7 @@
     
     const ws5 = XLSX.utils.aoa_to_sheet(ws5_data);
     ws5['!merges'] = merges;
+    applyStyles(ws5, true);
     XLSX.utils.book_append_sheet(wb, ws5, "5_Simulasi_Per_Layanan");
     
     XLSX.writeFile(wb, `Kertas_Kerja_Market_Share_${target.name.replace(/\\s+/g, '_')}.xlsx`);
