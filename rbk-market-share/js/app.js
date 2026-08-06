@@ -587,10 +587,14 @@
 
     const baseTambahan = { 1: [0,0], 2: [0,0], 3: [0,0], 4: [0,0] };
     const basePengurangan = { 1: [0,0], 2: [0,0], 3: [0,0], 4: [0,0] };
+    const globalCompetitorsMap = new Map();
     
     data.services.forEach(service => {
       const targetCompetency = getCompetency(target, service);
+      if (targetCompetency === 0) return;
+      
       const competitorsList = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= targetCompetency);
+      competitorsList.forEach(h => globalCompetitorsMap.set(h.code, h));
       
       const rules = getLevelRules(targetCompetency);
       competitorsList.forEach(h => {
@@ -713,6 +717,49 @@
         <article class="existing-report-kpi kpi-difference ${deltaIdrg < 0 ? "is-loss" : "is-gain"}"><span>Selisih Pendapatan:</span><strong>${formatMoney(deltaIdrg)}</strong><em>iDRG - INA CBGs</em></article>
         <article class="existing-report-kpi kpi-percentage ${deltaIdrg < 0 ? "is-loss" : "is-gain"}"><span>Persentase:</span><strong>${formatPercent(deltaPercentIdrg)}</strong><em>Dari Pendapatan INACBG</em></article>
       </div>
+      
+      ${(() => {
+        const uniqueCompetitors = Array.from(globalCompetitorsMap.values());
+        const competitors = uniqueCompetitors.length;
+        let competitorHtml = '';
+        
+        if (competitors > 0) {
+          const groups = { 'A': [], 'B': [], 'C': [], 'D': [], 'Lainnya': [] };
+          uniqueCompetitors.forEach(h => {
+             let cls = h.class ? h.class.toUpperCase() : 'Lainnya';
+             if (!groups[cls]) cls = 'Lainnya';
+             groups[cls].push(h);
+          });
+          
+          ['A', 'B', 'C', 'D', 'Lainnya'].forEach(cls => {
+            if (groups[cls].length > 0) {
+              const badgeColor = cls === 'A' ? 'background: #fdf4ff; color: #a21caf; border: 1px solid #f5d0fe;' : 
+                                 cls === 'B' ? 'background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa;' : 
+                                 cls === 'C' ? 'background: #fefce8; color: #a16207; border: 1px solid #fef08a;' : 
+                                             'background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4;';
+              competitorHtml += `
+                <div style="margin-top: 6px; text-align: left;">
+                  <div style="font-size: 10px; font-weight: 700; color: var(--muted); margin-bottom: 3px; text-transform: uppercase;">KELAS ${cls} (${groups[cls].length} RS)</div>
+                  <div style="display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-start;">
+                    ${groups[cls].map(h => `<span style="font-size: 11px; padding: 2px 6px; border-radius: 4px; ${badgeColor} white-space: nowrap; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">${escapeHtml(h.name)}</span>`).join('')}
+                  </div>
+                </div>
+              `;
+            }
+          });
+          competitorHtml = `<div style="max-height: 120px; overflow-y: auto; padding-right: 4px; margin-top: 8px;">${competitorHtml}</div>`;
+        } else {
+          competitorHtml = `<div style="font-size: 12px; color: var(--muted); margin-top: 4px;">Tidak ada kompetitor regional untuk layanan yang dimiliki.</div>`;
+        }
+        
+        return `
+          <div style="margin-bottom: 1rem; padding: 12px; background: white; border: 1px solid #e2e8f0; border-radius: 8px;">
+            <div style="font-weight: bold; color: var(--slate-800); margin-bottom: 4px;">Total RS Kompetitor Regional: <span style="background: var(--blue-soft); color: var(--blue); padding: 2px 8px; border-radius: 99px; font-size: 12px; margin-left: 4px;">${competitors} RS</span></div>
+            <div style="font-size: 12px; color: var(--slate-500); margin-bottom: 8px;">Daftar RS di regional yang menjadi kompetitor langsung pada satu atau lebih layanan yang dimiliki RS ini.</div>
+            ${competitorHtml}
+          </div>
+        `;
+      })()}
       
       ${(() => {
         let tHead1 = '';
