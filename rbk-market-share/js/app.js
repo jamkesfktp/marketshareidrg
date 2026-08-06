@@ -901,7 +901,7 @@
       globalExistingKasus += svcExistingKasus;
       globalExistingRp += svcExistingRp;
       
-      const svcExistingIdrg = tSvc ? (tSvc.total[IDRG] || 0) : 0;
+      const svcExistingIdrg = targetSvc ? (targetSvc.total[IDRG] || 0) : 0;
       const svcNetKasus = svcTambahKasus - svcKurangKasus;
       const svcNetRp = svcTambahRp - svcKurangRp;
       const svcPctKenaikan = svcExistingRp ? ((svcExistingIdrg + svcNetRp - svcExistingRp) / svcExistingRp) : 0;
