@@ -1007,6 +1007,7 @@
       dropdown.querySelectorAll(".search-select-item").forEach(item => {
         item.addEventListener("click", () => {
           state.targetCode = item.dataset.code;
+          state.serviceScenarios = {};
           const target = targetHospital();
           input.value = `${target.name} · ${target.city}`;
           dropdown.classList.remove("is-open");
@@ -1428,6 +1429,8 @@
     } else if (filteredHospitals.length === 0) {
       state.targetCode = "";
     }
+    
+    state.serviceScenarios = {};
     
     populateHospitalSelector();
     renderAll();
