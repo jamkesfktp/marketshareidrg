@@ -422,12 +422,56 @@
       .sort((a, b) => b.total[CASES] - a.total[CASES])
       .slice(0, 5);
 
+    // Build dynamic map label and query from active filters
+    const getChecked = (dropdown) => Array.from(dropdown?.querySelectorAll("input:checked") || []).map(i => i.value);
+    const selectedProvinces = getChecked(document.getElementById("provDropdown"));
+    const selectedCities = getChecked(document.getElementById("cityDropdown"));
+
+    let mapQuery = "";
+    let mapLabel = "Indonesia";
+    if (selectedCities.length > 0) {
+      mapQuery = selectedCities[0] + ", Indonesia";
+      mapLabel = selectedCities.length === 1 ? selectedCities[0] : selectedCities.slice(0, 2).join(" & ") + (selectedCities.length > 2 ? ` +${selectedCities.length - 2}` : "");
+    } else if (selectedProvinces.length > 0) {
+      mapQuery = selectedProvinces[0] + ", Indonesia";
+      mapLabel = selectedProvinces.length === 1 ? selectedProvinces[0] : selectedProvinces.slice(0, 2).join(" & ") + (selectedProvinces.length > 2 ? ` +${selectedProvinces.length - 2}` : "");
+    } else {
+      // Default - use province/city from hospitals
+      const provinces = [...new Set(data.hospitals.map(h => h.province).filter(Boolean))];
+      const cities = [...new Set(data.hospitals.map(h => h.city).filter(Boolean))];
+      if (provinces.length === 1) {
+        mapQuery = provinces[0] + ", Indonesia";
+        mapLabel = provinces[0];
+      } else if (cities.length === 1) {
+        mapQuery = cities[0] + ", Indonesia";
+        mapLabel = cities[0];
+      } else {
+        mapQuery = "Indonesia";
+        mapLabel = "Indonesia";
+      }
+    }
+
+    const mapSrc = `https://www.openstreetmap.org/export/embed.html?bbox=&layer=mapnik&marker=&query=${encodeURIComponent(mapQuery)}`;
+    const osmSearchUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(mapQuery)}&format=json&limit=1`;
+
     document.getElementById("regionalProfileSlideTitle").textContent = `Profil & Kasus Regional - ${target.name}`;
     document.getElementById("regionalProfileSlide").innerHTML = `
       <div class="regional-profile-layout">
         <div class="regional-map-column">
-          <div class="regional-map-crop" role="img" aria-label="Peta ilustratif wilayah regional Jawa Tengah"><img src="assets/regional-profile-reference.png" alt=""></div>
-          <strong>Regional wilayah Jawa Tengah</strong>
+          <div class="regional-map-crop" role="img" aria-label="Peta wilayah ${escapeHtml(mapLabel)}" style="position:relative; overflow:hidden; border-radius:12px; height:100%; min-height:220px; background:#e8f4fd;">
+            <iframe id="regionalMapFrame" 
+              src="" 
+              data-query="${encodeURIComponent(mapQuery)}"
+              style="width:100%; height:100%; min-height:220px; border:none; border-radius:12px;"
+              loading="lazy"
+              title="Peta ${escapeHtml(mapLabel)}">
+            </iframe>
+            <div id="mapLoading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#e0f2fe,#bfdbfe);border-radius:12px;flex-direction:column;gap:8px;">
+              <div style="width:40px;height:40px;border:3px solid #3b82f6;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;"></div>
+              <span style="font-size:12px;color:#1e40af;font-weight:600;">Memuat peta...</span>
+            </div>
+          </div>
+          <strong style="margin-top:8px;display:block;text-align:center;font-size:13px;">📍 Wilayah: ${escapeHtml(mapLabel)}</strong>
         </div>
         <div class="regional-profile-main">
           <section class="regional-profile-summary" aria-label="Ringkasan profil regional">
@@ -446,6 +490,34 @@
         </div>
       </div>
       <p class="regional-profile-footnote">*Terdapat ${formatNumber(metric(data.regional.unclassified)[CASES])} kasus yang belum memiliki mapping tingkat keparahan.</p>`;
+
+    // Load map dynamically via Nominatim to get bbox, then build OSM embed URL
+    fetch(osmSearchUrl)
+      .then(r => r.json())
+      .then(results => {
+        const frame = document.getElementById("regionalMapFrame");
+        const loader = document.getElementById("mapLoading");
+        if (!frame) return;
+        if (results && results.length > 0) {
+          const loc = results[0];
+          const bb = loc.boundingbox; // [south, north, west, east]
+          const embedUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${bb[2]},${bb[0]},${bb[3]},${bb[1]}&layer=mapnik`;
+          frame.src = embedUrl;
+          frame.onload = () => { if (loader) loader.style.display = "none"; };
+        } else {
+          // Fallback: simple search embed
+          frame.src = `https://www.openstreetmap.org/export/embed.html?bbox=95.0,-11.0,141.0,6.0&layer=mapnik`;
+          frame.onload = () => { if (loader) loader.style.display = "none"; };
+        }
+      })
+      .catch(() => {
+        const frame = document.getElementById("regionalMapFrame");
+        const loader = document.getElementById("mapLoading");
+        if (frame) {
+          frame.src = `https://www.openstreetmap.org/export/embed.html?bbox=95.0,-11.0,141.0,6.0&layer=mapnik`;
+          frame.onload = () => { if (loader) loader.style.display = "none"; };
+        }
+      });
   }
 
   function renderSimulatorSlide() {
