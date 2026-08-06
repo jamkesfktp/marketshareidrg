@@ -850,7 +850,7 @@
           
           rules.tambah.forEach(lvl => {
             let lvlCompetitors = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= lvl).length;
-            let val = (100 / (lvlCompetitors + 1)) - (i * 5);
+            let val = (100 / (lvlCompetitors + 1)) + (i * 5);
             scn['tambah_' + lvl] = parseFloat(Math.max(0, val).toFixed(1));
           });
           
