@@ -1191,7 +1191,7 @@
         });
         
         const netKasus = totalTambahKasus - totalKurangKasus;
-        const pctNetKasus = existingKasus ? netKasus / existingKasus : 0;
+        const pctNetKasus = existingKasus ? ((netKasus - existingKasus) / existingKasus) : 0;
         
         const netRp = totalTambahRp - totalKurangRp;
         const pctKenaikan = existingIna ? ((netRp - existingIna) / existingIna) : 0;
@@ -2405,7 +2405,7 @@
         
         const netKasusVal = tkSumScn - kkSumScn;
         const netRpVal = tiSumScn - kiSumScn;
-        const pctNetKasusVal = eksKasusVal ? (netKasusVal / eksKasusVal) : 0;
+        const pctNetKasusVal = eksKasusVal ? ((netKasusVal - eksKasusVal) / eksKasusVal) : 0;
         const pctKenaikanVal = eksInaVal ? ((netRpVal - eksInaVal) / eksInaVal) : 0;
 
         // Net Kasus
@@ -2415,7 +2415,7 @@
         
         // % Net Kasus
         const netKasusCol = getExcelCol(rowData.length - 1);
-        rowData.push({ t: 'n', f: `IF(G${eksRow}=0, 0, ${netKasusCol}${currentRow}/G${eksRow})`, v: pctNetKasusVal, z: "0.0%" });
+        rowData.push({ t: 'n', f: `IF(G${eksRow}=0, 0, (${netKasusCol}${currentRow}-G${eksRow})/G${eksRow})`, v: pctNetKasusVal, z: "0.00%" });
         
         // Net Rp
         rowData.push({ t: 'n', f: `(${tiF}) - (${kiF})`, v: netRpVal });
