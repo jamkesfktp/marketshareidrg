@@ -130,7 +130,20 @@
   const targetHospital = () => hospitalByCode.get(state.targetCode);
   const targetService = (service) => targetHospital()?.services?.[service] || null;
   const regionalService = (service) => data.regional.services[service] || { total: [0, 0, 0], severity: {} };
-  const getCompetency = (hospital, service) => Number(hospital?.services?.[service]?.competency) || 0;
+  function getCompetency(hospital, service) {
+    if (!hospital || !hospital.services || !hospital.services[service]) return 0;
+    return hospital.services[service].competency || 0;
+  }
+
+  function getLevelRules(competency) {
+    switch (competency) {
+      case 1: return { tambah: [1], kurang: [2, 3, 4] };
+      case 2: return { tambah: [1, 2], kurang: [3, 4] };
+      case 3: return { tambah: [1, 2, 3], kurang: [4] };
+      case 4: return { tambah: [3, 4], kurang: [1, 2] };
+      default: return { tambah: [], kurang: [] };
+    }
+  }
   const overrideFor = (service) => state.overrides[service];
   const rateFor = (service, type, rank) => {
     const override = overrideFor(service);
@@ -579,23 +592,26 @@
       const targetCompetency = getCompetency(target, service);
       const competitorsList = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= targetCompetency);
       
+      const rules = getLevelRules(targetCompetency);
       competitorsList.forEach(h => {
         const hSvc = h.services?.[service];
-        const hLvl = getCompetency(h, service);
         if (hSvc) {
-          baseTambahan[hLvl][0] += hSvc.total[CASES] || 0;
-          baseTambahan[hLvl][1] += hSvc.total[IDRG] || 0;
+          rules.tambah.forEach(lvl => {
+            const metric = severityMetric(hSvc, lvl);
+            baseTambahan[lvl][0] += metric[CASES] || 0;
+            baseTambahan[lvl][1] += metric[IDRG] || 0;
+          });
         }
       });
       
       const targetSvc = target.services[service];
-      [1, 2, 3, 4].forEach(lvl => {
-        if (lvl < targetCompetency && lvl <= 2 && targetSvc) {
+      if (targetSvc) {
+        rules.kurang.forEach(lvl => {
           const targetLvl = severityMetric(targetSvc, lvl);
           basePengurangan[lvl][0] += targetLvl[CASES] || 0;
           basePengurangan[lvl][1] += targetLvl[INA] || 0;
-        }
-      });
+        });
+      }
     });
 
     const existingIna = target.total[INA];
@@ -811,24 +827,21 @@
         
         state.serviceScenarios[service] = Array(6).fill().map((_, i) => {
           let scn = {};
-          [1, 2, 3, 4].forEach(lvl => {
-            if (competitorCounts[lvl] > 0) {
-              let base = (100 / competitorCounts[lvl]) + 5;
-              let val = base - (i * 5);
-              scn['tambah_' + lvl] = parseFloat(Math.max(0, val).toFixed(1));
-            }
+          const rules = getLevelRules(targetCompetency);
+          let c = competitors > 0 ? competitors : 1;
+          let baseTambah = (100 / c) + (competitors > 0 ? 5 : 0);
+          rules.tambah.forEach(lvl => {
+            let val = baseTambah - (i * 5);
+            scn['tambah_' + lvl] = parseFloat(Math.max(0, val).toFixed(1));
           });
           
-          let c = competitors > 0 ? competitors : 1;
           let baseKurang = (100 / c) + (competitors > 0 ? 5 : 0);
           let valKurang = parseFloat(Math.max(0, baseKurang - (i * 5)).toFixed(1));
           
-          [1, 2, 3, 4].forEach(lvl => {
-            if (lvl < targetCompetency && lvl <= 2) {
-              const targetSvc = target.services[service];
-              if (targetSvc && severityMetric(targetSvc, lvl)[CASES] > 0) {
-                scn['kurang_' + lvl] = valKurang;
-              }
+          rules.kurang.forEach(lvl => {
+            const targetSvc = target.services[service];
+            if (targetSvc && severityMetric(targetSvc, lvl)[CASES] > 0) {
+              scn['kurang_' + lvl] = valKurang;
             }
           });
           
@@ -853,24 +866,27 @@
       const existingKasus = targetKasusArr[CASES] || 0;
       const existingIna = targetKasusArr[INA] || 0;
       
+      const rules = getLevelRules(targetCompetency);
       const baseTambahan = { 1: [0,0], 2: [0,0], 3: [0,0], 4: [0,0] };
       competitorsList.forEach(h => {
         const hSvc = h.services?.[service];
-        const hLvl = getCompetency(h, service);
         if (hSvc) {
-          baseTambahan[hLvl][0] += hSvc.total[CASES] || 0;
-          baseTambahan[hLvl][1] += hSvc.total[IDRG] || 0;
+          rules.tambah.forEach(lvl => {
+            const metric = severityMetric(hSvc, lvl);
+            baseTambahan[lvl][0] += metric[CASES] || 0;
+            baseTambahan[lvl][1] += metric[IDRG] || 0;
+          });
         }
       });
       
       const basePengurangan = { 1: [0,0], 2: [0,0], 3: [0,0], 4: [0,0] };
-      [1, 2, 3, 4].forEach(lvl => {
-        if (lvl < targetCompetency && lvl <= 2) {
+      if (targetSvc) {
+        rules.kurang.forEach(lvl => {
           const targetLvl = severityMetric(targetSvc, lvl);
           basePengurangan[lvl][0] = targetLvl[CASES] || 0;
           basePengurangan[lvl][1] = targetLvl[INA] || 0;
-        }
-      });
+        });
+      }
       
       const generateRow = (index, scn) => {
         let totalTambahKasus = 0;
