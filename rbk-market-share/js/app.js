@@ -705,11 +705,11 @@
       // Hitung Persentase Default
       if (!state.serviceScenarios[service]) {
         const c = competitors > 0 ? competitors : 1;
-        let base = Math.floor(100 / c) + 5;
+        let base = (100 / c) + 5;
         state.serviceScenarios[service] = Array(6).fill().map((_, i) => {
           let val = base - (i * 5);
           if (val < 0) val = 0;
-          return { tambah: val, kurang: val };
+          return { tambah: parseFloat(val.toFixed(1)), kurang: parseFloat(val.toFixed(1)) };
         });
       }
       
@@ -755,10 +755,10 @@
 
         return `<tr>
           <td style="font-weight: 700; text-align: left; padding-left: 10px; background-color: #f8f9fa;">Skenario ${index + 1}</td>
-          <td class="b-left-green b-top-green b-bottom-green"><input type="number" class="scenario-input dynamic-scenario-input" data-service="${escapeHtml(service)}" data-index="${index}" data-field="tambah" value="${scn.tambah}"></td>
+          <td class="b-left-green b-top-green b-bottom-green"><input type="number" class="scenario-input dynamic-scenario-input" data-service="${escapeHtml(service)}" data-index="${index}" data-field="tambah" value="${scn.tambah}" step="0.1"></td>
           <td class="b-top-green b-bottom-green">${formatNumber(tambahKasus)}</td>
           <td class="b-right-green b-top-green b-bottom-green">${formatMatrixMoney(tambahRp)}</td>
-          <td class="b-left-red b-top-red b-bottom-red"><input type="number" class="scenario-input dynamic-scenario-input" data-service="${escapeHtml(service)}" data-index="${index}" data-field="kurang" value="${scn.kurang}"></td>
+          <td class="b-left-red b-top-red b-bottom-red"><input type="number" class="scenario-input dynamic-scenario-input" data-service="${escapeHtml(service)}" data-index="${index}" data-field="kurang" value="${scn.kurang}" step="0.1"></td>
           <td class="b-top-red b-bottom-red">${formatNumber(kurangKasus)}</td>
           <td class="b-right-red b-top-red b-bottom-red">${formatMatrixMoney(kurangRp)}</td>
           <td>${formatSignedNumber(netKasus)}</td>
