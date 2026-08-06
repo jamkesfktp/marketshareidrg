@@ -606,9 +606,9 @@
           </div>
 
           <!-- Official junwatu/indonesia-map SVG Container -->
-          <div id="junwatuMapContainer" class="regional-map-crop" role="img" aria-label="Peta Vektor Indonesia (junwatu)" style="flex: 1 1 auto; height: 100%; min-height: 280px; position:relative; border-radius:14px; overflow:hidden; border:1px solid rgba(56,189,248,0.25); background: linear-gradient(145deg, #0b1329 0%, #172554 50%, #0f172a 100%); display:flex; align-items:center; justify-content:center;">
-            <div id="junwatuLoader" style="color:#38bdf8; font-size:12px; font-weight:600; display:flex; gap:8px; align-items:center;">
-              <div style="width:20px;height:20px;border:2px solid #38bdf8;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;"></div>
+          <div id="junwatuMapContainer" class="regional-map-crop" role="img" aria-label="Peta Vektor Indonesia (junwatu)" style="flex: 1 1 auto; height: 100%; min-height: 280px; position:relative; border-radius:14px; overflow:hidden; border:1px solid #cbd5e1; background: #f8fafc; display:flex; align-items:center; justify-content:center; box-shadow: inset 0 0 20px rgba(0,0,0,0.02);">
+            <div id="junwatuLoader" style="color:#0284c7; font-size:12px; font-weight:600; display:flex; gap:8px; align-items:center;">
+              <div style="width:20px;height:20px;border:2px solid #0284c7;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;"></div>
               Memuat Peta Vektor Indonesia...
             </div>
           </div>
@@ -646,14 +646,18 @@
         svgEl.style.height = "100%";
         svgEl.style.maxHeight = "340px";
 
-        // Remove lautan background rect to keep glassmorphism theme
-        const lautan = svgEl.querySelector("#Lautan");
-        if (lautan) lautan.style.display = "none";
+        // Lautan styling - clean soft ocean background
+        const lautan = svgEl.querySelector("#Lautan rect");
+        if (lautan) {
+          lautan.style.fill = "#f0f9ff";
+          lautan.style.stroke = "#bae6fd";
+          lautan.style.strokeWidth = "1px";
+        }
 
         // Active provinces map lookup (slugified IDs matching junwatu map)
         const activeProvList = [...new Set(data.hospitals.map(h => h.province).filter(Boolean))];
 
-        // Apply dark neon styling to all province groups
+        // Apply clean light theme styling to all province groups
         svgEl.querySelectorAll("g[id]").forEach(g => {
           const id = g.getAttribute("id");
           if (!id || id === "Lautan" || id === "Outsider" || id === "Indonesia-Map") return;
@@ -663,13 +667,13 @@
 
           g.querySelectorAll("path").forEach(path => {
             if (isSelected) {
-              path.style.fill = "#10b981";
-              path.style.stroke = "#6ee7b7";
+              path.style.fill = "#059669";
+              path.style.stroke = "#047857";
               path.style.strokeWidth = "2.5px";
-              path.style.filter = "drop-shadow(0 0 6px rgba(16, 185, 129, 0.7))";
+              path.style.filter = "drop-shadow(0 2px 6px rgba(5, 150, 105, 0.4))";
             } else {
-              path.style.fill = "#1e293b";
-              path.style.stroke = "#334155";
+              path.style.fill = "#cbd5e1";
+              path.style.stroke = "#94a3b8";
               path.style.strokeWidth = "1.2px";
             }
           });
@@ -880,8 +884,14 @@
       });
       
       rules.kurang.forEach(lvl => {
-        svcKurangKasus += basePengurangan[lvl][0] * (pctKurang / 100);
-        svcKurangRp += basePengurangan[lvl][1] * (pctKurang / 100);
+        let pKurang = pctKurang / 100;
+        if ((targetCompetency === 3 && lvl === 4) ||
+            (targetCompetency === 2 && (lvl === 3 || lvl === 4)) ||
+            (targetCompetency === 1 && lvl >= 2)) {
+          pKurang = 1.0; // 100% untuk tingkat di atas kompetensi target
+        }
+        svcKurangKasus += basePengurangan[lvl][0] * pKurang;
+        svcKurangRp += basePengurangan[lvl][1] * pKurang;
       });
       
       globalTambahKasus += svcTambahKasus;
@@ -1089,9 +1099,17 @@
           rules.kurang.forEach(lvl => {
             const targetSvc = target.services[service];
             if (targetSvc && severityMetric(targetSvc, lvl)[CASES] > 0) {
-              // Start at 50%, increase 10% per scenario: 50, 60, 70, 80, 90, 100
-              let val = 50 + (i * 10);
-              scn['kurang_' + lvl] = parseFloat(Math.min(100, val).toFixed(1));
+              // Jika Utama (3) -> Paripurna (4) = 100%
+              // Jika Madya (2) -> Utama (3) & Paripurna (4) = 100%
+              // Jika Dasar (1) -> Madya (2), Utama (3), Paripurna (4) = 100%
+              if ((targetCompetency === 3 && lvl === 4) ||
+                  (targetCompetency === 2 && (lvl === 3 || lvl === 4)) ||
+                  (targetCompetency === 1 && lvl >= 2)) {
+                scn['kurang_' + lvl] = 100;
+              } else {
+                let val = 50 + (i * 10);
+                scn['kurang_' + lvl] = parseFloat(Math.min(100, val).toFixed(1));
+              }
             }
           });
           
@@ -2022,8 +2040,13 @@
             rules.kurang.forEach(lvl => {
               const tSvc = target.services[service];
               if (tSvc && severityMetric(tSvc, lvl)[CASES] > 0) {
-                // Start at 50%, increase 10% per scenario: 50, 60, 70, 80, 90, 100
-                scn['kurang_' + lvl] = parseFloat(Math.min(100, 50 + (i * 10)).toFixed(1));
+                if ((targetCompetency === 3 && lvl === 4) ||
+                    (targetCompetency === 2 && (lvl === 3 || lvl === 4)) ||
+                    (targetCompetency === 1 && lvl >= 2)) {
+                  scn['kurang_' + lvl] = 100;
+                } else {
+                  scn['kurang_' + lvl] = parseFloat(Math.min(100, 50 + (i * 10)).toFixed(1));
+                }
               }
             });
             return scn;
@@ -2171,8 +2194,14 @@
         
         rules.kurang.forEach(lvl => {
           const tMetric = tSvc ? severityMetric(tSvc, lvl) : [0,0,0];
-          kurangKasusVal += (tMetric[CASES]||0) * (pctKurangVal / 100);
-          kurangInaVal += (tMetric[INA]||0) * (pctKurangVal / 100);
+          let pKurang = pctKurangVal / 100;
+          if ((targetCompetency === 3 && lvl === 4) ||
+              (targetCompetency === 2 && (lvl === 3 || lvl === 4)) ||
+              (targetCompetency === 1 && lvl >= 2)) {
+            pKurang = 1.0; // 100%
+          }
+          kurangKasusVal += (tMetric[CASES]||0) * pKurang;
+          kurangInaVal += (tMetric[INA]||0) * pKurang;
         });
       }
       
