@@ -593,7 +593,7 @@
     document.getElementById("regionalProfileSlideTitle").textContent = `Profil & Kasus Regional - ${target.name}`;
     document.getElementById("regionalProfileSlide").innerHTML = `
       <div class="regional-profile-layout">
-        <div class="regional-map-column" style="display: flex; flex-direction: column; gap: 10px; height: 100%; min-height: 0; grid-template-rows: none;">
+        <div class="regional-map-column" style="display: flex; flex-direction: column; gap: 10px; height: 100%; min-height: 0;">
           <!-- Wilayah Terpilih Container (Lists ALL selected regions without truncation) -->
           <div style="flex: 0 0 auto; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 14px; padding: 12px 14px; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);">
             <div style="font-size: 11px; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
@@ -605,9 +605,12 @@
             </div>
           </div>
 
-          <!-- Eye Catching Dynamic SVG Map Box -->
-          <div class="regional-map-crop" role="img" aria-label="Peta Vektor Wilayah Regional" style="flex: 1 1 auto; height: 100%; min-height: 280px; position:relative; border-radius:14px; overflow:hidden; border:none; background:transparent;">
-            ${svgMapContent}
+          <!-- Official junwatu/indonesia-map SVG Container -->
+          <div id="junwatuMapContainer" class="regional-map-crop" role="img" aria-label="Peta Vektor Indonesia (junwatu)" style="flex: 1 1 auto; height: 100%; min-height: 280px; position:relative; border-radius:14px; overflow:hidden; border:1px solid rgba(56,189,248,0.25); background: linear-gradient(145deg, #0b1329 0%, #172554 50%, #0f172a 100%); display:flex; align-items:center; justify-content:center;">
+            <div id="junwatuLoader" style="color:#38bdf8; font-size:12px; font-weight:600; display:flex; gap:8px; align-items:center;">
+              <div style="width:20px;height:20px;border:2px solid #38bdf8;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;"></div>
+              Memuat Peta Vektor Indonesia...
+            </div>
           </div>
         </div>
         <div class="regional-profile-main">
@@ -627,6 +630,54 @@
         </div>
       </div>
       <p class="regional-profile-footnote">*Terdapat ${formatNumber(metric(data.regional.unclassified)[CASES])} kasus yang belum memiliki mapping tingkat keparahan.</p>`;
+
+    // Fetch and render official junwatu/indonesia-map SVG
+    fetch("assets/indonesia.svg")
+      .then(res => res.text())
+      .then(svgText => {
+        const container = document.getElementById("junwatuMapContainer");
+        if (!container) return;
+        
+        container.innerHTML = svgText;
+        const svgEl = container.querySelector("svg");
+        if (!svgEl) return;
+
+        svgEl.style.width = "100%";
+        svgEl.style.height = "100%";
+        svgEl.style.maxHeight = "340px";
+
+        // Remove lautan background rect to keep glassmorphism theme
+        const lautan = svgEl.querySelector("#Lautan");
+        if (lautan) lautan.style.display = "none";
+
+        // Active provinces map lookup (slugified IDs matching junwatu map)
+        const activeProvList = [...new Set(data.hospitals.map(h => h.province).filter(Boolean))];
+
+        // Apply dark neon styling to all province groups
+        svgEl.querySelectorAll("g[id]").forEach(g => {
+          const id = g.getAttribute("id");
+          if (!id || id === "Lautan" || id === "Outsider" || id === "Indonesia-Map") return;
+
+          const isSelected = selectedProvinces.some(p => p.toUpperCase().replace(/\s+/g, '-') === id.toUpperCase()) ||
+                             activeProvList.some(p => p.toUpperCase().replace(/\s+/g, '-') === id.toUpperCase());
+
+          g.querySelectorAll("path").forEach(path => {
+            if (isSelected) {
+              path.style.fill = "#10b981";
+              path.style.stroke = "#6ee7b7";
+              path.style.strokeWidth = "2.5px";
+              path.style.filter = "drop-shadow(0 0 6px rgba(16, 185, 129, 0.7))";
+            } else {
+              path.style.fill = "#1e293b";
+              path.style.stroke = "#334155";
+              path.style.strokeWidth = "1.2px";
+            }
+          });
+        });
+      })
+      .catch(err => {
+        console.error("Failed to load junwatu map:", err);
+      });
   }
 
   function renderSimulatorSlide() {
@@ -842,7 +893,7 @@
       
       const svcNetKasus = svcTambahKasus - svcKurangKasus;
       const svcNetRp = svcTambahRp - svcKurangRp;
-      const svcPctKenaikan = svcExistingRp ? (svcNetRp / svcExistingRp) : 0;
+      const svcPctKenaikan = svcExistingRp ? ((svcTambahRp - svcExistingRp) / svcExistingRp) : 0;
       
       let competitorHtml = '';
       if (competitors > 0) {
@@ -898,7 +949,7 @@
     
     const globalNetKasus = globalTambahKasus - globalKurangKasus;
     const globalNetRp = globalTambahRp - globalKurangRp;
-    const globalPctKenaikan = globalExistingRp ? (globalNetRp / globalExistingRp) : 0;
+    const globalPctKenaikan = globalExistingRp ? ((globalTambahRp - globalExistingRp) / globalExistingRp) : 0;
     const deltaIdrg = target.total[IDRG] - target.total[INA];
     const deltaPercentIdrg = existingIna ? deltaIdrg / existingIna : 0;
     
@@ -1125,10 +1176,10 @@
         });
         
         const netKasus = totalTambahKasus - totalKurangKasus;
-        const pctNetKasus = existingKasus ? netKasus / existingKasus : 0;
+        const pctNetKasus = existingKasus ? (totalTambahKasus - existingKasus) / existingKasus : 0;
         
         const netRp = totalTambahRp - totalKurangRp;
-        const pctKenaikan = existingIna ? netRp / existingIna : 0;
+        const pctKenaikan = existingIna ? (totalTambahRp - existingIna) / existingIna : 0;
 
         return `<tr>
           <td style="font-weight: 700; text-align: left; padding-left: 10px; background-color: #f8f9fa;">Skenario ${index + 1}</td>
@@ -2127,7 +2178,7 @@
       
       const netKasusVal = tambahKasusVal - kurangKasusVal;
       const netIdrgVal = tambahIdrgVal - kurangInaVal;
-      const pctKenaikanVal = eksInaVal ? netIdrgVal / eksInaVal : 0;
+      const pctKenaikanVal = eksInaVal ? ((tambahIdrgVal - eksInaVal) / eksInaVal) : 0;
       
       ws4TotalTambahKasus += tambahKasusVal;
       ws4TotalTambahIdrg += tambahIdrgVal;
@@ -2159,11 +2210,11 @@
         { t: 'n', f: `(${kiF}) * (E${rowNum}/100)`, v: kurangInaVal },
         { t: 'n', f: `F${rowNum}-H${rowNum}`, v: netKasusVal },
         { t: 'n', f: `G${rowNum}-I${rowNum}`, v: netIdrgVal },
-        { t: 'n', f: `IF(C${rowNum}=0,0,K${rowNum}/C${rowNum})`, v: pctKenaikanVal }
+        { t: 'n', f: `IF(C${rowNum}=0,0,(G${rowNum}-C${rowNum})/C${rowNum})`, v: pctKenaikanVal }
       ]);
     });
     
-    const pctKenaikanTotal = ws4TotalEksIna ? ws4TotalNetIdrg / ws4TotalEksIna : 0;
+    const pctKenaikanTotal = ws4TotalEksIna ? ((ws4TotalTambahIdrg - ws4TotalEksIna) / ws4TotalEksIna) : 0;
     ws4_data.push([
       "TOTAL",
       { t: 'n', f: `SUM(B2:B${data.services.length+1})`, v: ws4TotalEksKasus },
@@ -2175,7 +2226,7 @@
       { t: 'n', f: `SUM(I2:I${data.services.length+1})`, v: ws4TotalKurangIna },
       { t: 'n', f: `SUM(J2:J${data.services.length+1})`, v: ws4TotalNetKasus },
       { t: 'n', f: `SUM(K2:K${data.services.length+1})`, v: ws4TotalNetIdrg },
-      { t: 'n', v: pctKenaikanTotal }
+      { t: 'n', f: `IF(C${data.services.length+2}=0,0,(G${data.services.length+2}-C${data.services.length+2})/C${data.services.length+2})`, v: pctKenaikanTotal }
     ]);
     
     const ws4 = XLSX.utils.aoa_to_sheet(ws4_data);
@@ -2306,7 +2357,7 @@
         
         // % Net Kasus
         const netKasusCol = getExcelCol(rowData.length - 1);
-        rowData.push({ t: 'n', f: `IF(G${eksRow}=0, 0, ${netKasusCol}${currentRow}/G${eksRow})` });
+        rowData.push({ t: 'n', f: `IF(G${eksRow}=0, 0, (${netKasusCol}${currentRow}-G${eksRow})/G${eksRow})` });
         
         // Net Rp
         rowData.push({ t: 'n', f: `(${tiF}) - (${kiF})` });
@@ -2316,7 +2367,7 @@
         
         // % Kenaikan
         const netRpCol = getExcelCol(rowData.length - 2);
-        rowData.push({ t: 'n', f: `IF(G${eksRow+1}=0, 0, ${netRpCol}${currentRow}/G${eksRow+1})` }); 
+        rowData.push({ t: 'n', f: `IF(G${eksRow+1}=0, 0, (${netRpCol}${currentRow}-G${eksRow+1})/G${eksRow+1})` }); 
         
         ws5_data.push(rowData);
         currentRow += 1;
