@@ -847,20 +847,19 @@
         state.serviceScenarios[service] = Array(6).fill().map((_, i) => {
           let scn = {};
           const rules = getLevelRules(targetCompetency);
-          let totalPlayers = competitors + 1;
-          let baseTambah = (100 / totalPlayers);
+          
           rules.tambah.forEach(lvl => {
-            let val = baseTambah - (i * 5);
+            let lvlCompetitors = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= lvl).length;
+            let val = (100 / (lvlCompetitors + 1)) - (i * 5);
             scn['tambah_' + lvl] = parseFloat(Math.max(0, val).toFixed(1));
           });
-          
-          let baseKurang = (100 / totalPlayers);
-          let valKurang = parseFloat(Math.max(0, baseKurang - (i * 5)).toFixed(1));
           
           rules.kurang.forEach(lvl => {
             const targetSvc = target.services[service];
             if (targetSvc && severityMetric(targetSvc, lvl)[CASES] > 0) {
-              scn['kurang_' + lvl] = valKurang;
+              let lvlCompetitors = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= lvl).length;
+              let val = (100 / (lvlCompetitors + 1)) - (i * 5);
+              scn['kurang_' + lvl] = parseFloat(Math.max(0, val).toFixed(1));
             }
           });
           
