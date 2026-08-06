@@ -572,7 +572,7 @@
     const target = targetHospital();
     if (!target) return;
 
-    const formatSigned    const baseTambahan = { 1: [0,0], 2: [0,0], 3: [0,0], 4: [0,0] };
+    const baseTambahan = { 1: [0,0], 2: [0,0], 3: [0,0], 4: [0,0] };
     const basePengurangan = { 1: [0,0], 2: [0,0], 3: [0,0], 4: [0,0] };
     
     data.services.forEach(service => {
