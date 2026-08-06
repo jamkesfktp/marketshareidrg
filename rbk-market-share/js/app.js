@@ -1097,19 +1097,16 @@
           });
           
           rules.kurang.forEach(lvl => {
-            const targetSvc = target.services[service];
-            if (targetSvc && severityMetric(targetSvc, lvl)[CASES] > 0) {
-              // Jika Utama (3) -> Paripurna (4) = 100%
-              // Jika Madya (2) -> Utama (3) & Paripurna (4) = 100%
-              // Jika Dasar (1) -> Madya (2), Utama (3), Paripurna (4) = 100%
-              if ((targetCompetency === 3 && lvl === 4) ||
-                  (targetCompetency === 2 && (lvl === 3 || lvl === 4)) ||
-                  (targetCompetency === 1 && lvl >= 2)) {
-                scn['kurang_' + lvl] = 100;
-              } else {
-                let val = 50 + (i * 10);
-                scn['kurang_' + lvl] = parseFloat(Math.min(100, val).toFixed(1));
-              }
+            // Jika Utama (3) -> Paripurna (4) = 100%
+            // Jika Madya (2) -> Utama (3) & Paripurna (4) = 100%
+            // Jika Dasar (1) -> Madya (2), Utama (3), Paripurna (4) = 100%
+            if ((targetCompetency === 3 && lvl === 4) ||
+                (targetCompetency === 2 && (lvl === 3 || lvl === 4)) ||
+                (targetCompetency === 1 && lvl >= 2)) {
+              scn['kurang_' + lvl] = 100;
+            } else {
+              let val = 50 + (i * 10);
+              scn['kurang_' + lvl] = parseFloat(Math.min(100, val).toFixed(1));
             }
           });
           
@@ -2038,15 +2035,12 @@
               scn['tambah_' + lvl] = parseFloat(Math.min(100, Math.max(0, (100 / (lvlCompetitors + 1)) + (i * 5))).toFixed(1));
             });
             rules.kurang.forEach(lvl => {
-              const tSvc = target.services[service];
-              if (tSvc && severityMetric(tSvc, lvl)[CASES] > 0) {
-                if ((targetCompetency === 3 && lvl === 4) ||
-                    (targetCompetency === 2 && (lvl === 3 || lvl === 4)) ||
-                    (targetCompetency === 1 && lvl >= 2)) {
-                  scn['kurang_' + lvl] = 100;
-                } else {
-                  scn['kurang_' + lvl] = parseFloat(Math.min(100, 50 + (i * 10)).toFixed(1));
-                }
+              if ((targetCompetency === 3 && lvl === 4) ||
+                  (targetCompetency === 2 && (lvl === 3 || lvl === 4)) ||
+                  (targetCompetency === 1 && lvl >= 2)) {
+                scn['kurang_' + lvl] = 100;
+              } else {
+                scn['kurang_' + lvl] = parseFloat(Math.min(100, 50 + (i * 10)).toFixed(1));
               }
             });
             return scn;
