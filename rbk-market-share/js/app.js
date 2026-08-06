@@ -901,10 +901,9 @@
       globalExistingKasus += svcExistingKasus;
       globalExistingRp += svcExistingRp;
       
-      const svcExistingIdrg = targetSvc ? (targetSvc.total[IDRG] || 0) : 0;
       const svcNetKasus = svcTambahKasus - svcKurangKasus;
       const svcNetRp = svcTambahRp - svcKurangRp;
-      const svcPctKenaikan = svcExistingRp ? ((svcExistingIdrg + svcNetRp - svcExistingRp) / svcExistingRp) : 0;
+      const svcPctKenaikan = svcExistingRp ? (svcNetRp / svcExistingRp) : 0;
       
       let competitorHtml = '';
       if (competitors > 0) {
@@ -958,10 +957,9 @@
       `);
     });
     
-    const globalExistingIdrg = target.total[IDRG] || 0;
     const globalNetKasus = globalTambahKasus - globalKurangKasus;
     const globalNetRp = globalTambahRp - globalKurangRp;
-    const globalPctKenaikan = globalExistingRp ? ((globalExistingIdrg + globalNetRp - globalExistingRp) / globalExistingRp) : 0;
+    const globalPctKenaikan = globalExistingRp ? (globalNetRp / globalExistingRp) : 0;
     const deltaIdrg = target.total[IDRG] - target.total[INA];
     const deltaPercentIdrg = existingIna ? deltaIdrg / existingIna : 0;
     
@@ -1192,13 +1190,11 @@
           }
         });
         
-        const existingIdrg = targetExistingService[IDRG] || 0;
         const netKasus = totalTambahKasus - totalKurangKasus;
         const pctNetKasus = existingKasus ? netKasus / existingKasus : 0;
         
         const netRp = totalTambahRp - totalKurangRp;
-        const projectedIdrg = existingIdrg + netRp;
-        const pctKenaikan = existingIna ? (projectedIdrg - existingIna) / existingIna : 0;
+        const pctKenaikan = existingIna ? netRp / existingIna : 0;
 
         return `<tr>
           <td style="font-weight: 700; text-align: left; padding-left: 10px; background-color: #f8f9fa;">Skenario ${index + 1}</td>
@@ -2154,10 +2150,10 @@
     
     // SHEET 4: SIMULASI GLOBAL (RUMUS EXCEL)
     const ws4_data = [
-      ["Layanan", "Eksisting Kasus", "Eksisting INA-CBG", "Eksisting iDRG", "% Tambah (Default)", "% Kurang (Default)", "Tambahan Kasus", "Tambahan iDRG (Rp)", "Kurang Kasus", "Kurang INA-CBG (Rp)", "Net Kasus", "Net iDRG (Rp)", "% KENAIKAN THD INA-CBG"]
+      ["Layanan", "Eksisting Kasus", "Eksisting INA-CBG", "% Tambah (Default)", "% Kurang (Default)", "Tambahan Kasus", "Tambahan iDRG (Rp)", "Kurang Kasus", "Kurang INA-CBG (Rp)", "Net Kasus", "Net iDRG (Rp)", "% KENAIKAN THD INA-CBG"]
     ];
     
-    let ws4TotalEksKasus = 0, ws4TotalEksIna = 0, ws4TotalEksIdrg = 0;
+    let ws4TotalEksKasus = 0, ws4TotalEksIna = 0;
     let ws4TotalTambahKasus = 0, ws4TotalTambahIdrg = 0;
     let ws4TotalKurangKasus = 0, ws4TotalKurangIna = 0;
     let ws4TotalNetKasus = 0, ws4TotalNetIdrg = 0;
@@ -2166,18 +2162,15 @@
       const rowNum = i + 2; 
       const targetCompetency = getCompetency(target, service);
       
-      // Compute actual values in JS (mirrors Slide 6 / renderComparisonSlide logic)
       const tSvc = target.services[service];
       const rSvc = data.regional.services[service];
       const rules = getLevelRules(targetCompetency);
       
       const eksKasusVal = tSvc ? (tSvc.total[CASES] || 0) : 0;
       const eksInaVal = tSvc ? (tSvc.total[INA] || 0) : 0;
-      const eksIdrgVal = tSvc ? (tSvc.total[IDRG] || 0) : 0;
       
       ws4TotalEksKasus += eksKasusVal;
       ws4TotalEksIna += eksInaVal;
-      ws4TotalEksIdrg += eksIdrgVal;
       
       let pctTambahVal = 0, pctKurangVal = 0;
       let tambahKasusVal = 0, tambahIdrgVal = 0;
@@ -2186,7 +2179,7 @@
       if (targetCompetency > 0) {
         const competitors = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= targetCompetency).length;
         pctTambahVal = 100 / (competitors + 1);
-        pctKurangVal = 50; // Skenario 1 default kurang = 50%
+        pctKurangVal = 50; 
         
         rules.tambah.forEach(lvl => {
           const rMetric = rSvc ? severityMetric(rSvc, lvl) : [0,0,0];
@@ -2203,7 +2196,7 @@
           if ((targetCompetency === 3 && lvl === 4) ||
               (targetCompetency === 2 && (lvl === 3 || lvl === 4)) ||
               (targetCompetency === 1 && lvl >= 2)) {
-            pKurang = 1.0; // 100%
+            pKurang = 1.0; 
           }
           kurangKasusVal += (tMetric[CASES]||0) * pKurang;
           kurangInaVal += (tMetric[INA]||0) * pKurang;
@@ -2212,8 +2205,7 @@
       
       const netKasusVal = tambahKasusVal - kurangKasusVal;
       const netIdrgVal = tambahIdrgVal - kurangInaVal;
-      const projIdrgVal = eksIdrgVal + netIdrgVal;
-      const pctKenaikanVal = eksInaVal ? ((projIdrgVal - eksInaVal) / eksInaVal) : 0;
+      const pctKenaikanVal = eksInaVal ? (netIdrgVal / eksInaVal) : 0;
       
       ws4TotalTambahKasus += tambahKasusVal;
       ws4TotalTambahIdrg += tambahIdrgVal;
@@ -2222,7 +2214,6 @@
       ws4TotalNetKasus += netKasusVal;
       ws4TotalNetIdrg += netIdrgVal;
       
-      // Build formula references (for kertas kerja editability)
       const extKasusCols = {1:'J', 2:'K', 3:'L', 4:'M'};
       const extIdrgCols = {1:'N', 2:'O', 3:'P', 4:'Q'};
       const tarKasusCols = {1:'B', 2:'C', 3:'D', 4:'E'};
@@ -2237,34 +2228,31 @@
         formatService(service),
         { t: 'n', f: `'2_Kasus_Regional_Vs_Target'!R${rowNum}`, v: eksKasusVal },
         { t: 'n', f: `'2_Kasus_Regional_Vs_Target'!S${rowNum}`, v: eksInaVal },
-        { t: 'n', f: `'2_Kasus_Regional_Vs_Target'!T${rowNum}`, v: eksIdrgVal },
         { t: 'n', v: pctTambahVal / 100, z: "0.0%" },
         { t: 'n', v: pctKurangVal / 100, z: "0.0%" },
-        { t: 'n', f: `(${tkF}) * (E${rowNum})`, v: tambahKasusVal },
-        { t: 'n', f: `(${tiF}) * (E${rowNum})`, v: tambahIdrgVal },
-        { t: 'n', f: `(${kkF}) * (F${rowNum})`, v: kurangKasusVal },
-        { t: 'n', f: `(${kiF}) * (F${rowNum})`, v: kurangInaVal },
-        { t: 'n', f: `G${rowNum}-I${rowNum}`, v: netKasusVal },
-        { t: 'n', f: `H${rowNum}-J${rowNum}`, v: netIdrgVal },
-        { t: 'n', f: `IF(C${rowNum}=0,0,(D${rowNum}+L${rowNum}-C${rowNum})/C${rowNum})`, v: pctKenaikanVal, z: "0.0%" }
+        { t: 'n', f: `(${tkF}) * (D${rowNum})`, v: tambahKasusVal },
+        { t: 'n', f: `(${tiF}) * (D${rowNum})`, v: tambahIdrgVal },
+        { t: 'n', f: `(${kkF}) * (E${rowNum})`, v: kurangKasusVal },
+        { t: 'n', f: `(${kiF}) * (E${rowNum})`, v: kurangInaVal },
+        { t: 'n', f: `F${rowNum}-H${rowNum}`, v: netKasusVal },
+        { t: 'n', f: `G${rowNum}-I${rowNum}`, v: netIdrgVal },
+        { t: 'n', f: `IF(C${rowNum}=0,0,K${rowNum}/C${rowNum})`, v: pctKenaikanVal, z: "0.0%" }
       ]);
     });
     
-    const globalProjIdrg = ws4TotalEksIdrg + ws4TotalNetIdrg;
-    const pctKenaikanTotal = ws4TotalEksIna ? ((globalProjIdrg - ws4TotalEksIna) / ws4TotalEksIna) : 0;
+    const pctKenaikanTotal = ws4TotalEksIna ? (ws4TotalNetIdrg / ws4TotalEksIna) : 0;
     ws4_data.push([
       "TOTAL",
       { t: 'n', f: `SUM(B2:B${data.services.length+1})`, v: ws4TotalEksKasus },
       { t: 'n', f: `SUM(C2:C${data.services.length+1})`, v: ws4TotalEksIna },
-      { t: 'n', f: `SUM(D2:D${data.services.length+1})`, v: ws4TotalEksIdrg },
       "", "",
-      { t: 'n', f: `SUM(G2:G${data.services.length+1})`, v: ws4TotalTambahKasus },
-      { t: 'n', f: `SUM(H2:H${data.services.length+1})`, v: ws4TotalTambahIdrg },
-      { t: 'n', f: `SUM(I2:I${data.services.length+1})`, v: ws4TotalKurangKasus },
-      { t: 'n', f: `SUM(J2:J${data.services.length+1})`, v: ws4TotalKurangIna },
-      { t: 'n', f: `SUM(K2:K${data.services.length+1})`, v: ws4TotalNetKasus },
-      { t: 'n', f: `SUM(L2:L${data.services.length+1})`, v: ws4TotalNetIdrg },
-      { t: 'n', f: `IF(C${data.services.length+2}=0,0,(D${data.services.length+2}+L${data.services.length+2}-C${data.services.length+2})/C${data.services.length+2})`, v: pctKenaikanTotal, z: "0.0%" }
+      { t: 'n', f: `SUM(F2:F${data.services.length+1})`, v: ws4TotalTambahKasus },
+      { t: 'n', f: `SUM(G2:G${data.services.length+1})`, v: ws4TotalTambahIdrg },
+      { t: 'n', f: `SUM(H2:H${data.services.length+1})`, v: ws4TotalKurangKasus },
+      { t: 'n', f: `SUM(I2:I${data.services.length+1})`, v: ws4TotalKurangIna },
+      { t: 'n', f: `SUM(J2:J${data.services.length+1})`, v: ws4TotalNetKasus },
+      { t: 'n', f: `SUM(K2:K${data.services.length+1})`, v: ws4TotalNetIdrg },
+      { t: 'n', f: `IF(C${data.services.length+2}=0,0,K${data.services.length+2}/C${data.services.length+2})`, v: pctKenaikanTotal, z: "0.0%" }
     ]);
     
     const ws4 = XLSX.utils.aoa_to_sheet(ws4_data);
@@ -2299,8 +2287,7 @@
       
       ws5_data.push([`Layanan: ${formatService(service)}`, "", "", "", "", "Eksisting Kasus", { t: 'n', f: `'2_Kasus_Regional_Vs_Target'!R${idx+2}`, v: eksKasusVal }]);
       ws5_data.push(["Kompetensi", levelNames[targetCompetency], "", "", "", "Eksisting INA", { t: 'n', f: `'2_Kasus_Regional_Vs_Target'!S${idx+2}`, v: eksInaVal }]);
-      ws5_data.push(["", "", "", "", "", "Eksisting iDRG", { t: 'n', f: `'2_Kasus_Regional_Vs_Target'!T${idx+2}`, v: eksIdrgVal }]);
-      currentRow += 3;
+      currentRow += 2;
       
       let header1 = ["Skenario"];
       let header2 = [""];
@@ -2419,14 +2406,13 @@
         
         const netKasusVal = tkSumScn - kkSumScn;
         const netRpVal = tiSumScn - kiSumScn;
-        const projIdrgVal = eksIdrgVal + netRpVal;
         const pctNetKasusVal = eksKasusVal ? (netKasusVal / eksKasusVal) : 0;
-        const pctKenaikanVal = eksInaVal ? ((projIdrgVal - eksInaVal) / eksInaVal) : 0;
+        const pctKenaikanVal = eksInaVal ? (netRpVal / eksInaVal) : 0;
 
         // Net Kasus
         rowData.push({ t: 'n', f: `(${tkF}) - (${kkF})`, v: netKasusVal }); 
         
-        const eksRow = currentRow - s - 5;
+        const eksRow = currentRow - s - 4;
         
         // % Net Kasus
         const netKasusCol = getExcelCol(rowData.length - 1);
@@ -2440,7 +2426,7 @@
         
         // % Kenaikan
         const netRpCol = getExcelCol(rowData.length - 2);
-        rowData.push({ t: 'n', f: `IF(G${eksRow+1}=0, 0, (G${eksRow+2}+${netRpCol}${currentRow}-G${eksRow+1})/G${eksRow+1})`, v: pctKenaikanVal, z: "0.0%" }); 
+        rowData.push({ t: 'n', f: `IF(G${eksRow+1}=0, 0, ${netRpCol}${currentRow}/G${eksRow+1})`, v: pctKenaikanVal, z: "0.0%" }); 
         
         ws5_data.push(rowData);
         currentRow += 1;
