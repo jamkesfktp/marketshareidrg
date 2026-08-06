@@ -702,7 +702,7 @@
       // Hitung kompetitor (RS lain yang punya kompetensi >= targetCompetency)
       const competitorsList = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= targetCompetency);
       const competitors = competitorsList.length;
-      const competitorNames = competitors > 0 ? competitorsList.map(h => escapeHtml(h.name)).join(', ') : "Tidak ada kompetitor";
+      const competitorNames = competitors > 0 ? competitorsList.map(h => `${escapeHtml(h.name)} (${levelNames[getCompetency(h, service)]})`).join(', ') : "Tidak ada kompetitor";
       
       // Hitung Persentase Default
       if (!state.serviceScenarios[service]) {
@@ -750,10 +750,12 @@
         const kurangRp = basePenguranganPendapatan * pKurang;
         
         const netKasus = tambahKasus - kurangKasus;
-        const pctNetKasus = existingKasus ? netKasus / existingKasus : 0;
-        const netRp = tambahRp - kurangRp;
+        const totalKasusEksisting = existingKasus + netKasus; // "Total kasus Eksisting (Akhir)"
+        const pctNetKasus = existingKasus ? (totalKasusEksisting - existingKasus) / existingKasus : 0;
         
-        const pctKenaikan = existingIna ? netRp / existingIna : 0;
+        const netRp = tambahRp - kurangRp;
+        const totalPendapatanNet = existingIna + netRp; // "Net (Total Pendapatan Akhir)"
+        const pctKenaikan = existingIna ? (totalPendapatanNet - existingIna) / existingIna : 0;
 
         return `<tr>
           <td style="font-weight: 700; text-align: left; padding-left: 10px; background-color: #f8f9fa;">Skenario ${index + 1}</td>
