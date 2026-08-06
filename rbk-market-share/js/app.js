@@ -844,14 +844,14 @@
         state.serviceScenarios[service] = Array(6).fill().map((_, i) => {
           let scn = {};
           const rules = getLevelRules(targetCompetency);
-          let c = competitors > 0 ? competitors : 1;
-          let baseTambah = (100 / c) + (competitors > 0 ? 5 : 0);
+          let totalPlayers = competitors + 1;
+          let baseTambah = (100 / totalPlayers) + (competitors > 0 ? 5 : 0);
           rules.tambah.forEach(lvl => {
             let val = baseTambah - (i * 5);
             scn['tambah_' + lvl] = parseFloat(Math.max(0, val).toFixed(1));
           });
           
-          let baseKurang = (100 / c) + (competitors > 0 ? 5 : 0);
+          let baseKurang = (100 / totalPlayers) + (competitors > 0 ? 5 : 0);
           let valKurang = parseFloat(Math.max(0, baseKurang - (i * 5)).toFixed(1));
           
           rules.kurang.forEach(lvl => {
