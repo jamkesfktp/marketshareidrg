@@ -944,10 +944,10 @@
         });
         
         const netKasus = totalTambahKasus - totalKurangKasus;
-        const pctNetKasus = existingKasus ? (netKasus - existingKasus) / existingKasus : 0;
+        const pctNetKasus = existingKasus ? netKasus / existingKasus : 0;
         
         const netRp = totalTambahRp - totalKurangRp;
-        const pctKenaikan = existingIna ? (netRp - existingIna) / existingIna : 0;
+        const pctKenaikan = existingIna ? netRp / existingIna : 0;
 
         return `<tr>
           <td style="font-weight: 700; text-align: left; padding-left: 10px; background-color: #f8f9fa;">Skenario ${index + 1}</td>
@@ -1695,5 +1695,260 @@
   });
   window.addEventListener("resize", resizeDeck);
   resizeDeck();
+  
+  function exportToExcel() {
+    if (typeof XLSX === 'undefined') {
+      alert("SheetJS library belum termuat. Silakan periksa koneksi internet.");
+      return;
+    }
+    
+    const target = targetHospital();
+    if (!target) return;
+    
+    const wb = XLSX.utils.book_new();
+    
+    // SHEET 1: DATA RS
+    const ws1_data = [
+      ["Kode RS", "Nama RS", "Kelas", "Kab/Kota", "Total Kasus", "Total Pendapatan INA-CBG (Rp)"]
+    ];
+    data.hospitals.forEach(h => {
+      ws1_data.push([
+        h.code, h.name, h.class || "-", h.city || "-", h.total[CASES] || 0, h.total[INA] || 0
+      ]);
+    });
+    const ws1 = XLSX.utils.aoa_to_sheet(ws1_data);
+    XLSX.utils.book_append_sheet(wb, ws1, "1_Data_Seluruh_RS");
+    
+    // SHEET 2: KASUS REGIONAL VS TARGET
+    const ws2_data = [
+      ["Layanan", 
+       "Target_Kasus_Dasar", "Target_Kasus_Madya", "Target_Kasus_Utama", "Target_Kasus_Paripurna",
+       "Target_INA_Dasar", "Target_INA_Madya", "Target_INA_Utama", "Target_INA_Paripurna",
+       "Eksternal_Kasus_Dasar", "Eksternal_Kasus_Madya", "Eksternal_Kasus_Utama", "Eksternal_Kasus_Paripurna",
+       "Eksternal_INA_Dasar", "Eksternal_INA_Madya", "Eksternal_INA_Utama", "Eksternal_INA_Paripurna",
+       "Target_Total_Kasus", "Target_Total_INA"]
+    ];
+    
+    data.services.forEach(service => {
+      const targetSvc = target.services[service];
+      const regionalSvc = data.regional.services[service];
+      
+      const t = { 1: [0,0], 2: [0,0], 3: [0,0], 4: [0,0] };
+      if (targetSvc) {
+        [1,2,3,4].forEach(lvl => {
+          const m = severityMetric(targetSvc, lvl);
+          t[lvl] = [m[CASES]||0, m[INA]||0];
+        });
+      }
+      
+      const r = { 1: [0,0], 2: [0,0], 3: [0,0], 4: [0,0] };
+      if (regionalSvc) {
+        [1,2,3,4].forEach(lvl => {
+          const m = severityMetric(regionalSvc, lvl);
+          r[lvl] = [m[CASES]||0, m[INA]||0];
+        });
+      }
+      
+      const e = { 1: [0,0], 2: [0,0], 3: [0,0], 4: [0,0] };
+      [1,2,3,4].forEach(lvl => {
+        e[lvl][0] = Math.max(0, r[lvl][0] - t[lvl][0]);
+        e[lvl][1] = Math.max(0, r[lvl][1] - t[lvl][1]);
+      });
+      
+      const targetTotalKasus = t[1][0] + t[2][0] + t[3][0] + t[4][0];
+      const targetTotalIna = t[1][1] + t[2][1] + t[3][1] + t[4][1];
+      
+      ws2_data.push([
+        formatService(service),
+        t[1][0], t[2][0], t[3][0], t[4][0],
+        t[1][1], t[2][1], t[3][1], t[4][1],
+        e[1][0], e[2][0], e[3][0], e[4][0],
+        e[1][1], e[2][1], e[3][1], e[4][1],
+        targetTotalKasus, targetTotalIna
+      ]);
+    });
+    const ws2 = XLSX.utils.aoa_to_sheet(ws2_data);
+    XLSX.utils.book_append_sheet(wb, ws2, "2_Kasus_Regional_Vs_Target");
+    
+    // SHEET 3: REKAP LAYANAN & KOMPETITOR
+    const ws3_data = [
+      ["Layanan", "Kompetensi Target", "Jumlah Kompetitor", "Daftar Kompetitor"]
+    ];
+    
+    data.services.forEach(service => {
+      const targetCompetency = getCompetency(target, service);
+      let compCount = 0;
+      let compNames = "";
+      if (targetCompetency > 0) {
+        const competitorsList = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= targetCompetency);
+        compCount = competitorsList.length;
+        compNames = competitorsList.map(h => h.name).join(", ");
+      }
+      ws3_data.push([
+        formatService(service),
+        targetCompetency,
+        compCount,
+        compNames
+      ]);
+    });
+    const ws3 = XLSX.utils.aoa_to_sheet(ws3_data);
+    XLSX.utils.book_append_sheet(wb, ws3, "3_Rekap_Kompetitor");
+    
+    // SHEET 4: SIMULASI GLOBAL (RUMUS EXCEL)
+    const ws4_data = [
+      ["Layanan", "Eksisting Kasus", "Eksisting INA", "% Tambah", "% Kurang", "Tambahan Kasus", "Tambahan INA", "Kurang Kasus", "Kurang INA", "Net Kasus", "Net INA", "% Kenaikan"]
+    ];
+    
+    data.services.forEach((service, i) => {
+      const rowNum = i + 2; 
+      const targetCompetency = getCompetency(target, service);
+      
+      const eksKasus = { t: 'n', f: `'2_Kasus_Regional_Vs_Target'!R${rowNum}` };
+      const eksIna = { t: 'n', f: `'2_Kasus_Regional_Vs_Target'!S${rowNum}` };
+      
+      let pctTambah = { t: 'n', v: 0 };
+      let pctKurang = { t: 'n', v: 0 };
+      let tambahKasus = { t: 'n', v: 0 };
+      let tambahIna = { t: 'n', v: 0 };
+      let kurangKasus = { t: 'n', v: 0 };
+      let kurangIna = { t: 'n', v: 0 };
+      let netKasus = { t: 'n', v: 0 };
+      let netIna = { t: 'n', v: 0 };
+      let pctKenaikan = { t: 'n', v: 0 };
+      
+      if (targetCompetency > 0) {
+        pctTambah = { t: 'n', f: `IF('3_Rekap_Kompetitor'!B${rowNum}=0, 0, (100/('3_Rekap_Kompetitor'!C${rowNum}+1)))` };
+        pctKurang = { t: 'n', f: `D${rowNum}` }; 
+        
+        const rules = getLevelRules(targetCompetency);
+        
+        const extKasusCols = {1:'J', 2:'K', 3:'L', 4:'M'};
+        const extInaCols = {1:'N', 2:'O', 3:'P', 4:'Q'};
+        let tkFormula = rules.tambah.map(lvl => `'2_Kasus_Regional_Vs_Target'!${extKasusCols[lvl]}${rowNum}`).join("+");
+        let tiFormula = rules.tambah.map(lvl => `'2_Kasus_Regional_Vs_Target'!${extInaCols[lvl]}${rowNum}`).join("+");
+        if (!tkFormula) tkFormula = "0";
+        if (!tiFormula) tiFormula = "0";
+        tambahKasus = { t: 'n', f: `(${tkFormula}) * (D${rowNum}/100)` };
+        tambahIna = { t: 'n', f: `(${tiFormula}) * (D${rowNum}/100)` };
+        
+        const tarKasusCols = {1:'B', 2:'C', 3:'D', 4:'E'};
+        const tarInaCols = {1:'F', 2:'G', 3:'H', 4:'I'};
+        let kkFormula = rules.kurang.length > 0 ? rules.kurang.map(lvl => `'2_Kasus_Regional_Vs_Target'!${tarKasusCols[lvl]}${rowNum}`).join("+") : "0";
+        let kiFormula = rules.kurang.length > 0 ? rules.kurang.map(lvl => `'2_Kasus_Regional_Vs_Target'!${tarInaCols[lvl]}${rowNum}`).join("+") : "0";
+        if (!kkFormula) kkFormula = "0";
+        if (!kiFormula) kiFormula = "0";
+        kurangKasus = { t: 'n', f: `(${kkFormula}) * (E${rowNum}/100)` };
+        kurangIna = { t: 'n', f: `(${kiFormula}) * (E${rowNum}/100)` };
+        
+        netKasus = { t: 'n', f: `F${rowNum} - H${rowNum}` };
+        netIna = { t: 'n', f: `G${rowNum} - I${rowNum}` };
+        pctKenaikan = { t: 'n', f: `IF(C${rowNum}=0, 0, K${rowNum}/C${rowNum})` };
+      }
+      
+      ws4_data.push([
+        formatService(service),
+        eksKasus, eksIna,
+        pctTambah, pctKurang,
+        tambahKasus, tambahIna,
+        kurangKasus, kurangIna,
+        netKasus, netIna,
+        pctKenaikan
+      ]);
+    });
+    
+    const totalRow = 26;
+    ws4_data.push([
+      "TOTAL",
+      { t: 'n', f: `SUM(B2:B25)` },
+      { t: 'n', f: `SUM(C2:C25)` },
+      "", "",
+      { t: 'n', f: `SUM(F2:F25)` },
+      { t: 'n', f: `SUM(G2:G25)` },
+      { t: 'n', f: `SUM(H2:H25)` },
+      { t: 'n', f: `SUM(I2:I25)` },
+      { t: 'n', f: `SUM(J2:J25)` },
+      { t: 'n', f: `SUM(K2:K25)` },
+      { t: 'n', f: `IF(C${totalRow}=0, 0, K${totalRow}/C${totalRow})` }
+    ]);
+    
+    const ws4 = XLSX.utils.aoa_to_sheet(ws4_data);
+    XLSX.utils.book_append_sheet(wb, ws4, "4_Simulasi_Global");
+    
+    // SHEET 5: SIMULASI PER PELAYANAN
+    const ws5_data = [];
+    let currentRow = 1; 
+    
+    data.services.forEach((service, idx) => {
+      const targetCompetency = getCompetency(target, service);
+      if (targetCompetency === 0) return;
+      
+      ws5_data.push([`Layanan: ${formatService(service)}`, "", "", "", "", "Eksisting Kasus", { t: 'n', f: `'2_Kasus_Regional_Vs_Target'!R${idx+2}` }]);
+      ws5_data.push(["Kompetensi", levelNames[targetCompetency], "", "", "", "Eksisting INA", { t: 'n', f: `'2_Kasus_Regional_Vs_Target'!S${idx+2}` }]);
+      currentRow += 2;
+      
+      const scnHeader = ["Skenario", "% Tambah 1", "% Tambah 2", "% Tambah 3", "% Tambah 4", "% Kurang 1", "% Kurang 2", "% Kurang 3", "% Kurang 4", "Net Kasus", "Net INA", "% Kenaikan"];
+      ws5_data.push(scnHeader);
+      currentRow += 1;
+      
+      const rules = getLevelRules(targetCompetency);
+      const extKasusCols = {1:'J', 2:'K', 3:'L', 4:'M'};
+      const extInaCols = {1:'N', 2:'O', 3:'P', 4:'Q'};
+      const tarKasusCols = {1:'B', 2:'C', 3:'D', 4:'E'};
+      const tarInaCols = {1:'F', 2:'G', 3:'H', 4:'I'};
+      
+      for (let s = 0; s < 6; s++) {
+        let rowData = [`Skenario ${s+1}`];
+        const scn = state.serviceScenarios[service][s];
+        
+        let tkFormulaParts = [];
+        let tiFormulaParts = [];
+        
+        [1,2,3,4].forEach(lvl => {
+          if (scn.hasOwnProperty('tambah_' + lvl)) {
+            rowData.push(scn['tambah_' + lvl]);
+            const colLetter = String.fromCharCode(65 + rowData.length - 1); 
+            tkFormulaParts.push(`('2_Kasus_Regional_Vs_Target'!${extKasusCols[lvl]}${idx+2} * (${colLetter}${currentRow}/100))`);
+            tiFormulaParts.push(`('2_Kasus_Regional_Vs_Target'!${extInaCols[lvl]}${idx+2} * (${colLetter}${currentRow}/100))`);
+          } else {
+            rowData.push(0);
+          }
+        });
+        
+        let kkFormulaParts = [];
+        let kiFormulaParts = [];
+        
+        [1,2,3,4].forEach(lvl => {
+          if (scn.hasOwnProperty('kurang_' + lvl)) {
+            rowData.push(scn['kurang_' + lvl]);
+            const colLetter = String.fromCharCode(65 + rowData.length - 1);
+            kkFormulaParts.push(`('2_Kasus_Regional_Vs_Target'!${tarKasusCols[lvl]}${idx+2} * (${colLetter}${currentRow}/100))`);
+            kiFormulaParts.push(`('2_Kasus_Regional_Vs_Target'!${tarInaCols[lvl]}${idx+2} * (${colLetter}${currentRow}/100))`);
+          } else {
+            rowData.push(0);
+          }
+        });
+        
+        let tkF = tkFormulaParts.length > 0 ? tkFormulaParts.join("+") : "0";
+        let tiF = tiFormulaParts.length > 0 ? tiFormulaParts.join("+") : "0";
+        let kkF = kkFormulaParts.length > 0 ? kkFormulaParts.join("+") : "0";
+        let kiF = kiFormulaParts.length > 0 ? kiFormulaParts.join("+") : "0";
+        
+        rowData.push({ t: 'n', f: `(${tkF}) - (${kkF})` }); 
+        rowData.push({ t: 'n', f: `(${tiF}) - (${kiF})` }); 
+        rowData.push({ t: 'n', f: `IF(G${currentRow-s-2}=0, 0, K${currentRow}/G${currentRow-s-2})` }); 
+        
+        ws5_data.push(rowData);
+        currentRow += 1;
+      }
+      ws5_data.push([]); 
+      currentRow += 1;
+    });
+    
+    const ws5 = XLSX.utils.aoa_to_sheet(ws5_data);
+    XLSX.utils.book_append_sheet(wb, ws5, "5_Simulasi_Per_Layanan");
+    
+    XLSX.writeFile(wb, `Kertas_Kerja_Market_Share_${target.name.replace(/\\s+/g, '_')}.xlsx`);
+  }
+
   renderAll();
 })();
