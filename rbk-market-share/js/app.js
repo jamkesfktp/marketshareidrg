@@ -1874,23 +1874,63 @@
     const ws4 = XLSX.utils.aoa_to_sheet(ws4_data);
     XLSX.utils.book_append_sheet(wb, ws4, "4_Simulasi_Global");
     
+    // Helper for excel columns
+    const getExcelCol = (i) => {
+      let letter = '';
+      while (i >= 0) {
+        letter = String.fromCharCode(i % 26 + 65) + letter;
+        i = Math.floor(i / 26) - 1;
+      }
+      return letter;
+    };
+
     // SHEET 5: SIMULASI PER PELAYANAN
     const ws5_data = [];
     let currentRow = 1; 
+    let merges = [];
     
     data.services.forEach((service, idx) => {
       const targetCompetency = getCompetency(target, service);
       if (targetCompetency === 0) return;
       
+      const scn = state.serviceScenarios[service][0]; // to check which levels have scenarios
+      
       ws5_data.push([`Layanan: ${formatService(service)}`, "", "", "", "", "Eksisting Kasus", { t: 'n', f: `'2_Kasus_Regional_Vs_Target'!R${idx+2}` }]);
       ws5_data.push(["Kompetensi", levelNames[targetCompetency], "", "", "", "Eksisting INA", { t: 'n', f: `'2_Kasus_Regional_Vs_Target'!S${idx+2}` }]);
       currentRow += 2;
       
-      const scnHeader = ["Skenario", "% Tambah 1", "% Tambah 2", "% Tambah 3", "% Tambah 4", "% Kurang 1", "% Kurang 2", "% Kurang 3", "% Kurang 4", "Net Kasus", "Net INA", "% Kenaikan"];
-      ws5_data.push(scnHeader);
-      currentRow += 1;
+      let header1 = ["Skenario"];
+      let header2 = [""];
       
-      const rules = getLevelRules(targetCompetency);
+      [1, 2, 3, 4].forEach(lvl => {
+        if (scn.hasOwnProperty('tambah_' + lvl)) {
+          header1.push(`Tambahan Kasus ${levelNames[lvl]}`, "", "");
+          header2.push("% T", "Kasus", "INA (Rp)");
+          merges.push({ s: { r: currentRow - 1, c: header1.length - 3 }, e: { r: currentRow - 1, c: header1.length - 1 } });
+        }
+      });
+      
+      [1, 2, 3, 4].forEach(lvl => {
+        if (scn.hasOwnProperty('kurang_' + lvl)) {
+          header1.push(`Pengurangan Kasus ${levelNames[lvl]}`, "", "");
+          header2.push("% K", "Kasus", "INA (Rp)");
+          merges.push({ s: { r: currentRow - 1, c: header1.length - 3 }, e: { r: currentRow - 1, c: header1.length - 1 } });
+        }
+      });
+      
+      header1.push("Net Kasus", "", "Net Pendapatan", "", "");
+      merges.push({ s: { r: currentRow - 1, c: header1.length - 5 }, e: { r: currentRow - 1, c: header1.length - 4 } });
+      merges.push({ s: { r: currentRow - 1, c: header1.length - 3 }, e: { r: currentRow - 1, c: header1.length - 1 } });
+      
+      header2.push("Kasus", "% Net Kasus", "Net Rp", "Eksisting", "% Kenaikan");
+      
+      // Merge 'Skenario' column (rowspan)
+      merges.push({ s: { r: currentRow - 1, c: 0 }, e: { r: currentRow, c: 0 } });
+      
+      ws5_data.push(header1);
+      ws5_data.push(header2);
+      currentRow += 2;
+      
       const extKasusCols = {1:'J', 2:'K', 3:'L', 4:'M'};
       const extInaCols = {1:'N', 2:'O', 3:'P', 4:'Q'};
       const tarKasusCols = {1:'B', 2:'C', 3:'D', 4:'E'};
@@ -1898,19 +1938,28 @@
       
       for (let s = 0; s < 6; s++) {
         let rowData = [`Skenario ${s+1}`];
-        const scn = state.serviceScenarios[service][s];
+        const scnData = state.serviceScenarios[service][s];
         
         let tkFormulaParts = [];
         let tiFormulaParts = [];
         
         [1,2,3,4].forEach(lvl => {
           if (scn.hasOwnProperty('tambah_' + lvl)) {
-            rowData.push(scn['tambah_' + lvl]);
-            const colLetter = String.fromCharCode(65 + rowData.length - 1); 
-            tkFormulaParts.push(`('2_Kasus_Regional_Vs_Target'!${extKasusCols[lvl]}${idx+2} * (${colLetter}${currentRow}/100))`);
-            tiFormulaParts.push(`('2_Kasus_Regional_Vs_Target'!${extInaCols[lvl]}${idx+2} * (${colLetter}${currentRow}/100))`);
-          } else {
-            rowData.push(0);
+            let pctVal = scnData['tambah_' + lvl];
+            rowData.push(pctVal); // % T
+            
+            const colLetterPct = getExcelCol(rowData.length - 1);
+            const tkCell = `('2_Kasus_Regional_Vs_Target'!${extKasusCols[lvl]}${idx+2} * (${colLetterPct}${currentRow}/100))`;
+            const tiCell = `('2_Kasus_Regional_Vs_Target'!${extInaCols[lvl]}${idx+2} * (${colLetterPct}${currentRow}/100))`;
+            
+            rowData.push({ t: 'n', f: tkCell }); // Kasus
+            rowData.push({ t: 'n', f: tiCell }); // INA
+            
+            const colLetterTk = getExcelCol(rowData.length - 2);
+            const colLetterTi = getExcelCol(rowData.length - 1);
+            
+            tkFormulaParts.push(`${colLetterTk}${currentRow}`);
+            tiFormulaParts.push(`${colLetterTi}${currentRow}`);
           }
         });
         
@@ -1919,12 +1968,21 @@
         
         [1,2,3,4].forEach(lvl => {
           if (scn.hasOwnProperty('kurang_' + lvl)) {
-            rowData.push(scn['kurang_' + lvl]);
-            const colLetter = String.fromCharCode(65 + rowData.length - 1);
-            kkFormulaParts.push(`('2_Kasus_Regional_Vs_Target'!${tarKasusCols[lvl]}${idx+2} * (${colLetter}${currentRow}/100))`);
-            kiFormulaParts.push(`('2_Kasus_Regional_Vs_Target'!${tarInaCols[lvl]}${idx+2} * (${colLetter}${currentRow}/100))`);
-          } else {
-            rowData.push(0);
+            let pctVal = scnData['kurang_' + lvl];
+            rowData.push(pctVal); // % K
+            
+            const colLetterPct = getExcelCol(rowData.length - 1);
+            const kkCell = `('2_Kasus_Regional_Vs_Target'!${tarKasusCols[lvl]}${idx+2} * (${colLetterPct}${currentRow}/100))`;
+            const kiCell = `('2_Kasus_Regional_Vs_Target'!${tarInaCols[lvl]}${idx+2} * (${colLetterPct}${currentRow}/100))`;
+            
+            rowData.push({ t: 'n', f: kkCell }); // Kasus
+            rowData.push({ t: 'n', f: kiCell }); // INA
+            
+            const colLetterKk = getExcelCol(rowData.length - 2);
+            const colLetterKi = getExcelCol(rowData.length - 1);
+            
+            kkFormulaParts.push(`${colLetterKk}${currentRow}`);
+            kiFormulaParts.push(`${colLetterKi}${currentRow}`);
           }
         });
         
@@ -1933,9 +1991,24 @@
         let kkF = kkFormulaParts.length > 0 ? kkFormulaParts.join("+") : "0";
         let kiF = kiFormulaParts.length > 0 ? kiFormulaParts.join("+") : "0";
         
+        // Net Kasus
         rowData.push({ t: 'n', f: `(${tkF}) - (${kkF})` }); 
-        rowData.push({ t: 'n', f: `(${tiF}) - (${kiF})` }); 
-        rowData.push({ t: 'n', f: `IF(G${currentRow-s-2}=0, 0, K${currentRow}/G${currentRow-s-2})` }); 
+        
+        const eksRow = currentRow - s - 4;
+        
+        // % Net Kasus
+        const netKasusCol = getExcelCol(rowData.length - 1);
+        rowData.push({ t: 'n', f: `IF(G${eksRow}=0, 0, ${netKasusCol}${currentRow}/G${eksRow})` });
+        
+        // Net Rp
+        rowData.push({ t: 'n', f: `(${tiF}) - (${kiF})` });
+        
+        // Eksisting Rp
+        rowData.push({ t: 'n', f: `G${eksRow+1}` });
+        
+        // % Kenaikan
+        const netRpCol = getExcelCol(rowData.length - 2);
+        rowData.push({ t: 'n', f: `IF(G${eksRow+1}=0, 0, ${netRpCol}${currentRow}/G${eksRow+1})` }); 
         
         ws5_data.push(rowData);
         currentRow += 1;
@@ -1945,6 +2018,7 @@
     });
     
     const ws5 = XLSX.utils.aoa_to_sheet(ws5_data);
+    ws5['!merges'] = merges;
     XLSX.utils.book_append_sheet(wb, ws5, "5_Simulasi_Per_Layanan");
     
     XLSX.writeFile(wb, `Kertas_Kerja_Market_Share_${target.name.replace(/\\s+/g, '_')}.xlsx`);
