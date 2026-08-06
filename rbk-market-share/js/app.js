@@ -903,7 +903,7 @@
       
       const svcNetKasus = svcTambahKasus - svcKurangKasus;
       const svcNetRp = svcTambahRp - svcKurangRp;
-      const svcPctKenaikan = svcExistingRp ? ((svcTambahRp - svcExistingRp) / svcExistingRp) : 0;
+      const svcPctKenaikan = svcExistingRp ? (svcNetRp / svcExistingRp) : 0;
       
       let competitorHtml = '';
       if (competitors > 0) {
@@ -959,7 +959,7 @@
     
     const globalNetKasus = globalTambahKasus - globalKurangKasus;
     const globalNetRp = globalTambahRp - globalKurangRp;
-    const globalPctKenaikan = globalExistingRp ? ((globalTambahRp - globalExistingRp) / globalExistingRp) : 0;
+    const globalPctKenaikan = globalExistingRp ? (globalNetRp / globalExistingRp) : 0;
     const deltaIdrg = target.total[IDRG] - target.total[INA];
     const deltaPercentIdrg = existingIna ? deltaIdrg / existingIna : 0;
     
@@ -1191,10 +1191,10 @@
         });
         
         const netKasus = totalTambahKasus - totalKurangKasus;
-        const pctNetKasus = existingKasus ? (totalTambahKasus - existingKasus) / existingKasus : 0;
+        const pctNetKasus = existingKasus ? netKasus / existingKasus : 0;
         
         const netRp = totalTambahRp - totalKurangRp;
-        const pctKenaikan = existingIna ? (totalTambahRp - existingIna) / existingIna : 0;
+        const pctKenaikan = existingIna ? netRp / existingIna : 0;
 
         return `<tr>
           <td style="font-weight: 700; text-align: left; padding-left: 10px; background-color: #f8f9fa;">Skenario ${index + 1}</td>
@@ -2205,7 +2205,7 @@
       
       const netKasusVal = tambahKasusVal - kurangKasusVal;
       const netIdrgVal = tambahIdrgVal - kurangInaVal;
-      const pctKenaikanVal = eksInaVal ? ((tambahIdrgVal - eksInaVal) / eksInaVal) : 0;
+      const pctKenaikanVal = eksInaVal ? (netIdrgVal / eksInaVal) : 0;
       
       ws4TotalTambahKasus += tambahKasusVal;
       ws4TotalTambahIdrg += tambahIdrgVal;
@@ -2237,11 +2237,11 @@
         { t: 'n', f: `(${kiF}) * (E${rowNum})`, v: kurangInaVal },
         { t: 'n', f: `F${rowNum}-H${rowNum}`, v: netKasusVal },
         { t: 'n', f: `G${rowNum}-I${rowNum}`, v: netIdrgVal },
-        { t: 'n', f: `IF(C${rowNum}=0,0,(G${rowNum}-C${rowNum})/C${rowNum})`, v: pctKenaikanVal, z: "0.0%" }
+        { t: 'n', f: `IF(C${rowNum}=0,0,K${rowNum}/C${rowNum})`, v: pctKenaikanVal, z: "0.0%" }
       ]);
     });
     
-    const pctKenaikanTotal = ws4TotalEksIna ? ((ws4TotalTambahIdrg - ws4TotalEksIna) / ws4TotalEksIna) : 0;
+    const pctKenaikanTotal = ws4TotalEksIna ? (ws4TotalNetIdrg / ws4TotalEksIna) : 0;
     ws4_data.push([
       "TOTAL",
       { t: 'n', f: `SUM(B2:B${data.services.length+1})`, v: ws4TotalEksKasus },
@@ -2253,7 +2253,7 @@
       { t: 'n', f: `SUM(I2:I${data.services.length+1})`, v: ws4TotalKurangIna },
       { t: 'n', f: `SUM(J2:J${data.services.length+1})`, v: ws4TotalNetKasus },
       { t: 'n', f: `SUM(K2:K${data.services.length+1})`, v: ws4TotalNetIdrg },
-      { t: 'n', f: `IF(C${data.services.length+2}=0,0,(G${data.services.length+2}-C${data.services.length+2})/C${data.services.length+2})`, v: pctKenaikanTotal, z: "0.0%" }
+      { t: 'n', f: `IF(C${data.services.length+2}=0,0,K${data.services.length+2}/C${data.services.length+2})`, v: pctKenaikanTotal, z: "0.0%" }
     ]);
     
     const ws4 = XLSX.utils.aoa_to_sheet(ws4_data);
@@ -2407,8 +2407,8 @@
         
         const netKasusVal = tkSumScn - kkSumScn;
         const netRpVal = tiSumScn - kiSumScn;
-        const pctNetKasusVal = eksKasusVal ? (netKasusVal - eksKasusVal) / eksKasusVal : 0;
-        const pctKenaikanVal = eksInaVal ? (netRpVal - eksInaVal) / eksInaVal : 0;
+        const pctNetKasusVal = eksKasusVal ? (netKasusVal / eksKasusVal) : 0;
+        const pctKenaikanVal = eksInaVal ? (netRpVal / eksInaVal) : 0;
 
         // Net Kasus
         rowData.push({ t: 'n', f: `(${tkF}) - (${kkF})`, v: netKasusVal }); 
@@ -2417,17 +2417,17 @@
         
         // % Net Kasus
         const netKasusCol = getExcelCol(rowData.length - 1);
-        rowData.push({ t: 'n', f: `IF(G${eksRow}=0, 0, (${netKasusCol}${currentRow}-G${eksRow})/G${eksRow})`, v: pctNetKasusVal, z: "0.0%" });
+        rowData.push({ t: 'n', f: `IF(G${eksRow}=0, 0, ${netKasusCol}${currentRow}/G${eksRow})`, v: pctNetKasusVal, z: "0.0%" });
         
         // Net Rp
-        rowData.push({ t: 'n', f: `(${tiF}) - (${kiF})`, v: netRpVal });
+        rowData.push({ t: 'n', f: `(${tiF}) - (${kiF})` });
         
         // Eksisting Rp
         rowData.push({ t: 'n', f: `G${eksRow+1}`, v: eksInaVal });
         
         // % Kenaikan
         const netRpCol = getExcelCol(rowData.length - 2);
-        rowData.push({ t: 'n', f: `IF(G${eksRow+1}=0, 0, (${netRpCol}${currentRow}-G${eksRow+1})/G${eksRow+1})`, v: pctKenaikanVal, z: "0.0%" }); 
+        rowData.push({ t: 'n', f: `IF(G${eksRow+1}=0, 0, ${netRpCol}${currentRow}/G${eksRow+1})`, v: pctKenaikanVal, z: "0.0%" }); 
         
         ws5_data.push(rowData);
         currentRow += 1;
