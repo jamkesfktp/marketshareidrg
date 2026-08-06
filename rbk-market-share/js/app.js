@@ -592,6 +592,8 @@
     let globalTambahRp = 0;
     let globalKurangKasus = 0;
     let globalKurangRp = 0;
+    let globalExistingKasus = 0;
+    let globalExistingRp = 0;
     
     const rows = [];
     
@@ -655,6 +657,8 @@
       globalTambahRp += svcTambahRp;
       globalKurangKasus += svcKurangKasus;
       globalKurangRp += svcKurangRp;
+      globalExistingKasus += svcExistingKasus;
+      globalExistingRp += svcExistingRp;
       
       const svcNetKasus = svcTambahKasus - svcKurangKasus;
       const svcNetRp = svcTambahRp - svcKurangRp;
@@ -714,7 +718,7 @@
     
     const globalNetKasus = globalTambahKasus - globalKurangKasus;
     const globalNetRp = globalTambahRp - globalKurangRp;
-    const globalPctKenaikan = existingIna ? (globalNetRp / existingIna) : 0;
+    const globalPctKenaikan = globalExistingRp ? (globalNetRp / globalExistingRp) : 0;
     const deltaIdrg = target.total[IDRG] - target.total[INA];
     const deltaPercentIdrg = existingIna ? deltaIdrg / existingIna : 0;
     
@@ -763,8 +767,8 @@
           <tfoot style="position: sticky; bottom: 0; z-index: 10; box-shadow: 0 -1px 3px rgba(0,0,0,0.1);">
             <tr style="background-color: #1e293b; color: white; font-weight: bold; font-size: 13px;">
               <td colspan="2" style="text-align: right; padding-right: 15px; background-color: #1e293b;">TOTAL GLOBAL (Semua Layanan)</td>
-              <td style="background-color: #1e293b; border-color: #334155;">${formatNumber(existingKasus)}</td>
-              <td class="b-right-yellow" style="background-color: #1e293b; border-color: #334155;">${formatMatrixMoney(existingIna)}</td>
+              <td style="background-color: #1e293b; border-color: #334155;">${formatNumber(globalExistingKasus)}</td>
+              <td class="b-right-yellow" style="background-color: #1e293b; border-color: #334155;">${formatMatrixMoney(globalExistingRp)}</td>
               
               <td class="b-left-green" style="background-color: #064e3b; color: #34d399; border-color: #065f46;">-</td>
               <td style="background-color: #064e3b; color: #34d399; border-color: #065f46;">${formatNumber(globalTambahKasus)}</td>
