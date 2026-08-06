@@ -1709,11 +1709,11 @@
     
     // SHEET 1: DATA RS
     const ws1_data = [
-      ["Kode RS", "Nama RS", "Kelas", "Kab/Kota", "Total Kasus", "Total Pendapatan INA-CBG (Rp)"]
+      ["Kode RS", "Nama RS", "Kelas", "Kab/Kota", "Total Kasus", "Total Pendapatan INA-CBG (Rp)", "Total Pendapatan iDRG (Rp)", "Selisih (iDRG - INA)"]
     ];
     data.hospitals.forEach(h => {
       ws1_data.push([
-        h.code, h.name, h.class || "-", h.city || "-", h.total[CASES] || 0, h.total[INA] || 0
+        h.code, h.name, h.class || "-", h.city || "-", h.total[CASES] || 0, h.total[INA] || 0, h.total[IDRG] || 0, (h.total[IDRG] || 0) - (h.total[INA] || 0)
       ]);
     });
     const ws1 = XLSX.utils.aoa_to_sheet(ws1_data);
