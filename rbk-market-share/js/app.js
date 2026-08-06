@@ -590,7 +590,7 @@
       
       const targetSvc = target.services[service];
       [1, 2, 3, 4].forEach(lvl => {
-        if (lvl < targetCompetency && targetSvc) {
+        if (lvl < targetCompetency && lvl <= 2 && targetSvc) {
           const targetLvl = severityMetric(targetSvc, lvl);
           basePengurangan[lvl][0] += targetLvl[CASES] || 0;
           basePengurangan[lvl][1] += targetLvl[INA] || 0;
@@ -800,7 +800,7 @@
           let valKurang = parseFloat(Math.max(0, baseKurang - (i * 5)).toFixed(1));
           
           [1, 2, 3, 4].forEach(lvl => {
-            if (lvl < targetCompetency) {
+            if (lvl < targetCompetency && lvl <= 2) {
               const targetSvc = target.services[service];
               if (targetSvc && severityMetric(targetSvc, lvl)[CASES] > 0) {
                 scn['kurang_' + lvl] = valKurang;
@@ -841,7 +841,7 @@
       
       const basePengurangan = { 1: [0,0], 2: [0,0], 3: [0,0], 4: [0,0] };
       [1, 2, 3, 4].forEach(lvl => {
-        if (lvl < targetCompetency) {
+        if (lvl < targetCompetency && lvl <= 2) {
           const targetLvl = severityMetric(targetSvc, lvl);
           basePengurangan[lvl][0] = targetLvl[CASES] || 0;
           basePengurangan[lvl][1] = targetLvl[INA] || 0;
