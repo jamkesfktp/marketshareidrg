@@ -1775,7 +1775,7 @@
        "Target_Kasus_Dasar", "Target_Kasus_Madya", "Target_Kasus_Utama", "Target_Kasus_Paripurna",
        "Target_INA_Dasar", "Target_INA_Madya", "Target_INA_Utama", "Target_INA_Paripurna",
        "Eksternal_Kasus_Dasar", "Eksternal_Kasus_Madya", "Eksternal_Kasus_Utama", "Eksternal_Kasus_Paripurna",
-       "Eksternal_INA_Dasar", "Eksternal_INA_Madya", "Eksternal_INA_Utama", "Eksternal_INA_Paripurna",
+       "Eksternal_iDRG_Dasar", "Eksternal_iDRG_Madya", "Eksternal_iDRG_Utama", "Eksternal_iDRG_Paripurna",
        "Target_Total_Kasus", "Target_Total_INA"]
     ];
     
@@ -1783,26 +1783,28 @@
       const targetSvc = target.services[service];
       const regionalSvc = data.regional.services[service];
       
-      const t = { 1: [0,0], 2: [0,0], 3: [0,0], 4: [0,0] };
+      // t: [cases, ina, idrg] for target
+      const t = { 1: [0,0,0], 2: [0,0,0], 3: [0,0,0], 4: [0,0,0] };
       if (targetSvc) {
         [1,2,3,4].forEach(lvl => {
           const m = severityMetric(targetSvc, lvl);
-          t[lvl] = [m[CASES]||0, m[INA]||0];
+          t[lvl] = [m[CASES]||0, m[INA]||0, m[IDRG]||0];
         });
       }
       
-      const r = { 1: [0,0], 2: [0,0], 3: [0,0], 4: [0,0] };
+      // r: [cases, ina, idrg] for regional
+      const r = { 1: [0,0,0], 2: [0,0,0], 3: [0,0,0], 4: [0,0,0] };
       if (regionalSvc) {
         [1,2,3,4].forEach(lvl => {
           const m = severityMetric(regionalSvc, lvl);
-          r[lvl] = [m[CASES]||0, m[INA]||0];
+          r[lvl] = [m[CASES]||0, m[INA]||0, m[IDRG]||0];
         });
       }
       
       const e = { 1: [0,0], 2: [0,0], 3: [0,0], 4: [0,0] };
       [1,2,3,4].forEach(lvl => {
-        e[lvl][0] = Math.max(0, r[lvl][0] - t[lvl][0]);
-        e[lvl][1] = Math.max(0, r[lvl][1] - t[lvl][1]);
+        e[lvl][0] = Math.max(0, r[lvl][0] - t[lvl][0]); // Eksternal Kasus
+        e[lvl][1] = Math.max(0, r[lvl][2] - t[lvl][2]); // Eksternal iDRG (bukan INA!)
       });
       
       const targetTotalKasus = t[1][0] + t[2][0] + t[3][0] + t[4][0];
