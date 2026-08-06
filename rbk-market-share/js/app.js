@@ -1071,7 +1071,25 @@
         const field = e.target.dataset.field;
         const val = parseFloat(e.target.value) || 0;
         state.serviceScenarios[srv][idx][field] = val;
+        
+        // Save current slide position before re-render
+        const savedSlide = state.activeSlide;
+        const savedService = srv;
+        const savedIndex = idx;
+        const savedField = field;
+        
         renderDynamicServiceSlides();
+        
+        // Restore slide position and focus after re-render
+        showSlide(savedSlide);
+        setTimeout(() => {
+          const selector = `.dynamic-scenario-input[data-service="${savedService.replace(/"/g, '\\"')}"][data-index="${savedIndex}"][data-field="${savedField}"]`;
+          const inputToFocus = document.querySelector(selector);
+          if (inputToFocus) {
+            inputToFocus.focus();
+            try { inputToFocus.select(); } catch(e) {}
+          }
+        }, 0);
       });
     });
   }
