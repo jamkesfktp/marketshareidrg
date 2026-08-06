@@ -635,8 +635,8 @@
       }
       
       let totalPlayers = competitors + 1;
-      let pctTambah = (100 / totalPlayers) + (competitors > 0 ? 5 : 0);
-      let pctKurang = (100 / totalPlayers) + (competitors > 0 ? 5 : 0);
+      let pctTambah = (100 / totalPlayers);
+      let pctKurang = (100 / totalPlayers);
       
       let svcTambahKasus = 0;
       let svcTambahRp = 0;
@@ -849,13 +849,13 @@
           let scn = {};
           const rules = getLevelRules(targetCompetency);
           let totalPlayers = competitors + 1;
-          let baseTambah = (100 / totalPlayers) + (competitors > 0 ? 5 : 0);
+          let baseTambah = (100 / totalPlayers);
           rules.tambah.forEach(lvl => {
             let val = baseTambah - (i * 5);
             scn['tambah_' + lvl] = parseFloat(Math.max(0, val).toFixed(1));
           });
           
-          let baseKurang = (100 / totalPlayers) + (competitors > 0 ? 5 : 0);
+          let baseKurang = (100 / totalPlayers);
           let valKurang = parseFloat(Math.max(0, baseKurang - (i * 5)).toFixed(1));
           
           rules.kurang.forEach(lvl => {
