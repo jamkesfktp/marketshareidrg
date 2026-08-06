@@ -727,19 +727,30 @@
       const potensiRegional = regionalIdrg - regionalIna;
       const selisih = potensiRegional - targetIdrg;
       
-      // Sama seperti slide 9, base tambahan = external, base pengurangan = existing target
-      // External = regional - targetExisting
-      const targetKasusArr = target.services[service] ? target.services[service].total : [0,0,0];
-      const regionalKasusArr = data.regional.services[service] ? data.regional.services[service].total : [0,0,0];
-      const externalKasus = Math.max(0, regionalKasusArr[CASES] - targetKasusArr[CASES]);
-      const externalIdrg = Math.max(0, regionalKasusArr[IDRG] - targetKasusArr[IDRG]);
-      
-      const baseTambahanKasus = externalKasus;
-      const baseTambahanPendapatan = externalIdrg;
-      const basePenguranganKasus = targetKasusArr[CASES] || 0;
-      const basePenguranganPendapatan = targetKasusArr[INA] || 0;
-      const existingIna = targetKasusArr[INA] || 0;
+      const targetSvc = target.services[service];
+      const targetKasusArr = targetSvc ? targetSvc.total : [0,0,0];
       const existingKasus = targetKasusArr[CASES] || 0;
+      const existingIna = targetKasusArr[INA] || 0;
+      
+      // Tambahan hanya diambil dari Pesaing (RS dengan kompetensi >= Target)
+      let compKasus = 0;
+      let compIdrg = 0;
+      competitorsList.forEach(h => {
+        const hSvc = h.services?.[service];
+        if (hSvc) {
+          compKasus += hSvc.total[CASES] || 0;
+          compIdrg += hSvc.total[IDRG] || 0;
+        }
+      });
+      const baseTambahanKasus = compKasus;
+      const baseTambahanPendapatan = compIdrg;
+      
+      // Pengurangan hanya dari Kasus Dasar & Madya RS Target
+      const targetDasar = severityMetric(targetSvc, 1);
+      const targetMadya = severityMetric(targetSvc, 2);
+      const basePenguranganKasus = targetDasar[CASES] + targetMadya[CASES];
+      const basePenguranganPendapatan = targetDasar[INA] + targetMadya[INA];
+      
       
       const generateRow = (index, scn) => {
         const pTambah = scn.tambah / 100;
