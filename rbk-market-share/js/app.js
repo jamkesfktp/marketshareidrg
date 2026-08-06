@@ -857,8 +857,8 @@
           rules.kurang.forEach(lvl => {
             const targetSvc = target.services[service];
             if (targetSvc && severityMetric(targetSvc, lvl)[CASES] > 0) {
-              let lvlCompetitors = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= lvl).length;
-              let val = (100 / (lvlCompetitors + 1)) - (i * 5);
+              // Start at 50%, decrease 10% per scenario: 50, 40, 30, 20, 10, 0
+              let val = 50 - (i * 10);
               scn['kurang_' + lvl] = parseFloat(Math.max(0, val).toFixed(1));
             }
           });
@@ -1718,11 +1718,18 @@
           if (!ws[cellRef]) continue;
           if (!ws[cellRef].s) ws[cellRef].s = {};
           
+          // Ensure formula cells have a cached value so Excel doesn't show blank
+          if (ws[cellRef].f && ws[cellRef].v === undefined) {
+            ws[cellRef].v = 0;
+          }
+          
           ws[cellRef].s.border = border;
           ws[cellRef].s.alignment = { wrapText: true, vertical: 'center' };
           
           let isHeader = false;
           const val = ws[cellRef].v;
+          const strVal = ws[cellRef].f ? '' : (val !== undefined && val !== null ? val.toString() : '');
+          
           if (isSheet5) {
             if (typeof val === 'string' && (val.startsWith("Layanan:") || val.startsWith("Kompetensi") || val.startsWith("Skenario") || val.includes("Tambahan Kasus") || val.includes("Pengurangan Kasus") || val.includes("Net Kasus") || val.includes("Net Pendapatan") || val === "% T" || val === "% K" || val === "Kasus" || val === "INA (Rp)" || val === "% Net Kasus" || val === "Net Rp" || val === "Eksisting" || val === "% Kenaikan")) {
               isHeader = true;
@@ -1736,14 +1743,10 @@
             ws[cellRef].s.fill = { fgColor: { rgb: "4F46E5" } };
             ws[cellRef].s.alignment.horizontal = "center";
           } else if (ws[cellRef].t === 'n') {
-            if (ws[cellRef].v > 1000 || ws[cellRef].v < -1000) {
-              ws[cellRef].s.numFmt = "#,##0";
-            } else if (Math.abs(ws[cellRef].v) > 0 && Math.abs(ws[cellRef].v) <= 1 && !Number.isInteger(ws[cellRef].v)) {
-              ws[cellRef].s.numFmt = "0.0%";
-            }
+            ws[cellRef].s.numFmt = "#,##0";
           }
           
-          let len = val ? val.toString().length : 10;
+          let len = strVal ? strVal.length : (val !== undefined ? val.toString().length : 10);
           if (!colWidths[C]) colWidths[C] = 10;
           if (len > colWidths[C]) colWidths[C] = len > 30 ? 30 : len;
         }
@@ -1753,6 +1756,30 @@
     
     const target = targetHospital();
     if (!target) return;
+    
+    // Ensure all service scenarios are initialized before export
+    data.services.forEach(service => {
+      if (!state.serviceScenarios[service]) {
+        const targetCompetency = getCompetency(target, service);
+        if (targetCompetency > 0) {
+          state.serviceScenarios[service] = Array(6).fill().map((_, i) => {
+            let scn = {};
+            const rules = getLevelRules(targetCompetency);
+            rules.tambah.forEach(lvl => {
+              let lvlCompetitors = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= lvl).length;
+              scn['tambah_' + lvl] = parseFloat(Math.max(0, (100 / (lvlCompetitors + 1)) + (i * 5)).toFixed(1));
+            });
+            rules.kurang.forEach(lvl => {
+              const tSvc = target.services[service];
+              if (tSvc && severityMetric(tSvc, lvl)[CASES] > 0) {
+                scn['kurang_' + lvl] = parseFloat(Math.max(0, 50 - (i * 10)).toFixed(1));
+              }
+            });
+            return scn;
+          });
+        }
+      }
+    });
     
     const wb = XLSX.utils.book_new();
     
