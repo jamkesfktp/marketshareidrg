@@ -706,12 +706,33 @@
       
       // Hitung Persentase Default
       if (!state.serviceScenarios[service]) {
-        const c = competitors > 0 ? competitors : 1;
-        let base = (100 / c) + (competitors > 0 ? 5 : 0);
+        const competitorCounts = { 1:0, 2:0, 3:0, 4:0 };
+        competitorsList.forEach(h => competitorCounts[getCompetency(h, service)]++);
+        
         state.serviceScenarios[service] = Array(6).fill().map((_, i) => {
-          let val = base - (i * 5);
-          if (val < 0) val = 0;
-          return { tambah: parseFloat(val.toFixed(1)), kurang: parseFloat(val.toFixed(1)) };
+          let scn = {};
+          [1, 2, 3, 4].forEach(lvl => {
+            if (competitorCounts[lvl] > 0) {
+              let base = (100 / competitorCounts[lvl]) + 5;
+              let val = base - (i * 5);
+              scn['tambah_' + lvl] = parseFloat(Math.max(0, val).toFixed(1));
+            }
+          });
+          
+          let c = competitors > 0 ? competitors : 1;
+          let baseKurang = (100 / c) + (competitors > 0 ? 5 : 0);
+          let valKurang = parseFloat(Math.max(0, baseKurang - (i * 5)).toFixed(1));
+          
+          [1, 2, 3, 4].forEach(lvl => {
+            if (lvl < targetCompetency) {
+              const targetSvc = target.services[service];
+              if (targetSvc && severityMetric(targetSvc, lvl)[CASES] > 0) {
+                scn['kurang_' + lvl] = valKurang;
+              }
+            }
+          });
+          
+          return scn;
         });
       }
       
@@ -732,48 +753,73 @@
       const existingKasus = targetKasusArr[CASES] || 0;
       const existingIna = targetKasusArr[INA] || 0;
       
-      // Tambahan hanya diambil dari Pesaing (RS dengan kompetensi >= Target)
-      let compKasus = 0;
-      let compIdrg = 0;
+      const baseTambahan = { 1: [0,0], 2: [0,0], 3: [0,0], 4: [0,0] };
       competitorsList.forEach(h => {
         const hSvc = h.services?.[service];
+        const hLvl = getCompetency(h, service);
         if (hSvc) {
-          compKasus += hSvc.total[CASES] || 0;
-          compIdrg += hSvc.total[IDRG] || 0;
+          baseTambahan[hLvl][0] += hSvc.total[CASES] || 0;
+          baseTambahan[hLvl][1] += hSvc.total[IDRG] || 0;
         }
       });
-      const baseTambahanKasus = compKasus;
-      const baseTambahanPendapatan = compIdrg;
       
-      // Pengurangan hanya dari Kasus Dasar & Madya RS Target
-      const targetDasar = severityMetric(targetSvc, 1);
-      const targetMadya = severityMetric(targetSvc, 2);
-      const basePenguranganKasus = targetDasar[CASES] + targetMadya[CASES];
-      const basePenguranganPendapatan = targetDasar[INA] + targetMadya[INA];
-      
+      const basePengurangan = { 1: [0,0], 2: [0,0], 3: [0,0], 4: [0,0] };
+      [1, 2, 3, 4].forEach(lvl => {
+        if (lvl < targetCompetency) {
+          const targetLvl = severityMetric(targetSvc, lvl);
+          basePengurangan[lvl][0] = targetLvl[CASES] || 0;
+          basePengurangan[lvl][1] = targetLvl[INA] || 0;
+        }
+      });
       
       const generateRow = (index, scn) => {
-        const pTambah = scn.tambah / 100;
-        const pKurang = scn.kurang / 100;
-        const tambahKasus = baseTambahanKasus * pTambah;
-        const tambahRp = baseTambahanPendapatan * pTambah;
-        const kurangKasus = basePenguranganKasus * pKurang;
-        const kurangRp = basePenguranganPendapatan * pKurang;
+        let totalTambahKasus = 0;
+        let totalTambahRp = 0;
+        let totalKurangKasus = 0;
+        let totalKurangRp = 0;
         
-        const netKasus = tambahKasus - kurangKasus;
+        let tambahCols = '';
+        [1, 2, 3, 4].forEach(lvl => {
+          if (scn.hasOwnProperty('tambah_' + lvl)) {
+            const pTambah = scn['tambah_' + lvl] / 100;
+            const tk = baseTambahan[lvl][0] * pTambah;
+            const trp = baseTambahan[lvl][1] * pTambah;
+            totalTambahKasus += tk;
+            totalTambahRp += trp;
+            tambahCols += `
+              <td class="b-left-green b-top-green b-bottom-green"><input type="number" class="scenario-input dynamic-scenario-input" data-service="${escapeHtml(service)}" data-index="${index}" data-field="tambah_${lvl}" value="${scn['tambah_' + lvl]}" step="0.1" style="width: 60px;"></td>
+              <td class="b-top-green b-bottom-green">${formatNumber(tk)}</td>
+              <td class="b-right-green b-top-green b-bottom-green">${formatMatrixMoney(trp)}</td>
+            `;
+          }
+        });
+        
+        let kurangCols = '';
+        [1, 2, 3, 4].forEach(lvl => {
+          if (scn.hasOwnProperty('kurang_' + lvl)) {
+            const pKurang = scn['kurang_' + lvl] / 100;
+            const kk = basePengurangan[lvl][0] * pKurang;
+            const krp = basePengurangan[lvl][1] * pKurang;
+            totalKurangKasus += kk;
+            totalKurangRp += krp;
+            kurangCols += `
+              <td class="b-left-red b-top-red b-bottom-red"><input type="number" class="scenario-input dynamic-scenario-input" data-service="${escapeHtml(service)}" data-index="${index}" data-field="kurang_${lvl}" value="${scn['kurang_' + lvl]}" step="0.1" style="width: 60px;"></td>
+              <td class="b-top-red b-bottom-red">${formatNumber(kk)}</td>
+              <td class="b-right-red b-top-red b-bottom-red">${formatMatrixMoney(krp)}</td>
+            `;
+          }
+        });
+        
+        const netKasus = totalTambahKasus - totalKurangKasus;
         const pctNetKasus = existingKasus ? (netKasus - existingKasus) / existingKasus : 0;
         
-        const netRp = tambahRp - kurangRp;
+        const netRp = totalTambahRp - totalKurangRp;
         const pctKenaikan = existingIna ? (netRp - existingIna) / existingIna : 0;
 
         return `<tr>
           <td style="font-weight: 700; text-align: left; padding-left: 10px; background-color: #f8f9fa;">Skenario ${index + 1}</td>
-          <td class="b-left-green b-top-green b-bottom-green"><input type="number" class="scenario-input dynamic-scenario-input" data-service="${escapeHtml(service)}" data-index="${index}" data-field="tambah" value="${scn.tambah}" step="0.1"></td>
-          <td class="b-top-green b-bottom-green">${formatNumber(tambahKasus)}</td>
-          <td class="b-right-green b-top-green b-bottom-green">${formatMatrixMoney(tambahRp)}</td>
-          <td class="b-left-red b-top-red b-bottom-red"><input type="number" class="scenario-input dynamic-scenario-input" data-service="${escapeHtml(service)}" data-index="${index}" data-field="kurang" value="${scn.kurang}" step="0.1"></td>
-          <td class="b-top-red b-bottom-red">${formatNumber(kurangKasus)}</td>
-          <td class="b-right-red b-top-red b-bottom-red">${formatMatrixMoney(kurangRp)}</td>
+          ${tambahCols}
+          ${kurangCols}
           <td>${formatSignedNumber(netKasus)}</td>
           <td>${formatPercent(pctNetKasus)}</td>
           <td>${netRp > 0 ? '+' : ''}${formatMatrixMoney(netRp)}</td>
@@ -803,32 +849,47 @@
                 <div style="font-size: 12px; font-weight: normal; color: var(--slate-500); max-width: 400px; margin-top: 4px; line-height: 1.4;">${competitorNames}</div>
               </div>
             </div>
-            <table class="scenario-table">
-              <thead>
-                <tr>
-                  <th rowspan="2">Skenario</th>
-                  <th colspan="3">Tambahan Kasus<br>Utama & Paripurna</th>
-                  <th colspan="3">Pengurangan Kasus<br>Dasar & Madya</th>
-                  <th colspan="3">Net +/- Pasca iDRG & RBKP</th>
-                  <th rowspan="2">Pendapatan<br>Eksisting INA<br>CBG (Rp M)</th>
-                  <th rowspan="2">% Kenaikan<br>thd INA-CBG<br>Eksisting</th>
-                </tr>
-                <tr>
-                  <th>Persentase<br>(%)</th>
-                  <th>Jumlah<br>Kasus</th>
-                  <th>Tambahan<br>Pendapatan<br>(Rp M)</th>
-                  <th>Persentase<br>(%)</th>
-                  <th>Jumlah<br>Kasus</th>
-                  <th>Pengurangan<br>Pendapatan<br>(Rp M)</th>
-                  <th>+/-<br>Jumlah<br>Kasus</th>
-                  <th>% thd total<br>kasus<br>eksisting</th>
-                  <th>+/-<br>Pendapatan<br>(Rp M)</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${state.serviceScenarios[service].map((scn, i) => generateRow(i, scn)).join("")}
-              </tbody>
-            </table>
+            ${(() => {
+              let tHead1 = '';
+              let tHead2 = '';
+              [1, 2, 3, 4].forEach(lvl => {
+                if (state.serviceScenarios[service][0].hasOwnProperty('tambah_' + lvl)) {
+                  tHead1 += `<th colspan="3" class="b-top-green b-left-green b-right-green" style="background-color: #e8f5e9;">Tambahan Kasus<br>${levelNames[lvl]}</th>`;
+                  tHead2 += `<th>Persentase<br>(%)</th><th>Jumlah<br>Kasus</th><th>Tambahan<br>Pendapatan<br>(Rp M)</th>`;
+                }
+              });
+              [1, 2, 3, 4].forEach(lvl => {
+                if (state.serviceScenarios[service][0].hasOwnProperty('kurang_' + lvl)) {
+                  tHead1 += `<th colspan="3" class="b-top-red b-left-red b-right-red" style="background-color: #ffebee;">Pengurangan Kasus<br>${levelNames[lvl]}</th>`;
+                  tHead2 += `<th>Persentase<br>(%)</th><th>Jumlah<br>Kasus</th><th>Pengurangan<br>Pendapatan<br>(Rp M)</th>`;
+                }
+              });
+              
+              return `
+                <div style="overflow-x: auto; width: 100%;">
+                  <table class="scenario-table" style="table-layout: auto; min-width: 1000px;">
+                    <thead>
+                      <tr>
+                        <th rowspan="2" style="background-color: #f8f9fa;">Skenario</th>
+                        ${tHead1}
+                        <th colspan="3">Net +/- Pasca iDRG & RBKP</th>
+                        <th rowspan="2">Pendapatan<br>Eksisting INA<br>CBG (Rp M)</th>
+                        <th rowspan="2">% Kenaikan<br>thd INA-CBG<br>Eksisting</th>
+                      </tr>
+                      <tr>
+                        ${tHead2}
+                        <th>+/-<br>Jumlah<br>Kasus</th>
+                        <th>% thd total<br>kasus<br>eksisting</th>
+                        <th>+/-<br>Pendapatan<br>(Rp M)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${state.serviceScenarios[service].map((scn, i) => generateRow(i, scn)).join("")}
+                    </tbody>
+                  </table>
+                </div>
+              `;
+            })()}
           </div>
         </section>
       `;
@@ -842,11 +903,7 @@
         const idx = e.target.dataset.index;
         const field = e.target.dataset.field;
         const val = parseFloat(e.target.value) || 0;
-        if (field === "tambah") {
-          state.serviceScenarios[srv][idx].tambah = val;
-        } else {
-          state.serviceScenarios[srv][idx].kurang = val;
-        }
+        state.serviceScenarios[srv][idx][field] = val;
         renderDynamicServiceSlides();
       });
     });
