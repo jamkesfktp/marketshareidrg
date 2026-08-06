@@ -1645,6 +1645,15 @@
   populateSlideDots();
   document.getElementById("previousSlide").addEventListener("click", () => showSlide(state.activeSlide - 1));
   document.getElementById("nextSlide").addEventListener("click", () => showSlide(state.activeSlide + 1));
+  document.getElementById("exportExcelBtn").addEventListener("click", () => {
+    try {
+      exportToExcel();
+    } catch (err) {
+      alert("Gagal meng-export Excel: " + err.message);
+      console.error(err);
+    }
+  });
+
   document.getElementById("exportPptx").addEventListener("click", exportDashboardToPptx);
   document.addEventListener("keydown", (event) => {
     if (["INPUT", "SELECT", "TEXTAREA"].includes(event.target.tagName)) return;
