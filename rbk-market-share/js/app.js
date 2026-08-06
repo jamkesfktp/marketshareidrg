@@ -851,7 +851,7 @@
           rules.tambah.forEach(lvl => {
             let lvlCompetitors = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= lvl).length;
             let val = (100 / (lvlCompetitors + 1)) + (i * 5);
-            scn['tambah_' + lvl] = parseFloat(Math.max(0, val).toFixed(1));
+            scn['tambah_' + lvl] = parseFloat(Math.min(100, Math.max(0, val)).toFixed(1));
           });
           
           rules.kurang.forEach(lvl => {
@@ -1767,7 +1767,7 @@
             const rules = getLevelRules(targetCompetency);
             rules.tambah.forEach(lvl => {
               let lvlCompetitors = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= lvl).length;
-              scn['tambah_' + lvl] = parseFloat(Math.max(0, (100 / (lvlCompetitors + 1)) + (i * 5)).toFixed(1));
+              scn['tambah_' + lvl] = parseFloat(Math.min(100, Math.max(0, (100 / (lvlCompetitors + 1)) + (i * 5))).toFixed(1));
             });
             rules.kurang.forEach(lvl => {
               const tSvc = target.services[service];
