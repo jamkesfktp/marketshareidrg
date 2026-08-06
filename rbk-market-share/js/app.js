@@ -422,59 +422,196 @@
       .sort((a, b) => b.total[CASES] - a.total[CASES])
       .slice(0, 5);
 
-    // Build dynamic map label and query from active filters
+    // Collect ALL selected regions (provinces & cities) without truncation
     const getChecked = (dropdown) => Array.from(dropdown?.querySelectorAll("input:checked") || []).map(i => i.value);
     const selectedProvinces = getChecked(document.getElementById("provDropdown"));
     const selectedCities = getChecked(document.getElementById("cityDropdown"));
 
-    let mapQuery = "";
-    let mapLabel = "Indonesia";
-    if (selectedCities.length > 0) {
-      mapQuery = selectedCities[0] + ", Indonesia";
-      mapLabel = selectedCities.length === 1 ? selectedCities[0] : selectedCities.slice(0, 2).join(" & ") + (selectedCities.length > 2 ? ` +${selectedCities.length - 2}` : "");
-    } else if (selectedProvinces.length > 0) {
-      mapQuery = selectedProvinces[0] + ", Indonesia";
-      mapLabel = selectedProvinces.length === 1 ? selectedProvinces[0] : selectedProvinces.slice(0, 2).join(" & ") + (selectedProvinces.length > 2 ? ` +${selectedProvinces.length - 2}` : "");
-    } else {
-      // Default - use province/city from hospitals
-      const provinces = [...new Set(data.hospitals.map(h => h.province).filter(Boolean))];
-      const cities = [...new Set(data.hospitals.map(h => h.city).filter(Boolean))];
-      if (provinces.length === 1) {
-        mapQuery = provinces[0] + ", Indonesia";
-        mapLabel = provinces[0];
-      } else if (cities.length === 1) {
-        mapQuery = cities[0] + ", Indonesia";
-        mapLabel = cities[0];
-      } else {
-        mapQuery = "Indonesia";
-        mapLabel = "Indonesia";
-      }
+    let selectedRegionsList = [];
+    if (selectedProvinces.length > 0) selectedRegionsList.push(...selectedProvinces);
+    if (selectedCities.length > 0) selectedRegionsList.push(...selectedCities);
+
+    if (selectedRegionsList.length === 0) {
+      const activeProv = [...new Set(data.hospitals.map(h => h.province).filter(Boolean))];
+      const activeCities = [...new Set(data.hospitals.map(h => h.city).filter(Boolean))];
+      selectedRegionsList = activeProv.length > 0 ? activeProv : (activeCities.length > 0 ? activeCities : ["Seluruh Indonesia"]);
     }
 
-    const mapSrc = `https://www.openstreetmap.org/export/embed.html?bbox=&layer=mapnik&marker=&query=${encodeURIComponent(mapQuery)}`;
-    const osmSearchUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(mapQuery)}&format=json&limit=1`;
+    // City coordinate lookup for Java/Regional SVG map representation
+    const cityCoords = {
+      "KOTA SEMARANG": { x: 48, y: 35 }, "KAB. SEMARANG": { x: 48, y: 48 },
+      "KOTA SURAKARTA": { x: 65, y: 64 }, "KAB. BANYUMAS": { x: 22, y: 60 },
+      "KAB. CILACAP": { x: 18, y: 72 }, "KAB. TEGAL": { x: 25, y: 30 },
+      "KOTA TEGAL": { x: 23, y: 24 }, "KAB. BREBES": { x: 15, y: 32 },
+      "KAB. KUDUS": { x: 62, y: 28 }, "KAB. PATI": { x: 72, y: 26 },
+      "KAB. JEPARA": { x: 60, y: 18 }, "KAB. MAGELANG": { x: 45, y: 62 },
+      "KOTA MAGELANG": { x: 46, y: 60 }, "KAB. KLATEN": { x: 58, y: 70 },
+      "KAB. BOYOLALI": { x: 58, y: 58 }, "KAB. KEBUMEN": { x: 30, y: 72 },
+      "KAB. PURWOREJO": { x: 38, y: 72 }, "KAB. WONOSOBO": { x: 36, y: 52 },
+      "KAB. BANJARNEGARA": { x: 30, y: 54 }, "KAB. PURBALINGGA": { x: 26, y: 52 },
+      "KOTA PEKALONGAN": { x: 35, y: 28 }, "KAB. PEKALONGAN": { x: 34, y: 34 },
+      "KAB. PEMALANG": { x: 30, y: 32 }, "KAB. GROBOGAN": { x: 65, y: 40 },
+      "KAB. SRAGEN": { x: 72, y: 58 }, "KAB. KARANGANYAR": { x: 72, y: 66 },
+      "KAB. WONOGIRI": { x: 72, y: 78 }, "KAB. SUKOHARJO": { x: 66, y: 72 },
+      "KOTA SALATIGA": { x: 52, y: 52 }, "KAB. BLORA": { x: 82, y: 38 },
+      "KAB. REMBANG": { x: 80, y: 25 }, "DI YOGYAKARTA": { x: 48, y: 75 },
+      "KOTA YOGYAKARTA": { x: 48, y: 75 }, "KAB. SLEMAN": { x: 47, y: 70 },
+      "KAB. BANTUL": { x: 47, y: 80 }, "KAB. GUNUNGKIDUL": { x: 56, y: 82 }
+    };
+
+    // Calculate dynamic node positions for SVG map render
+    const mapWidth = 520;
+    const mapHeight = 320;
+
+    const hospitalNodes = data.hospitals.map((h, idx) => {
+      const isTarget = h.code === target.code;
+      const isTop = topHospitals.some(top => top.code === h.code);
+      const coord = cityCoords[h.city?.toUpperCase()] || cityCoords[h.province?.toUpperCase()];
+      
+      let x, y;
+      if (coord) {
+        // Hash offset to prevent overlap
+        let hash = 0;
+        for (let i = 0; i < h.name.length; i++) hash = (hash << 5) - hash + h.name.charCodeAt(i);
+        const offsetX = (Math.abs(hash) % 11) - 5;
+        const offsetY = (Math.abs(hash >> 3) % 11) - 5;
+        x = (coord.x / 100) * mapWidth + offsetX;
+        y = (coord.y / 100) * mapHeight + offsetY;
+      } else {
+        let hash = 0;
+        for (let i = 0; i < h.name.length; i++) hash = (hash << 5) - hash + h.name.charCodeAt(i);
+        x = 60 + (Math.abs(hash) % 400);
+        y = 40 + (Math.abs(hash >> 4) % 240);
+      }
+      return { hospital: h, x, y, isTarget, isTop };
+    });
+
+    // Generate Eye-Catching SVG Vector Map Content
+    const svgMapContent = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${mapWidth} ${mapHeight}" style="width:100%; height:100%; min-height:280px; background: linear-gradient(145deg, #0b1329 0%, #172554 50%, #0f172a 100%); border-radius: 16px; border: 1px solid rgba(56, 189, 248, 0.25); box-shadow: inset 0 0 30px rgba(0,0,0,0.5), 0 10px 25px rgba(15, 23, 42, 0.4);">
+        <defs>
+          <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+          <filter id="targetGlow" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="5" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+          <linearGradient id="gridGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.08"/>
+            <stop offset="100%" stop-color="#818cf8" stop-opacity="0.02"/>
+          </linearGradient>
+          <linearGradient id="islandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#1e293b" stop-opacity="0.9"/>
+            <stop offset="100%" stop-color="#0f172a" stop-opacity="0.95"/>
+          </linearGradient>
+        </defs>
+
+        <!-- Dynamic Grid & Radar Background -->
+        <rect width="100%" height="100%" fill="url(#gridGrad)"/>
+        
+        <!-- Tech Coordinate Grid Lines -->
+        <g stroke="rgba(56, 189, 248, 0.12)" stroke-width="1" stroke-dasharray="4,4">
+          <line x1="0" y1="80" x2="${mapWidth}" y2="80" />
+          <line x1="0" y1="160" x2="${mapWidth}" y2="160" />
+          <line x1="0" y1="240" x2="${mapWidth}" y2="240" />
+          <line x1="130" y1="0" x2="130" y2="${mapHeight}" />
+          <line x1="260" y1="0" x2="260" y2="${mapHeight}" />
+          <line x1="390" y1="0" x2="390" y2="${mapHeight}" />
+        </g>
+
+        <!-- Vector Stylized Island Coastline Outline -->
+        <path d="M 40,110 Q 120,70 200,90 T 360,80 T 480,100 Q 490,160 440,210 T 300,240 T 160,250 T 50,200 Z" 
+              fill="url(#islandGrad)" stroke="#38bdf8" stroke-width="1.5" stroke-opacity="0.4" filter="url(#neonGlow)"/>
+
+        <!-- Ambient Radar Circles -->
+        <circle cx="260" cy="160" r="70" fill="none" stroke="rgba(56, 189, 248, 0.15)" stroke-width="1" stroke-dasharray="2,2"/>
+        <circle cx="260" cy="160" r="130" fill="none" stroke="rgba(56, 189, 248, 0.08)" stroke-width="1"/>
+
+        <!-- Connecting Network Lines between Target & Top Hospitals -->
+        ${hospitalNodes.filter(n => n.isTarget || n.isTop).map(n => {
+          const targetNode = hospitalNodes.find(t => t.isTarget) || hospitalNodes[0];
+          if (!targetNode || n === targetNode) return '';
+          return `<line x1="${targetNode.x}" y1="${targetNode.y}" x2="${n.x}" y2="${n.y}" stroke="rgba(56, 189, 248, 0.25)" stroke-width="1.2" stroke-dasharray="3,3"/>`;
+        }).join('')}
+
+        <!-- Hospital Pins Vector Render -->
+        ${hospitalNodes.map(node => {
+          if (node.isTarget) {
+            return `
+              <g transform="translate(${node.x}, ${node.y})">
+                <circle r="18" fill="rgba(239, 68, 68, 0.25)" filter="url(#targetGlow)">
+                  <animate attributeName="r" values="10;22;10" dur="2s" repeatCount="indefinite"/>
+                  <animate attributeName="opacity" values="0.8;0.2;0.8" dur="2s" repeatCount="indefinite"/>
+                </circle>
+                <circle r="8" fill="#ef4444" stroke="#ffffff" stroke-width="2" filter="url(#targetGlow)"/>
+                <circle r="3" fill="#ffffff"/>
+                <g transform="translate(0, -18)">
+                  <rect x="-45" y="-18" width="90" height="18" rx="9" fill="rgba(220, 38, 38, 0.95)" stroke="#ffffff" stroke-width="1"/>
+                  <text x="0" y="-5" text-anchor="middle" fill="#ffffff" font-size="9" font-weight="800">🎯 TARGET RS</text>
+                </g>
+              </g>
+            `;
+          } else if (node.isTop) {
+            return `
+              <g transform="translate(${node.x}, ${node.y})">
+                <circle r="12" fill="rgba(16, 185, 129, 0.2)"/>
+                <circle r="6" fill="#10b981" stroke="#ffffff" stroke-width="1.5" filter="url(#neonGlow)"/>
+                <text x="9" y="3" fill="#6ee7b7" font-size="9" font-weight="700" style="text-shadow: 0 1px 3px rgba(0,0,0,0.8);">${escapeHtml(node.hospital.name.slice(0, 14))}</text>
+              </g>
+            `;
+          } else {
+            return `
+              <g transform="translate(${node.x}, ${node.y})">
+                <circle r="4" fill="#38bdf8" opacity="0.75"/>
+                <circle r="1.5" fill="#ffffff"/>
+              </g>
+            `;
+          }
+        }).join('')}
+
+        <!-- Vector Map Legend Badge -->
+        <g transform="translate(15, ${mapHeight - 35})">
+          <rect x="0" y="0" width="310" height="26" rx="6" fill="rgba(15, 23, 42, 0.85)" stroke="rgba(255,255,255,0.15)"/>
+          <circle cx="15" cy="13" r="5" fill="#ef4444"/>
+          <text x="25" y="16" fill="#f8fafc" font-size="9" font-weight="700">Target RS</text>
+          <circle cx="85" cy="13" r="4" fill="#10b981"/>
+          <text x="95" y="16" fill="#f8fafc" font-size="9" font-weight="700">Top RS</text>
+          <circle cx="145" cy="13" r="3" fill="#38bdf8"/>
+          <text x="153" y="16" fill="#f8fafc" font-size="9" font-weight="700">Kompetitor (${data.hospitals.length})</text>
+        </g>
+      </svg>
+    `;
 
     document.getElementById("regionalProfileSlideTitle").textContent = `Profil & Kasus Regional - ${target.name}`;
     document.getElementById("regionalProfileSlide").innerHTML = `
       <div class="regional-profile-layout">
         <div class="regional-map-column">
-          <div class="regional-map-crop" role="img" aria-label="Peta wilayah ${escapeHtml(mapLabel)}" style="position:relative; overflow:hidden; border-radius:12px; height:100%; min-height:220px; background:#e8f4fd;">
-            <iframe id="regionalMapFrame" 
-              src="" 
-              data-query="${encodeURIComponent(mapQuery)}"
-              style="width:100%; height:100%; min-height:220px; border:none; border-radius:12px;"
-              loading="lazy"
-              title="Peta ${escapeHtml(mapLabel)}">
-            </iframe>
-            <div id="mapLoading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#e0f2fe,#bfdbfe);border-radius:12px;flex-direction:column;gap:8px;">
-              <div style="width:40px;height:40px;border:3px solid #3b82f6;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;"></div>
-              <span style="font-size:12px;color:#1e40af;font-weight:600;">Memuat peta...</span>
+          <!-- Wilayah Terpilih Container (Lists ALL selected regions without truncation) -->
+          <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 14px; padding: 12px 14px; margin-bottom: 4px; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);">
+            <div style="font-size: 11px; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+              <span>🗺️ Wilayah Terpilih (${selectedRegionsList.length})</span>
+              <span style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 700;">${data.hospitals.length} RS Aktif</span>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px; max-height: 95px; overflow-y: auto; padding-right: 4px;">
+              ${selectedRegionsList.map(r => `<span style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(51, 65, 85, 0.95) 100%); color: #f8fafc; border: 1px solid rgba(148, 163, 184, 0.35); font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.25); display: inline-flex; align-items: center; gap: 4px;">📍 ${escapeHtml(r)}</span>`).join('')}
             </div>
           </div>
-          <strong style="margin-top:8px;display:block;text-align:center;font-size:13px;">📍 Wilayah: ${escapeHtml(mapLabel)}</strong>
+
+          <!-- Eye Catching Dynamic SVG Map Box -->
+          <div class="regional-map-crop" role="img" aria-label="Peta Vektor Wilayah Regional" style="position:relative; border-radius:14px; overflow:hidden; border:none; background:transparent;">
+            ${svgMapContent}
+          </div>
         </div>
         <div class="regional-profile-main">
-          <section class="regional-profile-summary" aria-label="Ringkasan profil regional">
+          <section class="regional-profile-summary" aria-label="Ringkasan profil regional" style="border-radius: 14px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0;">
             <div>
               <h2>Sebaran RS aktif: ${formatNumber(data.hospitals.length)}</h2>
               <div class="regional-class-line">A: ${formatNumber(hospitalClassCounts.A)} <span>|</span> B: ${formatNumber(hospitalClassCounts.B)} <span>|</span> C: ${formatNumber(hospitalClassCounts.C)} <span>|</span> D: ${formatNumber(hospitalClassCounts.D)}</div>
@@ -486,38 +623,10 @@
             <table class="regional-severity-table" aria-label="Distribusi kasus regional berdasarkan tingkat keparahan"><thead><tr><th>Tingkat</th><th class="num">Kasus</th><th class="num">%</th></tr></thead><tbody>${severityRanks.map((rank) => { const value = severityMetric(data.regional, rank); return `<tr><td>${levelNames[rank]}</td><td class="num">${formatNumber(value[CASES])}</td><td class="num">${formatPercent(classifiedCases ? value[CASES] / classifiedCases : 0)}</td></tr>`; }).join("")}</tbody><tfoot><tr><td>Total regional</td><td class="num">${formatNumber(classifiedCases)}</td><td class="num">100%</td></tr></tfoot></table>
             <table class="regional-ranking-table" aria-label="Lima rumah sakit dengan jumlah kasus terbesar"><thead><tr><th>No</th><th>Rumah sakit</th><th>Kelas</th><th class="num">Kasus</th></tr></thead><tbody>${topHospitals.map((hospital, index) => `<tr class="${hospital.code === target.code ? "is-target" : ""}"><td>${index + 1}</td><td>${escapeHtml(hospital.name)}</td><td>${escapeHtml(hospital.class || "—")}</td><td class="num">${formatNumber(hospital.total[CASES])}</td></tr>`).join("")}</tbody></table>
           </div>
-          <aside class="regional-profile-insight"><strong>Ringkasan regional</strong><ul><li>Terdapat ${formatNumber(data.regional.total[CASES])} kasus pada layanan regional yang dianalisis.</li><li>Kasus terbanyak berada pada tingkat ${levelNames[leadingSeverity.rank]}: ${formatPercent(leadingSeverity.value[CASES] / classifiedCases)} (${formatNumber(leadingSeverity.value[CASES])} kasus).</li></ul></aside>
+          <aside class="regional-profile-insight" style="border-radius: 12px;"><strong>Ringkasan regional</strong><ul><li>Terdapat ${formatNumber(data.regional.total[CASES])} kasus pada layanan regional yang dianalisis.</li><li>Kasus terbanyak berada pada tingkat ${levelNames[leadingSeverity.rank]}: ${formatPercent(leadingSeverity.value[CASES] / classifiedCases)} (${formatNumber(leadingSeverity.value[CASES])} kasus).</li></ul></aside>
         </div>
       </div>
       <p class="regional-profile-footnote">*Terdapat ${formatNumber(metric(data.regional.unclassified)[CASES])} kasus yang belum memiliki mapping tingkat keparahan.</p>`;
-
-    // Load map dynamically via Nominatim to get bbox, then build OSM embed URL
-    fetch(osmSearchUrl)
-      .then(r => r.json())
-      .then(results => {
-        const frame = document.getElementById("regionalMapFrame");
-        const loader = document.getElementById("mapLoading");
-        if (!frame) return;
-        if (results && results.length > 0) {
-          const loc = results[0];
-          const bb = loc.boundingbox; // [south, north, west, east]
-          const embedUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${bb[2]},${bb[0]},${bb[3]},${bb[1]}&layer=mapnik`;
-          frame.src = embedUrl;
-          frame.onload = () => { if (loader) loader.style.display = "none"; };
-        } else {
-          // Fallback: simple search embed
-          frame.src = `https://www.openstreetmap.org/export/embed.html?bbox=95.0,-11.0,141.0,6.0&layer=mapnik`;
-          frame.onload = () => { if (loader) loader.style.display = "none"; };
-        }
-      })
-      .catch(() => {
-        const frame = document.getElementById("regionalMapFrame");
-        const loader = document.getElementById("mapLoading");
-        if (frame) {
-          frame.src = `https://www.openstreetmap.org/export/embed.html?bbox=95.0,-11.0,141.0,6.0&layer=mapnik`;
-          frame.onload = () => { if (loader) loader.style.display = "none"; };
-        }
-      });
   }
 
   function renderSimulatorSlide() {
