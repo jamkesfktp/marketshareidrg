@@ -533,7 +533,8 @@
     const overrideCount = Object.values(state.overrides).filter((item) => item.enabled).length;
     const caseShareBefore = target.total[CASES] / data.regional.total[CASES];
     const caseShareAfter = result.projected[CASES] / data.regional.total[CASES];
-    document.getElementById("slide8Subtitle").textContent = `${target.name} · seluruh layanan · parameter dapat diubah pada slide simulator.`;
+    const subtitleEl = document.getElementById("slide9Subtitle") || document.getElementById("slide8Subtitle");
+    if (subtitleEl) subtitleEl.textContent = `${target.name} · seluruh layanan · parameter dapat diubah pada slide simulator.`;
     const ranked = (rows, emptyText) => rows.length
       ? rows.map((row, index) => `<div class="ranked-row"><span class="rank-number">${index + 1}</span><span>${escapeHtml(formatService(row.service))}</span><strong class="${deltaClass(row.delta[CASES])}">${formatSignedNumber(row.delta[CASES])}</strong></div>`).join("")
       : `<div class="empty-state"><div><strong>${emptyText}</strong><span>Ubah parameter simulasi untuk melihat dampak.</span></div></div>`;
@@ -762,7 +763,7 @@
           <td class="b-right-red b-top-red b-bottom-red">${formatMatrixMoney(kurangRp)}</td>
           <td>${formatSignedNumber(netKasus)}</td>
           <td>${formatPercent(pctNetKasus)}</td>
-          <td>${formatSignedMatrixMoney(netRp)}</td>
+          <td>${netRp > 0 ? '+' : ''}${formatMatrixMoney(netRp)}</td>
           <td class="b-left-yellow b-top-yellow b-bottom-yellow">${formatMatrixMoney(existingIna)}</td>
           <td class="b-right-yellow b-top-yellow b-bottom-yellow" style="background:#fffcf0;"><strong>${formatPercent(pctKenaikan)}</strong></td>
         </tr>`;
