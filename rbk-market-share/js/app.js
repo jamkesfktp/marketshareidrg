@@ -608,15 +608,14 @@
       const baseTambahan = { 1: [0,0], 2: [0,0], 3: [0,0], 4: [0,0] };
       const basePengurangan = { 1: [0,0], 2: [0,0], 3: [0,0], 4: [0,0] };
       
-      competitorsList.forEach(h => {
-        const hSvc = h.services?.[service];
-        if (hSvc) {
-          rules.tambah.forEach(lvl => {
-            const metric = severityMetric(hSvc, lvl);
-            baseTambahan[lvl][0] += metric[CASES] || 0;
-            baseTambahan[lvl][1] += metric[IDRG] || 0;
-          });
-        }
+      const regionalSvc = data.regional.services[service];
+      const targetSvcRef = target.services[service];
+      
+      rules.tambah.forEach(lvl => {
+        const rMetric = regionalSvc ? severityMetric(regionalSvc, lvl) : [0,0,0];
+        const tMetric = targetSvcRef ? severityMetric(targetSvcRef, lvl) : [0,0,0];
+        baseTambahan[lvl][0] = Math.max(0, (rMetric[CASES] || 0) - (tMetric[CASES] || 0));
+        baseTambahan[lvl][1] = Math.max(0, (rMetric[IDRG] || 0) - (tMetric[IDRG] || 0));
       });
       
       const targetSvc = target.services[service];
@@ -888,15 +887,14 @@
       
       const rules = getLevelRules(targetCompetency);
       const baseTambahan = { 1: [0,0], 2: [0,0], 3: [0,0], 4: [0,0] };
-      competitorsList.forEach(h => {
-        const hSvc = h.services?.[service];
-        if (hSvc) {
-          rules.tambah.forEach(lvl => {
-            const metric = severityMetric(hSvc, lvl);
-            baseTambahan[lvl][0] += metric[CASES] || 0;
-            baseTambahan[lvl][1] += metric[IDRG] || 0;
-          });
-        }
+      const regionalSvc = data.regional.services[service];
+      const targetSvcRef = target.services[service];
+      
+      rules.tambah.forEach(lvl => {
+        const rMetric = regionalSvc ? severityMetric(regionalSvc, lvl) : [0,0,0];
+        const tMetric = targetSvcRef ? severityMetric(targetSvcRef, lvl) : [0,0,0];
+        baseTambahan[lvl][0] = Math.max(0, (rMetric[CASES] || 0) - (tMetric[CASES] || 0));
+        baseTambahan[lvl][1] = Math.max(0, (rMetric[IDRG] || 0) - (tMetric[IDRG] || 0));
       });
       
       const basePengurangan = { 1: [0,0], 2: [0,0], 3: [0,0], 4: [0,0] };
