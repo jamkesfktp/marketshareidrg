@@ -585,18 +585,27 @@
     const target = targetHospital();
     if (!target) return;
 
-    const baseTambahan = { 1: [0,0], 2: [0,0], 3: [0,0], 4: [0,0] };
-    const basePengurangan = { 1: [0,0], 2: [0,0], 3: [0,0], 4: [0,0] };
-    const globalCompetitorsMap = new Map();
+    const existingIna = target.total[INA];
+    const existingKasus = target.total[CASES];
+    
+    let globalTambahKasus = 0;
+    let globalTambahRp = 0;
+    let globalKurangKasus = 0;
+    let globalKurangRp = 0;
+    
+    const rows = [];
     
     data.services.forEach(service => {
       const targetCompetency = getCompetency(target, service);
       if (targetCompetency === 0) return;
       
       const competitorsList = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= targetCompetency);
-      competitorsList.forEach(h => globalCompetitorsMap.set(h.code, h));
+      const competitors = competitorsList.length;
       
       const rules = getLevelRules(targetCompetency);
+      const baseTambahan = { 1: [0,0], 2: [0,0], 3: [0,0], 4: [0,0] };
+      const basePengurangan = { 1: [0,0], 2: [0,0], 3: [0,0], 4: [0,0] };
+      
       competitorsList.forEach(h => {
         const hSvc = h.services?.[service];
         if (hSvc) {
@@ -609,108 +618,106 @@
       });
       
       const targetSvc = target.services[service];
+      let svcExistingKasus = 0;
+      let svcExistingRp = 0;
+      
       if (targetSvc) {
+        svcExistingKasus = targetSvc.total[CASES] || 0;
+        svcExistingRp = targetSvc.total[INA] || 0;
+        
         rules.kurang.forEach(lvl => {
           const targetLvl = severityMetric(targetSvc, lvl);
           basePengurangan[lvl][0] += targetLvl[CASES] || 0;
           basePengurangan[lvl][1] += targetLvl[INA] || 0;
         });
       }
+      
+      let c = competitors > 0 ? competitors : 1;
+      let pctTambah = (100 / c) + (competitors > 0 ? 5 : 0);
+      let pctKurang = (100 / c) + (competitors > 0 ? 5 : 0);
+      
+      let svcTambahKasus = 0;
+      let svcTambahRp = 0;
+      let svcKurangKasus = 0;
+      let svcKurangRp = 0;
+      
+      rules.tambah.forEach(lvl => {
+        svcTambahKasus += baseTambahan[lvl][0] * (pctTambah / 100);
+        svcTambahRp += baseTambahan[lvl][1] * (pctTambah / 100);
+      });
+      
+      rules.kurang.forEach(lvl => {
+        svcKurangKasus += basePengurangan[lvl][0] * (pctKurang / 100);
+        svcKurangRp += basePengurangan[lvl][1] * (pctKurang / 100);
+      });
+      
+      globalTambahKasus += svcTambahKasus;
+      globalTambahRp += svcTambahRp;
+      globalKurangKasus += svcKurangKasus;
+      globalKurangRp += svcKurangRp;
+      
+      const svcNetKasus = svcTambahKasus - svcKurangKasus;
+      const svcNetRp = svcTambahRp - svcKurangRp;
+      const svcPctKenaikan = svcExistingRp ? (svcNetRp / svcExistingRp) : 0;
+      
+      let competitorHtml = '';
+      if (competitors > 0) {
+        const groups = { 'A': [], 'B': [], 'C': [], 'D': [], 'Lainnya': [] };
+        competitorsList.forEach(h => {
+           let cls = h.class ? h.class.toUpperCase() : 'Lainnya';
+           if (!groups[cls]) cls = 'Lainnya';
+           groups[cls].push(h);
+        });
+        
+        ['A', 'B', 'C', 'D', 'Lainnya'].forEach(cls => {
+          if (groups[cls].length > 0) {
+            const badgeColor = cls === 'A' ? 'background: #fdf4ff; color: #a21caf; border: 1px solid #f5d0fe;' : 
+                               cls === 'B' ? 'background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa;' : 
+                               cls === 'C' ? 'background: #fefce8; color: #a16207; border: 1px solid #fef08a;' : 
+                                           'background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4;';
+            competitorHtml += `<div style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 4px;">
+              ${groups[cls].map(h => `<span style="font-size: 10px; padding: 2px 4px; border-radius: 4px; ${badgeColor} white-space: nowrap; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" title="Kelas ${cls}">${escapeHtml(h.name)}</span>`).join('')}
+            </div>`;
+          }
+        });
+      } else {
+        competitorHtml = '<span style="font-size: 11px; color: #94a3b8;">Tidak ada</span>';
+      }
+      
+      rows.push(`
+        <tr>
+          <td style="text-align: left; vertical-align: top;">
+            <div style="font-weight: 600; color: #1e293b; font-size: 13px;">${formatService(service)}</div>
+            <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Kompetensi RS: <span style="font-weight:600; color:#3b82f6;">${levelNames[targetCompetency]}</span></div>
+          </td>
+          <td style="text-align: left; vertical-align: top; max-width: 280px; padding: 6px;">
+             <div style="font-size: 10px; font-weight: 600; color: var(--muted); margin-bottom: 4px; text-transform: uppercase;">KOMPETITOR (${competitors} RS)</div>
+             <div style="max-height: 80px; overflow-y: auto; padding-right: 2px;">${competitorHtml}</div>
+          </td>
+          <td style="vertical-align: top; font-weight: 500;">${formatNumber(svcExistingKasus)}</td>
+          <td style="vertical-align: top; font-weight: 500;" class="b-right-yellow">${formatMatrixMoney(svcExistingRp)}</td>
+          
+          <td style="vertical-align: top; color: #047857;" class="b-left-green">${formatNumber(svcTambahKasus)}</td>
+          <td style="vertical-align: top; color: #047857;" class="b-right-green">${formatMatrixMoney(svcTambahRp)}</td>
+          
+          <td style="vertical-align: top; color: #b91c1c;" class="b-left-red">${formatNumber(svcKurangKasus)}</td>
+          <td style="vertical-align: top; color: #b91c1c;" class="b-right-red">${formatMatrixMoney(svcKurangRp)}</td>
+          
+          <td style="vertical-align: top;" class="b-left-yellow"><strong>${formatSignedNumber(svcNetKasus)}</strong></td>
+          <td style="vertical-align: top;"><strong>${svcNetRp > 0 ? '+' : ''}${formatMatrixMoney(svcNetRp)}</strong></td>
+          <td style="vertical-align: top;" class="b-right-yellow"><strong>${formatPercent(svcPctKenaikan)}</strong></td>
+        </tr>
+      `);
     });
-
-    const existingIna = target.total[INA];
-    const existingKasus = target.total[CASES];
     
-    // Convert old scenario format if needed
-    if (state.scenarios[0].tambah !== undefined) {
-      const defaultVals = [100, 75, 50, 25, 15, 0];
-      state.scenarios = defaultVals.map((val, i) => {
-        let scn = {};
-        [1, 2, 3, 4].forEach(lvl => {
-          if (baseTambahan[lvl][0] > 0 || baseTambahan[lvl][1] > 0) scn['tambah_' + lvl] = val;
-          if (basePengurangan[lvl][0] > 0 || basePengurangan[lvl][1] > 0) scn['kurang_' + lvl] = val;
-        });
-        return scn;
-      });
-    } else {
-      // Clean up scenarios for missing levels just in case target hospital changed
-      state.scenarios.forEach(scn => {
-        [1, 2, 3, 4].forEach(lvl => {
-          if (baseTambahan[lvl][0] > 0 || baseTambahan[lvl][1] > 0) {
-            if (scn['tambah_' + lvl] === undefined) scn['tambah_' + lvl] = 0;
-          } else {
-            delete scn['tambah_' + lvl];
-          }
-          if (basePengurangan[lvl][0] > 0 || basePengurangan[lvl][1] > 0) {
-            if (scn['kurang_' + lvl] === undefined) scn['kurang_' + lvl] = 0;
-          } else {
-            delete scn['kurang_' + lvl];
-          }
-        });
-      });
-    }
-
-    const generateRow = (index, scn) => {
-      let totalTambahKasus = 0;
-      let totalTambahRp = 0;
-      let totalKurangKasus = 0;
-      let totalKurangRp = 0;
-      
-      let tambahCols = '';
-      [1, 2, 3, 4].forEach(lvl => {
-        if (scn.hasOwnProperty('tambah_' + lvl)) {
-          const pTambah = scn['tambah_' + lvl] / 100;
-          const tk = baseTambahan[lvl][0] * pTambah;
-          const trp = baseTambahan[lvl][1] * pTambah;
-          totalTambahKasus += tk;
-          totalTambahRp += trp;
-          tambahCols += `
-            <td class="b-left-green b-top-green b-bottom-green"><input type="number" class="scenario-input global-scenario-input" data-index="${index}" data-field="tambah_${lvl}" value="${scn['tambah_' + lvl]}" step="0.1" style="width: 60px;"></td>
-            <td class="b-top-green b-bottom-green">${formatNumber(tk)}</td>
-            <td class="b-right-green b-top-green b-bottom-green">${formatMatrixMoney(trp)}</td>
-          `;
-        }
-      });
-      
-      let kurangCols = '';
-      [1, 2, 3, 4].forEach(lvl => {
-        if (scn.hasOwnProperty('kurang_' + lvl)) {
-          const pKurang = scn['kurang_' + lvl] / 100;
-          const kk = basePengurangan[lvl][0] * pKurang;
-          const krp = basePengurangan[lvl][1] * pKurang;
-          totalKurangKasus += kk;
-          totalKurangRp += krp;
-          kurangCols += `
-            <td class="b-left-red b-top-red b-bottom-red"><input type="number" class="scenario-input global-scenario-input" data-index="${index}" data-field="kurang_${lvl}" value="${scn['kurang_' + lvl]}" step="0.1" style="width: 60px;"></td>
-            <td class="b-top-red b-bottom-red">${formatNumber(kk)}</td>
-            <td class="b-right-red b-top-red b-bottom-red">${formatMatrixMoney(krp)}</td>
-          `;
-        }
-      });
-      
-      const netKasus = totalTambahKasus - totalKurangKasus;
-      const pctNetKasus = existingKasus ? (netKasus - existingKasus) / existingKasus : 0;
-      
-      const netRp = totalTambahRp - totalKurangRp;
-      const pctKenaikan = existingIna ? (netRp - existingIna) / existingIna : 0;
-
-      return `<tr>
-        <td style="font-weight: 700; text-align: left; padding-left: 10px; background-color: #f8f9fa;">Skenario ${index + 1}</td>
-        ${tambahCols}
-        ${kurangCols}
-        <td>${formatSignedNumber(netKasus)}</td>
-        <td>${formatPercent(pctNetKasus)}</td>
-        <td>${netRp > 0 ? '+' : ''}${formatMatrixMoney(netRp)}</td>
-        <td class="b-left-yellow b-top-yellow b-bottom-yellow">${formatMatrixMoney(existingIna)}</td>
-        <td class="b-right-yellow b-top-yellow b-bottom-yellow" style="background:#fffcf0;"><strong>${formatPercent(pctKenaikan)}</strong></td>
-      </tr>`;
-    };
-
+    const globalNetKasus = globalTambahKasus - globalKurangKasus;
+    const globalNetRp = globalTambahRp - globalKurangRp;
+    const globalPctKenaikan = existingIna ? (globalNetRp / existingIna) : 0;
     const deltaIdrg = target.total[IDRG] - target.total[INA];
     const deltaPercentIdrg = existingIna ? deltaIdrg / existingIna : 0;
-
+    
     document.getElementById("scenarioSlide").innerHTML = `
-      <div class="existing-report-kpis" style="margin-bottom: 20px;">
+      <div class="existing-report-kpis" style="margin-bottom: 15px;">
         <article class="existing-report-kpi kpi-cases"><span>Total Kasus:</span><strong>${formatNumber(target.total[CASES])}</strong><em>Jumlah kasus eklaim</em></article>
         <article class="existing-report-kpi kpi-ina"><span>Pendapatan INA CBGs:</span><strong>${formatMoney(target.total[INA])}</strong><em>Dari data 8 bulan</em></article>
         <article class="existing-report-kpi kpi-idrg"><span>Pendapatan iDRG:</span><strong>${formatMoney(target.total[IDRG])}</strong><em>Klaim uji coba iDRG</em></article>
@@ -718,101 +725,57 @@
         <article class="existing-report-kpi kpi-percentage ${deltaIdrg < 0 ? "is-loss" : "is-gain"}"><span>Persentase:</span><strong>${formatPercent(deltaPercentIdrg)}</strong><em>Dari Pendapatan INACBG</em></article>
       </div>
       
-      ${(() => {
-        const uniqueCompetitors = Array.from(globalCompetitorsMap.values());
-        const competitors = uniqueCompetitors.length;
-        let competitorHtml = '';
-        
-        if (competitors > 0) {
-          const groups = { 'A': [], 'B': [], 'C': [], 'D': [], 'Lainnya': [] };
-          uniqueCompetitors.forEach(h => {
-             let cls = h.class ? h.class.toUpperCase() : 'Lainnya';
-             if (!groups[cls]) cls = 'Lainnya';
-             groups[cls].push(h);
-          });
-          
-          ['A', 'B', 'C', 'D', 'Lainnya'].forEach(cls => {
-            if (groups[cls].length > 0) {
-              const badgeColor = cls === 'A' ? 'background: #fdf4ff; color: #a21caf; border: 1px solid #f5d0fe;' : 
-                                 cls === 'B' ? 'background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa;' : 
-                                 cls === 'C' ? 'background: #fefce8; color: #a16207; border: 1px solid #fef08a;' : 
-                                             'background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4;';
-              competitorHtml += `
-                <div style="margin-top: 6px; text-align: left;">
-                  <div style="font-size: 10px; font-weight: 700; color: var(--muted); margin-bottom: 3px; text-transform: uppercase;">KELAS ${cls} (${groups[cls].length} RS)</div>
-                  <div style="display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-start;">
-                    ${groups[cls].map(h => `<span style="font-size: 11px; padding: 2px 6px; border-radius: 4px; ${badgeColor} white-space: nowrap; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">${escapeHtml(h.name)}</span>`).join('')}
-                  </div>
-                </div>
-              `;
-            }
-          });
-          competitorHtml = `<div style="max-height: 120px; overflow-y: auto; padding-right: 4px; margin-top: 8px;">${competitorHtml}</div>`;
-        } else {
-          competitorHtml = `<div style="font-size: 12px; color: var(--muted); margin-top: 4px;">Tidak ada kompetitor regional untuk layanan yang dimiliki.</div>`;
-        }
-        
-        return `
-          <div style="margin-bottom: 1rem; padding: 12px; background: white; border: 1px solid #e2e8f0; border-radius: 8px;">
-            <div style="font-weight: bold; color: var(--slate-800); margin-bottom: 4px;">Total RS Kompetitor Regional: <span style="background: var(--blue-soft); color: var(--blue); padding: 2px 8px; border-radius: 99px; font-size: 12px; margin-left: 4px;">${competitors} RS</span></div>
-            <div style="font-size: 12px; color: var(--slate-500); margin-bottom: 8px;">Daftar RS di regional yang menjadi kompetitor langsung pada satu atau lebih layanan yang dimiliki RS ini.</div>
-            ${competitorHtml}
-          </div>
-        `;
-      })()}
+      <div style="margin-bottom: 12px; font-weight: 600; color: #1e293b; font-size: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+        Laporan Rekapitulasi Potensi Skenario Berdasarkan Kompetensi Layanan
+        <div style="font-size: 12px; font-weight: 400; color: #64748b; margin-top: 4px;">Dihitung dari persentase default (100% / total kompetitor per layanan) dengan aturan matriks kelas kompetensi.</div>
+      </div>
       
-      ${(() => {
-        let tHead1 = '';
-        let tHead2 = '';
-        [1, 2, 3, 4].forEach(lvl => {
-          if (state.scenarios[0].hasOwnProperty('tambah_' + lvl)) {
-            tHead1 += `<th colspan="3" class="b-top-green b-left-green b-right-green" style="background-color: #e8f5e9; color: #17233b;">Tambahan Kasus<br>${levelNames[lvl]}</th>`;
-            tHead2 += `<th>Persentase<br>(%)</th><th>Jumlah<br>Kasus</th><th>Tambahan<br>Pendapatan<br>(Rp M)</th>`;
-          }
-        });
-        [1, 2, 3, 4].forEach(lvl => {
-          if (state.scenarios[0].hasOwnProperty('kurang_' + lvl)) {
-            tHead1 += `<th colspan="3" class="b-top-red b-left-red b-right-red" style="background-color: #ffebee; color: #17233b;">Pengurangan Kasus<br>${levelNames[lvl]}</th>`;
-            tHead2 += `<th>Persentase<br>(%)</th><th>Jumlah<br>Kasus</th><th>Pengurangan<br>Pendapatan<br>(Rp M)</th>`;
-          }
-        });
-        
-        return `
-          <div style="overflow-x: auto; width: 100%;">
-            <table class="scenario-table" style="table-layout: auto; min-width: 1000px;">
-              <thead>
-                <tr>
-                  <th rowspan="2" style="background-color: #f8f9fa; color: #17233b;">Skenario</th>
-                  ${tHead1}
-                  <th colspan="3">Net +/- Pasca iDRG & RBKP</th>
-                  <th rowspan="2">Pendapatan<br>Eksisting INA<br>CBG RS (Rp M)</th>
-                  <th rowspan="2">% Kenaikan<br>thd INA-CBG<br>Eksisting</th>
-                </tr>
-                <tr>
-                  ${tHead2}
-                  <th>+/-<br>Jumlah<br>Kasus</th>
-                  <th>% thd total<br>kasus<br>eksisting</th>
-                  <th>+/-<br>Pendapatan<br>(Rp M)</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${state.scenarios.map((scn, i) => generateRow(i, scn)).join("")}
-              </tbody>
-            </table>
-          </div>
-        `;
-      })()}
+      <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+        <table class="scenario-table" style="table-layout: auto; min-width: 1200px;">
+          <thead style="position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <tr>
+              <th rowspan="2" style="width: 180px; text-align: left; background-color: #f8f9fa;">Layanan</th>
+              <th rowspan="2" style="width: 280px; text-align: left; background-color: #f8f9fa;">Daftar Kompetitor</th>
+              <th colspan="2" class="b-right-yellow" style="background-color: #f8f9fa;">Eksisting INA-CBG</th>
+              <th colspan="2" class="b-left-green b-right-green" style="background-color: #e8f5e9; color: #17233b;">Proyeksi Tambahan</th>
+              <th colspan="2" class="b-left-red b-right-red" style="background-color: #ffebee; color: #17233b;">Proyeksi Pengurangan</th>
+              <th colspan="3" class="b-left-yellow b-right-yellow" style="background-color: #fff8e1; color: #17233b;">Net (Selisih)</th>
+            </tr>
+            <tr>
+              <th style="background-color: #f8f9fa;">Kasus</th>
+              <th class="b-right-yellow" style="background-color: #f8f9fa;">Pendapatan<br>(Rp M)</th>
+              <th class="b-left-green" style="background-color: #e8f5e9;">Kasus</th>
+              <th class="b-right-green" style="background-color: #e8f5e9;">Pendapatan<br>(Rp M)</th>
+              <th class="b-left-red" style="background-color: #ffebee;">Kasus</th>
+              <th class="b-right-red" style="background-color: #ffebee;">Pendapatan<br>(Rp M)</th>
+              <th class="b-left-yellow" style="background-color: #fff8e1;">Kasus</th>
+              <th style="background-color: #fff8e1;">Pendapatan<br>(Rp M)</th>
+              <th class="b-right-yellow" style="background-color: #fff8e1;">% Kenaikan</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.join('')}
+          </tbody>
+          <tfoot style="position: sticky; bottom: 0; z-index: 10; box-shadow: 0 -1px 3px rgba(0,0,0,0.1);">
+            <tr style="background-color: #1e293b; color: white; font-weight: bold; font-size: 13px;">
+              <td colspan="2" style="text-align: right; padding-right: 15px; background-color: #1e293b;">TOTAL GLOBAL (Semua Layanan)</td>
+              <td style="background-color: #1e293b; border-color: #334155;">${formatNumber(existingKasus)}</td>
+              <td class="b-right-yellow" style="background-color: #1e293b; border-color: #334155;">${formatMatrixMoney(existingIna)}</td>
+              
+              <td class="b-left-green" style="background-color: #064e3b; color: #34d399; border-color: #065f46;">${formatNumber(globalTambahKasus)}</td>
+              <td class="b-right-green" style="background-color: #064e3b; color: #34d399; border-color: #065f46;">${formatMatrixMoney(globalTambahRp)}</td>
+              
+              <td class="b-left-red" style="background-color: #7f1d1d; color: #f87171; border-color: #991b1b;">${formatNumber(globalKurangKasus)}</td>
+              <td class="b-right-red" style="background-color: #7f1d1d; color: #f87171; border-color: #991b1b;">${formatMatrixMoney(globalKurangRp)}</td>
+              
+              <td class="b-left-yellow" style="background-color: #713f12; color: #fef08a; border-color: #854d0e;">${formatSignedNumber(globalNetKasus)}</td>
+              <td style="background-color: #713f12; color: #fef08a; border-color: #854d0e;">${globalNetRp > 0 ? '+' : ''}${formatMatrixMoney(globalNetRp)}</td>
+              <td class="b-right-yellow" style="background-color: #713f12; color: #fef08a; border-color: #854d0e;">${formatPercent(globalPctKenaikan)}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
     `;
-
-    document.querySelectorAll(".global-scenario-input").forEach((input) => {
-      input.addEventListener("change", (e) => {
-        const idx = e.target.dataset.index;
-        const field = e.target.dataset.field;
-        const val = parseFloat(e.target.value) || 0;
-        state.scenarios[idx][field] = val;
-        renderScenarioSlide();
-      });
-    });
   }
 
   function renderDynamicServiceSlides() {
