@@ -69,7 +69,7 @@ input[type="number"] { outline-offset: 3px; }
   height: 87px;
   padding: 14px 76px;
   display: grid;
-  grid-template-columns: 430px minmax(640px, 1fr) 390px;
+  grid-template-columns: max-content minmax(0, 1fr) max-content;
   align-items: center;
   gap: 30px;
   background: var(--panel);
