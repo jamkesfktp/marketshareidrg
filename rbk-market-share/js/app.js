@@ -778,7 +778,31 @@
       // Hitung kompetitor (RS lain yang punya kompetensi >= targetCompetency)
       const competitorsList = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= targetCompetency);
       const competitors = competitorsList.length;
-      const competitorNames = competitors > 0 ? competitorsList.map(h => `${escapeHtml(h.name)} (${levelNames[getCompetency(h, service)]})`).join(', ') : "Tidak ada kompetitor";
+      let competitorHtml = '';
+      if (competitors > 0) {
+        const groups = { 4: [], 3: [], 2: [], 1: [] };
+        competitorsList.forEach(h => groups[getCompetency(h, service)].push(h));
+        
+        [4, 3, 2, 1].forEach(lvl => {
+          if (groups[lvl].length > 0) {
+            const badgeColor = lvl === 4 ? 'background: #fdf4ff; color: #a21caf; border: 1px solid #f5d0fe;' : 
+                               lvl === 3 ? 'background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa;' : 
+                               lvl === 2 ? 'background: #fefce8; color: #a16207; border: 1px solid #fef08a;' : 
+                                           'background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4;';
+            competitorHtml += `
+              <div style="margin-top: 6px; text-align: right;">
+                <div style="font-size: 10px; font-weight: 700; color: var(--muted); margin-bottom: 3px; text-transform: uppercase;">${levelNames[lvl]} (${groups[lvl].length} RS)</div>
+                <div style="display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end;">
+                  ${groups[lvl].map(h => `<span style="font-size: 11px; padding: 2px 6px; border-radius: 4px; ${badgeColor} white-space: nowrap; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">${escapeHtml(h.name)}</span>`).join('')}
+                </div>
+              </div>
+            `;
+          }
+        });
+        competitorHtml = `<div style="max-height: 120px; overflow-y: auto; padding-right: 4px; margin-top: 4px; margin-left: auto; max-width: 600px;">${competitorHtml}</div>`;
+      } else {
+        competitorHtml = `<div style="font-size: 12px; color: var(--muted); margin-top: 4px;">Tidak ada kompetitor</div>`;
+      }
       
       // Hitung Persentase Default
       if (!state.serviceScenarios[service]) {
@@ -920,9 +944,9 @@
             </div>
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: 1rem; margin-bottom: 0.5rem; font-size: 14px; font-weight: 500;">
               <div>Kompetensi Layanan RS : <span style="background: var(--amber-300); padding: 4px 8px; border-radius: 4px; font-weight: bold; color: var(--amber-900);">Kompetensi ${levelNames[targetCompetency]}</span></div>
-              <div style="text-align: right;">
-                <div style="font-weight: bold; color: var(--slate-800);">RS Regional yang memiliki Kompetensi Setara/ kompetitor : ${competitors} RS</div>
-                <div style="font-size: 12px; font-weight: normal; color: var(--slate-500); max-width: 400px; margin-top: 4px; line-height: 1.4;">${competitorNames}</div>
+              <div style="text-align: right; flex-grow: 1;">
+                <div style="font-weight: bold; color: var(--slate-800);">RS Kompetitor Setara atau Lebih Tinggi: <span style="background: var(--blue-soft); color: var(--blue); padding: 2px 8px; border-radius: 99px; font-size: 12px; margin-left: 4px;">${competitors} RS</span></div>
+                ${competitorHtml}
               </div>
             </div>
             ${(() => {
