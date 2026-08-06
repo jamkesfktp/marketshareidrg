@@ -697,10 +697,12 @@
           <td style="vertical-align: top; font-weight: 500;">${formatNumber(svcExistingKasus)}</td>
           <td style="vertical-align: top; font-weight: 500;" class="b-right-yellow">${formatMatrixMoney(svcExistingRp)}</td>
           
-          <td style="vertical-align: top; color: #047857;" class="b-left-green">${formatNumber(svcTambahKasus)}</td>
+          <td style="vertical-align: top; color: #047857;" class="b-left-green">${formatPercent(pctTambah / 100)}</td>
+          <td style="vertical-align: top; color: #047857;">${formatNumber(svcTambahKasus)}</td>
           <td style="vertical-align: top; color: #047857;" class="b-right-green">${formatMatrixMoney(svcTambahRp)}</td>
           
-          <td style="vertical-align: top; color: #b91c1c;" class="b-left-red">${formatNumber(svcKurangKasus)}</td>
+          <td style="vertical-align: top; color: #b91c1c;" class="b-left-red">${formatPercent(pctKurang / 100)}</td>
+          <td style="vertical-align: top; color: #b91c1c;">${formatNumber(svcKurangKasus)}</td>
           <td style="vertical-align: top; color: #b91c1c;" class="b-right-red">${formatMatrixMoney(svcKurangRp)}</td>
           
           <td style="vertical-align: top;" class="b-left-yellow"><strong>${formatSignedNumber(svcNetKasus)}</strong></td>
@@ -737,16 +739,18 @@
               <th rowspan="2" style="width: 180px; text-align: left; background-color: #f8f9fa; color: #17233b;">Layanan</th>
               <th rowspan="2" style="width: 280px; text-align: left; background-color: #f8f9fa; color: #17233b;">Daftar Kompetitor</th>
               <th colspan="2" class="b-right-yellow" style="background-color: #f8f9fa; color: #17233b;">Eksisting INA-CBG</th>
-              <th colspan="2" class="b-left-green b-right-green" style="background-color: #e8f5e9; color: #17233b;">Proyeksi Tambahan</th>
-              <th colspan="2" class="b-left-red b-right-red" style="background-color: #ffebee; color: #17233b;">Proyeksi Pengurangan</th>
+              <th colspan="3" class="b-left-green b-right-green" style="background-color: #e8f5e9; color: #17233b;">Proyeksi Tambahan</th>
+              <th colspan="3" class="b-left-red b-right-red" style="background-color: #ffebee; color: #17233b;">Proyeksi Pengurangan</th>
               <th colspan="3" class="b-left-yellow b-right-yellow" style="background-color: #fff8e1; color: #17233b;">Net (Selisih)</th>
             </tr>
             <tr>
               <th style="background-color: #f8f9fa; color: #17233b;">Kasus</th>
               <th class="b-right-yellow" style="background-color: #f8f9fa; color: #17233b;">Pendapatan<br>(Rp M)</th>
-              <th class="b-left-green" style="background-color: #e8f5e9; color: #17233b;">Kasus</th>
+              <th class="b-left-green" style="background-color: #e8f5e9; color: #17233b;">%</th>
+              <th style="background-color: #e8f5e9; color: #17233b;">Kasus</th>
               <th class="b-right-green" style="background-color: #e8f5e9; color: #17233b;">Pendapatan<br>(Rp M)</th>
-              <th class="b-left-red" style="background-color: #ffebee; color: #17233b;">Kasus</th>
+              <th class="b-left-red" style="background-color: #ffebee; color: #17233b;">%</th>
+              <th style="background-color: #ffebee; color: #17233b;">Kasus</th>
               <th class="b-right-red" style="background-color: #ffebee; color: #17233b;">Pendapatan<br>(Rp M)</th>
               <th class="b-left-yellow" style="background-color: #fff8e1; color: #17233b;">Kasus</th>
               <th style="background-color: #fff8e1; color: #17233b;">Pendapatan<br>(Rp M)</th>
@@ -762,10 +766,12 @@
               <td style="background-color: #1e293b; border-color: #334155;">${formatNumber(existingKasus)}</td>
               <td class="b-right-yellow" style="background-color: #1e293b; border-color: #334155;">${formatMatrixMoney(existingIna)}</td>
               
-              <td class="b-left-green" style="background-color: #064e3b; color: #34d399; border-color: #065f46;">${formatNumber(globalTambahKasus)}</td>
+              <td class="b-left-green" style="background-color: #064e3b; color: #34d399; border-color: #065f46;">-</td>
+              <td style="background-color: #064e3b; color: #34d399; border-color: #065f46;">${formatNumber(globalTambahKasus)}</td>
               <td class="b-right-green" style="background-color: #064e3b; color: #34d399; border-color: #065f46;">${formatMatrixMoney(globalTambahRp)}</td>
               
-              <td class="b-left-red" style="background-color: #7f1d1d; color: #f87171; border-color: #991b1b;">${formatNumber(globalKurangKasus)}</td>
+              <td class="b-left-red" style="background-color: #7f1d1d; color: #f87171; border-color: #991b1b;">-</td>
+              <td style="background-color: #7f1d1d; color: #f87171; border-color: #991b1b;">${formatNumber(globalKurangKasus)}</td>
               <td class="b-right-red" style="background-color: #7f1d1d; color: #f87171; border-color: #991b1b;">${formatMatrixMoney(globalKurangRp)}</td>
               
               <td class="b-left-yellow" style="background-color: #713f12; color: #fef08a; border-color: #854d0e;">${formatSignedNumber(globalNetKasus)}</td>
