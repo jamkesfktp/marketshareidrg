@@ -2008,7 +2008,11 @@
             ws[cellRef].s.fill = { fgColor: { rgb: "4F46E5" } };
             ws[cellRef].s.alignment.horizontal = "center";
           } else if (ws[cellRef].t === 'n') {
-            ws[cellRef].s.numFmt = "#,##0";
+            if (ws[cellRef].z === "0.0%" || ws[cellRef].z === "0%") {
+              ws[cellRef].s.numFmt = "0.0%";
+            } else {
+              ws[cellRef].s.numFmt = "#,##0";
+            }
           }
           
           let len = strVal ? strVal.length : (val !== undefined ? val.toString().length : 10);
@@ -2225,15 +2229,15 @@
         formatService(service),
         { t: 'n', f: `'2_Kasus_Regional_Vs_Target'!R${rowNum}`, v: eksKasusVal },
         { t: 'n', f: `'2_Kasus_Regional_Vs_Target'!S${rowNum}`, v: eksInaVal },
-        { t: 'n', v: parseFloat(pctTambahVal.toFixed(2)) },
-        { t: 'n', v: pctKurangVal },
-        { t: 'n', f: `(${tkF}) * (D${rowNum}/100)`, v: tambahKasusVal },
-        { t: 'n', f: `(${tiF}) * (D${rowNum}/100)`, v: tambahIdrgVal },
-        { t: 'n', f: `(${kkF}) * (E${rowNum}/100)`, v: kurangKasusVal },
-        { t: 'n', f: `(${kiF}) * (E${rowNum}/100)`, v: kurangInaVal },
+        { t: 'n', v: pctTambahVal / 100, z: "0.0%" },
+        { t: 'n', v: pctKurangVal / 100, z: "0.0%" },
+        { t: 'n', f: `(${tkF}) * (D${rowNum})`, v: tambahKasusVal },
+        { t: 'n', f: `(${tiF}) * (D${rowNum})`, v: tambahIdrgVal },
+        { t: 'n', f: `(${kkF}) * (E${rowNum})`, v: kurangKasusVal },
+        { t: 'n', f: `(${kiF}) * (E${rowNum})`, v: kurangInaVal },
         { t: 'n', f: `F${rowNum}-H${rowNum}`, v: netKasusVal },
         { t: 'n', f: `G${rowNum}-I${rowNum}`, v: netIdrgVal },
-        { t: 'n', f: `IF(C${rowNum}=0,0,(G${rowNum}-C${rowNum})/C${rowNum})`, v: pctKenaikanVal }
+        { t: 'n', f: `IF(C${rowNum}=0,0,(G${rowNum}-C${rowNum})/C${rowNum})`, v: pctKenaikanVal, z: "0.0%" }
       ]);
     });
     
@@ -2249,7 +2253,7 @@
       { t: 'n', f: `SUM(I2:I${data.services.length+1})`, v: ws4TotalKurangIna },
       { t: 'n', f: `SUM(J2:J${data.services.length+1})`, v: ws4TotalNetKasus },
       { t: 'n', f: `SUM(K2:K${data.services.length+1})`, v: ws4TotalNetIdrg },
-      { t: 'n', f: `IF(C${data.services.length+2}=0,0,(G${data.services.length+2}-C${data.services.length+2})/C${data.services.length+2})`, v: pctKenaikanTotal }
+      { t: 'n', f: `IF(C${data.services.length+2}=0,0,(G${data.services.length+2}-C${data.services.length+2})/C${data.services.length+2})`, v: pctKenaikanTotal, z: "0.0%" }
     ]);
     
     const ws4 = XLSX.utils.aoa_to_sheet(ws4_data);
@@ -2275,10 +2279,15 @@
       const targetCompetency = getCompetency(target, service);
       if (targetCompetency === 0) return;
       
+      const tSvc = target.services[service];
+      const rSvc = data.regional.services[service];
+      const eksKasusVal = tSvc ? (tSvc.total[CASES] || 0) : 0;
+      const eksInaVal = tSvc ? (tSvc.total[INA] || 0) : 0;
+      
       const scn = state.serviceScenarios[service][0]; // to check which levels have scenarios
       
-      ws5_data.push([`Layanan: ${formatService(service)}`, "", "", "", "", "Eksisting Kasus", { t: 'n', f: `'2_Kasus_Regional_Vs_Target'!R${idx+2}` }]);
-      ws5_data.push(["Kompetensi", levelNames[targetCompetency], "", "", "", "Eksisting INA", { t: 'n', f: `'2_Kasus_Regional_Vs_Target'!S${idx+2}` }]);
+      ws5_data.push([`Layanan: ${formatService(service)}`, "", "", "", "", "Eksisting Kasus", { t: 'n', f: `'2_Kasus_Regional_Vs_Target'!R${idx+2}`, v: eksKasusVal }]);
+      ws5_data.push(["Kompetensi", levelNames[targetCompetency], "", "", "", "Eksisting INA", { t: 'n', f: `'2_Kasus_Regional_Vs_Target'!S${idx+2}`, v: eksInaVal }]);
       currentRow += 2;
       
       let header1 = ["Skenario"];
@@ -2324,18 +2333,30 @@
         
         let tkFormulaParts = [];
         let tiFormulaParts = [];
+        let tkSumScn = 0;
+        let tiSumScn = 0;
         
         [1,2,3,4].forEach(lvl => {
           if (scn.hasOwnProperty('tambah_' + lvl)) {
             let pctVal = scnData['tambah_' + lvl];
-            rowData.push(pctVal); // % T
+            let pctFrac = pctVal / 100;
+            rowData.push({ t: 'n', v: pctFrac, z: "0.0%" }); // % T
             
             const colLetterPct = getExcelCol(rowData.length - 1);
-            const tkCell = `('2_Kasus_Regional_Vs_Target'!${extKasusCols[lvl]}${idx+2} * (${colLetterPct}${currentRow}/100))`;
-            const tiCell = `('2_Kasus_Regional_Vs_Target'!${extInaCols[lvl]}${idx+2} * (${colLetterPct}${currentRow}/100))`;
+            const tkCell = `('2_Kasus_Regional_Vs_Target'!${extKasusCols[lvl]}${idx+2} * ${colLetterPct}${currentRow})`;
+            const tiCell = `('2_Kasus_Regional_Vs_Target'!${extInaCols[lvl]}${idx+2} * ${colLetterPct}${currentRow})`;
             
-            rowData.push({ t: 'n', f: tkCell }); // Kasus
-            rowData.push({ t: 'n', f: tiCell }); // INA
+            const rMetric = rSvc ? severityMetric(rSvc, lvl) : [0,0,0];
+            const tMetric = tSvc ? severityMetric(tSvc, lvl) : [0,0,0];
+            const extKasusLvl = Math.max(0, (rMetric[CASES]||0) - (tMetric[CASES]||0));
+            const extIdrgLvl = Math.max(0, (rMetric[IDRG]||0) - (tMetric[IDRG]||0));
+            const tkVal = extKasusLvl * pctFrac;
+            const tiVal = extIdrgLvl * pctFrac;
+            tkSumScn += tkVal;
+            tiSumScn += tiVal;
+
+            rowData.push({ t: 'n', f: tkCell, v: tkVal }); // Kasus
+            rowData.push({ t: 'n', f: tiCell, v: tiVal }); // INA/iDRG
             
             const colLetterTk = getExcelCol(rowData.length - 2);
             const colLetterTi = getExcelCol(rowData.length - 1);
@@ -2347,18 +2368,29 @@
         
         let kkFormulaParts = [];
         let kiFormulaParts = [];
+        let kkSumScn = 0;
+        let kiSumScn = 0;
         
         [1,2,3,4].forEach(lvl => {
           if (scn.hasOwnProperty('kurang_' + lvl)) {
             let pctVal = scnData['kurang_' + lvl];
-            rowData.push(pctVal); // % K
+            let pctFrac = pctVal / 100;
+            rowData.push({ t: 'n', v: pctFrac, z: "0.0%" }); // % K
             
             const colLetterPct = getExcelCol(rowData.length - 1);
-            const kkCell = `('2_Kasus_Regional_Vs_Target'!${tarKasusCols[lvl]}${idx+2} * (${colLetterPct}${currentRow}/100))`;
-            const kiCell = `('2_Kasus_Regional_Vs_Target'!${tarInaCols[lvl]}${idx+2} * (${colLetterPct}${currentRow}/100))`;
+            const kkCell = `('2_Kasus_Regional_Vs_Target'!${tarKasusCols[lvl]}${idx+2} * ${colLetterPct}${currentRow})`;
+            const kiCell = `('2_Kasus_Regional_Vs_Target'!${tarInaCols[lvl]}${idx+2} * ${colLetterPct}${currentRow})`;
             
-            rowData.push({ t: 'n', f: kkCell }); // Kasus
-            rowData.push({ t: 'n', f: kiCell }); // INA
+            const tMetric = tSvc ? severityMetric(tSvc, lvl) : [0,0,0];
+            const tarKasusLvl = tMetric[CASES]||0;
+            const tarInaLvl = tMetric[INA]||0;
+            const kkVal = tarKasusLvl * pctFrac;
+            const kiVal = tarInaLvl * pctFrac;
+            kkSumScn += kkVal;
+            kiSumScn += kiVal;
+
+            rowData.push({ t: 'n', f: kkCell, v: kkVal }); // Kasus
+            rowData.push({ t: 'n', f: kiCell, v: kiVal }); // INA
             
             const colLetterKk = getExcelCol(rowData.length - 2);
             const colLetterKi = getExcelCol(rowData.length - 1);
@@ -2373,24 +2405,29 @@
         let kkF = kkFormulaParts.length > 0 ? kkFormulaParts.join("+") : "0";
         let kiF = kiFormulaParts.length > 0 ? kiFormulaParts.join("+") : "0";
         
+        const netKasusVal = tkSumScn - kkSumScn;
+        const netRpVal = tiSumScn - kiSumScn;
+        const pctNetKasusVal = eksKasusVal ? (netKasusVal - eksKasusVal) / eksKasusVal : 0;
+        const pctKenaikanVal = eksInaVal ? (netRpVal - eksInaVal) / eksInaVal : 0;
+
         // Net Kasus
-        rowData.push({ t: 'n', f: `(${tkF}) - (${kkF})` }); 
+        rowData.push({ t: 'n', f: `(${tkF}) - (${kkF})`, v: netKasusVal }); 
         
         const eksRow = currentRow - s - 4;
         
         // % Net Kasus
         const netKasusCol = getExcelCol(rowData.length - 1);
-        rowData.push({ t: 'n', f: `IF(G${eksRow}=0, 0, (${netKasusCol}${currentRow}-G${eksRow})/G${eksRow})` });
+        rowData.push({ t: 'n', f: `IF(G${eksRow}=0, 0, (${netKasusCol}${currentRow}-G${eksRow})/G${eksRow})`, v: pctNetKasusVal, z: "0.0%" });
         
         // Net Rp
-        rowData.push({ t: 'n', f: `(${tiF}) - (${kiF})` });
+        rowData.push({ t: 'n', f: `(${tiF}) - (${kiF})`, v: netRpVal });
         
         // Eksisting Rp
-        rowData.push({ t: 'n', f: `G${eksRow+1}` });
+        rowData.push({ t: 'n', f: `G${eksRow+1}`, v: eksInaVal });
         
         // % Kenaikan
         const netRpCol = getExcelCol(rowData.length - 2);
-        rowData.push({ t: 'n', f: `IF(G${eksRow+1}=0, 0, (${netRpCol}${currentRow}-G${eksRow+1})/G${eksRow+1})` }); 
+        rowData.push({ t: 'n', f: `IF(G${eksRow+1}=0, 0, (${netRpCol}${currentRow}-G${eksRow+1})/G${eksRow+1})`, v: pctKenaikanVal, z: "0.0%" }); 
         
         ws5_data.push(rowData);
         currentRow += 1;
