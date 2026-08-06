@@ -59,8 +59,8 @@
   }
 
   const numberFormatter = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 0 });
-  const decimalFormatter = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-  const compactFormatter = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 1 });
+  const decimalFormatter = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 1, maximumFractionDigits: 2 });
+  const compactFormatter = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 
   const escapeHtml = (value) => String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -2008,8 +2008,8 @@
             ws[cellRef].s.fill = { fgColor: { rgb: "4F46E5" } };
             ws[cellRef].s.alignment.horizontal = "center";
           } else if (ws[cellRef].t === 'n') {
-            if (ws[cellRef].z === "0.0%" || ws[cellRef].z === "0%") {
-              ws[cellRef].s.numFmt = "0.0%";
+            if (ws[cellRef].z === "0.00%" || ws[cellRef].z === "0.0%" || ws[cellRef].z === "0%") {
+              ws[cellRef].s.numFmt = "0.00%";
             } else {
               ws[cellRef].s.numFmt = "#,##0";
             }
