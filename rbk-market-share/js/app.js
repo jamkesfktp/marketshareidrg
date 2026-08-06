@@ -857,9 +857,9 @@
           rules.kurang.forEach(lvl => {
             const targetSvc = target.services[service];
             if (targetSvc && severityMetric(targetSvc, lvl)[CASES] > 0) {
-              // Start at 50%, decrease 10% per scenario: 50, 40, 30, 20, 10, 0
-              let val = 50 - (i * 10);
-              scn['kurang_' + lvl] = parseFloat(Math.max(0, val).toFixed(1));
+              // Start at 50%, increase 10% per scenario: 50, 60, 70, 80, 90, 100
+              let val = 50 + (i * 10);
+              scn['kurang_' + lvl] = parseFloat(Math.min(100, val).toFixed(1));
             }
           });
           
@@ -1772,7 +1772,8 @@
             rules.kurang.forEach(lvl => {
               const tSvc = target.services[service];
               if (tSvc && severityMetric(tSvc, lvl)[CASES] > 0) {
-                scn['kurang_' + lvl] = parseFloat(Math.max(0, 50 - (i * 10)).toFixed(1));
+                // Start at 50%, increase 10% per scenario: 50, 60, 70, 80, 90, 100
+                scn['kurang_' + lvl] = parseFloat(Math.min(100, 50 + (i * 10)).toFixed(1));
               }
             });
             return scn;
