@@ -971,12 +971,46 @@
             <span class="slide-chip">Layanan</span>
           </div>
           <div class="slide-content" style="padding-top: 10px;">
-            <div class="existing-report-kpis">
-              <article class="existing-report-kpi kpi-total"><span>Total Kasus RS:</span><strong>${formatNumber(targetKasus)}</strong><em>Jumlah kasus eklaim</em></article>
-              <article class="existing-report-kpi kpi-total"><span>Total Kasus Regional:</span><strong>${formatNumber(regionalKasus)}</strong><em>Dari data 8 bulan</em></article>
-              <article class="existing-report-kpi kpi-idrg"><span>Pendapatan iDRG RS:</span><strong>${formatMoney(targetIdrg)}</strong><em>Klaim uji coba iDRG</em></article>
-              <article class="existing-report-kpi kpi-ina"><span>Potensi iDRG Regional:</span><strong>${formatMoney(potensiRegional)}</strong><em>iDRG - INA CBGs</em></article>
-              <article class="existing-report-kpi kpi-difference ${selisih < 0 ? "is-loss" : "is-gain"}"><span>Selisih:</span><strong>${formatMoney(selisih)}</strong><em>Dari Pendapatan iDRG RS</em></article>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 20px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+              
+              <div style="flex: 1; background: white; padding: 16px; border-radius: 10px; border-top: 4px solid #3b82f6; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                <div style="font-size: 13px; font-weight: 700; color: #3b82f6; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">🏥 Eksisting RS Target</div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 12px;">
+                  <div>
+                    <div style="font-size: 11px; color: #64748b; margin-bottom: 2px;">Total Kasus</div>
+                    <div style="font-size: 24px; font-weight: 800; color: #1e293b; line-height: 1;">${formatNumber(targetKasus)}</div>
+                  </div>
+                  <div style="text-align: right;">
+                    <div style="font-size: 11px; color: #64748b; margin-bottom: 2px;">Pendapatan iDRG</div>
+                    <div style="font-size: 20px; font-weight: 700; color: #059669; line-height: 1;">${formatMoney(targetIdrg)}</div>
+                  </div>
+                </div>
+                <div style="font-size: 11px; color: #94a3b8; background: #f8fafc; padding: 4px 8px; border-radius: 4px; display: inline-block;">Rata-rata Tarif: <strong>${formatMoney(targetKasus ? targetIdrg/targetKasus : 0)}</strong> / kasus</div>
+              </div>
+
+              <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fff; width: 40px; height: 40px; border-radius: 50%; font-weight: 800; color: #cbd5e1; font-size: 12px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); border: 2px solid #f1f5f9;">VS</div>
+
+              <div style="flex: 1; background: white; padding: 16px; border-radius: 10px; border-top: 4px solid #8b5cf6; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                <div style="font-size: 13px; font-weight: 700; color: #8b5cf6; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">🌍 Eksisting Regional</div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 12px;">
+                  <div>
+                    <div style="font-size: 11px; color: #64748b; margin-bottom: 2px;">Total Kasus</div>
+                    <div style="font-size: 24px; font-weight: 800; color: #1e293b; line-height: 1;">${formatNumber(regionalKasus)}</div>
+                  </div>
+                  <div style="text-align: right;">
+                    <div style="font-size: 11px; color: #64748b; margin-bottom: 2px;">Pendapatan iDRG</div>
+                    <div style="font-size: 20px; font-weight: 700; color: #059669; line-height: 1;">${formatMoney(regionalIdrg)}</div>
+                  </div>
+                </div>
+                <div style="font-size: 11px; color: #94a3b8; background: #f8fafc; padding: 4px 8px; border-radius: 4px; display: inline-block;">Rata-rata Tarif: <strong>${formatMoney(regionalKasus ? regionalIdrg/regionalKasus : 0)}</strong> / kasus</div>
+              </div>
+
+              <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: #1e293b; color: white; padding: 16px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); min-width: 140px;">
+                <div style="font-size: 11px; color: #94a3b8; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Market Share</div>
+                <div style="font-size: 28px; font-weight: 800; color: #38bdf8;">${formatPercent(regionalKasus ? targetKasus / regionalKasus : 0)}</div>
+                <div style="font-size: 10px; color: #64748b; margin-top: 4px;">Dari total kasus</div>
+              </div>
+
             </div>
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: 1rem; margin-bottom: 0.5rem; font-size: 14px; font-weight: 500;">
               <div>Kompetensi Layanan RS : <span style="background: var(--amber-300); padding: 4px 8px; border-radius: 4px; font-weight: bold; color: var(--amber-900);">Kompetensi ${levelNames[targetCompetency]}</span></div>
