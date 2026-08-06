@@ -700,7 +700,9 @@
     availableServices.forEach((service, idx) => {
       const targetCompetency = getCompetency(target, service);
       // Hitung kompetitor (RS lain yang punya kompetensi >= targetCompetency)
-      const competitors = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= targetCompetency).length;
+      const competitorsList = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= targetCompetency);
+      const competitors = competitorsList.length;
+      const competitorNames = competitors > 0 ? competitorsList.map(h => escapeHtml(h.name)).join(', ') : "Tidak ada kompetitor";
       
       // Hitung Persentase Default
       if (!state.serviceScenarios[service]) {
@@ -783,9 +785,12 @@
               <article class="existing-report-kpi kpi-ina"><span>Potensi iDRG Regional:</span><strong>${formatMoney(potensiRegional)}</strong><em>iDRG - INA CBGs</em></article>
               <article class="existing-report-kpi kpi-difference ${selisih < 0 ? "is-loss" : "is-gain"}"><span>Selisih:</span><strong>${formatMoney(selisih)}</strong><em>Dari Pendapatan iDRG RS</em></article>
             </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; margin-bottom: 0.5rem; font-size: 14px; font-weight: 500;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: 1rem; margin-bottom: 0.5rem; font-size: 14px; font-weight: 500;">
               <div>Kompetensi Layanan RS : <span style="background: var(--amber-300); padding: 4px 8px; border-radius: 4px; font-weight: bold; color: var(--amber-900);">Kompetensi ${levelNames[targetCompetency]}</span></div>
-              <div style="font-weight: bold; color: var(--slate-800);">RS Regional yang memiliki Kompetensi Setara/ kompetitor : ${competitors} RS</div>
+              <div style="text-align: right;">
+                <div style="font-weight: bold; color: var(--slate-800);">RS Regional yang memiliki Kompetensi Setara/ kompetitor : ${competitors} RS</div>
+                <div style="font-size: 12px; font-weight: normal; color: var(--slate-500); max-width: 400px; margin-top: 4px; line-height: 1.4;">${competitorNames}</div>
+              </div>
             </div>
             <table class="scenario-table">
               <thead>
