@@ -734,23 +734,23 @@
         <table class="scenario-table" style="table-layout: auto; min-width: 1200px;">
           <thead style="position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
             <tr>
-              <th rowspan="2" style="width: 180px; text-align: left; background-color: #f8f9fa;">Layanan</th>
-              <th rowspan="2" style="width: 280px; text-align: left; background-color: #f8f9fa;">Daftar Kompetitor</th>
-              <th colspan="2" class="b-right-yellow" style="background-color: #f8f9fa;">Eksisting INA-CBG</th>
+              <th rowspan="2" style="width: 180px; text-align: left; background-color: #f8f9fa; color: #17233b;">Layanan</th>
+              <th rowspan="2" style="width: 280px; text-align: left; background-color: #f8f9fa; color: #17233b;">Daftar Kompetitor</th>
+              <th colspan="2" class="b-right-yellow" style="background-color: #f8f9fa; color: #17233b;">Eksisting INA-CBG</th>
               <th colspan="2" class="b-left-green b-right-green" style="background-color: #e8f5e9; color: #17233b;">Proyeksi Tambahan</th>
               <th colspan="2" class="b-left-red b-right-red" style="background-color: #ffebee; color: #17233b;">Proyeksi Pengurangan</th>
               <th colspan="3" class="b-left-yellow b-right-yellow" style="background-color: #fff8e1; color: #17233b;">Net (Selisih)</th>
             </tr>
             <tr>
-              <th style="background-color: #f8f9fa;">Kasus</th>
-              <th class="b-right-yellow" style="background-color: #f8f9fa;">Pendapatan<br>(Rp M)</th>
-              <th class="b-left-green" style="background-color: #e8f5e9;">Kasus</th>
-              <th class="b-right-green" style="background-color: #e8f5e9;">Pendapatan<br>(Rp M)</th>
-              <th class="b-left-red" style="background-color: #ffebee;">Kasus</th>
-              <th class="b-right-red" style="background-color: #ffebee;">Pendapatan<br>(Rp M)</th>
-              <th class="b-left-yellow" style="background-color: #fff8e1;">Kasus</th>
-              <th style="background-color: #fff8e1;">Pendapatan<br>(Rp M)</th>
-              <th class="b-right-yellow" style="background-color: #fff8e1;">% Kenaikan</th>
+              <th style="background-color: #f8f9fa; color: #17233b;">Kasus</th>
+              <th class="b-right-yellow" style="background-color: #f8f9fa; color: #17233b;">Pendapatan<br>(Rp M)</th>
+              <th class="b-left-green" style="background-color: #e8f5e9; color: #17233b;">Kasus</th>
+              <th class="b-right-green" style="background-color: #e8f5e9; color: #17233b;">Pendapatan<br>(Rp M)</th>
+              <th class="b-left-red" style="background-color: #ffebee; color: #17233b;">Kasus</th>
+              <th class="b-right-red" style="background-color: #ffebee; color: #17233b;">Pendapatan<br>(Rp M)</th>
+              <th class="b-left-yellow" style="background-color: #fff8e1; color: #17233b;">Kasus</th>
+              <th style="background-color: #fff8e1; color: #17233b;">Pendapatan<br>(Rp M)</th>
+              <th class="b-right-yellow" style="background-color: #fff8e1; color: #17233b;">% Kenaikan</th>
             </tr>
           </thead>
           <tbody>
