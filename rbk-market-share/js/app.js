@@ -746,7 +746,7 @@
         const idx = e.target.dataset.index;
         const field = e.target.dataset.field;
         const val = parseFloat(e.target.value) || 0;
-        }
+        state.scenarios[idx][field] = val;
         renderScenarioSlide();
       });
     });
