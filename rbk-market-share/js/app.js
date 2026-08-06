@@ -1878,79 +1878,105 @@
     
     // SHEET 4: SIMULASI GLOBAL (RUMUS EXCEL)
     const ws4_data = [
-      ["Layanan", "Eksisting Kasus", "Eksisting INA", "% Tambah", "% Kurang", "Tambahan Kasus", "Tambahan INA", "Kurang Kasus", "Kurang INA", "Net Kasus", "Net INA", "% Kenaikan"]
+      ["Layanan", "Eksisting Kasus", "Eksisting INA-CBG", "% Tambah (Default)", "% Kurang (Default)", "Tambahan Kasus", "Tambahan iDRG (Rp)", "Kurang Kasus", "Kurang INA-CBG (Rp)", "Net Kasus", "Net iDRG (Rp)", "% Kenaikan iDRG"]
     ];
+    
+    let ws4TotalEksKasus = 0, ws4TotalEksIna = 0;
+    let ws4TotalTambahKasus = 0, ws4TotalTambahIdrg = 0;
+    let ws4TotalKurangKasus = 0, ws4TotalKurangIna = 0;
+    let ws4TotalNetKasus = 0, ws4TotalNetIdrg = 0;
     
     data.services.forEach((service, i) => {
       const rowNum = i + 2; 
       const targetCompetency = getCompetency(target, service);
       
-      const eksKasus = { t: 'n', f: `'2_Kasus_Regional_Vs_Target'!R${rowNum}` };
-      const eksIna = { t: 'n', f: `'2_Kasus_Regional_Vs_Target'!S${rowNum}` };
+      // Compute actual values in JS (mirrors Slide 6 / renderComparisonSlide logic)
+      const tSvc = target.services[service];
+      const rSvc = data.regional.services[service];
+      const rules = getLevelRules(targetCompetency);
       
-      let pctTambah = { t: 'n', v: 0 };
-      let pctKurang = { t: 'n', v: 0 };
-      let tambahKasus = { t: 'n', v: 0 };
-      let tambahIna = { t: 'n', v: 0 };
-      let kurangKasus = { t: 'n', v: 0 };
-      let kurangIna = { t: 'n', v: 0 };
-      let netKasus = { t: 'n', v: 0 };
-      let netIna = { t: 'n', v: 0 };
-      let pctKenaikan = { t: 'n', v: 0 };
+      const eksKasusVal = tSvc ? (tSvc.total[CASES] || 0) : 0;
+      const eksInaVal = tSvc ? (tSvc.total[INA] || 0) : 0;
+      
+      ws4TotalEksKasus += eksKasusVal;
+      ws4TotalEksIna += eksInaVal;
+      
+      let pctTambahVal = 0, pctKurangVal = 0;
+      let tambahKasusVal = 0, tambahIdrgVal = 0;
+      let kurangKasusVal = 0, kurangInaVal = 0;
       
       if (targetCompetency > 0) {
-        pctTambah = { t: 'n', f: `IF('3_Rekap_Kompetitor'!B${rowNum}=0, 0, (100/('3_Rekap_Kompetitor'!C${rowNum}+1)))` };
-        pctKurang = { t: 'n', f: `D${rowNum}` }; 
+        const competitors = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= targetCompetency).length;
+        pctTambahVal = 100 / (competitors + 1);
+        pctKurangVal = 50; // Skenario 1 default kurang = 50%
         
-        const rules = getLevelRules(targetCompetency);
+        rules.tambah.forEach(lvl => {
+          const rMetric = rSvc ? severityMetric(rSvc, lvl) : [0,0,0];
+          const tMetric = tSvc ? severityMetric(tSvc, lvl) : [0,0,0];
+          const eksCases = Math.max(0, (rMetric[CASES]||0) - (tMetric[CASES]||0));
+          const eksIdrg = Math.max(0, (rMetric[IDRG]||0) - (tMetric[IDRG]||0));
+          tambahKasusVal += eksCases * (pctTambahVal / 100);
+          tambahIdrgVal += eksIdrg * (pctTambahVal / 100);
+        });
         
-        const extKasusCols = {1:'J', 2:'K', 3:'L', 4:'M'};
-        const extInaCols = {1:'N', 2:'O', 3:'P', 4:'Q'};
-        let tkFormula = rules.tambah.map(lvl => `'2_Kasus_Regional_Vs_Target'!${extKasusCols[lvl]}${rowNum}`).join("+");
-        let tiFormula = rules.tambah.map(lvl => `'2_Kasus_Regional_Vs_Target'!${extInaCols[lvl]}${rowNum}`).join("+");
-        if (!tkFormula) tkFormula = "0";
-        if (!tiFormula) tiFormula = "0";
-        tambahKasus = { t: 'n', f: `(${tkFormula}) * (D${rowNum}/100)` };
-        tambahIna = { t: 'n', f: `(${tiFormula}) * (D${rowNum}/100)` };
-        
-        const tarKasusCols = {1:'B', 2:'C', 3:'D', 4:'E'};
-        const tarInaCols = {1:'F', 2:'G', 3:'H', 4:'I'};
-        let kkFormula = rules.kurang.length > 0 ? rules.kurang.map(lvl => `'2_Kasus_Regional_Vs_Target'!${tarKasusCols[lvl]}${rowNum}`).join("+") : "0";
-        let kiFormula = rules.kurang.length > 0 ? rules.kurang.map(lvl => `'2_Kasus_Regional_Vs_Target'!${tarInaCols[lvl]}${rowNum}`).join("+") : "0";
-        if (!kkFormula) kkFormula = "0";
-        if (!kiFormula) kiFormula = "0";
-        kurangKasus = { t: 'n', f: `(${kkFormula}) * (E${rowNum}/100)` };
-        kurangIna = { t: 'n', f: `(${kiFormula}) * (E${rowNum}/100)` };
-        
-        netKasus = { t: 'n', f: `F${rowNum} - H${rowNum}` };
-        netIna = { t: 'n', f: `G${rowNum} - I${rowNum}` };
-        pctKenaikan = { t: 'n', f: `IF(C${rowNum}=0, 0, K${rowNum}/C${rowNum})` };
+        rules.kurang.forEach(lvl => {
+          const tMetric = tSvc ? severityMetric(tSvc, lvl) : [0,0,0];
+          kurangKasusVal += (tMetric[CASES]||0) * (pctKurangVal / 100);
+          kurangInaVal += (tMetric[INA]||0) * (pctKurangVal / 100);
+        });
       }
+      
+      const netKasusVal = tambahKasusVal - kurangKasusVal;
+      const netIdrgVal = tambahIdrgVal - kurangInaVal;
+      const pctKenaikanVal = eksInaVal ? netIdrgVal / eksInaVal : 0;
+      
+      ws4TotalTambahKasus += tambahKasusVal;
+      ws4TotalTambahIdrg += tambahIdrgVal;
+      ws4TotalKurangKasus += kurangKasusVal;
+      ws4TotalKurangIna += kurangInaVal;
+      ws4TotalNetKasus += netKasusVal;
+      ws4TotalNetIdrg += netIdrgVal;
+      
+      // Build formula references (for kertas kerja editability)
+      const extKasusCols = {1:'J', 2:'K', 3:'L', 4:'M'};
+      const extIdrgCols = {1:'N', 2:'O', 3:'P', 4:'Q'};
+      const tarKasusCols = {1:'B', 2:'C', 3:'D', 4:'E'};
+      const tarInaCols = {1:'F', 2:'G', 3:'H', 4:'I'};
+      
+      let tkF = rules.tambah.length > 0 ? rules.tambah.map(lvl => `'2_Kasus_Regional_Vs_Target'!${extKasusCols[lvl]}${rowNum}`).join("+") : "0";
+      let tiF = rules.tambah.length > 0 ? rules.tambah.map(lvl => `'2_Kasus_Regional_Vs_Target'!${extIdrgCols[lvl]}${rowNum}`).join("+") : "0";
+      let kkF = rules.kurang.length > 0 ? rules.kurang.map(lvl => `'2_Kasus_Regional_Vs_Target'!${tarKasusCols[lvl]}${rowNum}`).join("+") : "0";
+      let kiF = rules.kurang.length > 0 ? rules.kurang.map(lvl => `'2_Kasus_Regional_Vs_Target'!${tarInaCols[lvl]}${rowNum}`).join("+") : "0";
       
       ws4_data.push([
         formatService(service),
-        eksKasus, eksIna,
-        pctTambah, pctKurang,
-        tambahKasus, tambahIna,
-        kurangKasus, kurangIna,
-        netKasus, netIna,
-        pctKenaikan
+        { t: 'n', f: `'2_Kasus_Regional_Vs_Target'!R${rowNum}`, v: eksKasusVal },
+        { t: 'n', f: `'2_Kasus_Regional_Vs_Target'!S${rowNum}`, v: eksInaVal },
+        { t: 'n', v: parseFloat(pctTambahVal.toFixed(2)) },
+        { t: 'n', v: pctKurangVal },
+        { t: 'n', f: `(${tkF}) * (D${rowNum}/100)`, v: tambahKasusVal },
+        { t: 'n', f: `(${tiF}) * (D${rowNum}/100)`, v: tambahIdrgVal },
+        { t: 'n', f: `(${kkF}) * (E${rowNum}/100)`, v: kurangKasusVal },
+        { t: 'n', f: `(${kiF}) * (E${rowNum}/100)`, v: kurangInaVal },
+        { t: 'n', f: `F${rowNum}-H${rowNum}`, v: netKasusVal },
+        { t: 'n', f: `G${rowNum}-I${rowNum}`, v: netIdrgVal },
+        { t: 'n', f: `IF(C${rowNum}=0,0,K${rowNum}/C${rowNum})`, v: pctKenaikanVal }
       ]);
     });
     
-    const totalRow = 26;
+    const pctKenaikanTotal = ws4TotalEksIna ? ws4TotalNetIdrg / ws4TotalEksIna : 0;
     ws4_data.push([
       "TOTAL",
-      { t: 'n', f: `SUM(B2:B25)` },
-      { t: 'n', f: `SUM(C2:C25)` },
+      { t: 'n', f: `SUM(B2:B${data.services.length+1})`, v: ws4TotalEksKasus },
+      { t: 'n', f: `SUM(C2:C${data.services.length+1})`, v: ws4TotalEksIna },
       "", "",
-      { t: 'n', f: `SUM(F2:F25)` },
-      { t: 'n', f: `SUM(G2:G25)` },
-      { t: 'n', f: `SUM(H2:H25)` },
-      { t: 'n', f: `SUM(I2:I25)` },
-      { t: 'n', f: `SUM(J2:J25)` },
-      { t: 'n', f: `SUM(K2:K25)` },
-      { t: 'n', f: `IF(C${totalRow}=0, 0, K${totalRow}/C${totalRow})` }
+      { t: 'n', f: `SUM(F2:F${data.services.length+1})`, v: ws4TotalTambahKasus },
+      { t: 'n', f: `SUM(G2:G${data.services.length+1})`, v: ws4TotalTambahIdrg },
+      { t: 'n', f: `SUM(H2:H${data.services.length+1})`, v: ws4TotalKurangKasus },
+      { t: 'n', f: `SUM(I2:I${data.services.length+1})`, v: ws4TotalKurangIna },
+      { t: 'n', f: `SUM(J2:J${data.services.length+1})`, v: ws4TotalNetKasus },
+      { t: 'n', f: `SUM(K2:K${data.services.length+1})`, v: ws4TotalNetIdrg },
+      { t: 'n', v: pctKenaikanTotal }
     ]);
     
     const ws4 = XLSX.utils.aoa_to_sheet(ws4_data);
