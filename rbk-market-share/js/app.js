@@ -632,9 +632,9 @@
         });
       }
       
-      let c = competitors > 0 ? competitors : 1;
-      let pctTambah = (100 / c) + (competitors > 0 ? 5 : 0);
-      let pctKurang = (100 / c) + (competitors > 0 ? 5 : 0);
+      let totalPlayers = competitors + 1;
+      let pctTambah = (100 / totalPlayers) + (competitors > 0 ? 5 : 0);
+      let pctKurang = (100 / totalPlayers) + (competitors > 0 ? 5 : 0);
       
       let svcTambahKasus = 0;
       let svcTambahRp = 0;
