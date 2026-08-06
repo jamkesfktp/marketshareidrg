@@ -572,51 +572,115 @@
     const target = targetHospital();
     if (!target) return;
 
-    const formatSignedMatrixMoney = (val) => (val > 0 ? "+" : "") + formatMatrixMoney(val);
-
-    const regionalUtama = severityMetric(data.regional, 3);
-    const regionalParipurna = severityMetric(data.regional, 4);
+    const formatSigned    const baseTambahan = { 1: [0,0], 2: [0,0], 3: [0,0], 4: [0,0] };
+    const basePengurangan = { 1: [0,0], 2: [0,0], 3: [0,0], 4: [0,0] };
     
-    const targetUtama = sumMetrics(data.services.map(s => severityMetric(target.services?.[s], 3)));
-    const targetParipurna = sumMetrics(data.services.map(s => severityMetric(target.services?.[s], 4)));
-    
-    const targetDasar = sumMetrics(data.services.map(s => severityMetric(target.services?.[s], 1)));
-    const targetMadya = sumMetrics(data.services.map(s => severityMetric(target.services?.[s], 2)));
-
-    const baseTambahanKasus = (regionalUtama[CASES] + regionalParipurna[CASES]) - (targetUtama[CASES] + targetParipurna[CASES]);
-    const baseTambahanPendapatan = (regionalUtama[IDRG] + regionalParipurna[IDRG]) - (targetUtama[IDRG] + targetParipurna[IDRG]);
-
-    const basePenguranganKasus = targetDasar[CASES] + targetMadya[CASES];
-    const basePenguranganPendapatan = targetDasar[INA] + targetMadya[INA];
+    data.services.forEach(service => {
+      const targetCompetency = getCompetency(target, service);
+      const competitorsList = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= targetCompetency);
+      
+      competitorsList.forEach(h => {
+        const hSvc = h.services?.[service];
+        const hLvl = getCompetency(h, service);
+        if (hSvc) {
+          baseTambahan[hLvl][0] += hSvc.total[CASES] || 0;
+          baseTambahan[hLvl][1] += hSvc.total[IDRG] || 0;
+        }
+      });
+      
+      const targetSvc = target.services[service];
+      [1, 2, 3, 4].forEach(lvl => {
+        if (lvl < targetCompetency && targetSvc) {
+          const targetLvl = severityMetric(targetSvc, lvl);
+          basePengurangan[lvl][0] += targetLvl[CASES] || 0;
+          basePengurangan[lvl][1] += targetLvl[INA] || 0;
+        }
+      });
+    });
 
     const existingIna = target.total[INA];
     const existingKasus = target.total[CASES];
+    
+    // Convert old scenario format if needed
+    if (state.scenarios[0].tambah !== undefined) {
+      const defaultVals = [100, 75, 50, 25, 15, 0];
+      state.scenarios = defaultVals.map((val, i) => {
+        let scn = {};
+        [1, 2, 3, 4].forEach(lvl => {
+          if (baseTambahan[lvl][0] > 0 || baseTambahan[lvl][1] > 0) scn['tambah_' + lvl] = val;
+          if (basePengurangan[lvl][0] > 0 || basePengurangan[lvl][1] > 0) scn['kurang_' + lvl] = val;
+        });
+        return scn;
+      });
+    } else {
+      // Clean up scenarios for missing levels just in case target hospital changed
+      state.scenarios.forEach(scn => {
+        [1, 2, 3, 4].forEach(lvl => {
+          if (baseTambahan[lvl][0] > 0 || baseTambahan[lvl][1] > 0) {
+            if (scn['tambah_' + lvl] === undefined) scn['tambah_' + lvl] = 0;
+          } else {
+            delete scn['tambah_' + lvl];
+          }
+          if (basePengurangan[lvl][0] > 0 || basePengurangan[lvl][1] > 0) {
+            if (scn['kurang_' + lvl] === undefined) scn['kurang_' + lvl] = 0;
+          } else {
+            delete scn['kurang_' + lvl];
+          }
+        });
+      });
+    }
 
     const generateRow = (index, scn) => {
-      const pTambah = scn.tambah / 100;
-      const pKurang = scn.kurang / 100;
-      const tambahKasus = baseTambahanKasus * pTambah;
-      const tambahRp = baseTambahanPendapatan * pTambah;
-      const kurangKasus = basePenguranganKasus * pKurang;
-      const kurangRp = basePenguranganPendapatan * pKurang;
+      let totalTambahKasus = 0;
+      let totalTambahRp = 0;
+      let totalKurangKasus = 0;
+      let totalKurangRp = 0;
       
-      const netKasus = tambahKasus - kurangKasus;
+      let tambahCols = '';
+      [1, 2, 3, 4].forEach(lvl => {
+        if (scn.hasOwnProperty('tambah_' + lvl)) {
+          const pTambah = scn['tambah_' + lvl] / 100;
+          const tk = baseTambahan[lvl][0] * pTambah;
+          const trp = baseTambahan[lvl][1] * pTambah;
+          totalTambahKasus += tk;
+          totalTambahRp += trp;
+          tambahCols += `
+            <td class="b-left-green b-top-green b-bottom-green"><input type="number" class="scenario-input global-scenario-input" data-index="${index}" data-field="tambah_${lvl}" value="${scn['tambah_' + lvl]}" step="0.1" style="width: 60px;"></td>
+            <td class="b-top-green b-bottom-green">${formatNumber(tk)}</td>
+            <td class="b-right-green b-top-green b-bottom-green">${formatMatrixMoney(trp)}</td>
+          `;
+        }
+      });
+      
+      let kurangCols = '';
+      [1, 2, 3, 4].forEach(lvl => {
+        if (scn.hasOwnProperty('kurang_' + lvl)) {
+          const pKurang = scn['kurang_' + lvl] / 100;
+          const kk = basePengurangan[lvl][0] * pKurang;
+          const krp = basePengurangan[lvl][1] * pKurang;
+          totalKurangKasus += kk;
+          totalKurangRp += krp;
+          kurangCols += `
+            <td class="b-left-red b-top-red b-bottom-red"><input type="number" class="scenario-input global-scenario-input" data-index="${index}" data-field="kurang_${lvl}" value="${scn['kurang_' + lvl]}" step="0.1" style="width: 60px;"></td>
+            <td class="b-top-red b-bottom-red">${formatNumber(kk)}</td>
+            <td class="b-right-red b-top-red b-bottom-red">${formatMatrixMoney(krp)}</td>
+          `;
+        }
+      });
+      
+      const netKasus = totalTambahKasus - totalKurangKasus;
       const pctNetKasus = existingKasus ? (netKasus - existingKasus) / existingKasus : 0;
       
-      const netRp = tambahRp - kurangRp;
+      const netRp = totalTambahRp - totalKurangRp;
       const pctKenaikan = existingIna ? (netRp - existingIna) / existingIna : 0;
 
       return `<tr>
         <td style="font-weight: 700; text-align: left; padding-left: 10px; background-color: #f8f9fa;">Skenario ${index + 1}</td>
-        <td class="b-left-green b-top-green b-bottom-green"><input type="number" class="scenario-input" data-index="${index}" data-type="tambah" value="${scn.tambah}"></td>
-        <td class="b-top-green b-bottom-green">${formatNumber(tambahKasus)}</td>
-        <td class="b-right-green b-top-green b-bottom-green">${formatMatrixMoney(tambahRp)}</td>
-        <td class="b-left-red b-top-red b-bottom-red"><input type="number" class="scenario-input" data-index="${index}" data-type="kurang" value="${scn.kurang}"></td>
-        <td class="b-top-red b-bottom-red">${formatNumber(kurangKasus)}</td>
-        <td class="b-right-red b-top-red b-bottom-red">${formatMatrixMoney(kurangRp)}</td>
+        ${tambahCols}
+        ${kurangCols}
         <td>${formatSignedNumber(netKasus)}</td>
         <td>${formatPercent(pctNetKasus)}</td>
-        <td>${formatSignedMatrixMoney(netRp)}</td>
+        <td>${netRp > 0 ? '+' : ''}${formatMatrixMoney(netRp)}</td>
         <td class="b-left-yellow b-top-yellow b-bottom-yellow">${formatMatrixMoney(existingIna)}</td>
         <td class="b-right-yellow b-top-yellow b-bottom-yellow" style="background:#fffcf0;"><strong>${formatPercent(pctKenaikan)}</strong></td>
       </tr>`;
@@ -633,43 +697,55 @@
         <article class="existing-report-kpi kpi-difference ${deltaIdrg < 0 ? "is-loss" : "is-gain"}"><span>Selisih Pendapatan:</span><strong>${formatMoney(deltaIdrg)}</strong><em>iDRG - INA CBGs</em></article>
         <article class="existing-report-kpi kpi-percentage ${deltaIdrg < 0 ? "is-loss" : "is-gain"}"><span>Persentase:</span><strong>${formatPercent(deltaPercentIdrg)}</strong><em>Dari Pendapatan INACBG</em></article>
       </div>
-      <table class="scenario-table">
-        <thead>
-          <tr>
-            <th rowspan="2">Skenario</th>
-            <th colspan="3">Tambahan Kasus<br>Utama & Paripurna</th>
-            <th colspan="3">Pengurangan Kasus<br>Dasar & Madya</th>
-            <th colspan="3">Net +/- Pasca iDRG & RBKP</th>
-            <th rowspan="2">Pendapatan<br>Eksisting INA<br>CBG RS (Rp M)</th>
-            <th rowspan="2">% Kenaikan<br>thd INA-CBG<br>Eksisting</th>
-          </tr>
-          <tr>
-            <th>Persentase<br>(%)</th>
-            <th>Jumlah<br>Kasus</th>
-            <th>Tambahan<br>Pendapatan<br>(Rp M)</th>
-            <th>Persentase<br>(%)</th>
-            <th>Jumlah<br>Kasus</th>
-            <th>Pengurangan<br>Pendapatan<br>(Rp M)</th>
-            <th>+/-<br>Jumlah<br>Kasus</th>
-            <th>% thd total<br>kasus<br>eksisting</th>
-            <th>+/-<br>Pendapatan<br>(Rp M)</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${state.scenarios.map((scn, i) => generateRow(i, scn)).join("")}
-        </tbody>
-      </table>
+      
+      ${(() => {
+        let tHead1 = '';
+        let tHead2 = '';
+        [1, 2, 3, 4].forEach(lvl => {
+          if (state.scenarios[0].hasOwnProperty('tambah_' + lvl)) {
+            tHead1 += `<th colspan="3" class="b-top-green b-left-green b-right-green" style="background-color: #e8f5e9; color: #17233b;">Tambahan Kasus<br>${levelNames[lvl]}</th>`;
+            tHead2 += `<th>Persentase<br>(%)</th><th>Jumlah<br>Kasus</th><th>Tambahan<br>Pendapatan<br>(Rp M)</th>`;
+          }
+        });
+        [1, 2, 3, 4].forEach(lvl => {
+          if (state.scenarios[0].hasOwnProperty('kurang_' + lvl)) {
+            tHead1 += `<th colspan="3" class="b-top-red b-left-red b-right-red" style="background-color: #ffebee; color: #17233b;">Pengurangan Kasus<br>${levelNames[lvl]}</th>`;
+            tHead2 += `<th>Persentase<br>(%)</th><th>Jumlah<br>Kasus</th><th>Pengurangan<br>Pendapatan<br>(Rp M)</th>`;
+          }
+        });
+        
+        return `
+          <div style="overflow-x: auto; width: 100%;">
+            <table class="scenario-table" style="table-layout: auto; min-width: 1000px;">
+              <thead>
+                <tr>
+                  <th rowspan="2" style="background-color: #f8f9fa; color: #17233b;">Skenario</th>
+                  ${tHead1}
+                  <th colspan="3">Net +/- Pasca iDRG & RBKP</th>
+                  <th rowspan="2">Pendapatan<br>Eksisting INA<br>CBG RS (Rp M)</th>
+                  <th rowspan="2">% Kenaikan<br>thd INA-CBG<br>Eksisting</th>
+                </tr>
+                <tr>
+                  ${tHead2}
+                  <th>+/-<br>Jumlah<br>Kasus</th>
+                  <th>% thd total<br>kasus<br>eksisting</th>
+                  <th>+/-<br>Pendapatan<br>(Rp M)</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${state.scenarios.map((scn, i) => generateRow(i, scn)).join("")}
+              </tbody>
+            </table>
+          </div>
+        `;
+      })()}
     `;
 
-    document.querySelectorAll('.scenario-input').forEach(input => {
-      input.addEventListener('change', (e) => {
+    document.querySelectorAll(".global-scenario-input").forEach((input) => {
+      input.addEventListener("change", (e) => {
         const idx = e.target.dataset.index;
-        const type = e.target.dataset.type;
+        const field = e.target.dataset.field;
         const val = parseFloat(e.target.value) || 0;
-        if (type === "tambah") {
-          state.scenarios[idx].tambah = val;
-        } else {
-          state.scenarios[idx].kurang = val;
         }
         renderScenarioSlide();
       });
@@ -854,14 +930,14 @@
               let tHead2 = '';
               [1, 2, 3, 4].forEach(lvl => {
                 if (state.serviceScenarios[service][0].hasOwnProperty('tambah_' + lvl)) {
-                  tHead1 += `<th colspan="3" class="b-top-green b-left-green b-right-green" style="background-color: #e8f5e9;">Tambahan Kasus<br>${levelNames[lvl]}</th>`;
-                  tHead2 += `<th>Persentase<br>(%)</th><th>Jumlah<br>Kasus</th><th>Tambahan<br>Pendapatan<br>(Rp M)</th>`;
+                  tHead1 += `<th colspan="3" class="b-top-green b-left-green b-right-green" style="background-color: #e8f5e9; color: #17233b;">Tambahan Kasus<br>${levelNames[lvl]}</th>`;
+                  tHead2 += `<th style="color: #17233b;">Persentase<br>(%)</th><th style="color: #17233b;">Jumlah<br>Kasus</th><th style="color: #17233b;">Tambahan<br>Pendapatan<br>(Rp M)</th>`;
                 }
               });
               [1, 2, 3, 4].forEach(lvl => {
                 if (state.serviceScenarios[service][0].hasOwnProperty('kurang_' + lvl)) {
-                  tHead1 += `<th colspan="3" class="b-top-red b-left-red b-right-red" style="background-color: #ffebee;">Pengurangan Kasus<br>${levelNames[lvl]}</th>`;
-                  tHead2 += `<th>Persentase<br>(%)</th><th>Jumlah<br>Kasus</th><th>Pengurangan<br>Pendapatan<br>(Rp M)</th>`;
+                  tHead1 += `<th colspan="3" class="b-top-red b-left-red b-right-red" style="background-color: #ffebee; color: #17233b;">Pengurangan Kasus<br>${levelNames[lvl]}</th>`;
+                  tHead2 += `<th style="color: #17233b;">Persentase<br>(%)</th><th style="color: #17233b;">Jumlah<br>Kasus</th><th style="color: #17233b;">Pengurangan<br>Pendapatan<br>(Rp M)</th>`;
                 }
               });
               
@@ -870,7 +946,7 @@
                   <table class="scenario-table" style="table-layout: auto; min-width: 1000px;">
                     <thead>
                       <tr>
-                        <th rowspan="2" style="background-color: #f8f9fa;">Skenario</th>
+                        <th rowspan="2" style="background-color: #f8f9fa; color: #17233b;">Skenario</th>
                         ${tHead1}
                         <th colspan="3">Net +/- Pasca iDRG & RBKP</th>
                         <th rowspan="2">Pendapatan<br>Eksisting INA<br>CBG (Rp M)</th>
