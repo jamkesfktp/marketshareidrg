@@ -593,20 +593,20 @@
     document.getElementById("regionalProfileSlideTitle").textContent = `Profil & Kasus Regional - ${target.name}`;
     document.getElementById("regionalProfileSlide").innerHTML = `
       <div class="regional-profile-layout">
-        <div class="regional-map-column">
+        <div class="regional-map-column" style="display: flex; flex-direction: column; gap: 10px; height: 100%; min-height: 0; grid-template-rows: none;">
           <!-- Wilayah Terpilih Container (Lists ALL selected regions without truncation) -->
-          <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 14px; padding: 12px 14px; margin-bottom: 4px; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);">
+          <div style="flex: 0 0 auto; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 14px; padding: 12px 14px; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);">
             <div style="font-size: 11px; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
               <span>🗺️ Wilayah Terpilih (${selectedRegionsList.length})</span>
               <span style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 700;">${data.hospitals.length} RS Aktif</span>
             </div>
-            <div style="display: flex; flex-wrap: wrap; gap: 6px; max-height: 95px; overflow-y: auto; padding-right: 4px;">
+            <div style="display: flex; flex-wrap: wrap; gap: 6px; max-height: 90px; overflow-y: auto; padding-right: 4px;">
               ${selectedRegionsList.map(r => `<span style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(51, 65, 85, 0.95) 100%); color: #f8fafc; border: 1px solid rgba(148, 163, 184, 0.35); font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.25); display: inline-flex; align-items: center; gap: 4px;">📍 ${escapeHtml(r)}</span>`).join('')}
             </div>
           </div>
 
           <!-- Eye Catching Dynamic SVG Map Box -->
-          <div class="regional-map-crop" role="img" aria-label="Peta Vektor Wilayah Regional" style="position:relative; border-radius:14px; overflow:hidden; border:none; background:transparent;">
+          <div class="regional-map-crop" role="img" aria-label="Peta Vektor Wilayah Regional" style="flex: 1 1 auto; height: 100%; min-height: 280px; position:relative; border-radius:14px; overflow:hidden; border:none; background:transparent;">
             ${svgMapContent}
           </div>
         </div>
