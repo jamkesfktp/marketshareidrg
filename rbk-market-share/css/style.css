@@ -698,7 +698,7 @@ tr.is-disabled td { color: #9aa4b2; background: #fafbfc; }
 .scenario-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12px;
+  font-size: 14px !important;
   text-align: center;
   margin-top: 15px;
 }
@@ -706,14 +706,16 @@ tr.is-disabled td { color: #9aa4b2; background: #fafbfc; }
   background-color: #0aa7ad;
   color: white;
   border: 1px solid white;
-  padding: 8px 4px;
+  padding: 10px 6px !important;
   vertical-align: middle;
-  font-weight: 600;
+  font-weight: 700 !important;
+  font-size: 13px !important;
 }
 .scenario-table td {
   border: 1px solid #dcdcdc;
-  padding: 6px 4px;
+  padding: 8px 6px !important;
   vertical-align: middle;
+  font-size: 14px !important;
 }
 .scenario-table td.b-left-green { border-left: 2px solid #27ae60; }
 .scenario-table td.b-right-green { border-right: 2px solid #27ae60; }
@@ -729,11 +731,13 @@ tr.is-disabled td { color: #9aa4b2; background: #fafbfc; }
 .scenario-table tbody tr:last-child td.b-bottom-yellow { border-bottom: 2px solid #c9d833; }
 
 .scenario-input {
-  width: 50px;
+  width: 65px !important;
   text-align: center;
   border: 1px solid #cbd4df;
   border-radius: 4px;
-  padding: 4px;
+  padding: 6px !important;
+  font-size: 14px !important;
+  font-weight: 700;
 }
 
 .simulation-insight-strip {
