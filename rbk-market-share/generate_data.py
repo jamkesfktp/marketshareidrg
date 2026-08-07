@@ -212,6 +212,37 @@ with open(csv_file, 'r', encoding='utf-8-sig') as f:
 total_source_rows += csv_rows_processed
 print(f"CSV processing complete. Processed {csv_rows_processed} rows from target provinces.")
 
+# 3. Enrich and update hospital competencies using RS Online Excel Monitoring Tarikan
+rs_online_path = r'C:\Users\User\Downloads\RS Online - Monitoring Kompetensi dan olah tarikan 30 Juli 2026.xlsx'
+if os.path.exists(rs_online_path):
+    print(f"Enriching hospital competencies from RS Online: {rs_online_path}...")
+    import openpyxl
+    wb_mon = openpyxl.load_workbook(rs_online_path, read_only=True, data_only=True)
+    ws_mon = wb_mon['Tarik']
+    
+    comp_map = {}
+    for r in ws_mon.iter_rows(min_row=2, values_only=True):
+        c_code = str(r[0]).strip() if r[0] is not None else ''
+        c_svc = str(r[8]).strip().upper() if r[8] is not None else ''
+        c_strata = str(r[9]).strip() if r[9] is not None else ''
+        if c_code and c_svc:
+            lvl = parse_level(c_strata)
+            for s_name in services:
+                if s_name in c_svc or c_svc in s_name or s_name.replace(' DAN ', ' & ') in c_svc or c_svc.replace(' DAN ', ' & ') in s_name:
+                    comp_map[(c_code, s_name)] = lvl
+                    break
+    
+    updated_cnt = 0
+    for h_code, h_obj in hospitals.items():
+        for s_name, s_obj in h_obj['services'].items():
+            if (h_code, s_name) in comp_map:
+                new_lvl = comp_map[(h_code, s_name)]
+                if new_lvl != s_obj['competency']:
+                    s_obj['competency'] = new_lvl
+                    updated_cnt += 1
+    print(f"Updated {updated_cnt} hospital-service competency entries from RS Online monitoring data!")
+
+
 # 3. Build Regional Aggregates
 regional = {
     "total": [0.0, 0.0, 0.0],
