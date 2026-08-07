@@ -303,9 +303,11 @@
   }
 
   function renderRegionalSlide() {
+    const slide = document.getElementById("regionalSlide");
+    if (!slide) return;
     const maxCases = Math.max(...severityRanks.map((rank) => severityMetric(data.regional, rank)[CASES]), 1);
     const maxIdrg = Math.max(...severityRanks.map((rank) => severityMetric(data.regional, rank)[IDRG]), 1);
-    document.getElementById("regionalSlide").innerHTML = `
+    slide.innerHTML = `
       <div class="kpi-grid">
         <article class="kpi-card is-primary"><div class="kpi-label">Total kasus regional</div><div class="kpi-value">${formatNumber(data.regional.total[CASES])}</div><div class="kpi-note">363 rumah sakit pada sumber</div></article>
         <article class="kpi-card"><div class="kpi-label">Pendapatan regional iDRG</div><div class="kpi-value">${formatMoney(data.regional.total[IDRG])}</div><div class="kpi-note">Skenario 2 workbook</div></article>
@@ -338,10 +340,12 @@
   }
 
   function renderAddressableSlide() {
+    const slide = document.getElementById("addressableSlide");
+    if (!slide) return;
     const target = targetHospital();
     const result = computeAddressable();
     document.getElementById("slide3Subtitle").textContent = `Kompetensi ${target.name} menentukan tingkat keparahan yang mampu dilayani.`;
-    document.getElementById("addressableSlide").innerHTML = `
+    slide.innerHTML = `
       <div class="kpi-grid addressable-kpis">
         <article class="kpi-card is-primary"><div class="kpi-label">Addressable cases</div><div class="kpi-value">${formatNumber(result.eligibleRegional[CASES])}</div><div class="kpi-note">Kasus regional sesuai kemampuan target</div></article>
         <article class="kpi-card"><div class="kpi-label">Addressable iDRG</div><div class="kpi-value">${formatMoney(result.eligibleRegional[IDRG])}</div><div class="kpi-note">Potensi nilai seluruh pool</div></article>
@@ -685,10 +689,13 @@
   }
 
   function renderSimulatorSlide() {
-    const result = computeScenario();
+    const slide = document.getElementById("simulatorSlide");
+    if (!slide) return;
     const target = targetHospital();
+    if (!target) return;
+    const result = computeScenario();
     const overrideCount = Object.values(state.overrides).filter((item) => item.enabled).length;
-    document.getElementById("simulatorSlide").innerHTML = `
+    slide.innerHTML = `
       <div class="simulator-layout">
         <article class="panel control-panel">
           <div class="panel-heading"><h2>Asumsi global</h2><span>${overrideCount} override layanan</span></div>
@@ -716,7 +723,10 @@
   }
 
   function renderCompetitionSlide() {
+    const slide = document.getElementById("competitionSlide");
+    if (!slide) return;
     const target = targetHospital();
+    if (!target) return;
     const service = state.selectedService;
     const rank = state.selectedSeverity;
     const competency = getCompetency(target, service);
@@ -732,7 +742,7 @@
     const targetAllocationIdrg = competition.regional[IDRG] * share / 100;
     const providerCount = competition.rows.length + (capable ? 1 : 0);
 
-    document.getElementById("competitionSlide").innerHTML = `
+    slide.innerHTML = `
       <div class="competition-layout">
         <article class="panel competition-controls">
           <div class="field-grid">
@@ -774,7 +784,10 @@
   }
 
   function renderSummarySlide() {
+    const slide = document.getElementById("summarySlide");
+    if (!slide) return;
     const target = targetHospital();
+    if (!target) return;
     const result = computeScenario();
     const sorted = [...result.serviceRows].sort((a, b) => b.delta[CASES] - a.delta[CASES]);
     const gains = sorted.filter((row) => row.delta[CASES] > 0).slice(0, 5);
@@ -787,7 +800,7 @@
     const ranked = (rows, emptyText) => rows.length
       ? rows.map((row, index) => `<div class="ranked-row"><span class="rank-number">${index + 1}</span><span>${escapeHtml(formatService(row.service))}</span><strong class="${deltaClass(row.delta[CASES])}">${formatSignedNumber(row.delta[CASES])}</strong></div>`).join("")
       : `<div class="empty-state"><div><strong>${emptyText}</strong><span>Ubah parameter simulasi untuk melihat dampak.</span></div></div>`;
-    document.getElementById("summarySlide").innerHTML = `
+    slide.innerHTML = `
       <div class="summary-layout">
         <article class="panel summary-hero">
           <h2>Proyeksi total kasus ${escapeHtml(target.name)}</h2>
