@@ -1757,7 +1757,6 @@
     const exportStage = document.createElement("div");
     exportStage.className = "pptx-export-stage";
     exportStage.setAttribute("aria-hidden", "true");
-    const headerSource = document.querySelector(".global-toolbar");
     const sourceSlides = [...document.querySelectorAll(".slide")];
     const target = targetHospital();
 
@@ -1765,10 +1764,6 @@
       const page = document.createElement("section");
       page.className = "pptx-export-page";
       page.dataset.pptxNotes = `Sumber data: Laporan_Agregat_iDRG_Simulasi_2.xlsx. RS target: ${target.name}. Parameter simulasi mengikuti nilai dashboard saat ekspor.`;
-
-      const headerClone = headerSource.cloneNode(true);
-      freezeExportControls(headerSource, headerClone);
-      removeDuplicateExportIds(headerClone);
 
       const slideClone = sourceSlide.cloneNode(true);
       slideClone.hidden = false;
@@ -1779,7 +1774,7 @@
       const footer = document.createElement("footer");
       footer.className = "pptx-export-footer";
       footer.innerHTML = `<strong>Simulator Market Share Regional</strong><span>${escapeHtml(target.name)} · ${index + 1} / ${sourceSlides.length}</span>`;
-      page.append(headerClone, slideClone, footer);
+      page.append(slideClone, footer);
       exportStage.appendChild(page);
       return page;
     });

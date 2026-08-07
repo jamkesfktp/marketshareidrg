@@ -84,17 +84,13 @@ input[type="number"] { outline-offset: 3px; }
   gap: 15px;
 }
 
-.brand-mark {
-  width: 54px;
-  height: 54px;
-  display: grid;
-  place-items: center;
-  border-radius: 14px;
-  color: #fff;
-  background: var(--green);
-  font-size: 17px;
-  font-weight: 800;
-  letter-spacing: .08em;
+.brand-logo {
+  height: 56px;
+  width: auto;
+  max-width: 160px;
+  object-fit: contain;
+  display: block;
+  flex-shrink: 0;
 }
 
 .brand-block strong,
@@ -629,13 +625,13 @@ tr.is-disabled td { color: #9aa4b2; background: #fafbfc; }
   height: 1080px;
   overflow: hidden;
   display: grid;
-  grid-template-rows: 96px 1fr 68px;
+  grid-template-rows: 1fr 68px;
   background: #fbfcfd;
   border-top: 9px solid var(--green);
 }
 
 .pptx-export-page + .pptx-export-page { margin-top: 24px; }
-.pptx-export-page .global-toolbar { width: 100%; }
+/* .global-toolbar excluded from PPT export */
 .pptx-export-page .slide {
   position: relative;
   inset: auto;
