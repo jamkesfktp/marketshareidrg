@@ -1400,15 +1400,15 @@
               [4, 3, 2, 1].forEach(lvl => {
                 if (state.serviceScenarios[service][0].hasOwnProperty('tambah_' + lvl)) {
                   const cCount = compCountByLevel[lvl] || 0;
-                  tHead1 += `<th colspan="3" class="b-top-green b-left-green b-right-green" style="background-color: #e8f5e9; color: #17233b; padding: 4px; font-size: 11px;">Tambahan Kasus<br>${levelNames[lvl]} <span style="font-weight: 700; color: #047857;">(${cCount} RS)</span></th>`;
-                  tHead2 += `<th style="color: #17233b; padding: 4px; font-size: 10px;">Persentase<br>(%)</th><th style="color: #17233b; padding: 4px; font-size: 10px;">Jumlah<br>Kasus</th><th style="color: #17233b; padding: 4px; font-size: 10px;">Tambahan<br>Pendapatan<br>(Rp M)</th>`;
+                  tHead1 += `<th colspan="3" class="b-top-green b-left-green b-right-green" style="background-color: #16a085; color: white; padding: 4px; font-size: 11px;">Tambahan Kasus<br>${levelNames[lvl]} <span style="font-weight: 700; color: #d1fae5;">(${cCount} RS)</span></th>`;
+                  tHead2 += `<th style="color: white; padding: 4px; font-size: 10px;">Persentase<br>(%)</th><th style="color: white; padding: 4px; font-size: 10px;">Jumlah<br>Kasus</th><th style="color: white; padding: 4px; font-size: 10px;">Tambahan<br>Pendapatan<br>(Rp M)</th>`;
                 }
               });
               [4, 3, 2, 1].forEach(lvl => {
                 if (state.serviceScenarios[service][0].hasOwnProperty('kurang_' + lvl)) {
                   const cCount = compCountByLevel[lvl] || 0;
-                  tHead1 += `<th colspan="3" class="b-top-red b-left-red b-right-red" style="background-color: #ffebee; color: #17233b; padding: 4px; font-size: 11px;">Pengurangan Kasus<br>${levelNames[lvl]} <span style="font-weight: 700; color: #b91c1c;">(${cCount} RS)</span></th>`;
-                  tHead2 += `<th style="color: #17233b; padding: 4px; font-size: 10px;">Persentase<br>(%)</th><th style="color: #17233b; padding: 4px; font-size: 10px;">Jumlah<br>Kasus</th><th style="color: #17233b; padding: 4px; font-size: 10px;">Pengurangan<br>Pendapatan<br>(Rp M)</th>`;
+                  tHead1 += `<th colspan="3" class="b-top-red b-left-red b-right-red" style="background-color: #b93d4a; color: white; padding: 4px; font-size: 11px;">Pengurangan Kasus<br>${levelNames[lvl]} <span style="font-weight: 700; color: #fee2e2;">(${cCount} RS)</span></th>`;
+                  tHead2 += `<th style="color: white; padding: 4px; font-size: 10px;">Persentase<br>(%)</th><th style="color: white; padding: 4px; font-size: 10px;">Jumlah<br>Kasus</th><th style="color: white; padding: 4px; font-size: 10px;">Pengurangan<br>Pendapatan<br>(Rp M)</th>`;
                 }
               });
               
@@ -1424,7 +1424,7 @@
                   <table class="scenario-table" style="table-layout: auto; min-width: 1000px; margin-top: 4px;">
                     <thead>
                       <tr>
-                        <th rowspan="2" style="background-color: #f8f9fa; color: #17233b; padding: 4px; font-size: 11px;">Skenario</th>
+                        <th rowspan="2" style="background-color: #0aa7ad; color: white; padding: 4px; font-size: 11px;">Skenario</th>
                         ${tHead1}
                         <th colspan="3">Net +/- Pasca iDRG & RBKP</th>
                         <th rowspan="2">Pendapatan<br>Eksisting INA<br>CBG (Rp M)</th>
@@ -1443,7 +1443,7 @@
                   </table>
                 </div>
                 <aside class="simulation-insight-strip" aria-label="Insight simulasi berbasis data">
-                  <div class="simulation-insight-title"><strong>Bacaan dari simulasi</strong><span>Berubah saat angka diganti</span></div>
+                  <div class="simulation-insight-title"><strong>Insight</strong></div>
                   <div class="simulation-insight-item"><b>Peluang kasus</b><span>${opportunityInsight} ${riskInsight}</span></div>
                   <div class="simulation-insight-item"><b>Saingan</b><span>${competitionInsight}</span></div>
                   <div class="simulation-insight-item"><b>Skenario terdekat</b><span>${scenarioInsight} ${highestRevenueNote}</span></div>
