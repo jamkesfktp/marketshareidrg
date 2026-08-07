@@ -1265,13 +1265,13 @@
           : `(berpotensi penurunan jika kasus berkurang melebihi tangkapan).`;
 
       html += `
-        <section class="slide" data-slide="${9 + idx}" aria-labelledby="dynamicSlide${idx}Title">
+        <section class="slide service-sim-slide" data-slide="${9 + idx}" aria-labelledby="dynamicSlide${idx}Title">
           <div class="slide-heading compact-heading">
-            <div><p class="eyebrow">${String(10 + idx).padStart(2, '0')} · Simulasi Kasus Market Share</p><h1 id="dynamicSlide${idx}Title">Simulasi Kasus Market Share - <span style="color: #ffc107;">layanan ${escapeHtml(service)}</span></h1><p>Data Mirroring Uji Coba iDRG</p></div>
+            <div><p class="eyebrow">${String(10 + idx).padStart(2, '0')} · Simulasi Per Layanan</p><h1 id="dynamicSlide${idx}Title">Simulasi Kasus Market Share — <span style="color: #ffc107;">${escapeHtml(service)}</span></h1><p>Data Mirroring Uji Coba iDRG</p></div>
             <span class="slide-chip">Layanan</span>
           </div>
-          <div class="slide-content" style="padding-top: 6px; overflow-y: auto; max-height: calc(100% - 110px);">
-            <div style="display: flex; align-items: stretch; justify-content: center; gap: 12px; margin-bottom: 8px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); padding: 10px 14px; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
+          <div class="slide-content" style="padding-top: 4px; overflow-y: auto;">
+            <div style="display: flex; align-items: stretch; gap: 12px; margin-bottom: 8px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); padding: 10px 14px; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
               
               <div style="flex: 1; background: white; padding: 10px 12px; border-radius: 8px; border-top: 4px solid #0aa7ad; box-shadow: 0 1px 3px rgba(38,50,56,0.05); display: flex; flex-direction: column; justify-content: space-between;">
                 <div>

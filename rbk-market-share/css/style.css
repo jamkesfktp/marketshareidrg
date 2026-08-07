@@ -85,9 +85,9 @@ input[type="number"] { outline-offset: 3px; }
 }
 
 .brand-logo {
-  height: 56px;
+  height: 72px;
   width: auto;
-  max-width: 160px;
+  max-width: 220px;
   object-fit: contain;
   display: block;
   flex-shrink: 0;
@@ -184,6 +184,9 @@ input[type="number"] { outline-offset: 3px; }
 
 .slide-content { height: calc(100% - 84px); }
 .compact-heading + .slide-content { height: calc(100% - 80px); }
+
+/* Dynamic service simulation slides: tighter side padding so tables are wider */
+.slide.service-sim-slide { padding-left: 32px; padding-right: 32px; }
 
 .slide.existing-detail-slide { padding: 0 38px 15px; background: #fff; }
 .existing-report-title {
