@@ -1414,11 +1414,11 @@
               
               return `
                 <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 6px; margin-bottom: 6px; font-size: 11px; font-weight: 600; color: #334155;">
-                  <span style="color: #475569; display: flex; align-items: center; gap: 4px;">🏥 <strong>RS Kompetitor Regional per Kompetensi:</strong></span>
-                  <span style="background: #fdf4ff; color: #86198f; border: 1px solid #f5d0fe; padding: 2px 8px; border-radius: 6px;">Paripurna: <strong>${compCountByLevel[4]} RS</strong></span>
-                  <span style="background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; padding: 2px 8px; border-radius: 6px;">Utama: <strong>${compCountByLevel[3]} RS</strong></span>
-                  <span style="background: #fefce8; color: #a16207; border: 1px solid #fef08a; padding: 2px 8px; border-radius: 6px;">Madya: <strong>${compCountByLevel[2]} RS</strong></span>
-                  <span style="background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4; padding: 2px 8px; border-radius: 6px;">Dasar: <strong>${compCountByLevel[1]} RS</strong></span>
+                  <span style="color: #475569; display: flex; align-items: center; gap: 4px; white-space: nowrap;">🏥 <strong>RS Kompetitor Regional per Kompetensi:</strong></span>
+                  <span style="background: #fdf4ff; color: #86198f; border: 1px solid #f5d0fe; padding: 2px 8px; border-radius: 6px; white-space: nowrap;">Paripurna: <strong>${compCountByLevel[4]} RS</strong></span>
+                  <span style="background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; padding: 2px 8px; border-radius: 6px; white-space: nowrap;">Utama: <strong>${compCountByLevel[3]} RS</strong></span>
+                  <span style="background: #fefce8; color: #a16207; border: 1px solid #fef08a; padding: 2px 8px; border-radius: 6px; white-space: nowrap;">Madya: <strong>${compCountByLevel[2]} RS</strong></span>
+                  <span style="background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4; padding: 2px 8px; border-radius: 6px; white-space: nowrap;">Dasar: <strong>${compCountByLevel[1]} RS</strong></span>
                 </div>
                 <div style="overflow-x: auto; width: 100%;">
                   <table class="scenario-table" style="table-layout: auto; min-width: 1000px; margin-top: 4px;">
