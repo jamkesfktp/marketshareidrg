@@ -169,7 +169,7 @@ input[type="number"] { outline-offset: 3px; }
 
 .slide-heading.compact-heading { min-height: 80px; }
 .slide-heading > div { min-width: 0; max-width: 1500px; }
-.eyebrow { margin: 0 0 4px; color: var(--green); font-size: 15px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+.eyebrow { display: none !important; }
 .slide-heading h1 {
   margin: 0;
   color: var(--teal-deep);
@@ -424,7 +424,7 @@ input[type="number"] { outline-offset: 3px; }
 .level-4 { color: #08765b; background: #dff3ec; }
 
 .table-wrap { overflow: auto; max-height: 100%; scrollbar-color: #aeb8c5 transparent; }
-table { width: 100%; border-collapse: collapse; }
+table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 14px; }
 th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .045em; text-align: left; border-bottom: 2px solid var(--line); }
 td { border-bottom: 1px solid #edf0f4; color: var(--ink); font-size: 13px; }
 th, td { padding: 9px 10px; vertical-align: middle; }

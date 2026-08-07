@@ -1781,12 +1781,13 @@
     
     const style = document.createElement("style");
     style.textContent = `
-      .pptx-export-page * { font-family: 'Quattrocento Sans', sans-serif !important; font-size: 8pt; }
+      .pptx-export-page * { font-family: 'Quattrocento Sans', sans-serif !important; }
+      .pptx-export-page p, .pptx-export-page table, .pptx-export-page th, .pptx-export-page td, .pptx-export-page li { font-size: 8pt; }
       .pptx-export-page h1, .pptx-export-page h2 { font-size: 14pt !important; font-weight: bold; }
       .pptx-export-page h1 *, .pptx-export-page h2 * { font-size: 14pt !important; }
       .pptx-kemenkes-logo { position: absolute; top: 16px; right: 24px; height: 48px; object-fit: contain; z-index: 50; }
-      .pptx-export-page th, .pptx-export-page td, .pptx-export-page span { white-space: nowrap !important; } /* Prevent 1-line text from splitting */
-      .pptx-export-page p { white-space: normal; }
+      .pptx-export-page th, .pptx-export-page td { white-space: nowrap !important; }
+      .pptx-export-page .kpi-value, .pptx-export-page .summary-big strong { line-height: 1.2 !important; }
     `;
     exportStage.appendChild(style);
 
