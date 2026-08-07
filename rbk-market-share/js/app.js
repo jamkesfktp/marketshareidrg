@@ -1212,6 +1212,58 @@
       const rU = severityMetric(regionalSvc, 3)[CASES];
       const rP = severityMetric(regionalSvc, 4)[CASES];
 
+      let highestRevenueNet = -Infinity;
+      let highestRevenueScenarioIndex = -1;
+      state.serviceScenarios[service].forEach((scn, i) => {
+        let tKasus = 0, tRp = 0, kKasus = 0, kRp = 0;
+        [4, 3, 2, 1].forEach((lvl) => {
+          if (scn.hasOwnProperty("tambah_" + lvl)) {
+            const pTambah = scn["tambah_" + lvl] / 100;
+            tKasus += baseTambahan[lvl][0] * pTambah;
+            tRp += baseTambahan[lvl][1] * pTambah;
+          }
+          if (scn.hasOwnProperty("kurang_" + lvl)) {
+            const pKurang = scn["kurang_" + lvl] / 100;
+            kKasus += basePengurangan[lvl][0] * pKurang;
+            kRp += basePengurangan[lvl][1] * pKurang;
+          }
+        });
+        const netRp = tRp - kRp;
+        if (netRp > highestRevenueNet) {
+          highestRevenueNet = netRp;
+          highestRevenueScenarioIndex = i;
+        }
+      });
+
+      const totalTargetCases = targetKasusArr[CASES] || 0;
+      const totalRegionalCases = data.regional.services[service]?.total?.[CASES] || 0;
+      const competitorsCount = data.hospitals.filter((h) => h.code !== target.code && getCompetency(h, service) >= targetCompetency).length;
+
+      const opportunityInsight =
+        totalRegionalCases > 0
+          ? `Peluang pasar regional di bidang ini mencapai <b>${formatNumber(totalRegionalCases)} kasus</b>.`
+          : `Pasar regional belum mencatat volume kasus signifikan.`;
+
+      const riskInsight =
+        totalTargetCases > 0
+          ? `RS target saat ini memegang <b>${formatNumber(totalTargetCases)} kasus</b>.`
+          : `RS target belum memiliki basis kasus eksisting.`;
+
+      const competitionInsight =
+        competitorsCount > 0
+          ? `Terdapat <b>${competitorsCount} RS pesaing</b> se-level/setingkat lebih tinggi di wilayah ini.`
+          : `Tidak ada pesaing langsung se-level di wilayah ini (peluang dominasi tinggi).`;
+
+      const scenarioInsight =
+        highestRevenueScenarioIndex >= 0
+          ? `Skenario ${highestRevenueScenarioIndex + 1} memberikan potensi net pendapatan iDRG terbaik`
+          : `Belum ada skenario yang menghasilkan kenaikan positif.`;
+
+      const highestRevenueNote =
+        highestRevenueNet > 0
+          ? `(+<b>${formatMatrixMoney(highestRevenueNet)}</b>).`
+          : `(berpotensi penurunan jika kasus berkurang melebihi tangkapan).`;
+
       html += `
         <section class="slide" data-slide="${9 + idx}" aria-labelledby="dynamicSlide${idx}Title">
           <div class="slide-heading compact-heading">
@@ -1369,9 +1421,16 @@
                     </tbody>
                   </table>
                 </div>
-                <div style="margin-top: 6px; font-size: 11px; color: #475569; font-style: italic; line-height: 1.5; background: #f8fafc; padding: 6px 10px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                <aside class="simulation-insight-strip" aria-label="Insight simulasi berbasis data">
+                  <div class="simulation-insight-title"><strong>Bacaan dari simulasi</strong><span>Berubah saat angka diganti</span></div>
+                  <div class="simulation-insight-item"><b>Peluang kasus</b><span>${opportunityInsight} ${riskInsight}</span></div>
+                  <div class="simulation-insight-item"><b>Saingan</b><span>${competitionInsight}</span></div>
+                  <div class="simulation-insight-item"><b>Skenario terdekat</b><span>${scenarioInsight} ${highestRevenueNote}</span></div>
+                </aside>
+                <div style="margin-top: 6px; font-size: 11px; color: #4e5d59; font-style: italic; line-height: 1.5; background: #f4f8f7; padding: 6px 10px; border-radius: 6px; border: 1px solid #d9e5e2;">
                   <div>* % Penambahan kasus dihitung dari Total Kasus Regional</div>
                   <div>* % Pengurangan kasus dihitung dari Kasus Eksisting RS</div>
+                  <div>* Insight adalah pembacaan langsung atas angka simulasi; kapasitas, SDM, pola rujukan, dan kesiapan layanan belum dimasukkan.</div>
                 </div>
               `;
             })()}
@@ -2506,7 +2565,7 @@
             kiSumScn += kiVal;
 
             rowData.push({ t: 'n', f: kkCell, v: kkVal }); // Kasus
-            rowData.push({ t: 'n', f: tiCell, v: kiVal }); // INA
+            rowData.push({ t: 'n', f: kiCell, v: kiVal }); // INA
             
             const colLetterKk = getExcelCol(rowData.length - 2);
             const colLetterKi = getExcelCol(rowData.length - 1);
