@@ -1090,7 +1090,8 @@
           
           rules.tambah.forEach(lvl => {
             let lvlCompetitors = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= lvl).length;
-            let val = (100 / (lvlCompetitors + 1)) + (i * 5);
+            let base = lvlCompetitors > 0 ? Math.min(50, 100 / (lvlCompetitors + 1)) : 50;
+            let val = base + (i * 10);
             scn['tambah_' + lvl] = parseFloat(Math.min(100, Math.max(0, val)).toFixed(1));
           });
           
@@ -1152,7 +1153,7 @@
         let totalKurangRp = 0;
         
         let tambahCols = '';
-        [1, 2, 3, 4].forEach(lvl => {
+        [4, 3, 2, 1].forEach(lvl => {
           if (scn.hasOwnProperty('tambah_' + lvl)) {
             const pTambah = scn['tambah_' + lvl] / 100;
             const tk = baseTambahan[lvl][0] * pTambah;
@@ -1168,7 +1169,7 @@
         });
         
         let kurangCols = '';
-        [1, 2, 3, 4].forEach(lvl => {
+        [4, 3, 2, 1].forEach(lvl => {
           if (scn.hasOwnProperty('kurang_' + lvl)) {
             const pKurang = scn['kurang_' + lvl] / 100;
             const kk = basePengurangan[lvl][0] * pKurang;
@@ -1323,14 +1324,14 @@
 
               let tHead1 = '';
               let tHead2 = '';
-              [1, 2, 3, 4].forEach(lvl => {
+              [4, 3, 2, 1].forEach(lvl => {
                 if (state.serviceScenarios[service][0].hasOwnProperty('tambah_' + lvl)) {
                   const cCount = compCountByLevel[lvl] || 0;
                   tHead1 += `<th colspan="3" class="b-top-green b-left-green b-right-green" style="background-color: #e8f5e9; color: #17233b; padding: 4px; font-size: 11px;">Tambahan Kasus<br>${levelNames[lvl]} <span style="font-weight: 700; color: #047857;">(${cCount} RS)</span></th>`;
                   tHead2 += `<th style="color: #17233b; padding: 4px; font-size: 10px;">Persentase<br>(%)</th><th style="color: #17233b; padding: 4px; font-size: 10px;">Jumlah<br>Kasus</th><th style="color: #17233b; padding: 4px; font-size: 10px;">Tambahan<br>Pendapatan<br>(Rp M)</th>`;
                 }
               });
-              [1, 2, 3, 4].forEach(lvl => {
+              [4, 3, 2, 1].forEach(lvl => {
                 if (state.serviceScenarios[service][0].hasOwnProperty('kurang_' + lvl)) {
                   const cCount = compCountByLevel[lvl] || 0;
                   tHead1 += `<th colspan="3" class="b-top-red b-left-red b-right-red" style="background-color: #ffebee; color: #17233b; padding: 4px; font-size: 11px;">Pengurangan Kasus<br>${levelNames[lvl]} <span style="font-weight: 700; color: #b91c1c;">(${cCount} RS)</span></th>`;
@@ -1352,7 +1353,6 @@
                       <tr>
                         <th rowspan="2" style="background-color: #f8f9fa; color: #17233b; padding: 4px; font-size: 11px;">Skenario</th>
                         ${tHead1}
-                        ${tHead1}
                         <th colspan="3">Net +/- Pasca iDRG & RBKP</th>
                         <th rowspan="2">Pendapatan<br>Eksisting INA<br>CBG (Rp M)</th>
                         <th rowspan="2">% Kenaikan<br>thd INA-CBG<br>Eksisting</th>
@@ -1368,6 +1368,10 @@
                       ${state.serviceScenarios[service].map((scn, i) => generateRow(i, scn)).join("")}
                     </tbody>
                   </table>
+                </div>
+                <div style="margin-top: 6px; font-size: 11px; color: #475569; font-style: italic; line-height: 1.5; background: #f8fafc; padding: 6px 10px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                  <div>* % Penambahan kasus dihitung dari Total Kasus Regional</div>
+                  <div>* % Pengurangan kasus dihitung dari Kasus Eksisting RS</div>
                 </div>
               `;
             })()}
@@ -2103,7 +2107,9 @@
             const rules = getLevelRules(targetCompetency);
             rules.tambah.forEach(lvl => {
               let lvlCompetitors = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= lvl).length;
-              scn['tambah_' + lvl] = parseFloat(Math.min(100, Math.max(0, (100 / (lvlCompetitors + 1)) + (i * 5))).toFixed(1));
+              let base = lvlCompetitors > 0 ? Math.min(50, 100 / (lvlCompetitors + 1)) : 50;
+              let val = base + (i * 10);
+              scn['tambah_' + lvl] = parseFloat(Math.min(100, Math.max(0, val)).toFixed(1));
             });
             rules.kurang.forEach(lvl => {
               if (lvl > targetCompetency) {
@@ -2354,7 +2360,7 @@
       let header1 = ["Skenario"];
       let header2 = [""];
       
-      [1, 2, 3, 4].forEach(lvl => {
+      [4, 3, 2, 1].forEach(lvl => {
         if (scn.hasOwnProperty('tambah_' + lvl)) {
           header1.push(`Tambahan Kasus ${levelNames[lvl]}`, "", "");
           header2.push("% T", "Kasus", "INA (Rp)");
@@ -2362,7 +2368,7 @@
         }
       });
       
-      [1, 2, 3, 4].forEach(lvl => {
+      [4, 3, 2, 1].forEach(lvl => {
         if (scn.hasOwnProperty('kurang_' + lvl)) {
           header1.push(`Pengurangan Kasus ${levelNames[lvl]}`, "", "");
           header2.push("% K", "Kasus", "INA (Rp)");
@@ -2397,7 +2403,7 @@
         let tkSumScn = 0;
         let tiSumScn = 0;
         
-        [1,2,3,4].forEach(lvl => {
+        [4, 3, 2, 1].forEach(lvl => {
           if (scn.hasOwnProperty('tambah_' + lvl)) {
             let pctVal = scnData['tambah_' + lvl];
             let pctFrac = pctVal / 100;
