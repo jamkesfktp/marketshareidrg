@@ -47,10 +47,8 @@
     return cell;
   }
 
-  function inputCell(value, note) {
-    const cell = { t: "n", v: Number(value) || 0, z: percentFormat };
-    cell.c = [{ a: "Kertas Kerja Market Share", t: note || "INPUT AUDIT: nilai ini dapat diedit. Seluruh hasil simulasi mengambil parameter dari sel ini." }];
-    return cell;
+  function inputCell(value) {
+    return { t: "n", v: Number(value) || 0, z: percentFormat };
   }
 
   function quoteSheet(name) {
