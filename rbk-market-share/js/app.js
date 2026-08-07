@@ -1221,90 +1221,90 @@
           <div class="slide-content" style="padding-top: 6px; overflow-y: auto; max-height: calc(100% - 110px);">
             <div style="display: flex; align-items: stretch; justify-content: center; gap: 12px; margin-bottom: 8px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); padding: 10px 14px; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
               
-              <div style="flex: 1; background: white; padding: 10px 12px; border-radius: 8px; border-top: 3px solid #3b82f6; box-shadow: 0 1px 3px rgba(0,0,0,0.02); display: flex; flex-direction: column; justify-content: space-between;">
+              <div style="flex: 1; background: white; padding: 10px 12px; border-radius: 8px; border-top: 4px solid #0aa7ad; box-shadow: 0 1px 3px rgba(38,50,56,0.05); display: flex; flex-direction: column; justify-content: space-between;">
                 <div>
-                  <div style="font-size: 11px; font-weight: 700; color: #3b82f6; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">🏥 Eksisting RS Target</div>
+                  <div style="font-size: 13px; font-weight: 800; color: #087e83; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">🏥 Eksisting RS Target</div>
                   <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 4px;">
                     <div>
-                      <div style="font-size: 10px; color: #64748b; margin-bottom: 1px;">Total Kasus</div>
-                      <div style="font-size: 18px; font-weight: 800; color: #1e293b; line-height: 1;">${formatNumber(targetKasus)}</div>
+                      <div style="font-size: 12px; font-weight: 700; color: #66736f; margin-bottom: 1px;">Total Kasus</div>
+                      <div style="font-size: 26px; font-weight: 800; color: #263238; line-height: 1.1;">${formatNumber(targetKasus)}</div>
                     </div>
                     <div style="text-align: right;">
-                      <div style="font-size: 10px; color: #64748b; margin-bottom: 1px;">Pendapatan iDRG</div>
-                      <div style="font-size: 15px; font-weight: 700; color: #059669; line-height: 1;">${formatMoney(targetIdrg)}</div>
+                      <div style="font-size: 12px; font-weight: 700; color: #66736f; margin-bottom: 1px;">Pendapatan iDRG</div>
+                      <div style="font-size: 22px; font-weight: 800; color: #059669; line-height: 1.1;">${formatMoney(targetIdrg)}</div>
                     </div>
                   </div>
-                  <div style="font-size: 10px; color: #64748b; background: #f8fafc; padding: 2px 6px; border-radius: 4px; display: inline-block;">Rata-rata Tarif: <strong>${formatMoney(targetKasus ? targetIdrg/targetKasus : 0)}</strong> / kasus</div>
+                  <div style="font-size: 12px; color: #4e5d59; background: #f4f8f7; padding: 3px 8px; border-radius: 4px; display: inline-block; font-weight: 600;">Rata-rata Tarif: <strong style="font-size: 13px; font-weight: 800; color: #263238;">${formatMoney(targetKasus ? targetIdrg/targetKasus : 0)}</strong> / kasus</div>
                 </div>
 
-                <div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed #e2e8f0;">
-                  <div style="font-size: 9px; font-weight: 700; color: #475569; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Rincian Kasus Eksisting RS:</div>
+                <div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed #cbd5e1;">
+                  <div style="font-size: 11px; font-weight: 800; color: #334155; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Rincian Kasus Eksisting RS:</div>
                   <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; text-align: center;">
-                    <div style="background: #eff6ff; padding: 3px 2px; border-radius: 5px; border: 1px solid #dbeafe;">
-                      <div style="font-size: 9px; font-weight: 700; color: #2563eb; line-height: 1.2;">Dasar</div>
-                      <div style="font-size: 12px; font-weight: 800; color: #1e3a8a; line-height: 1.2;">${formatNumber(tD)}</div>
+                    <div style="background: #f0f9f8; padding: 4px 3px; border-radius: 5px; border: 1px solid #ccebe8;">
+                      <div style="font-size: 11px; font-weight: 700; color: #0aa7ad; line-height: 1.2;">Dasar</div>
+                      <div style="font-size: 16px; font-weight: 800; color: #087e83; line-height: 1.2;">${formatNumber(tD)}</div>
                     </div>
-                    <div style="background: #eff6ff; padding: 3px 2px; border-radius: 5px; border: 1px solid #dbeafe;">
-                      <div style="font-size: 9px; font-weight: 700; color: #2563eb; line-height: 1.2;">Madya</div>
-                      <div style="font-size: 12px; font-weight: 800; color: #1e3a8a; line-height: 1.2;">${formatNumber(tM)}</div>
+                    <div style="background: #f0f9f8; padding: 4px 3px; border-radius: 5px; border: 1px solid #ccebe8;">
+                      <div style="font-size: 11px; font-weight: 700; color: #0aa7ad; line-height: 1.2;">Madya</div>
+                      <div style="font-size: 16px; font-weight: 800; color: #087e83; line-height: 1.2;">${formatNumber(tM)}</div>
                     </div>
-                    <div style="background: #eff6ff; padding: 3px 2px; border-radius: 5px; border: 1px solid #dbeafe;">
-                      <div style="font-size: 9px; font-weight: 700; color: #2563eb; line-height: 1.2;">Utama</div>
-                      <div style="font-size: 12px; font-weight: 800; color: #1e3a8a; line-height: 1.2;">${formatNumber(tU)}</div>
+                    <div style="background: #f0f9f8; padding: 4px 3px; border-radius: 5px; border: 1px solid #ccebe8;">
+                      <div style="font-size: 11px; font-weight: 700; color: #0aa7ad; line-height: 1.2;">Utama</div>
+                      <div style="font-size: 16px; font-weight: 800; color: #087e83; line-height: 1.2;">${formatNumber(tU)}</div>
                     </div>
-                    <div style="background: #eff6ff; padding: 3px 2px; border-radius: 5px; border: 1px solid #dbeafe;">
-                      <div style="font-size: 9px; font-weight: 700; color: #2563eb; line-height: 1.2;">Paripurna</div>
-                      <div style="font-size: 12px; font-weight: 800; color: #1e3a8a; line-height: 1.2;">${formatNumber(tP)}</div>
+                    <div style="background: #f0f9f8; padding: 4px 3px; border-radius: 5px; border: 1px solid #ccebe8;">
+                      <div style="font-size: 11px; font-weight: 700; color: #0aa7ad; line-height: 1.2;">Paripurna</div>
+                      <div style="font-size: 16px; font-weight: 800; color: #087e83; line-height: 1.2;">${formatNumber(tP)}</div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fff; width: 32px; height: 32px; border-radius: 50%; font-weight: 800; color: #cbd5e1; font-size: 11px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; align-self: center;">VS</div>
+              <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fff; width: 36px; height: 36px; border-radius: 50%; font-weight: 800; color: #94a3b8; font-size: 12px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #cbd5e1; align-self: center;">VS</div>
 
-              <div style="flex: 1; background: white; padding: 10px 12px; border-radius: 8px; border-top: 3px solid #8b5cf6; box-shadow: 0 1px 3px rgba(0,0,0,0.02); display: flex; flex-direction: column; justify-content: space-between;">
+              <div style="flex: 1; background: white; padding: 10px 12px; border-radius: 8px; border-top: 4px solid #43b77a; box-shadow: 0 1px 3px rgba(38,50,56,0.05); display: flex; flex-direction: column; justify-content: space-between;">
                 <div>
-                  <div style="font-size: 11px; font-weight: 700; color: #8b5cf6; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">🌍 Eksisting Regional</div>
+                  <div style="font-size: 13px; font-weight: 800; color: #187a59; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">🌍 Eksisting Regional</div>
                   <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 4px;">
                     <div>
-                      <div style="font-size: 10px; color: #64748b; margin-bottom: 1px;">Total Kasus</div>
-                      <div style="font-size: 18px; font-weight: 800; color: #1e293b; line-height: 1;">${formatNumber(regionalKasus)}</div>
+                      <div style="font-size: 12px; font-weight: 700; color: #66736f; margin-bottom: 1px;">Total Kasus</div>
+                      <div style="font-size: 26px; font-weight: 800; color: #263238; line-height: 1.1;">${formatNumber(regionalKasus)}</div>
                     </div>
                     <div style="text-align: right;">
-                      <div style="font-size: 10px; color: #64748b; margin-bottom: 1px;">Pendapatan iDRG</div>
-                      <div style="font-size: 15px; font-weight: 700; color: #059669; line-height: 1;">${formatMoney(regionalIdrg)}</div>
+                      <div style="font-size: 12px; font-weight: 700; color: #66736f; margin-bottom: 1px;">Pendapatan iDRG</div>
+                      <div style="font-size: 22px; font-weight: 800; color: #059669; line-height: 1.1;">${formatMoney(regionalIdrg)}</div>
                     </div>
                   </div>
-                  <div style="font-size: 10px; color: #64748b; background: #f8fafc; padding: 2px 6px; border-radius: 4px; display: inline-block;">Rata-rata Tarif: <strong>${formatMoney(regionalKasus ? regionalIdrg/regionalKasus : 0)}</strong> / kasus</div>
+                  <div style="font-size: 12px; color: #4e5d59; background: #f4f8f7; padding: 3px 8px; border-radius: 4px; display: inline-block; font-weight: 600;">Rata-rata Tarif: <strong style="font-size: 13px; font-weight: 800; color: #263238;">${formatMoney(regionalKasus ? regionalIdrg/regionalKasus : 0)}</strong> / kasus</div>
                 </div>
 
-                <div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed #e2e8f0;">
-                  <div style="font-size: 9px; font-weight: 700; color: #475569; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Rincian Kasus Regional:</div>
+                <div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed #cbd5e1;">
+                  <div style="font-size: 11px; font-weight: 800; color: #334155; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Rincian Kasus Regional:</div>
                   <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; text-align: center;">
-                    <div style="background: #f5f3ff; padding: 3px 2px; border-radius: 5px; border: 1px solid #ddd6fe;">
-                      <div style="font-size: 9px; font-weight: 700; color: #7c3aed; line-height: 1.2;">Dasar</div>
-                      <div style="font-size: 12px; font-weight: 800; color: #4c1d95; line-height: 1.2;">${formatNumber(rD)}</div>
+                    <div style="background: #eaf7ef; padding: 4px 3px; border-radius: 5px; border: 1px solid #bce6cb;">
+                      <div style="font-size: 11px; font-weight: 700; color: #2e9b5f; line-height: 1.2;">Dasar</div>
+                      <div style="font-size: 16px; font-weight: 800; color: #187a59; line-height: 1.2;">${formatNumber(rD)}</div>
                     </div>
-                    <div style="background: #f5f3ff; padding: 3px 2px; border-radius: 5px; border: 1px solid #ddd6fe;">
-                      <div style="font-size: 9px; font-weight: 700; color: #7c3aed; line-height: 1.2;">Madya</div>
-                      <div style="font-size: 12px; font-weight: 800; color: #4c1d95; line-height: 1.2;">${formatNumber(rM)}</div>
+                    <div style="background: #eaf7ef; padding: 4px 3px; border-radius: 5px; border: 1px solid #bce6cb;">
+                      <div style="font-size: 11px; font-weight: 700; color: #2e9b5f; line-height: 1.2;">Madya</div>
+                      <div style="font-size: 16px; font-weight: 800; color: #187a59; line-height: 1.2;">${formatNumber(rM)}</div>
                     </div>
-                    <div style="background: #f5f3ff; padding: 3px 2px; border-radius: 5px; border: 1px solid #ddd6fe;">
-                      <div style="font-size: 9px; font-weight: 700; color: #7c3aed; line-height: 1.2;">Utama</div>
-                      <div style="font-size: 12px; font-weight: 800; color: #4c1d95; line-height: 1.2;">${formatNumber(rU)}</div>
+                    <div style="background: #eaf7ef; padding: 4px 3px; border-radius: 5px; border: 1px solid #bce6cb;">
+                      <div style="font-size: 11px; font-weight: 700; color: #2e9b5f; line-height: 1.2;">Utama</div>
+                      <div style="font-size: 16px; font-weight: 800; color: #187a59; line-height: 1.2;">${formatNumber(rU)}</div>
                     </div>
-                    <div style="background: #f5f3ff; padding: 3px 2px; border-radius: 5px; border: 1px solid #ddd6fe;">
-                      <div style="font-size: 9px; font-weight: 700; color: #7c3aed; line-height: 1.2;">Paripurna</div>
-                      <div style="font-size: 12px; font-weight: 800; color: #4c1d95; line-height: 1.2;">${formatNumber(rP)}</div>
+                    <div style="background: #eaf7ef; padding: 4px 3px; border-radius: 5px; border: 1px solid #bce6cb;">
+                      <div style="font-size: 11px; font-weight: 700; color: #2e9b5f; line-height: 1.2;">Paripurna</div>
+                      <div style="font-size: 16px; font-weight: 800; color: #187a59; line-height: 1.2;">${formatNumber(rP)}</div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: #1e293b; color: white; padding: 10px 14px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); min-width: 120px; align-self: stretch;">
-                <div style="font-size: 10px; color: #94a3b8; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.5px;">Market Share</div>
-                <div style="font-size: 22px; font-weight: 800; color: #38bdf8;">${formatPercent(regionalKasus ? targetKasus / regionalKasus : 0)}</div>
-                <div style="font-size: 9px; color: #64748b; margin-top: 2px;">Dari total kasus</div>
+              <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: #087e83; color: white; padding: 12px 16px; border-radius: 8px; box-shadow: 0 2px 5px rgba(38,50,56,0.10); min-width: 140px; align-self: stretch;">
+                <div style="font-size: 12px; font-weight: 800; color: #94a3b8; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.5px;">Market Share</div>
+                <div style="font-size: 30px; font-weight: 800; color: #dce744; line-height: 1;">${formatPercent(regionalKasus ? targetKasus / regionalKasus : 0)}</div>
+                <div style="font-size: 11px; color: #d7efec; margin-top: 3px; font-weight: 600;">Dari total kasus</div>
               </div>
 
             </div>
@@ -1542,6 +1542,33 @@
     });
   }
 
+
+  function autoFitSlideTitles(root = document) {
+    const titles = root.querySelectorAll(".slide-heading h1");
+    titles.forEach((h1) => {
+      h1.style.whiteSpace = "nowrap";
+      h1.style.overflow = "hidden";
+      h1.style.textOverflow = "ellipsis";
+      
+      const parent = h1.parentElement;
+      if (!parent) return;
+      
+      h1.style.fontSize = "";
+      const availWidth = (parent.clientWidth || 1000) - 20;
+      let currentFontSize = parseFloat(window.getComputedStyle(h1).fontSize) || 34;
+      
+      if (currentFontSize > 36) {
+        currentFontSize = 36;
+        h1.style.fontSize = currentFontSize + "px";
+      }
+      
+      while (h1.scrollWidth > availWidth && currentFontSize > 16) {
+        currentFontSize -= 1;
+        h1.style.fontSize = currentFontSize + "px";
+      }
+    });
+  }
+
   function showSlide(index) {
     const slides = [...document.querySelectorAll(".slide")];
     state.activeSlide = (index + slides.length) % slides.length;
@@ -1552,6 +1579,7 @@
     });
     document.getElementById("slideCounter").textContent = `${state.activeSlide + 1} / ${slides.length}`;
     document.querySelectorAll(".slide-dot").forEach((dot, dotIndex) => dot.classList.toggle("is-active", dotIndex === state.activeSlide));
+    autoFitSlideTitles();
   }
 
   let isHospitalSearchSetup = false;
@@ -1698,6 +1726,7 @@
     });
 
     document.body.appendChild(exportStage);
+    autoFitSlideTitles(exportStage);
     return { exportStage, pages };
   }
 
@@ -1811,6 +1840,26 @@
     
     buildCheckboxes(provinces, provDropdown, "province");
     buildCheckboxes(cities, cityDropdown, "city");
+
+    // Automatically set default target RS to Moewardi and filter its province (JAWA TENGAH)
+    const applyDefaultMoewardiFilter = () => {
+      const target = originalData.hospitals.find(h => h.code === "3372015") || originalData.hospitals[0];
+      if (target) {
+        state.targetCode = target.code;
+        const input = document.getElementById("targetHospitalInput");
+        if (input) {
+          input.value = `${target.name} · ${target.city}`;
+        }
+        document.querySelectorAll('#provDropdown input[type="checkbox"]').forEach(cb => {
+          if (cb.value.toUpperCase() === target.province.toUpperCase()) {
+            cb.checked = true;
+          }
+        });
+        applyFilters();
+        updateButtonLabels();
+      }
+    };
+    applyDefaultMoewardiFilter();
     
     // Preset Moewardi logic
     const presetBtn = document.getElementById("presetMoewardiBtn");

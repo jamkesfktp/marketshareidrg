@@ -2,14 +2,14 @@
 (function exposeMarketCharts(global) {
   const data = global.marketShareData;
   const COLORS = {
-    green: "#087A5B",
-    greenLight: "#DDF4EC",
-    blue: "#2563EB",
-    blueLight: "#DBEAFE",
-    navy: "#14213D",
-    slate: "#64748B",
-    gray: "#CBD5E1",
-    grayLight: "#EEF2F6",
+    green: "#43B77A",
+    greenLight: "#E8F6F2",
+    teal: "#0AA7AD",
+    tealLight: "#E8F7F8",
+    deepTeal: "#087E83",
+    slate: "#66736F",
+    gray: "#C8DFDB",
+    grayLight: "#F4F8F7",
     red: "#C2414B",
   };
 
@@ -74,7 +74,7 @@
       const { ctx } = chart;
       ctx.save();
       ctx.font = options.font || "600 18px Inter, Arial, sans-serif";
-      ctx.fillStyle = options.color || COLORS.navy;
+      ctx.fillStyle = options.color || COLORS.deepTeal;
       ctx.textBaseline = "middle";
       chart.data.datasets.forEach((dataset, datasetIndex) => {
         const meta = chart.getDatasetMeta(datasetIndex);
@@ -122,7 +122,7 @@
       y: {
         border: { display: false },
         grid: { display: false },
-        ticks: { color: COLORS.navy, font: { family: "Inter, Arial, sans-serif", size: 17, weight: "500" } },
+        ticks: { color: COLORS.deepTeal, font: { family: "Inter, Arial, sans-serif", size: 17, weight: "500" } },
       },
     },
   });
@@ -202,7 +202,7 @@
         labels: data.topServicePools.map((item) => chartLabel(item.service)),
         datasets: [{
           data: data.topServicePools.map((item) => item.eligibleCases),
-          backgroundColor: data.topServicePools.map((item) => item.competency.includes("Paripurna") ? COLORS.green : COLORS.blue),
+          backgroundColor: data.topServicePools.map((item) => item.competency.includes("Paripurna") ? COLORS.green : COLORS.teal),
           borderRadius: 5,
           barThickness: 24,
         }],
@@ -246,8 +246,8 @@
         labels: data.scenarios.map((item) => `Capture ${fmt.pct(item.share)}`),
         datasets: [{
           data: data.scenarios.map((item) => item.capturedCases),
-          backgroundColor: data.scenarios.map((item) => item.share === 0.20 ? COLORS.green : COLORS.blueLight),
-          borderColor: data.scenarios.map((item) => item.share === 0.20 ? COLORS.green : COLORS.blue),
+          backgroundColor: data.scenarios.map((item) => item.share === 0.20 ? COLORS.green : COLORS.tealLight),
+          borderColor: data.scenarios.map((item) => item.share === 0.20 ? COLORS.green : COLORS.teal),
           borderWidth: 1,
           borderRadius: 7,
           barThickness: 42,
@@ -287,7 +287,7 @@
       data: {
         labels: data.scenarios.map((item) => fmt.pct(item.share)),
         datasets: [
-          { label: "INA-CBG incremental", data: data.scenarios.map((item) => item.capturedIna), backgroundColor: COLORS.blue, borderRadius: 5, barPercentage: 0.72 },
+          { label: "INA-CBG incremental", data: data.scenarios.map((item) => item.capturedIna), backgroundColor: COLORS.teal, borderRadius: 5, barPercentage: 0.72 },
           { label: "iDRG incremental", data: data.scenarios.map((item) => item.capturedIdrg), backgroundColor: COLORS.green, borderRadius: 5, barPercentage: 0.72 },
         ],
       },
@@ -330,8 +330,8 @@
     }
 
     const comparison = [
-      { label: "Moewardi eksisting", cases: neoplasma.existingCases, color: COLORS.navy },
-      ...neoplasma.competitors.map((item, index) => ({ label: index === 0 ? "Margono" : "Kariadi", cases: item.cases, color: index === 0 ? COLORS.green : COLORS.blue })),
+      { label: "Moewardi eksisting", cases: neoplasma.existingCases, color: COLORS.deepTeal },
+      ...neoplasma.competitors.map((item, index) => ({ label: index === 0 ? "Margono" : "Kariadi", cases: item.cases, color: index === 0 ? COLORS.green : COLORS.teal })),
     ];
     const options = baseOptions();
     options.indexAxis = "y";
