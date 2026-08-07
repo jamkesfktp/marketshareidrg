@@ -599,13 +599,15 @@
       <div class="regional-profile-layout">
         <div class="regional-map-column" style="display: flex; flex-direction: column; gap: 10px; height: 100%; min-height: 0;">
           <!-- Wilayah Terpilih Container (Lists ALL selected regions without truncation) -->
-          <div style="flex: 0 0 auto; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 14px; padding: 12px 14px; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);">
-            <div style="font-size: 11px; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
-              <span>🗺️ Wilayah Terpilih (${selectedRegionsList.length})</span>
-              <span style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 700;">${data.hospitals.length} RS Aktif</span>
+          <div style="flex: 0 0 auto; background: linear-gradient(135deg, var(--teal) 0%, var(--teal-deep) 100%); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 14px; padding: 12px 14px; box-shadow: 0 4px 12px rgba(8, 126, 131, 0.25); color: #ffffff;">
+            <div style="font-size: 11px; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+              <span>🗺️ Wilayah Terpilih (${selectedCities.length > 0 ? selectedCities.length : (selectedProvinces.length > 0 ? selectedProvinces.length : selectedRegionsList.length)})</span>
+              <span style="background: rgba(255, 255, 255, 0.2); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.4); padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 700;">${data.hospitals.length} RS Aktif</span>
             </div>
-            <div style="display: flex; flex-wrap: wrap; gap: 6px; max-height: 90px; overflow-y: auto; padding-right: 4px;">
-              ${selectedRegionsList.map(r => `<span style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(51, 65, 85, 0.95) 100%); color: #f8fafc; border: 1px solid rgba(148, 163, 184, 0.35); font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.25); display: inline-flex; align-items: center; gap: 4px;">📍 ${escapeHtml(r)}</span>`).join('')}
+            <div style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 600; max-height: 90px; overflow-y: auto; padding-right: 4px; line-height: 1.4;">
+              ${selectedProvinces.length > 0 ? `<div>Jumlah Provinsi : ${selectedProvinces.length} &rarr; ${selectedProvinces.map(escapeHtml).join(', ')}</div>` : ''}
+              ${selectedCities.length > 0 ? `<div>Jumlah Kab/Kota : ${selectedCities.length} &rarr; ${selectedCities.map(escapeHtml).join(', ')}</div>` : ''}
+              ${selectedProvinces.length === 0 && selectedCities.length === 0 ? `<div>${selectedRegionsList.map(escapeHtml).join(', ')}</div>` : ''}
             </div>
           </div>
 
