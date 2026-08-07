@@ -139,7 +139,7 @@
     switch (competency) {
       case 1: return { tambah: [1], kurang: [2, 3, 4] };
       case 2: return { tambah: [1, 2], kurang: [3, 4] };
-      case 3: return { tambah: [1, 2, 3], kurang: [4] };
+      case 3: return { tambah: [2, 3], kurang: [1, 4] };
       case 4: return { tambah: [3, 4], kurang: [1, 2] };
       default: return { tambah: [], kurang: [] };
     }
@@ -885,9 +885,7 @@
       
       rules.kurang.forEach(lvl => {
         let pKurang = pctKurang / 100;
-        if ((targetCompetency === 3 && lvl === 4) ||
-            (targetCompetency === 2 && (lvl === 3 || lvl === 4)) ||
-            (targetCompetency === 1 && lvl >= 2)) {
+        if (lvl > targetCompetency) {
           pKurang = 1.0; // 100% untuk tingkat di atas kompetensi target
         }
         svcKurangKasus += basePengurangan[lvl][0] * pKurang;
@@ -1097,12 +1095,7 @@
           });
           
           rules.kurang.forEach(lvl => {
-            // Jika Utama (3) -> Paripurna (4) = 100%
-            // Jika Madya (2) -> Utama (3) & Paripurna (4) = 100%
-            // Jika Dasar (1) -> Madya (2), Utama (3), Paripurna (4) = 100%
-            if ((targetCompetency === 3 && lvl === 4) ||
-                (targetCompetency === 2 && (lvl === 3 || lvl === 4)) ||
-                (targetCompetency === 1 && lvl >= 2)) {
+            if (lvl > targetCompetency) {
               scn['kurang_' + lvl] = 100;
             } else {
               let val = 50 + (i * 10);
@@ -2097,9 +2090,7 @@
               scn['tambah_' + lvl] = parseFloat(Math.min(100, Math.max(0, (100 / (lvlCompetitors + 1)) + (i * 5))).toFixed(1));
             });
             rules.kurang.forEach(lvl => {
-              if ((targetCompetency === 3 && lvl === 4) ||
-                  (targetCompetency === 2 && (lvl === 3 || lvl === 4)) ||
-                  (targetCompetency === 1 && lvl >= 2)) {
+              if (lvl > targetCompetency) {
                 scn['kurang_' + lvl] = 100;
               } else {
                 scn['kurang_' + lvl] = parseFloat(Math.min(100, 50 + (i * 10)).toFixed(1));
@@ -2248,9 +2239,7 @@
         rules.kurang.forEach(lvl => {
           const tMetric = tSvc ? severityMetric(tSvc, lvl) : [0,0,0];
           let pKurang = pctKurangVal / 100;
-          if ((targetCompetency === 3 && lvl === 4) ||
-              (targetCompetency === 2 && (lvl === 3 || lvl === 4)) ||
-              (targetCompetency === 1 && lvl >= 2)) {
+          if (lvl > targetCompetency) {
             pKurang = 1.0; 
           }
           kurangKasusVal += (tMetric[CASES]||0) * pKurang;
