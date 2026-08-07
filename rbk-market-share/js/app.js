@@ -1058,8 +1058,14 @@
       }
     }
     
-    // Extract available services for the target hospital
-    const availableServices = data.services.filter(service => getCompetency(target, service) > 0);
+    // Extract available services for the target hospital, sorted by total cases descending
+    const availableServices = data.services
+      .filter(service => getCompetency(target, service) > 0)
+      .sort((a, b) => {
+        const casesA = target.services[a] && target.services[a].total ? target.services[a].total[CASES] : 0;
+        const casesB = target.services[b] && target.services[b].total ? target.services[b].total[CASES] : 0;
+        return casesB - casesA;
+      });
     
     let html = "";
     
@@ -1772,6 +1778,18 @@
     const exportStage = document.createElement("div");
     exportStage.className = "pptx-export-stage";
     exportStage.setAttribute("aria-hidden", "true");
+    
+    const style = document.createElement("style");
+    style.textContent = `
+      .pptx-export-page * { font-family: 'Quattrocento Sans', sans-serif !important; font-size: 8pt; }
+      .pptx-export-page h1, .pptx-export-page h2 { font-size: 14pt !important; font-weight: bold; }
+      .pptx-export-page h1 *, .pptx-export-page h2 * { font-size: 14pt !important; }
+      .pptx-kemenkes-logo { position: absolute; top: 16px; right: 24px; height: 48px; object-fit: contain; z-index: 50; }
+      .pptx-export-page th, .pptx-export-page td, .pptx-export-page span { white-space: nowrap !important; } /* Prevent 1-line text from splitting */
+      .pptx-export-page p { white-space: normal; }
+    `;
+    exportStage.appendChild(style);
+
     const sourceSlides = [...document.querySelectorAll(".slide")];
     const target = targetHospital();
 
@@ -1786,10 +1804,14 @@
       freezeExportControls(sourceSlide, slideClone);
       removeDuplicateExportIds(slideClone);
 
+      const logo = document.createElement("img");
+      logo.src = "img/logo-kemenkes.png";
+      logo.className = "pptx-kemenkes-logo";
+
       const footer = document.createElement("footer");
       footer.className = "pptx-export-footer";
       footer.innerHTML = `<strong>Simulator Market Share Regional</strong><span>${escapeHtml(target.name)} · ${index + 1} / ${sourceSlides.length}</span>`;
-      page.append(slideClone, footer);
+      page.append(logo, slideClone, footer);
       exportStage.appendChild(page);
       return page;
     });

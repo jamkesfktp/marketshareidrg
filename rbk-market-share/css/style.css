@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Quattrocento+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
 :root {
   --teal-deep: #087e83;
   --teal: #0aa7ad;
@@ -17,7 +19,7 @@
   --panel: #ffffff;
   --panel-alt: #f4f8f7;
   --backdrop: #dceae7;
-  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  font-family: 'Quattrocento Sans', Arial, sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -922,4 +924,43 @@ tr.is-disabled td { color: #9aa4b2; background: #fafbfc; }
   font-size: 11px;
   color: var(--muted);
   margin-top: 2px;
+}
+
+/* Bain / McKinsey Insight Style Overrides */
+.regional-profile-insight {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-left: 4px solid var(--teal-deep) !important;
+  border-radius: 4px !important;
+  padding: 24px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+}
+.regional-profile-insight strong {
+  font-size: 18px !important;
+  color: var(--ink) !important;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  display: block;
+}
+.regional-profile-insight ul {
+  list-style: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+.regional-profile-insight li {
+  font-size: 15px !important;
+  line-height: 1.6 !important;
+  color: #334155 !important;
+  padding-left: 24px;
+  position: relative;
+  margin-bottom: 12px;
+}
+.regional-profile-insight li::before {
+  content: '■';
+  color: var(--teal);
+  position: absolute;
+  left: 0;
+  font-size: 12px;
+  top: 2px;
 }
