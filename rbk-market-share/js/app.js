@@ -1288,7 +1288,7 @@
       html += `
         <section class="slide service-sim-slide" data-slide="${9 + idx}" aria-labelledby="dynamicSlide${idx}Title">
           <div class="slide-heading compact-heading">
-            <div><p class="eyebrow">${String(10 + idx).padStart(2, '0')} · Simulasi Per Layanan</p><h1 id="dynamicSlide${idx}Title">Simulasi Kasus Market Share — <span style="color: #ffc107;">${escapeHtml(service)}</span></h1><p>Data Mirroring Uji Coba iDRG</p></div>
+            <div><h1 id="dynamicSlide${idx}Title" style="font-size: 14px !important; margin-bottom: 2px;">Simulasi Kasus Market Share — <span style="color: #ffc107;">${escapeHtml(service)}</span></h1><p style="font-size: 14px !important; margin: 0; color: #64748b;">Data Mirroring Uji Coba iDRG</p></div>
             <span class="slide-chip">Layanan</span>
           </div>
           <div class="slide-content" style="padding-top: 4px; overflow-y: auto;">
@@ -1443,7 +1443,7 @@
                   </table>
                 </div>
                 <aside class="simulation-insight-strip" aria-label="Insight simulasi berbasis data">
-                  <div class="simulation-insight-title"><strong>Insight</strong></div>
+                  <div class="simulation-insight-title"><strong>Insight 💡</strong></div>
                   <div class="simulation-insight-item"><b>Peluang kasus</b><span>${opportunityInsight} ${riskInsight}</span></div>
                   <div class="simulation-insight-item"><b>Saingan</b><span>${competitionInsight}</span></div>
                   <div class="simulation-insight-item"><b>Skenario terdekat</b><span>${scenarioInsight} ${highestRevenueNote}</span></div>
