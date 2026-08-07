@@ -1315,27 +1315,43 @@
               </div>
             </div>
             ${(() => {
+              const compCountByLevel = { 1: 0, 2: 0, 3: 0, 4: 0 };
+              data.hospitals.filter(h => h.code !== target.code).forEach(h => {
+                const comp = getCompetency(h, service);
+                if (comp in compCountByLevel) compCountByLevel[comp]++;
+              });
+
               let tHead1 = '';
               let tHead2 = '';
               [1, 2, 3, 4].forEach(lvl => {
                 if (state.serviceScenarios[service][0].hasOwnProperty('tambah_' + lvl)) {
-                  tHead1 += `<th colspan="3" class="b-top-green b-left-green b-right-green" style="background-color: #e8f5e9; color: #17233b; padding: 4px; font-size: 11px;">Tambahan Kasus<br>${levelNames[lvl]}</th>`;
+                  const cCount = compCountByLevel[lvl] || 0;
+                  tHead1 += `<th colspan="3" class="b-top-green b-left-green b-right-green" style="background-color: #e8f5e9; color: #17233b; padding: 4px; font-size: 11px;">Tambahan Kasus<br>${levelNames[lvl]} <span style="font-weight: 700; color: #047857;">(${cCount} RS)</span></th>`;
                   tHead2 += `<th style="color: #17233b; padding: 4px; font-size: 10px;">Persentase<br>(%)</th><th style="color: #17233b; padding: 4px; font-size: 10px;">Jumlah<br>Kasus</th><th style="color: #17233b; padding: 4px; font-size: 10px;">Tambahan<br>Pendapatan<br>(Rp M)</th>`;
                 }
               });
               [1, 2, 3, 4].forEach(lvl => {
                 if (state.serviceScenarios[service][0].hasOwnProperty('kurang_' + lvl)) {
-                  tHead1 += `<th colspan="3" class="b-top-red b-left-red b-right-red" style="background-color: #ffebee; color: #17233b; padding: 4px; font-size: 11px;">Pengurangan Kasus<br>${levelNames[lvl]}</th>`;
+                  const cCount = compCountByLevel[lvl] || 0;
+                  tHead1 += `<th colspan="3" class="b-top-red b-left-red b-right-red" style="background-color: #ffebee; color: #17233b; padding: 4px; font-size: 11px;">Pengurangan Kasus<br>${levelNames[lvl]} <span style="font-weight: 700; color: #b91c1c;">(${cCount} RS)</span></th>`;
                   tHead2 += `<th style="color: #17233b; padding: 4px; font-size: 10px;">Persentase<br>(%)</th><th style="color: #17233b; padding: 4px; font-size: 10px;">Jumlah<br>Kasus</th><th style="color: #17233b; padding: 4px; font-size: 10px;">Pengurangan<br>Pendapatan<br>(Rp M)</th>`;
                 }
               });
               
               return `
+                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 6px; margin-bottom: 6px; font-size: 11px; font-weight: 600; color: #334155;">
+                  <span style="color: #475569; display: flex; align-items: center; gap: 4px;">🏥 <strong>RS Kompetitor Regional per Kompetensi:</strong></span>
+                  <span style="background: #fdf4ff; color: #86198f; border: 1px solid #f5d0fe; padding: 2px 8px; border-radius: 6px;">Paripurna: <strong>${compCountByLevel[4]} RS</strong></span>
+                  <span style="background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; padding: 2px 8px; border-radius: 6px;">Utama: <strong>${compCountByLevel[3]} RS</strong></span>
+                  <span style="background: #fefce8; color: #a16207; border: 1px solid #fef08a; padding: 2px 8px; border-radius: 6px;">Madya: <strong>${compCountByLevel[2]} RS</strong></span>
+                  <span style="background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4; padding: 2px 8px; border-radius: 6px;">Dasar: <strong>${compCountByLevel[1]} RS</strong></span>
+                </div>
                 <div style="overflow-x: auto; width: 100%;">
-                  <table class="scenario-table" style="table-layout: auto; min-width: 1000px; margin-top: 6px;">
+                  <table class="scenario-table" style="table-layout: auto; min-width: 1000px; margin-top: 4px;">
                     <thead>
                       <tr>
                         <th rowspan="2" style="background-color: #f8f9fa; color: #17233b; padding: 4px; font-size: 11px;">Skenario</th>
+                        ${tHead1}
                         ${tHead1}
                         <th colspan="3">Net +/- Pasca iDRG & RBKP</th>
                         <th rowspan="2">Pendapatan<br>Eksisting INA<br>CBG (Rp M)</th>
