@@ -1442,12 +1442,16 @@
                     </tbody>
                   </table>
                 </div>
-                <aside class="simulation-insight-strip" aria-label="Insight simulasi berbasis data">
-                  <div class="simulation-insight-title"><strong>Insight 💡</strong></div>
-                  <div class="simulation-insight-item"><b>Peluang kasus</b><span>${opportunityInsight} ${riskInsight}</span></div>
-                  <div class="simulation-insight-item"><b>Saingan</b><span>${competitionInsight}</span></div>
-                  <div class="simulation-insight-item"><b>Skenario terdekat</b><span>${scenarioInsight} ${highestRevenueNote}</span></div>
-                </aside>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 16px; border: 1px solid #cfe8e5; border-radius: 8px; overflow: hidden; background: #f7fbfa;" aria-label="Insight simulasi berbasis data">
+                  <tbody>
+                    <tr>
+                      <td style="width: 160px; background: #087e83; color: #fff; padding: 14px 16px; vertical-align: middle; font-size: 16pt; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap;">Insight 💡</td>
+                      <td style="padding: 12px 14px; vertical-align: top; border-left: 1px solid #cfe8e5; font-size: 11pt;"><b style="display: block; color: #087e83; font-size: 11pt; font-weight: 800; text-transform: uppercase; margin-bottom: 4px;">Peluang Kasus</b><span style="color: #334155; line-height: 1.5;">${opportunityInsight} ${riskInsight}</span></td>
+                      <td style="padding: 12px 14px; vertical-align: top; border-left: 1px solid #cfe8e5; font-size: 11pt;"><b style="display: block; color: #087e83; font-size: 11pt; font-weight: 800; text-transform: uppercase; margin-bottom: 4px;">Saingan</b><span style="color: #334155; line-height: 1.5;">${competitionInsight}</span></td>
+                      <td style="padding: 12px 14px; vertical-align: top; border-left: 1px solid #cfe8e5; font-size: 11pt;"><b style="display: block; color: #087e83; font-size: 11pt; font-weight: 800; text-transform: uppercase; margin-bottom: 4px;">Skenario Terdekat</b><span style="color: #334155; line-height: 1.5;">${scenarioInsight} ${highestRevenueNote}</span></td>
+                    </tr>
+                  </tbody>
+                </table>
                 <div style="margin-top: 6px; font-size: 11px; color: #4e5d59; font-style: italic; line-height: 1.5; background: #f4f8f7; padding: 6px 10px; border-radius: 6px; border: 1px solid #d9e5e2;">
                   <div>* % Penambahan kasus dihitung dari Total Kasus Regional</div>
                   <div>* % Pengurangan kasus dihitung dari Kasus Eksisting RS</div>

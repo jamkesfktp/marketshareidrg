@@ -744,7 +744,7 @@ tr.is-disabled td { color: #9aa4b2; background: #fafbfc; }
   display: grid;
   grid-template-columns: 150px 1.18fr 0.9fr 1.35fr;
   gap: 0;
-  margin-top: 7px;
+  margin-top: 16px;
   border: 1px solid #cfe8e5;
   border-radius: 8px;
   overflow: hidden;
