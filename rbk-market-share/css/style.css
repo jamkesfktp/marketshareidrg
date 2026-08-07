@@ -252,22 +252,22 @@ input[type="number"] { outline-offset: 3px; }
 .existing-report-kpi.kpi-percentage { background: #fff0f1; }
 .existing-report-kpi.is-gain strong { color: var(--green); }
 
-.existing-matrix-wrap { min-height: 0; overflow: hidden; }
+.existing-matrix-wrap { min-height: 0; overflow: auto; }
 .existing-matrix-table {
   width: 100%;
   height: 100%;
   table-layout: fixed;
   border-collapse: collapse;
   border: 1px solid #cdd4db;
-  font-size: 10px;
+  font-size: 13px;
 }
 .existing-matrix-table th,
 .existing-matrix-table td {
-  height: 18px;
-  padding: 2px 4px;
+  height: 28px;
+  padding: 4px 6px;
   overflow: hidden;
   border: 1px solid #cdd4db;
-  line-height: 1.05;
+  line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -275,34 +275,34 @@ input[type="number"] { outline-offset: 3px; }
   color: #fff;
   background: #0aa7ad;
   border-color: rgba(255,255,255,.58);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: .02em;
   text-align: center;
   text-transform: uppercase;
 }
-.existing-matrix-table thead tr:first-child th { height: 22px; font-size: 12px; }
+.existing-matrix-table thead tr:first-child th { height: 32px; font-size: 14px; }
 .existing-matrix-table tbody tr:nth-child(even) td { background: #fbfcfd; }
 .existing-matrix-table tbody td { color: #303b38; }
-.existing-matrix-table .matrix-no { width: 38px; text-align: center; }
-.existing-matrix-table .matrix-service { width: 178px; }
-.existing-matrix-table .matrix-competency { width: 82px; }
-.existing-matrix-table .matrix-total { width: 72px; }
-.existing-matrix-table .matrix-share { width: 58px; }
+.existing-matrix-table .matrix-no { width: 45px; text-align: center; }
+.existing-matrix-table .matrix-service { width: 220px; }
+.existing-matrix-table .matrix-competency { width: 100px; }
+.existing-matrix-table .matrix-total { width: 90px; }
+.existing-matrix-table .matrix-share { width: 75px; }
 .existing-matrix-table .matrix-total-ina,
-.existing-matrix-table .matrix-total-idrg { width: 86px; }
+.existing-matrix-table .matrix-total-idrg { width: 115px; }
 .existing-matrix-table tbody .matrix-service { font-weight: 650; }
 .existing-matrix-table tbody .matrix-summary { background: #eef7f8; color: #164e57; font-weight: 800; }
-.existing-matrix-table td.num { padding-right: 5px; font-size: 9.5px; }
-.existing-matrix-table tfoot td { height: 23px; color: #2e3432; background: #dcefeb; font-weight: 800; }
+.existing-matrix-table td.num { padding-right: 6px; font-size: 12.5px; }
+.existing-matrix-table tfoot td { height: 30px; color: #2e3432; background: #dcefeb; font-weight: 800; }
 .existing-matrix-table tfoot td:nth-child(2) { text-align: left; }
 
-.comparison-matrix-table .matrix-service { width: 215px; }
-.comparison-matrix-table .matrix-competency { width: 95px; }
+.comparison-matrix-table .matrix-service { width: 230px; }
+.comparison-matrix-table .matrix-competency { width: 105px; }
 .comparison-detail-slide .existing-report-title h1,
 .regional-profile-detail-slide .existing-report-title h1 { font-size: 33px; }
 .comparison-matrix-table thead tr:nth-child(2) th,
-.comparison-matrix-table thead tr:nth-child(3) th { height: 20px; padding-top: 2px; padding-bottom: 2px; font-size: 10px; }
+.comparison-matrix-table thead tr:nth-child(3) th { height: 26px; padding-top: 4px; padding-bottom: 4px; font-size: 12px; }
 .comparison-matrix-table thead .comparison-target-heading,
 .comparison-matrix-table thead .comparison-target { background: #0aa7ad; }
 .comparison-matrix-table thead .comparison-other-heading,
