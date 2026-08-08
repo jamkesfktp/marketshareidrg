@@ -1,4 +1,4 @@
-﻿(function marketShareSimulator() {
+(function marketShareSimulator() {
   "use strict";
 
   const originalData = window.marketSimulatorData;
@@ -834,7 +834,7 @@
     const target = targetHospital();
     if (!target) return;
     
-    let html = 
+    let html = `
       <div class="table-container" style="max-height: 500px; overflow-y: auto;">
         <table class="scenario-table" style="table-layout: auto; width: 100%; min-width: 1200px;">
           <thead style="position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
@@ -862,7 +862,7 @@
             </tr>
           </thead>
           <tbody>
-    ;
+    `;
     
     data.services.forEach((service, idx) => {
       const tHospSvc = target.services[service];
@@ -936,27 +936,27 @@
       
       const msColor = ms >= 0.3 ? '#087e83' : (ms >= 0.15 ? '#f59e0b' : '#dc2626');
       
-      html += \
+      html += `
         <tr>
-          <td style="color: #94a3b8; font-size: 11px;">\</td>
-          <td style="text-align: left; font-weight: 600; font-size: 11px;">\</td>
-          <td style="font-size: 11px;">\</td>
-          <td style="color: #087e83; font-weight: 600;">\</td>
-          <td style="color: #187a59; font-weight: 600;">\</td>
-          <td style="color: \; font-weight: 600;">\</td>
-          <td style="color: #16a085; background-color: \;">\</td>
-          <td style="color: #16a085; background-color: \; font-weight: 600;">\</td>
-          <td style="color: #0e7490; background-color: \;">\</td>
-          <td style="color: #0e7490; background-color: \; font-weight: 600;">\</td>
-          <td style="color: #b93d4a; background-color: \;">\</td>
-          <td style="color: #b93d4a; background-color: \; font-weight: 600;">\</td>
-          <td style="color: #9f1239; background-color: \;">\</td>
-          <td style="color: #9f1239; background-color: \; font-weight: 600;">\</td>
+          <td style="color: #94a3b8; font-size: 11px;">${idx + 1}</td>
+          <td style="text-align: left; font-weight: 600; font-size: 11px;">${escapeHtml(formatService(service))}</td>
+          <td style="font-size: 11px;">${levelNames[targetCompetency] || '-'}</td>
+          <td style="color: #087e83; font-weight: 600;">${formatNumber(tKasus)}</td>
+          <td style="color: #187a59; font-weight: 600;">${formatNumber(rKasus)}</td>
+          <td style="color: ${msColor}; font-weight: 600;">${formatPercent(ms)}</td>
+          <td style="color: #16a085; background-color: ${idx % 2 === 0 ? '#f0fdf9' : '#edfdf8'};">${formatNumber(minTK)}</td>
+          <td style="color: #16a085; background-color: ${idx % 2 === 0 ? '#f0fdf9' : '#edfdf8'}; font-weight: 600;">${formatNumber(maxTK)}</td>
+          <td style="color: #0e7490; background-color: ${idx % 2 === 0 ? '#f0f9ff' : '#e8f8ff'};">${formatMoney(minTRp)}</td>
+          <td style="color: #0e7490; background-color: ${idx % 2 === 0 ? '#f0f9ff' : '#e8f8ff'}; font-weight: 600;">${formatMoney(maxTRp)}</td>
+          <td style="color: #b93d4a; background-color: ${idx % 2 === 0 ? '#fef2f2' : '#fef2f2'};">${formatNumber(minKK)}</td>
+          <td style="color: #b93d4a; background-color: ${idx % 2 === 0 ? '#fef2f2' : '#fef2f2'}; font-weight: 600;">${formatNumber(maxKK)}</td>
+          <td style="color: #9f1239; background-color: ${idx % 2 === 0 ? '#fff1f2' : '#fff1f2'};">${formatMoney(minKRp)}</td>
+          <td style="color: #9f1239; background-color: ${idx % 2 === 0 ? '#fff1f2' : '#fff1f2'}; font-weight: 600;">${formatMoney(maxKRp)}</td>
         </tr>
-      \;
+      `;
     });
     
-    html += \
+    html += `
           </tbody>
         </table>
       </div>
@@ -966,7 +966,7 @@
         <div>* Pengurangan pendapatan INA-CBG = estimasi nilai kasus yang mungkin beralih ke level lebih tinggi.</div>
         <div>* Semua nilai bersifat proyeksi; kapasitas, SDM, dan kebijakan operasional belum diperhitungkan.</div>
       </div>
-    \;
+    `;
     
     document.getElementById("recapSlide").innerHTML = html;
   }
