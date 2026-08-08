@@ -8,6 +8,7 @@
   const CASES = 0;
   const INA = 1;
   const IDRG = 2;
+  const REVENUE = 2;
   const severityRanks = [1, 2, 3, 4];
   const levelNames = { 0: "Tidak terpetakan", 1: "Dasar", 2: "Madya", 3: "Utama", 4: "Paripurna" };
   const shortLevelNames = { 1: "D", 2: "M", 3: "U", 4: "P" };
