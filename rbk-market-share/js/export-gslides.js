@@ -401,6 +401,12 @@
       slide.addText(k.val,{x:kx+0.06,y:kpiY+0.19,w:kpiW-0.18,h:0.20,fontSize:13,bold:true,color:k.color});
     });
 
+    function hG(bg, rs) { 
+      var opt = {bold:true,color:C.white,fill:{color:bg},fontSize:5.5,align:"center",valign:"middle"}; 
+      if(rs) opt.rowspan = rs;
+      return opt;
+    }
+
     var rows=[];
     rows.push([
       {text:"No",          options:hG(C.tealL, 2)},
