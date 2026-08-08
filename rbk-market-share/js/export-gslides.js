@@ -404,8 +404,6 @@
     /* ── Build recap data per service ── */
     var rows=[];
 
-    /* Header row */
-    function hG(bg,fs){ return {bold:true,color:C.white,fill:{color:bg||C.tealL},fontSize:fs||6,align:"center",valign:"middle"}; }
     rows.push([
       {text:"No",          options:hG(C.tealL)},
       {text:"Layanan",     options:Object.assign({},hG(C.tealL),{align:"left"})},
@@ -414,8 +412,9 @@
       {text:"Kasus\nRegional",options:hG(C.tealL)},
       {text:"Market\nShare",  options:hG(C.tealL)},
       {text:"Rentang Tambahan Kasus\n(min s.d. maks skenario)",options:Object.assign({},hG("16a085"),{colspan:2})},
-      {text:"Rentang Tambahan Pendapatan iDRG\n(min s.d. maks skenario)",options:Object.assign({},hG("0e7490"),{colspan:2})},
-      {text:"Pengurangan\nPendapatan\nINA-CBG\n(Rp)",options:hG(C.redD)},
+      {text:"Rentang Tambahan Pendapatan\n(min s.d. maks skenario)",options:Object.assign({},hG("0e7490"),{colspan:2})},
+      {text:"Rentang Pengurangan Kasus\n(min s.d. maks skenario)",options:Object.assign({},hG(C.redD),{colspan:2})},
+      {text:"Rentang Pengurangan Pendapatan\n(min s.d. maks skenario)",options:Object.assign({},hG("9f1239"),{colspan:2})},
     ]);
     rows.push([
       {text:"",    options:hG(C.tealD,5)},
@@ -428,7 +427,10 @@
       {text:"Maks",options:hG("16a085",5)},
       {text:"Min", options:hG("0e7490",5)},
       {text:"Maks",options:hG("0e7490",5)},
-      {text:"",    options:hG(C.redD,5)},
+      {text:"Min", options:hG(C.redD,5)},
+      {text:"Maks",options:hG(C.redD,5)},
+      {text:"Min", options:hG("9f1239",5)},
+      {text:"Maks",options:hG("9f1239",5)},
     ]);
 
     services.forEach(function(service, idx){
@@ -478,8 +480,8 @@
         }
       }
 
-      /* Compute net kasus & net Rp for each scenario */
-      var allNetKasus=[], allNetRp=[];
+      /* Compute min/max arrays */
+      var allTK=[], allTRp=[], allKK=[], allKRp=[];
       scenarios.forEach(function(scn){
         var tK=0,tRp=0,kK=0,kRp=0;
         rules.tambah.forEach(function(lvl){
@@ -496,12 +498,14 @@
             kRp+=(basePengurangan[lvl][1]||0)*pk;
           }
         });
-        allNetKasus.push(tK-kK);
-        allNetRp.push(tRp-kRp);
+        allTK.push(tK); allTRp.push(tRp);
+        allKK.push(kK); allKRp.push(kRp);
       });
 
-      var minK=Math.min.apply(null,allNetKasus), maxK=Math.max.apply(null,allNetKasus);
-      var minRp=Math.min.apply(null,allNetRp),   maxRp=Math.max.apply(null,allNetRp);
+      var minTK=Math.min.apply(null,allTK), maxTK=Math.max.apply(null,allTK);
+      var minTRp=Math.min.apply(null,allTRp), maxTRp=Math.max.apply(null,allTRp);
+      var minKK=Math.min.apply(null,allKK), maxKK=Math.max.apply(null,allKK);
+      var minKRp=Math.min.apply(null,allKRp), maxKRp=Math.max.apply(null,allKRp);
 
       var bg=idx%2===0?C.bgray:C.white;
       function dO(extra){ return Object.assign({fontSize:6.5,fill:{color:bg},align:"center",valign:"middle"},extra||{}); }
@@ -515,19 +519,22 @@
         {text:num(tKasus),               options:dO({color:C.teal,bold:true})},
         {text:num(rKasus),               options:dO({color:C.green,bold:true})},
         {text:pct(ms),                   options:dO({color:msColor,bold:true})},
-        {text:num(minK,0),               options:dO({color:"16a085",fill:{color:idx%2===0?"f0fdf9":"edfdf8"}})},
-        {text:num(maxK,0),               options:dO({bold:true,color:"16a085",fill:{color:idx%2===0?"f0fdf9":"edfdf8"}})},
-        {text:money(minRp),              options:dO({color:"0e7490",fill:{color:idx%2===0?"f0f9ff":"e8f8ff"}})},
-        {text:money(maxRp),              options:dO({bold:true,color:"0e7490",fill:{color:idx%2===0?"f0f9ff":"e8f8ff"}})},
-        {text:money(existingIna),        options:dO({color:C.redD})},
+        {text:num(minTK,0),              options:dO({color:"16a085",fill:{color:idx%2===0?"f0fdf9":"edfdf8"}})},
+        {text:num(maxTK,0),              options:dO({bold:true,color:"16a085",fill:{color:idx%2===0?"f0fdf9":"edfdf8"}})},
+        {text:money(minTRp),             options:dO({color:"0e7490",fill:{color:idx%2===0?"f0f9ff":"e8f8ff"}})},
+        {text:money(maxTRp),             options:dO({bold:true,color:"0e7490",fill:{color:idx%2===0?"f0f9ff":"e8f8ff"}})},
+        {text:num(minKK,0),              options:dO({color:C.redD,fill:{color:idx%2===0?"fef2f2":"fef2f2"}})},
+        {text:num(maxKK,0),              options:dO({bold:true,color:C.redD,fill:{color:idx%2===0?"fef2f2":"fef2f2"}})},
+        {text:money(minKRp),             options:dO({color:"9f1239",fill:{color:idx%2===0?"fff1f2":"fff1f2"}})},
+        {text:money(maxKRp),             options:dO({bold:true,color:"9f1239",fill:{color:idx%2===0?"fff1f2":"fff1f2"}})},
       ]);
     });
 
     /* ── Render table ── */
     var tableY=kpiY+kpiH+0.10;
     var totalW=W-0.24;
-    /* col widths: No, Layanan, Komp, KasusRS, KasusReg, MS, MinK, MaxK, MinRp, MaxRp, INA */
-    var colW=[0.28, 2.10, 0.52, 0.55, 0.60, 0.50, 0.65, 0.65, 0.80, 0.80, 0.72];
+    /* col widths: No, Layanan, Komp, KasusRS, KasusReg, MS, MinTK, MaxTK, MinTRp, MaxTRp, MinKK, MaxKK, MinKRp, MaxKRp */
+    var colW=[0.25, 1.80, 0.45, 0.50, 0.50, 0.45, 0.55, 0.55, 0.65, 0.65, 0.55, 0.55, 0.65, 0.65];
     var rawSum=colW.reduce(function(a,b){return a+b;},0);
     var scaledW=colW.map(function(w){return parseFloat((w*totalW/rawSum).toFixed(3));});
 
