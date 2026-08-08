@@ -16,7 +16,7 @@
             <img src="img/logo-kemenkes.png" alt="Logo Kementerian Kesehatan RI" class="brand-logo">
             <div>
               <strong>Simulator Market Share Regional</strong>
-              <span>Kasus dan pendapatan iDRG เธขเธ— 24 layanan</span>
+              <span>Kasus dan pendapatan iDRG เน€เธเธเน€เธโ€” 24 layanan</span>
             </div>
           </div>
           <div class="toolbar-controls">
@@ -48,13 +48,10 @@
                 <button id="presetJabarBtn" class="preset-moewardi-btn" title="Filter Jabar tanpa Bebodepok">Jabar EX BEBODEPOK</button>
               </div>
             </div>
-            <div class="target-picker">
-              <span>Pengaturan</span>
-              <div style="display: flex; gap: 8px; align-items: center; height: 32px;">
-                <label style="font-size: 11px; display: flex; align-items: center; gap: 4px; cursor: pointer; color: #1e293b; font-weight: 500;">
-                  <input type="checkbox" id="excludeUnmappedToggle"> Kecualikan Level 0
-                </label>
-              </div>
+            <div style="margin-left: auto; display: flex; align-items: center; height: 32px; padding: 0 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;">
+              <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; color: #334155; font-weight: 600; margin: 0;">
+                <input type="checkbox" id="excludeUnmappedToggle" style="cursor: pointer; width: 14px; height: 14px; margin: 0;"> Kecualikan Level 0 (Tidak Terpetakan)
+              </label>
             </div>
           </div>
           <div class="target-meta" id="targetMeta" aria-live="polite"></div>
@@ -91,7 +88,7 @@
 
           <section class="slide" data-slide="5" aria-labelledby="slide6Title" hidden>
             <div class="slide-heading">
-              <div><p class="eyebrow">06 เธขเธ— Simulasi skenario (T/P)</p><h1 id="slide6Title">Simulasi Skenario Tambahan/Pengurangan Kasus</h1><p>Proyeksi linier proporsional terhadap kasus dan pendapatan *real* pada skenario persentase yang disesuaikan.</p></div>
+              <div><p class="eyebrow">06 เน€เธเธเน€เธโ€” Simulasi skenario (T/P)</p><h1 id="slide6Title">Simulasi Skenario Tambahan/Pengurangan Kasus</h1><p>Proyeksi linier proporsional terhadap kasus dan pendapatan *real* pada skenario persentase yang disesuaikan.</p></div>
               <span class="slide-chip">Dinamis</span>
             </div>
             <div id="scenarioSlide" class="slide-content"></div>
@@ -99,7 +96,7 @@
 
           <section class="slide" data-slide="6" aria-labelledby="recapSlideTitle" hidden>
             <div class="slide-heading">
-              <div><p class="eyebrow">07 เธขเธ— Rekapitulasi</p><h1 id="recapSlideTitle">Rekapitulasi Rentang Skenario Seluruh Layanan</h1><p>Rentang minimum s.d. maksimum tambahan dan pengurangan kasus serta pendapatan (iDRG/INA-CBG) dari seluruh skenario.</p></div>
+              <div><p class="eyebrow">07 เน€เธเธเน€เธโ€” Rekapitulasi</p><h1 id="recapSlideTitle">Rekapitulasi Rentang Skenario Seluruh Layanan</h1><p>Rentang minimum s.d. maksimum tambahan dan pengurangan kasus serta pendapatan (iDRG/INA-CBG) dari seluruh skenario.</p></div>
               <span class="slide-chip">Rekap</span>
             </div>
             <div id="recapSlide" class="slide-content" style="overflow-y: auto; padding-top: 10px;"></div>
@@ -116,13 +113,13 @@
         </div>
 
         <nav class="deck-controls" aria-label="Navigasi slide">
-          <button id="previousSlide" type="button" aria-label="Slide sebelumnya">เนยย Sebelum</button>
+          <button id="previousSlide" type="button" aria-label="Slide sebelumnya">เน€เธยเธขยเธขย Sebelum</button>
           <div class="slide-dots" id="slideDots" aria-label="Daftar slide"></div>
           <span class="deck-counter" id="slideCounter">1 / 8</span>
-          <button id="exportPptx" class="export-pptx-button" type="button" style="background:#1a73e8; font-size:10px; padding:4px 8px;">เนเธเธ PPTX</button>
-          <button id="exportGSlidesBtn" class="export-pptx-button" type="button" style="background: #1a73e8; font-size: 10px; padding: 4px 8px;">เนเธเธ GSlides</button>
-          <button id="exportExcelBtn" class="export-pptx-button export-excel-button" type="button" style="background:#1a73e8; font-size:10px; padding:4px 8px;">เนเธเธ Excel</button>
-          <button id="nextSlide" type="button" aria-label="Slide berikutnya">Berikut เนยโ€</button>
+          <button id="exportPptx" class="export-pptx-button" type="button" style="background:#1a73e8; font-size:10px; padding:4px 8px;">เน€เธยเน€เธยเน€เธย PPTX</button>
+          <button id="exportGSlidesBtn" class="export-pptx-button" type="button" style="background: #1a73e8; font-size: 10px; padding: 4px 8px;">เน€เธยเน€เธยเน€เธย GSlides</button>
+          <button id="exportExcelBtn" class="export-pptx-button export-excel-button" type="button" style="background:#1a73e8; font-size:10px; padding:4px 8px;">เน€เธยเน€เธยเน€เธย Excel</button>
+          <button id="nextSlide" type="button" aria-label="Slide berikutnya">Berikut เน€เธยเธขยเนโฌย</button>
           <span id="exportStatus" class="sr-only" aria-live="polite"></span>
         </nav>
       </div>
@@ -132,11 +129,13 @@
   <script src="js/xlsx.bundle.js"></script>
   <script src="js/dom-to-pptx.bundle.js"></script>
   <script src="js/pptxgen.bundle.js"></script>
-  <script src="js/export-gslides.js?v=2026080805"></script>
+  <script src="js/export-gslides.js?v=2026080806"></script>
   <script src="js/audit-excel.js?v=2026080801"></script>
   <script src="js/app.js?v=2026080801"></script>
 </body>
 </html>
+
+
 
 
 
