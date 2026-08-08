@@ -2182,7 +2182,7 @@
     status.textContent = "Membangun file Google Slides...";
     try {
       const target = targetHospital();
-      const services = getActiveServices();
+      const services = data.services;
       await window.exportGoogleSlides({
         data, state, target, CASES, REVENUE,
         services,
