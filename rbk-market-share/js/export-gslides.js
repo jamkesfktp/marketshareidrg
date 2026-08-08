@@ -1,4 +1,4 @@
-﻿/**
+/**
  * export-gslides.js  (v3 – matches screenshot layout)
  * Builds a fully editable PPTX using PptxGenJS (native PPTX objects).
  * Compatible with Google Slides import.
@@ -41,24 +41,21 @@
 
   function severityMetric(svc, lvl) {
     if (!svc) return [0, 0, 0];
-    return svc["lvl" + lvl] || [0, 0, 0];
+    var v = svc.severity && svc.severity[lvl];
+    return Array.isArray(v) ? v : [0, 0, 0];
   }
   function getLevelRules(comp) {
-    var all = [4, 3, 2, 1];
-    return {
-      tambah: all.filter(function(l){ return l > comp; }),
-      kurang: all.filter(function(l){ return l <= comp; }),
-    };
+    switch(comp) {
+      case 1: return { tambah: [1],    kurang: [2,3,4] };
+      case 2: return { tambah: [1,2],  kurang: [3,4] };
+      case 3: return { tambah: [2,3],  kurang: [1,4] };
+      case 4: return { tambah: [3,4],  kurang: [1,2] };
+      default: return { tambah: [],    kurang: [] };
+    }
   }
   function getCompetency(hosp, service) {
-    if (!hosp.services || !hosp.services[service]) return 0;
-    var svc = hosp.services[service];
-    for (var i = 0; i < [4,3,2,1].length; i++) {
-      var lvl = [4,3,2,1][i];
-      var m = svc["lvl" + lvl];
-      if (m && m[0] > 0) return lvl;
-    }
-    return 0;
+    if (!hosp || !hosp.services || !hosp.services[service]) return 0;
+    return hosp.services[service].competency || 0;
   }
   function levelName(lvl) {
     return ["", "Dasar", "Madya", "Utama", "Paripurna"][lvl] || "";
@@ -179,12 +176,10 @@
     var h1=[];
     h1.push({text:"SKENARIO",options:Object.assign({},hG(C.tealL),{rowspan:2})});
     rules.tambah.forEach(function(lvl){
-      var cnt=p.compCountByLevel[lvl]||0;
-      h1.push({text:"TAMBAHAN KASUS\n"+levelName(lvl).toUpperCase()+" ("+cnt+" RS)",options:Object.assign({},hG("16a085"),{colspan:3})});
+      h1.push({text:"TAMBAHAN KASUS\n"+levelName(lvl).toUpperCase()+"*",options:Object.assign({},hG("16a085"),{colspan:3})});
     });
     rules.kurang.forEach(function(lvl){
-      var cnt=p.compCountByLevel[lvl]||0;
-      h1.push({text:"PENGURANGAN KASUS\n"+levelName(lvl).toUpperCase()+" ("+cnt+" RS)",options:Object.assign({},hG(C.redD),{colspan:3})});
+      h1.push({text:"PENGURANGAN KASUS\n"+levelName(lvl).toUpperCase()+"*",options:Object.assign({},hG(C.redD),{colspan:3})});
     });
     h1.push({text:"NET +/- PASCA iDRG & RBKP",options:Object.assign({},hG(C.slate),{colspan:3})});
     h1.push({text:"PENDAPATAN\nEKSISTING\nINA CBG\n(Rp M)",options:Object.assign({},hG("1e293b"),{rowspan:2})});
@@ -253,7 +248,7 @@
       return cells;
     });
 
-    var availH=H-p.yStart-0.95;
+    var availH=H-p.yStart-1.10;
     var rowHArr=[0.32,0.30];
     scenarios.forEach(function(){ rowHArr.push(0.26); });
 
@@ -276,10 +271,13 @@
       slide.addText(txt,{x:ix,y:IY,w:cW-0.04,h:IH,fontSize:6,color:C.slate,valign:"middle",wrap:true});
     });
     var NY=IY+IH+0.02;
-    slide.addText("* % Penambahan kasus dihitung dari Total Kasus Regional   * % Pengurangan kasus dihitung dari Kasus Eksisting RS   * Insight adalah pembacaan langsung atas angka simulasi; kapasitas, SDM, pola rujukan, dan kesiapan layanan belum dimasukkan.",{
-      x:0.12,y:NY,w:W-1.4,h:0.28,fontSize:5.5,color:"4e5d59",valign:"top",wrap:true
-    });
-    slide.addText("Kemenkes",{x:W-1.25,y:NY,w:1.15,h:0.28,fontSize:8,bold:true,color:C.teal,align:"right",valign:"middle"});
+    slide.addText(
+      "* % Penambahan kasus (Tambahan) dihitung dari selisih kasus regional vs RS target, dengan pembagi berupa jumlah RS kompetitor berkompetensi setara atau lebih tinggi dari level tersebut (bukan hanya level itu saja). "+
+      "* % Pengurangan kasus dihitung dari Kasus Eksisting RS. "+
+      "* Insight adalah pembacaan langsung atas angka simulasi; kapasitas, SDM, pola rujukan, dan kesiapan layanan belum dimasukkan.",
+      {x:0.12,y:NY,w:W-1.4,h:0.30,fontSize:5.5,color:"4e5d59",valign:"top",wrap:true}
+    );
+    slide.addText("Kemenkes",{x:W-1.25,y:NY,w:1.15,h:0.30,fontSize:8,bold:true,color:C.teal,align:"right",valign:"middle"});
   }
 
   function buildServiceSlide(pptx, service, appState) {
@@ -304,8 +302,7 @@
     var tD=lvOf(tHosp,1)[CASES],tM=lvOf(tHosp,2)[CASES],tU=lvOf(tHosp,3)[CASES],tP=lvOf(tHosp,4)[CASES];
     var rD=smOf(svcData,1)[CASES],rM=smOf(svcData,2)[CASES],rU=smOf(svcData,3)[CASES],rP=smOf(svcData,4)[CASES];
 
-    var targetCompetency=1;
-    if(tSvc){ for(var li=0;li<[4,3,2,1].length;li++){var ll=[4,3,2,1][li];if(lvOf(tHosp,ll)[CASES]>0){targetCompetency=ll;break;}} }
+    var targetCompetency = tSvc ? (tSvc.competency || getCompetency(tHosp, service) || 1) : 1;
 
     var compCountByLevel={1:0,2:0,3:0,4:0};
     data.hospitals.filter(function(h){return h.code!==target.code;}).forEach(function(h){
