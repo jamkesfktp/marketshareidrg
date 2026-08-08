@@ -112,18 +112,7 @@
       const rows = [];
 
       // Header
-      rows.push([
-        {text:"Skenario",            options:hOpts(TEAL)},
-        {text:"Tambahan Paripurna",  options:hOpts("6d28d9"), colspan:2},
-        {text:"Tambahan Utama",      options:hOpts("0891b2"), colspan:2},
-        {text:"Kurang Madya",        options:hOpts("b45309"), colspan:2},
-        {text:"Kurang Dasar",        options:hOpts("dc2626"), colspan:2},
-        {text:"Net Kasus",           options:hOpts(SLATE)},
-        {text:"Net Pendapatan",      options:hOpts(SLATE)},
-        {text:"% Kasus Eksisting",   options:hOpts(SLATE)},
-        {text:"INA-CBG Eks (Rp M)",  options:hOpts("1e293b")},
-        {text:"% vs INA-CBG",        options:hOpts("1e293b")},
-      ]);
+
       rows.push([
         {text:"",      options:hOpts(TEAL)},
         {text:"%",     options:hOpts("6d28d9")},
