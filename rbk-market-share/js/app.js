@@ -2185,7 +2185,8 @@
       const target = targetHospital();
       const services = data.services;
       await window.exportGoogleSlides({
-        data, state, target, CASES, REVENUE,
+        data, state, target,
+        CASES, INA, IDRG, REVENUE,
         services,
         levelNames,
       });
