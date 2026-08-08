@@ -42,6 +42,7 @@
       retention: { 1: 50, 2: 50, 3: 100, 4: 100 },
     },
     overrides: {},
+    excludeUnmapped: false,
   };
 
   let liveRenderTimer = null;
@@ -188,8 +189,9 @@
       const targetItem = target?.services?.[service];
       const regionalItem = regionalService(service);
       const competency = getCompetency(target, service);
-      let projected = metric(targetItem?.unclassified);
-      let retained = metric(targetItem?.unclassified);
+      let unclass = state.excludeUnmapped ? [0,0,0] : metric(targetItem?.unclassified);
+      let projected = [...unclass];
+      let retained = [...unclass];
       let captured = [0, 0, 0];
 
       const severities = severityRanks.map((rank) => {
@@ -969,6 +971,38 @@
     document.getElementById("recapSlide").innerHTML = html;
   }
 
+  
+  function recalculateTotals() {
+    const processItem = (item) => {
+      if (!item) return;
+      if (!item.originalTotal && item.total) item.originalTotal = [...item.total];
+      if (!item.originalTotal) return;
+      
+      if (state.excludeUnmapped && item.severity && item.severity[0]) {
+        item.total = [
+          Math.max(0, item.originalTotal[0] - (item.severity[0][0] || 0)),
+          Math.max(0, item.originalTotal[1] - (item.severity[0][1] || 0)),
+          Math.max(0, item.originalTotal[2] - (item.severity[0][2] || 0))
+        ];
+      } else {
+        item.total = [...item.originalTotal];
+      }
+    };
+    
+    data.hospitals.forEach(h => {
+      processItem(h);
+      if (h.services) {
+        Object.values(h.services).forEach(s => processItem(s));
+      }
+    });
+    
+    if (data.regional) {
+      processItem(data.regional);
+      if (data.regional.services) {
+        Object.values(data.regional.services).forEach(s => processItem(s));
+      }
+    }
+  }
   function updateTargetMeta() {
     const target = targetHospital();
     document.getElementById("targetMeta").innerHTML = `<strong>${escapeHtml(target.city || "Lokasi tidak tersedia")}</strong><span>Kelas ${escapeHtml(target.class || "โ€”")} ยท kode ${escapeHtml(target.code)} ยท ${formatNumber(target.total[CASES])} kasus</span>`;
@@ -2389,5 +2423,10 @@
 
   renderAll();
 })();
+
+
+
+
+
 
 
