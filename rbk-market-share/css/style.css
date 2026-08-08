@@ -1,4 +1,4 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=Quattrocento+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Quattrocento+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
 :root {
   --teal-deep: #087e83;
@@ -572,7 +572,7 @@ tr.is-disabled td { color: #9aa4b2; background: #fafbfc; }
   min-width: 0;
   padding: 0 48px;
   display: grid;
-  grid-template-columns: 150px minmax(120px, 1fr) 82px 154px 154px 150px;
+  grid-template-columns: 150px minmax(120px, 1fr) 82px max-content 150px;
   align-items: center;
   gap: 12px;
   color: #fff;
