@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Quattrocento+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Quattrocento+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
 :root {
   --teal-deep: #087e83;
@@ -34,6 +34,7 @@ body.simulator-app {
     radial-gradient(circle at 12% 18%, rgba(10,167,173,.16), transparent 29%),
     radial-gradient(circle at 88% 84%, rgba(67,183,122,.14), transparent 25%),
     var(--backdrop);
+  display: flex;
 }
 
 button,
@@ -46,10 +47,11 @@ input[type="number"] { outline-offset: 3px; }
 
 .viewport-stage {
   position: relative;
-  width: 100vw;
   height: 100vh;
   display: grid;
   place-items: center;
+  flex: 1;
+  overflow: hidden;
 }
 
 .deck-scaler {
@@ -975,10 +977,88 @@ tr.is-disabled td { color: #9aa4b2; background: #fafbfc; }
   margin-bottom: 12px;
 }
 .regional-profile-insight li::before {
-  content: '■';
+  content: 'โ– ';
   color: var(--teal);
   position: absolute;
   left: 0;
   font-size: 12px;
   top: 2px;
 }
+
+body.simulator-app {
+  overflow: hidden;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 12% 18%, rgba(10,167,173,.16), transparent 29%),
+    radial-gradient(circle at 88% 84%, rgba(67,183,122,.14), transparent 25%),
+    var(--backdrop);
+  display: flex;
+}
+
+.viewport-stage {
+  position: relative;
+  height: 100vh;
+  display: grid;
+  place-items: center;
+  flex: 1;
+  overflow: hidden;
+}
+
+.sidebar-panel {
+  width: 300px;
+  background: white;
+  border-left: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  box-shadow: -2px 0 10px rgba(0,0,0,0.05);
+  z-index: 50;
+  height: 100vh;
+}
+
+.sidebar-header {
+  padding: 20px 20px 15px;
+  border-bottom: 1px solid var(--line);
+  background: #f8fafc;
+}
+
+.sidebar-header h2 {
+  margin: 0 0 4px 0;
+  font-size: 15px;
+  color: #1e293b;
+}
+
+.sidebar-header p {
+  margin: 0;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.sidebar-content {
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sidebar-content .target-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar-content .target-picker > span {
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.sidebar-content .multi-select-dropdown {
+  position: relative;
+  width: 100%;
+  box-shadow: none;
+  border: 1px solid var(--line);
+  margin-top: 5px;
+}
+

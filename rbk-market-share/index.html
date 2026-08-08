@@ -27,34 +27,10 @@
                 <div class="search-select-dropdown" id="targetHospitalDropdown"></div>
               </div>
             </div>
-            <div class="target-picker filter-picker custom-multi">
-              <span>Filter Provinsi</span>
-              <div class="multi-select-container" id="provContainer">
-                <button class="multi-select-btn" type="button" id="provBtn">Semua Provinsi</button>
-                <div class="multi-select-dropdown" id="provDropdown"></div>
-              </div>
-            </div>
-            <div class="target-picker filter-picker custom-multi">
-              <span>Filter Kab/Kota</span>
-              <div class="multi-select-container" id="cityContainer">
-                <button class="multi-select-btn" type="button" id="cityBtn">Semua Kab/Kota</button>
-                <div class="multi-select-dropdown" id="cityDropdown"></div>
-              </div>
-            </div>
-            <div class="target-picker">
-              <span>Shortcut</span>
-              <div style="display: flex; gap: 8px;">
-                <button id="presetMoewardiBtn" class="preset-moewardi-btn" title="Filter khusus RS Moewardi">Preset Moewardi</button>
-                <button id="presetJabarBtn" class="preset-moewardi-btn" title="Filter Jabar tanpa Bebodepok">Jabar EX BEBODEPOK</button>
-              </div>
-            </div>
-            <div style="margin-left: auto; display: flex; align-items: center; height: 32px; padding: 0 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;">
-              <label style="font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color: #334155; font-weight: 600; margin: 0;">
-                <input type="checkbox" id="excludeUnmappedToggle" style="cursor: pointer; width: 14px; height: 14px; margin: 0;"> Kecualikan Level 0 (Tidak Terpetakan)
-              </label>
-            </div>
           </div>
-          <div class="target-meta" id="targetMeta" aria-live="polite"></div>
+          <div style="display: flex; align-items: center; gap: 12px; margin-left: auto;">
+            <div class="target-meta" id="targetMeta" aria-live="polite" style="border-left: none; padding-left: 0; text-align: right; margin-left: 0;"></div>
+          </div>
         </header>
 
         <div class="slide-stack">
@@ -117,12 +93,47 @@
       </div>
     </div>
   </main>
+  <aside class="sidebar-panel">
+    <div class="sidebar-header">
+      <h2>Pengaturan & Filter</h2>
+      <p>Sesuaikan cakupan regional</p>
+    </div>
+    <div class="sidebar-content">
+      <div class="target-picker filter-picker custom-multi">
+        <span>Filter Provinsi</span>
+        <div class="multi-select-container" id="provContainer">
+          <button class="multi-select-btn" type="button" id="provBtn">Semua Provinsi</button>
+          <div class="multi-select-dropdown" id="provDropdown"></div>
+        </div>
+      </div>
+      <div class="target-picker filter-picker custom-multi">
+        <span>Filter Kab/Kota</span>
+        <div class="multi-select-container" id="cityContainer">
+          <button class="multi-select-btn" type="button" id="cityBtn">Semua Kab/Kota</button>
+          <div class="multi-select-dropdown" id="cityDropdown"></div>
+        </div>
+      </div>
+      <div class="target-picker">
+        <span>Shortcut Wilayah</span>
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+          <button id="presetMoewardiBtn" class="preset-moewardi-btn" title="Filter khusus RS Moewardi">Preset Moewardi</button>
+          <button id="presetJabarBtn" class="preset-moewardi-btn" title="Filter Jabar tanpa Bebodepok">Jabar EX BEBODEPOK</button>
+        </div>
+      </div>
+      <div style="margin-top: 15px; border-top: 1px solid #e2e8f0; padding-top: 15px;">
+        <label style="font-size: 13px; display: flex; align-items: center; gap: 8px; cursor: pointer; color: #1e293b; font-weight: 700;">
+          <input type="checkbox" id="excludeUnmappedToggle" style="cursor: pointer; width: 16px; height: 16px; margin: 0;"> Kecualikan Level 0
+        </label>
+        <div style="font-size: 11px; color: #64748b; margin-top: 6px; line-height: 1.5;">Mengecualikan perhitungan untuk kasus yang layanannya belum terpetakan (Level 0).</div>
+      </div>
+    </div>
+  </aside>
   <script src="js/data.js"></script>
   <script src="js/xlsx.bundle.js"></script>
   <script src="js/dom-to-pptx.bundle.js"></script>
   <script src="js/pptxgen.bundle.js"></script>
   <script src="js/export-gslides.js?v=2026080802"></script>
   <script src="js/audit-excel.js?v=2026080801"></script>
-  <script src="js/app.js?v=2026080808"></script>
+  <script src="js/app.js?v=2026080809"></script>
 </body>
 </html>

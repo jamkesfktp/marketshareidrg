@@ -401,36 +401,24 @@
       slide.addText(k.val,{x:kx+0.06,y:kpiY+0.19,w:kpiW-0.18,h:0.20,fontSize:13,bold:true,color:k.color});
     });
 
-    /* ── Build recap data per service ── */
     var rows=[];
-
     rows.push([
-      {text:"No",          options:hG(C.tealL)},
-      {text:"Layanan",     options:Object.assign({},hG(C.tealL),{align:"left"})},
-      {text:"Kompeten\nsi",options:hG(C.tealL)},
-      {text:"Kasus\nRS",   options:hG(C.tealL)},
-      {text:"Kasus\nRegional",options:hG(C.tealL)},
-      {text:"Market\nShare",  options:hG(C.tealL)},
-      {text:"Rentang Tambahan Kasus\n(min s.d. maks skenario)",options:Object.assign({},hG("16a085"),{colspan:2})},
-      {text:"Rentang Tambahan Pendapatan\n(min s.d. maks skenario)",options:Object.assign({},hG("0e7490"),{colspan:2})},
-      {text:"Rentang Pengurangan Kasus\n(min s.d. maks skenario)",options:Object.assign({},hG(C.redD),{colspan:2})},
-      {text:"Rentang Pengurangan Pendapatan\n(min s.d. maks skenario)",options:Object.assign({},hG("9f1239"),{colspan:2})},
+      {text:"No",          options:hG(C.tealL, 2)},
+      {text:"Layanan",     options:Object.assign({},hG(C.tealL, 2),{align:"left"})},
+      {text:"Komp.",       options:hG(C.tealL, 2)},
+      {text:"Dampak per Tingkat Kompetensi (Rentang Kasus & Rp M)", options:Object.assign({},hG("16a085"),{colspan:4})},
+      {text:"Net +/- Pasca iDRG & RBKP", options:Object.assign({},hG("0e7490"),{colspan:3})},
+      {text:"Eksisting\nINA-CBG\n(Rp M)", options:hG("1e40af", 2)},
+      {text:"% Kenaikan\nthd INA-CBG", options:hG("1e40af", 2)},
     ]);
     rows.push([
-      {text:"",    options:hG(C.tealD,5)},
-      {text:"",    options:hG(C.tealD,5)},
-      {text:"",    options:hG(C.tealD,5)},
-      {text:"",    options:hG(C.tealD,5)},
-      {text:"",    options:hG(C.tealD,5)},
-      {text:"",    options:hG(C.tealD,5)},
-      {text:"Min", options:hG("16a085",5)},
-      {text:"Maks",options:hG("16a085",5)},
-      {text:"Min", options:hG("0e7490",5)},
-      {text:"Maks",options:hG("0e7490",5)},
-      {text:"Min", options:hG(C.redD,5)},
-      {text:"Maks",options:hG(C.redD,5)},
-      {text:"Min", options:hG("9f1239",5)},
-      {text:"Maks",options:hG("9f1239",5)},
+      {text:"Paripurna", options:hG("20b2aa")},
+      {text:"Utama",     options:hG("20b2aa")},
+      {text:"Madya",     options:hG("20b2aa")},
+      {text:"Dasar",     options:hG("20b2aa")},
+      {text:"+/- Jml Kasus", options:hG("0284c7")},
+      {text:"% thd\nEksisting", options:hG("0284c7")},
+      {text:"+/- Net Rp (M)", options:hG("0284c7")},
     ]);
 
     services.forEach(function(service, idx){
@@ -442,13 +430,11 @@
 
       var tKasus=tSvcTotal[CASES]||0;
       var rKasus=rSvcTotal[CASES]||0;
-      var ms=rKasus?tKasus/rKasus:0;
       var existingIna=tSvcTotal[INA]||0;
 
       var targetCompetency=tSvc?(tSvc.competency||0):0;
       var rules=getLevelRules(targetCompetency);
 
-      /* Re-compute base tambahan/pengurangan */
       var baseTambahan={1:[0,0],2:[0,0],3:[0,0],4:[0,0]};
       var basePengurangan={1:[0,0],2:[0,0],3:[0,0],4:[0,0]};
       rules.tambah.forEach(function(lvl){
@@ -464,7 +450,6 @@
 
       var scenarios=(state&&state.serviceScenarios&&state.serviceScenarios[service])||[];
       if(!scenarios||scenarios.length===0){
-        /* Fallback: generate default scenarios */
         scenarios=[];
         for(var si=0;si<6;si++){
           var scn={};
@@ -480,67 +465,108 @@
         }
       }
 
-      /* Compute min/max arrays */
-      var allTK=[], allTRp=[], allKK=[], allKRp=[];
+      var allDampak = { 4: {k:[],rp:[]}, 3: {k:[],rp:[]}, 2: {k:[],rp:[]}, 1: {k:[],rp:[]} };
+      var allNetK = [], allNetRp = [];
+      
       scenarios.forEach(function(scn){
-        var tK=0,tRp=0,kK=0,kRp=0;
-        rules.tambah.forEach(function(lvl){
-          if(scn.hasOwnProperty("tambah_"+lvl)){
-            var pp=scn["tambah_"+lvl]/100;
-            tK+=(baseTambahan[lvl][0]||0)*pp;
-            tRp+=(baseTambahan[lvl][1]||0)*pp;
+        var totalNetK=0, totalNetRp=0;
+        [4,3,2,1].forEach(function(lvl){
+          var k=0, rp=0;
+          if(rules.tambah.indexOf(lvl) !== -1 && scn.hasOwnProperty("tambah_"+lvl)) {
+            var pp = scn["tambah_"+lvl]/100;
+            k = (baseTambahan[lvl][0]||0) * pp;
+            rp = (baseTambahan[lvl][1]||0) * pp;
+          } else if(rules.kurang.indexOf(lvl) !== -1 && scn.hasOwnProperty("kurang_"+lvl)) {
+            var pk = scn["kurang_"+lvl]/100;
+            k = -((basePengurangan[lvl][0]||0) * pk);
+            rp = -((basePengurangan[lvl][1]||0) * pk);
           }
+          allDampak[lvl].k.push(k);
+          allDampak[lvl].rp.push(rp);
+          totalNetK += k;
+          totalNetRp += rp;
         });
-        rules.kurang.forEach(function(lvl){
-          if(scn.hasOwnProperty("kurang_"+lvl)){
-            var pk=scn["kurang_"+lvl]/100;
-            kK+=(basePengurangan[lvl][0]||0)*pk;
-            kRp+=(basePengurangan[lvl][1]||0)*pk;
-          }
-        });
-        allTK.push(tK); allTRp.push(tRp);
-        allKK.push(kK); allKRp.push(kRp);
+        allNetK.push(totalNetK);
+        allNetRp.push(totalNetRp);
       });
 
-      var minTK=Math.min.apply(null,allTK), maxTK=Math.max.apply(null,allTK);
-      var minTRp=Math.min.apply(null,allTRp), maxTRp=Math.max.apply(null,allTRp);
-      var minKK=Math.min.apply(null,allKK), maxKK=Math.max.apply(null,allKK);
-      var minKRp=Math.min.apply(null,allKRp), maxKRp=Math.max.apply(null,allKRp);
-
       var bg=idx%2===0?C.bgray:C.white;
-      function dO(extra){ return Object.assign({fontSize:6.5,fill:{color:bg},align:"center",valign:"middle"},extra||{}); }
+      function dO(extra){ return Object.assign({fontSize:6,fill:{color:bg},align:"center",valign:"middle"},extra||{}); }
 
-      var msColor=ms>=0.3?C.teal:(ms>=0.15?"f59e0b":"dc2626");
+      function formatCellArr(minV, maxV, isRp) {
+        if (minV === 0 && maxV === 0) return [{text:"-", options:dO({color:"cbd5e1"})}];
+        var isMinPos = minV > 0;
+        var isMaxPos = maxV > 0;
+        var color = (isMinPos || isMaxPos) ? "15803d" : "b91c1c";
+        var signMin = minV > 0 ? "+" : (minV < 0 ? "-" : "");
+        var signMax = maxV > 0 ? "+" : (maxV < 0 ? "-" : "");
+        
+        var tMin = isRp ? (Math.abs(minV)/1000000000).toFixed(1)+" M" : num(Math.abs(minV),0);
+        var tMax = isRp ? (Math.abs(maxV)/1000000000).toFixed(1)+" M" : num(Math.abs(maxV),0);
+        
+        if (minV === maxV) {
+          return [{text: signMin + " " + tMin, options: dO({color:color, bold:true})}];
+        } else {
+          return [
+            {text: signMin + " " + tMin + " ", options: dO({color:color, bold:true})},
+            {text: "s.d ", options: dO({color:"94a3b8", fontSize:5.5})},
+            {text: signMax + " " + tMax, options: dO({color:color, bold:true})}
+          ];
+        }
+      }
 
-      rows.push([
-        {text:String(idx+1),             options:dO({color:"94a3b8"})},
-        {text:service,                   options:dO({align:"left",bold:true,fontSize:6,wrap:true})},
-        {text:["","Dasar","Madya","Utama","Paripurna"][targetCompetency]||"-", options:dO({fontSize:6})},
-        {text:num(tKasus),               options:dO({color:C.teal,bold:true})},
-        {text:num(rKasus),               options:dO({color:C.green,bold:true})},
-        {text:pct(ms),                   options:dO({color:msColor,bold:true})},
-        {text:num(minTK,0),              options:dO({color:"16a085",fill:{color:idx%2===0?"f0fdf9":"edfdf8"}})},
-        {text:num(maxTK,0),              options:dO({bold:true,color:"16a085",fill:{color:idx%2===0?"f0fdf9":"edfdf8"}})},
-        {text:money(minTRp),             options:dO({color:"0e7490",fill:{color:idx%2===0?"f0f9ff":"e8f8ff"}})},
-        {text:money(maxTRp),             options:dO({bold:true,color:"0e7490",fill:{color:idx%2===0?"f0f9ff":"e8f8ff"}})},
-        {text:num(minKK,0),              options:dO({color:C.redD,fill:{color:idx%2===0?"fef2f2":"fef2f2"}})},
-        {text:num(maxKK,0),              options:dO({bold:true,color:C.redD,fill:{color:idx%2===0?"fef2f2":"fef2f2"}})},
-        {text:money(minKRp),             options:dO({color:"9f1239",fill:{color:idx%2===0?"fff1f2":"fff1f2"}})},
-        {text:money(maxKRp),             options:dO({bold:true,color:"9f1239",fill:{color:idx%2===0?"fff1f2":"fff1f2"}})},
-      ]);
+      var rowCells = [
+        {text:String(idx+1), options:dO({color:"94a3b8"})},
+        {text:service, options:dO({align:"left",bold:true,fontSize:6,wrap:true})},
+        {text:["","Dsr","Mdy","Utm","Prp"][targetCompetency]||"-", options:dO({fontSize:6})}
+      ];
+
+      [4,3,2,1].forEach(function(lvl){
+        var minK = Math.min.apply(null, allDampak[lvl].k);
+        var maxK = Math.max.apply(null, allDampak[lvl].k);
+        var minRp = Math.min.apply(null, allDampak[lvl].rp);
+        var maxRp = Math.max.apply(null, allDampak[lvl].rp);
+
+        if (minK === 0 && maxK === 0) {
+          rowCells.push({text:"-", options:dO({color:"cbd5e1"})});
+        } else {
+          var arrK = formatCellArr(minK, maxK, false);
+          arrK.push({text:"\n", options:dO()});
+          var arrRp = formatCellArr(minRp, maxRp, true);
+          rowCells.push({text: arrK.concat(arrRp), options:dO()});
+        }
+      });
+
+      var minNetK = Math.min.apply(null, allNetK);
+      var maxNetK = Math.max.apply(null, allNetK);
+      var minNetRp = Math.min.apply(null, allNetRp);
+      var maxNetRp = Math.max.apply(null, allNetRp);
+
+      var minPctK = tKasus ? minNetK/tKasus : 0;
+      var maxPctK = tKasus ? maxNetK/tKasus : 0;
+      var minPctRp = existingIna ? minNetRp/existingIna : 0;
+      var maxPctRp = existingIna ? maxNetRp/existingIna : 0;
+      
+      rowCells.push({text: formatCellArr(minNetK, maxNetK, false), options:dO({fill:{color:"f0f9ff"}})});
+      rowCells.push({text: formatCellArr(minPctK*100, maxPctK*100, false).map(function(c){ c.text=c.text.replace(" M","")+"%"; return c;}), options:dO({fill:{color:"f0f9ff"}})});
+      rowCells.push({text: formatCellArr(minNetRp, maxNetRp, true), options:dO({fill:{color:"f0f9ff"}})});
+      
+      rowCells.push({text: (existingIna/1000000000).toFixed(1)+" M", options:dO({fill:{color:"fbfccb"}, color:"854d0e", bold:true})});
+      
+      rowCells.push({text: formatCellArr(minPctRp*100, maxPctRp*100, false).map(function(c){ c.text=c.text.replace(" M","")+"%"; return c;}), options:dO({fill:{color:"eff6ff"}})});
+
+      rows.push(rowCells);
     });
 
-    /* ── Render table ── */
     var tableY=kpiY+kpiH+0.10;
     var totalW=W-0.24;
-    /* col widths: No, Layanan, Komp, KasusRS, KasusReg, MS, MinTK, MaxTK, MinTRp, MaxTRp, MinKK, MaxKK, MinKRp, MaxKRp */
-    var colW=[0.25, 1.80, 0.45, 0.50, 0.50, 0.45, 0.55, 0.55, 0.65, 0.65, 0.55, 0.55, 0.65, 0.65];
+    var colW=[0.25, 1.45, 0.40, 0.95, 0.95, 0.95, 0.95, 0.90, 0.70, 0.90, 0.65, 0.70];
     var rawSum=colW.reduce(function(a,b){return a+b;},0);
     var scaledW=colW.map(function(w){return parseFloat((w*totalW/rawSum).toFixed(3));});
 
     var nDataRows=services.length;
     var rowHArr=[0.36,0.22];
-    for(var r=0;r<nDataRows;r++) rowHArr.push(0.24);
+    for(var r=0;r<nDataRows;r++) rowHArr.push(0.35);
 
     var tableH=H-tableY-0.55;
     slide.addTable(rows,{
@@ -551,19 +577,15 @@
       colW:scaledW,
     });
 
-    /* ── Bottom note ── */
     var noteY=H-0.50;
     slide.addShape("rect",{x:0,y:noteY,w:W,h:0.48,fill:{color:"f7fbfa"},line:{color:"cfe8e5",pt:0.5}});
     slide.addText(
-      "* Rentang dihitung dari seluruh 6 skenario yang tersedia per layanan.  "+
-      "* Tambahan kasus = selisih kasus regional vs RS target dikali % asumsi tangkapan.  "+
-      "* Pengurangan pendapatan INA-CBG = estimasi nilai kasus yang mungkin beralih ke level lebih tinggi.  "+
-      "* Semua nilai bersifat proyeksi; kapasitas, SDM, dan kebijakan operasional belum diperhitungkan.",
+      "* Warna Hijau menandakan potensi penambahan (capture); warna Merah menandakan potensi kehilangan (loss).  "+
+      "* % Kenaikan thd INA-CBG dihitung dari (Proyeksi Tambahan iDRG - Pengurangan INA-CBG) / Eksisting INA-CBG.",
       {x:0.15,y:noteY+0.03,w:W-1.4,h:0.40,fontSize:5.5,color:"4e5d59",valign:"top",wrap:true}
     );
     slide.addText("Kemenkes",{x:W-1.25,y:noteY+0.06,w:1.15,h:0.35,fontSize:8,bold:true,color:C.teal,align:"right",valign:"middle"});
   }
-
   function buildCoverSlide(pptx, target, dateStr) {
     var slide=pptx.addSlide();
     slide.addShape("rect",{x:0,y:0,w:W,h:H,fill:{color:C.teal},line:{color:C.teal}});
