@@ -832,6 +832,12 @@
     const target = targetHospital();
     if (!target) return;
     
+    const formatSignedPercent = (val) => {
+      if (val === 0 || isNaN(val)) return "0%";
+      const sign = val > 0 ? "+" : "";
+      return sign + (val * 100).toFixed(1) + "%";
+    };
+    
     let html = `
       <div class="table-container" style="max-height: 500px; overflow-y: auto;">
         <table class="scenario-table" style="table-layout: auto; width: 100%; min-width: 1200px;">
