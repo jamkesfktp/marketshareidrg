@@ -9,6 +9,9 @@
 </head>
 <body class="simulator-app">
   <main class="viewport-stage" aria-label="Simulator market share regional rumah sakit">
+    <button id="sidebarOpenBtn" style="display: none; position: absolute; right: 20px; top: 20px; z-index: 100; background: white; border: 1px solid #cbd5e1; padding: 8px 12px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; font-weight: 600; font-size: 13px; color: #1e293b;">
+      <span style="margin-right: 6px;">⚙️</span> Buka Pengaturan
+    </button>
     <div class="deck-scaler" id="deckScaler">
       <div class="deck-shell">
         <header class="global-toolbar">
@@ -96,9 +99,12 @@
     </div>
   </main>
   <aside class="sidebar-panel">
-    <div class="sidebar-header">
-      <h2>Pengaturan & Filter</h2>
-      <p>Sesuaikan cakupan regional</p>
+    <div class="sidebar-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+      <div>
+        <h2>Pengaturan & Filter</h2>
+        <p>Sesuaikan cakupan regional</p>
+      </div>
+      <button id="sidebarToggleBtn" style="background: none; border: none; cursor: pointer; font-size: 18px; color: #64748b; padding: 4px;" title="Tutup Panel Filter">×</button>
     </div>
     <div class="sidebar-content">
       <div class="target-picker filter-picker custom-multi">

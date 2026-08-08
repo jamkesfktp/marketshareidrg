@@ -2466,3 +2466,19 @@
 
   renderAll();
 })();
+
+  const sidebarPanel = document.querySelector('.sidebar-panel');
+  const toggleBtn = document.getElementById('sidebarToggleBtn');
+  const openBtn = document.getElementById('sidebarOpenBtn');
+
+  if (sidebarPanel && toggleBtn && openBtn) {
+    toggleBtn.addEventListener('click', () => {
+      sidebarPanel.style.display = 'none';
+      openBtn.style.display = 'block';
+    });
+
+    openBtn.addEventListener('click', () => {
+      sidebarPanel.style.display = 'flex';
+      openBtn.style.display = 'none';
+    });
+  }
