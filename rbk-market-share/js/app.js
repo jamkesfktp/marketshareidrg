@@ -1442,7 +1442,8 @@
                     </tbody>
                   </table>
                 </div>
-                <table style="width: 100%; border-collapse: collapse; margin-top: 16px; border: 1px solid #cfe8e5; border-radius: 8px; overflow: hidden; background: #f7fbfa;" aria-label="Insight simulasi berbasis data">
+                <div style="padding-top: 16px;">
+                <table style="width: 100%; border-collapse: collapse; border: 1px solid #cfe8e5; border-radius: 8px; overflow: hidden; background: #f7fbfa;" aria-label="Insight simulasi berbasis data">
                   <tbody>
                     <tr>
                       <td style="width: 160px; background: #087e83; color: #fff; padding: 14px 16px; vertical-align: middle; font-size: 16pt; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap;">Insight 💡</td>
@@ -1452,6 +1453,7 @@
                     </tr>
                   </tbody>
                 </table>
+                </div>
                 <div style="margin-top: 6px; font-size: 11px; color: #4e5d59; font-style: italic; line-height: 1.5; background: #f4f8f7; padding: 6px 10px; border-radius: 6px; border: 1px solid #d9e5e2;">
                   <div>* % Penambahan kasus dihitung dari Total Kasus Regional</div>
                   <div>* % Pengurangan kasus dihitung dari Kasus Eksisting RS</div>
