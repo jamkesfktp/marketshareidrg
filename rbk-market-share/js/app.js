@@ -1731,6 +1731,7 @@
     renderComparisonSlide();
     renderRegionalProfileSlide();
     renderScenarioSlide();
+    renderRecapSlide();
     renderSimulatorSlide();
     renderCompetitionSlide();
     renderSummarySlide();
