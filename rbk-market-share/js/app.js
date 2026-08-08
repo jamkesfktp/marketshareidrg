@@ -1119,10 +1119,14 @@
           
           rules.kurang.forEach(lvl => {
             if (lvl > targetCompetency) {
+              // Level di atas kompetensi RS target → 100% (semua kasus akan pindah)
+              scn['kurang_' + lvl] = 100;
+            } else if (lvl === 4) {
+              // Paripurna tetap 100%
               scn['kurang_' + lvl] = 100;
             } else {
-              let val = 50 + (i * 10);
-              scn['kurang_' + lvl] = parseFloat(Math.min(100, val).toFixed(1));
+              // Level lain (Dasar, Madya, Utama) → default 90%
+              scn['kurang_' + lvl] = 90;
             }
           });
           
@@ -1399,14 +1403,14 @@
               [4, 3, 2, 1].forEach(lvl => {
                 if (state.serviceScenarios[service][0].hasOwnProperty('tambah_' + lvl)) {
                   const cCount = compCountByLevel[lvl] || 0;
-                  tHead1 += `<th colspan="3" class="b-top-green b-left-green b-right-green" style="background-color: #16a085; color: white; padding: 4px; font-size: 11px;">Tambahan Kasus<br>${levelNames[lvl]} <span style="font-weight: 700; color: #d1fae5;">(${cCount} RS)</span></th>`;
+                  tHead1 += `<th colspan="3" class="b-top-green b-left-green b-right-green" style="background-color: #16a085; color: white; padding: 4px; font-size: 11px;">Tambahan Kasus<br>${levelNames[lvl]} <span style="font-weight: 700; color: #d1fae5;">*</span></th>`;
                   tHead2 += `<th style="color: white; padding: 4px; font-size: 10px;">Persentase<br>(%)</th><th style="color: white; padding: 4px; font-size: 10px;">Jumlah<br>Kasus</th><th style="color: white; padding: 4px; font-size: 10px;">Tambahan<br>Pendapatan<br>(Rp M)</th>`;
                 }
               });
               [4, 3, 2, 1].forEach(lvl => {
                 if (state.serviceScenarios[service][0].hasOwnProperty('kurang_' + lvl)) {
                   const cCount = compCountByLevel[lvl] || 0;
-                  tHead1 += `<th colspan="3" class="b-top-red b-left-red b-right-red" style="background-color: #b93d4a; color: white; padding: 4px; font-size: 11px;">Pengurangan Kasus<br>${levelNames[lvl]} <span style="font-weight: 700; color: #fee2e2;">(${cCount} RS)</span></th>`;
+                  tHead1 += `<th colspan="3" class="b-top-red b-left-red b-right-red" style="background-color: #b93d4a; color: white; padding: 4px; font-size: 11px;">Pengurangan Kasus<br>${levelNames[lvl]} <span style="font-weight: 700; color: #fee2e2;">*</span></th>`;
                   tHead2 += `<th style="color: white; padding: 4px; font-size: 10px;">Persentase<br>(%)</th><th style="color: white; padding: 4px; font-size: 10px;">Jumlah<br>Kasus</th><th style="color: white; padding: 4px; font-size: 10px;">Pengurangan<br>Pendapatan<br>(Rp M)</th>`;
                 }
               });
@@ -1454,8 +1458,8 @@
                 </table>
                 </div>
                 <div style="margin-top: 6px; font-size: 11px; color: #4e5d59; font-style: italic; line-height: 1.5; background: #f4f8f7; padding: 6px 10px; border-radius: 6px; border: 1px solid #d9e5e2;">
-                  <div>* % Penambahan kasus dihitung dari Total Kasus Regional</div>
-                  <div>* % Pengurangan kasus dihitung dari Kasus Eksisting RS</div>
+                  <div>* % Penambahan kasus dihitung dari selisih kasus regional vs RS target; persentase default menggunakan pembagi berupa jumlah RS kompetitor berkompetensi <strong>setara atau lebih tinggi</strong> dari level tersebut (bukan hanya level itu saja).</div>
+                  <div>* % Pengurangan kasus dihitung dari Kasus Eksisting RS.</div>
                   <div>* Insight adalah pembacaan langsung atas angka simulasi; kapasitas, SDM, pola rujukan, dan kesiapan layanan belum dimasukkan.</div>
                 </div>
               `;
