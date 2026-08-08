@@ -358,6 +358,205 @@
     addInsightBar(slide, {opportunityTxt:opportunityTxt,riskTxt:riskTxt,competitorTxt:competitorTxt,scenarioTxt:scenarioTxt});
   }
 
+  /* ══════════════════════════════════════════════════════════════
+     RECAP SLIDE  – Ringkasan seluruh layanan (rentang skenario)
+  ══════════════════════════════════════════════════════════════ */
+  function buildRecapSlide(pptx, appState) {
+    var data=appState.data, state=appState.state, target=appState.target;
+    var services=appState.services;
+    var CASES=appState.CASES, INA=appState.INA, IDRG=appState.IDRG, dateStr=appState.dateStr;
+
+    var slide=pptx.addSlide();
+    slide.background={color:C.bgray};
+
+    /* ── Header ── */
+    slide.addShape("rect",{x:0,y:0,w:W,h:0.50,fill:{color:C.teal},line:{color:C.teal}});
+    slide.addText("Rekap Simulasi Seluruh Layanan — "+target.name,{
+      x:0.18,y:0,w:9.5,h:0.50,fontSize:13,bold:true,color:C.white,valign:"middle"
+    });
+    slide.addShape("rect",{x:W-2.8,y:0.04,w:2.62,h:0.42,fill:{color:C.redD},line:{color:C.redD}});
+    slide.addText("Data Mirroring Uji Coba iDRG\n"+dateStr,{
+      x:W-2.8,y:0.04,w:2.62,h:0.42,fontSize:6.5,color:C.white,align:"center",valign:"middle"
+    });
+
+    /* ── Sub-header KPI strip ── */
+    var tHosp=data.hospitals&&data.hospitals.find(function(h){return h.code===target.code;});
+    var tTotal=tHosp&&tHosp.total||[0,0,0];
+    var rTotal=data.regional&&data.regional.total||[0,0,0];
+    var msAll=rTotal[CASES]?tTotal[CASES]/rTotal[CASES]:0;
+
+    var kpiY=0.54, kpiH=0.42;
+    var kpis=[
+      {lbl:"Total Kasus RS Target",val:num(tTotal[CASES]),color:C.teal},
+      {lbl:"Total Kasus Regional",val:num(rTotal[CASES]),color:C.green},
+      {lbl:"Market Share Keseluruhan",val:pct(msAll),color:"f59e0b"},
+      {lbl:"Jumlah Layanan",val:String(services.length)+" Layanan",color:"6d28d9"},
+    ];
+    var kpiW=(W-0.24)/kpis.length;
+    kpis.forEach(function(k,i){
+      var kx=0.12+i*kpiW;
+      slide.addShape("rect",{x:kx,y:kpiY,w:kpiW-0.06,h:kpiH,fill:{color:C.white},line:{color:C.lgray,pt:0.5}});
+      slide.addShape("rect",{x:kx,y:kpiY,w:kpiW-0.06,h:0.05,fill:{color:k.color},line:{color:k.color}});
+      slide.addText(k.lbl,{x:kx+0.06,y:kpiY+0.06,w:kpiW-0.18,h:0.13,fontSize:6,color:"64748b"});
+      slide.addText(k.val,{x:kx+0.06,y:kpiY+0.19,w:kpiW-0.18,h:0.20,fontSize:13,bold:true,color:k.color});
+    });
+
+    /* ── Build recap data per service ── */
+    var rows=[];
+
+    /* Header row */
+    function hG(bg,fs){ return {bold:true,color:C.white,fill:{color:bg||C.tealL},fontSize:fs||6,align:"center",valign:"middle"}; }
+    rows.push([
+      {text:"No",          options:hG(C.tealL)},
+      {text:"Layanan",     options:Object.assign({},hG(C.tealL),{align:"left"})},
+      {text:"Kompeten\nsi",options:hG(C.tealL)},
+      {text:"Kasus\nRS",   options:hG(C.tealL)},
+      {text:"Kasus\nRegional",options:hG(C.tealL)},
+      {text:"Market\nShare",  options:hG(C.tealL)},
+      {text:"Rentang Tambahan Kasus\n(min s.d. maks skenario)",options:Object.assign({},hG("16a085"),{colspan:2})},
+      {text:"Rentang Tambahan Pendapatan iDRG\n(min s.d. maks skenario)",options:Object.assign({},hG("0e7490"),{colspan:2})},
+      {text:"Pengurangan\nPendapatan\nINA-CBG\n(Rp)",options:hG(C.redD)},
+    ]);
+    rows.push([
+      {text:"",    options:hG(C.tealD,5)},
+      {text:"",    options:hG(C.tealD,5)},
+      {text:"",    options:hG(C.tealD,5)},
+      {text:"",    options:hG(C.tealD,5)},
+      {text:"",    options:hG(C.tealD,5)},
+      {text:"",    options:hG(C.tealD,5)},
+      {text:"Min", options:hG("16a085",5)},
+      {text:"Maks",options:hG("16a085",5)},
+      {text:"Min", options:hG("0e7490",5)},
+      {text:"Maks",options:hG("0e7490",5)},
+      {text:"",    options:hG(C.redD,5)},
+    ]);
+
+    services.forEach(function(service, idx){
+      var tHospSvc = tHosp&&tHosp.services&&tHosp.services[service];
+      var svcData  = data.regional&&data.regional.services&&data.regional.services[service];
+      var tSvc     = tHospSvc;
+      var tSvcTotal= tSvc&&tSvc.total||[0,0,0];
+      var rSvcTotal= svcData&&svcData.total||[0,0,0];
+
+      var tKasus=tSvcTotal[CASES]||0;
+      var rKasus=rSvcTotal[CASES]||0;
+      var ms=rKasus?tKasus/rKasus:0;
+      var existingIna=tSvcTotal[INA]||0;
+
+      var targetCompetency=tSvc?(tSvc.competency||0):0;
+      var rules=getLevelRules(targetCompetency);
+
+      /* Re-compute base tambahan/pengurangan */
+      var baseTambahan={1:[0,0],2:[0,0],3:[0,0],4:[0,0]};
+      var basePengurangan={1:[0,0],2:[0,0],3:[0,0],4:[0,0]};
+      rules.tambah.forEach(function(lvl){
+        var rM=severityMetric(svcData,lvl), tM=severityMetric(tSvc,lvl);
+        baseTambahan[lvl][0]=Math.max(0,(rM[CASES]||0)-(tM[CASES]||0));
+        baseTambahan[lvl][1]=Math.max(0,(rM[IDRG]||0)-(tM[IDRG]||0));
+      });
+      rules.kurang.forEach(function(lvl){
+        var tM=severityMetric(tSvc,lvl);
+        basePengurangan[lvl][0]=tM[CASES]||0;
+        basePengurangan[lvl][1]=tM[INA]||0;
+      });
+
+      var scenarios=(state&&state.serviceScenarios&&state.serviceScenarios[service])||[];
+      if(!scenarios||scenarios.length===0){
+        /* Fallback: generate default scenarios */
+        scenarios=[];
+        for(var si=0;si<6;si++){
+          var scn={};
+          rules.tambah.forEach(function(lvl){
+            var lvlComp=data.hospitals.filter(function(h){return h.code!==target.code&&getCompetency(h,service)>=lvl;}).length;
+            var base=lvlComp>0?Math.min(50,100/(lvlComp+1)):50;
+            scn["tambah_"+lvl]=parseFloat(Math.min(100,Math.max(0,base+si*10)).toFixed(1));
+          });
+          rules.kurang.forEach(function(lvl){
+            scn["kurang_"+lvl]=(lvl>targetCompetency||lvl===4)?100:90;
+          });
+          scenarios.push(scn);
+        }
+      }
+
+      /* Compute net kasus & net Rp for each scenario */
+      var allNetKasus=[], allNetRp=[];
+      scenarios.forEach(function(scn){
+        var tK=0,tRp=0,kK=0,kRp=0;
+        rules.tambah.forEach(function(lvl){
+          if(scn.hasOwnProperty("tambah_"+lvl)){
+            var pp=scn["tambah_"+lvl]/100;
+            tK+=(baseTambahan[lvl][0]||0)*pp;
+            tRp+=(baseTambahan[lvl][1]||0)*pp;
+          }
+        });
+        rules.kurang.forEach(function(lvl){
+          if(scn.hasOwnProperty("kurang_"+lvl)){
+            var pk=scn["kurang_"+lvl]/100;
+            kK+=(basePengurangan[lvl][0]||0)*pk;
+            kRp+=(basePengurangan[lvl][1]||0)*pk;
+          }
+        });
+        allNetKasus.push(tK-kK);
+        allNetRp.push(tRp-kRp);
+      });
+
+      var minK=Math.min.apply(null,allNetKasus), maxK=Math.max.apply(null,allNetKasus);
+      var minRp=Math.min.apply(null,allNetRp),   maxRp=Math.max.apply(null,allNetRp);
+
+      var bg=idx%2===0?C.bgray:C.white;
+      function dO(extra){ return Object.assign({fontSize:6.5,fill:{color:bg},align:"center",valign:"middle"},extra||{}); }
+
+      var msColor=ms>=0.3?C.teal:(ms>=0.15?"f59e0b":"dc2626");
+
+      rows.push([
+        {text:String(idx+1),             options:dO({color:"94a3b8"})},
+        {text:service,                   options:dO({align:"left",bold:true,fontSize:6,wrap:true})},
+        {text:["","Dasar","Madya","Utama","Paripurna"][targetCompetency]||"-", options:dO({fontSize:6})},
+        {text:num(tKasus),               options:dO({color:C.teal,bold:true})},
+        {text:num(rKasus),               options:dO({color:C.green,bold:true})},
+        {text:pct(ms),                   options:dO({color:msColor,bold:true})},
+        {text:num(minK,0),               options:dO({color:"16a085",fill:{color:idx%2===0?"f0fdf9":"edfdf8"}})},
+        {text:num(maxK,0),               options:dO({bold:true,color:"16a085",fill:{color:idx%2===0?"f0fdf9":"edfdf8"}})},
+        {text:money(minRp),              options:dO({color:"0e7490",fill:{color:idx%2===0?"f0f9ff":"e8f8ff"}})},
+        {text:money(maxRp),              options:dO({bold:true,color:"0e7490",fill:{color:idx%2===0?"f0f9ff":"e8f8ff"}})},
+        {text:money(existingIna),        options:dO({color:C.redD})},
+      ]);
+    });
+
+    /* ── Render table ── */
+    var tableY=kpiY+kpiH+0.10;
+    var totalW=W-0.24;
+    /* col widths: No, Layanan, Komp, KasusRS, KasusReg, MS, MinK, MaxK, MinRp, MaxRp, INA */
+    var colW=[0.28, 2.10, 0.52, 0.55, 0.60, 0.50, 0.65, 0.65, 0.80, 0.80, 0.72];
+    var rawSum=colW.reduce(function(a,b){return a+b;},0);
+    var scaledW=colW.map(function(w){return parseFloat((w*totalW/rawSum).toFixed(3));});
+
+    var nDataRows=services.length;
+    var rowHArr=[0.36,0.22];
+    for(var r=0;r<nDataRows;r++) rowHArr.push(0.24);
+
+    var tableH=H-tableY-0.55;
+    slide.addTable(rows,{
+      x:0.12, y:tableY, w:totalW, h:tableH,
+      border:{type:"solid",color:C.lgray,pt:0.5},
+      autoPage:false,
+      rowH:rowHArr,
+      colW:scaledW,
+    });
+
+    /* ── Bottom note ── */
+    var noteY=H-0.50;
+    slide.addShape("rect",{x:0,y:noteY,w:W,h:0.48,fill:{color:"f7fbfa"},line:{color:"cfe8e5",pt:0.5}});
+    slide.addText(
+      "* Rentang dihitung dari seluruh 6 skenario yang tersedia per layanan.  "+
+      "* Tambahan kasus = selisih kasus regional vs RS target dikali % asumsi tangkapan.  "+
+      "* Pengurangan pendapatan INA-CBG = estimasi nilai kasus yang mungkin beralih ke level lebih tinggi.  "+
+      "* Semua nilai bersifat proyeksi; kapasitas, SDM, dan kebijakan operasional belum diperhitungkan.",
+      {x:0.15,y:noteY+0.03,w:W-1.4,h:0.40,fontSize:5.5,color:"4e5d59",valign:"top",wrap:true}
+    );
+    slide.addText("Kemenkes",{x:W-1.25,y:noteY+0.06,w:1.15,h:0.35,fontSize:8,bold:true,color:C.teal,align:"right",valign:"middle"});
+  }
+
   function buildCoverSlide(pptx, target, dateStr) {
     var slide=pptx.addSlide();
     slide.addShape("rect",{x:0,y:0,w:W,h:H,fill:{color:C.teal},line:{color:C.teal}});
@@ -381,10 +580,18 @@
     pptx.title="Market Share iDRG - "+target.name;
 
     var dateStr=new Date().toLocaleDateString("id-ID",{day:"2-digit",month:"long",year:"numeric"});
+
+    var appStateWithIdx=Object.assign({},appState,{CASES:CASES,INA:INA,IDRG:IDRG,dateStr:dateStr});
+
+    /* Slide 1: Cover */
     buildCoverSlide(pptx, target, dateStr);
 
+    /* Slide 2: Rekap seluruh layanan */
+    buildRecapSlide(pptx, appStateWithIdx);
+
+    /* Slide 3+: Per-layanan */
     for(var i=0;i<services.length;i++){
-      buildServiceSlide(pptx, services[i], {data:data,state:state,target:target,CASES:CASES,INA:INA,IDRG:IDRG,dateStr:dateStr});
+      buildServiceSlide(pptx, services[i], appStateWithIdx);
     }
 
     var safeCode=(target.code||"rs").replace(/[^a-z0-9]/gi,"_");
@@ -394,3 +601,4 @@
 
   window.exportGoogleSlides = exportGoogleSlides;
 })();
+
