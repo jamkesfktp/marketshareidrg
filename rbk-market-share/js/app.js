@@ -2173,6 +2173,33 @@
   });
 
   document.getElementById("exportPptx").addEventListener("click", exportDashboardToPptx);
+
+  document.getElementById("exportGSlidesBtn").addEventListener("click", async function() {
+    const btn = this;
+    const status = document.getElementById("exportStatus");
+    btn.disabled = true;
+    btn.textContent = "Menyiapkan...";
+    status.textContent = "Membangun file Google Slides...";
+    try {
+      const target = targetHospital();
+      const services = getActiveServices();
+      await window.exportGoogleSlides({
+        data, state, target, CASES, REVENUE,
+        services,
+        levelNames,
+      });
+      btn.textContent = "Terunduh!";
+      status.textContent = "File Google Slides berhasil dibuat.";
+    } catch (err) {
+      console.error("Google Slides export failed", err);
+      btn.textContent = "Gagal";
+      status.textContent = "Ekspor gagal: " + err.message;
+    } finally {
+      btn.disabled = false;
+      setTimeout(function() { btn.textContent = "Export Google Slides"; }, 2400);
+    }
+  });
+
   document.addEventListener("keydown", (event) => {
     if (["INPUT", "SELECT", "TEXTAREA"].includes(event.target.tagName)) return;
     if (["ArrowRight", "PageDown", " "].includes(event.key)) showSlide(state.activeSlide + 1);
