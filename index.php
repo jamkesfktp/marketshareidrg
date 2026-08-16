@@ -1,0 +1,430 @@
+<?php
+session_start();
+if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_logged_in'] !== true) {
+    header("Location: login.php");
+    exit;
+}
+$loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['username'] : 'User');
+?>
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <link rel="icon" href="data:,">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Simulator Market Share Regional Rumah Sakit</title>
+  <link rel="stylesheet" href="css/style.css?v=2026081612">
+</head>
+<body class="simulator-app">
+  <main class="viewport-stage" aria-label="Simulator market share regional rumah sakit">
+    <button id="sidebarOpenBtn" style="display: none; position: absolute; right: 20px; top: 20px; z-index: 100; background: white; border: 1px solid #cbd5e1; padding: 8px 12px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; font-weight: 600; font-size: 13px; color: #1e293b;">
+      <span style="margin-right: 6px;">⚙️</span> Buka Pengaturan
+    </button>
+    <div class="deck-scaler" id="deckScaler">
+      <div class="deck-shell">
+        <header class="global-toolbar">
+          <div class="brand-block">
+            <img src="img/logo-kemenkes.png" alt="Logo Kementerian Kesehatan RI" class="brand-logo">
+            <div>
+              <strong>Simulator Market Share Regional</strong>
+              <span>Kasus dan pendapatan INACBG · 24 layanan</span>
+            </div>
+          </div>
+          <div class="toolbar-controls">
+            <div class="target-picker custom-search-select" id="hospitalSelectWrapper">
+              <span>RS target simulasi</span>
+              <div class="search-select-container">
+                <input type="text" id="targetHospitalInput" placeholder="Cari RS (nama/kota)..." autocomplete="off" aria-label="Cari RS target">
+                <div class="search-select-dropdown" id="targetHospitalDropdown"></div>
+              </div>
+            <button id="muhammadiyahGroupNavBtn" type="button" title="Buka Analisis Group RS Muhammadiyah & Aisyiyah" style="margin-left: 8px; background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; border-radius: 8px; padding: 7px 13px; font-size: 11.5px; font-weight: 750; display: flex; align-items: center; gap: 5px; cursor: pointer; box-shadow: 0 2px 4px rgba(5, 150, 105, 0.25); transition: all 0.2s ease;">
+              <span>🏥</span> Group Muhammadiyah
+            </button>
+            <div class="custom-multi" style="position: relative; display: inline-block;">
+              <button id="nationalMirroringNavBtn" type="button" title="Buka Data Mirroring Nasional iDRG (7 Slide)" style="margin-left: 6px; background: linear-gradient(135deg, #0d9488, #0284c7); color: white; border: none; border-radius: 8px; padding: 7px 13px; font-size: 11.5px; font-weight: 750; display: flex; align-items: center; gap: 5px; cursor: pointer; box-shadow: 0 2px 4px rgba(13, 148, 136, 0.25); transition: all 0.2s ease;">
+                <span>📊</span> Data Mirroring Nasional <span style="font-size: 9px; margin-left: 2px;">▼</span>
+              </button>
+              <div id="nationalMirroringDropdown" class="multi-select-dropdown" style="width: 330px; padding: 6px 0; background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); z-index: 1000;">
+                <div style="padding: 6px 14px; font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; border-bottom: 1px solid #f1f5f9; letter-spacing: 0.5px;">
+                  Pilih Slide Data Mirroring (7 Slide)
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 1px; padding: 4px 6px;">
+                  <button type="button" class="national-nav-item-btn" data-offset="0" style="display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 8px 10px; border: none; background: transparent; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700; color: #0f172a; transition: background 0.15s;">
+                    <span style="background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-size: 10.5px; font-weight: 800;">Slide 1</span>
+                    <span>Jumlah Data Masuk Jenis Rawat</span>
+                  </button>
+                  <button type="button" class="national-nav-item-btn" data-offset="1" style="display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 8px 10px; border: none; background: transparent; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700; color: #0f172a; transition: background 0.15s;">
+                    <span style="background: #fef3c7; color: #b45309; padding: 2px 6px; border-radius: 4px; font-size: 10.5px; font-weight: 800;">Slide 2</span>
+                    <span>Simulasi Spending iDRG per Kelas RS</span>
+                  </button>
+                  <button type="button" class="national-nav-item-btn" data-offset="2" style="display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 8px 10px; border: none; background: transparent; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700; color: #0f172a; transition: background 0.15s;">
+                    <span style="background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-size: 10.5px; font-weight: 800;">Slide 3</span>
+                    <span>10 Besar Kasus Rawat Inap (CMG/MDC)</span>
+                  </button>
+                  <button type="button" class="national-nav-item-btn" data-offset="3" style="display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 8px 10px; border: none; background: transparent; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700; color: #0f172a; transition: background 0.15s;">
+                    <span style="background: #f0fdf4; color: #166534; padding: 2px 6px; border-radius: 4px; font-size: 10.5px; font-weight: 800;">Slide 4</span>
+                    <span>Tingkat Keparahan / Complexity Ranap</span>
+                  </button>
+                  <button type="button" class="national-nav-item-btn" data-offset="4" style="display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 8px 10px; border: none; background: transparent; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700; color: #0f172a; transition: background 0.15s;">
+                    <span style="background: #fef3c7; color: #b45309; padding: 2px 6px; border-radius: 4px; font-size: 10.5px; font-weight: 800;">Slide 5</span>
+                    <span>10 Besar Kasus Rawat Jalan (CMG/MDC)</span>
+                  </button>
+                  <button type="button" class="national-nav-item-btn" data-offset="5" style="display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 8px 10px; border: none; background: transparent; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700; color: #0f172a; transition: background 0.15s;">
+                    <span style="background: #ccfbf1; color: #0f766e; padding: 2px 6px; border-radius: 4px; font-size: 10.5px; font-weight: 800;">Slide 6</span>
+                    <span>Distribusi Kasus Q-5-44-0 Rajal</span>
+                  </button>
+                  <button type="button" class="national-nav-item-btn" data-offset="6" style="display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 8px 10px; border: none; background: transparent; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700; color: #0f172a; transition: background 0.15s;">
+                    <span style="background: #fef3c7; color: #b45309; padding: 2px 6px; border-radius: 4px; font-size: 10.5px; font-weight: 800;">Slide 7</span>
+                    <span>Profil &amp; Kasus Regional Kompetensi ICD</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          <div style="display: flex; align-items: center; gap: 10px; margin-left: auto;">
+            <div id="activePeriodChip" style="background: #eff6ff; color: #1d4ed8; border: 1.5px solid #bfdbfe; font-size: 11.5px; font-weight: 800; padding: 4px 10px; border-radius: 8px; display: flex; align-items: center; gap: 5px; white-space: nowrap; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+              <span>📅</span> <span id="activePeriodLabel">Okt 2025 - Jun 2026 (8 Bulan)</span>
+            </div>
+            <div id="activeTariffChip" style="background: #f0fdf4; color: #166534; border: 1.5px solid #bbf7d0; font-size: 11.5px; font-weight: 800; padding: 4px 10px; border-radius: 8px; display: flex; align-items: center; gap: 5px; white-space: nowrap; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+              <span>💳</span> <span id="activeTariffLabel">iDRG 1370 (AF + AFreg + AFkep)</span>
+            </div>
+            <div class="target-meta" id="targetMeta" aria-live="polite" style="border-left: none; padding-left: 0; text-align: right; margin-left: 0;"></div>
+            <div style="display: flex; align-items: center; gap: 8px; border-left: 1px solid #cbd5e1; padding-left: 12px;">
+              <span style="font-size: 12px; font-weight: 600; color: #334155;">👤 <?php echo $loggedInUser; ?></span>
+              <a href="logout.php" style="color: #dc2626; background: #fee2e2; border: 1px solid #fca5a5; font-size: 11px; font-weight: 700; text-decoration: none; padding: 4px 10px; border-radius: 6px; transition: all 0.2s ease;">Keluar</a>
+            </div>
+          </div>
+        </header>
+
+        <div class="slide-stack">
+          <section class="slide existing-detail-slide target-summary-slide is-active" data-slide="0" aria-labelledby="summarySlideTitle">
+            <div class="existing-report-title">
+              <h1 id="summarySlideTitle">Ringkasan Kasus &amp; Pendapatan RS Target</h1>
+              <div class="existing-period-badge">Data Mirroring Uji Coba iDRG<br><strong>periode 15 Okt 2025 - 14 Juni 2026</strong></div>
+            </div>
+            <div id="targetSummarySlide" class="existing-report-content" style="padding: 15px 25px; display: flex; flex-direction: column; gap: 15px;"></div>
+          </section>
+
+          <section class="slide map-detail-slide" data-slide="1" aria-labelledby="mapSlideTitle" hidden>
+            <div class="existing-report-title">
+              <h1 id="mapSlideTitle">Peta Sebaran RS Regional &amp; Jejaring</h1>
+              <div class="existing-period-badge">Data Mirroring Uji Coba iDRG<br><strong>periode 15 Okt 2025 - 14 Juni 2026</strong></div>
+            </div>
+            <div class="map-slide-content" style="padding: 15px 25px; display: flex; flex-direction: column; gap: 12px; height: calc(100% - 65px);">
+              <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 18px; display: flex; justify-content: space-between; align-items: center;">
+                <div id="mapStatsText" style="font-size: 14px; font-weight: 700; color: #1e293b;">
+                  Menampilkan <span id="mapHospitalCount" style="color: #0284c7; font-weight: 900;">0</span> Rumah Sakit
+                </div>
+                <div style="display: flex; gap: 18px; align-items: center; font-size: 12px; font-weight: 700;">
+                  <span style="display: flex; align-items: center; gap: 6px;"><span style="display: inline-block; width: 7px; height: 7px; background: #16a34a; border-radius: 50%;"></span> RS Muhammadiyah/Aisyiyah</span>
+                  <span style="display: flex; align-items: center; gap: 6px;"><span style="display: inline-block; width: 6px; height: 6px; background: #0284c7; border-radius: 50%;"></span> RS Regional Lainnya</span>
+                  <span style="display: flex; align-items: center; gap: 6px;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: #dc2626; color: #ffffff; border-radius: 6px; font-size: 12px; font-weight: 900; box-shadow: 0 2px 4px rgba(220,38,38,0.35);">🏥</span> <strong>RS Target Terpilih</strong></span>
+                </div>
+              </div>
+              <div id="svgMapContainer" style="width: 100%; flex: 1; min-height: 480px; border-radius: 12px; border: 1px solid #cbd5e1; background: #e0f2fe; position: relative; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.06);"></div>
+            </div>
+          </section>
+
+          <section class="slide existing-detail-slide" data-slide="2" aria-labelledby="slide1Title" hidden>
+            <div class="existing-report-title">
+              <h1 id="slide1Title">Kasus Eksisting Per Layanan</h1>
+              <div class="existing-period-badge">Data Mirroring Uji Coba iDRG<br><strong>periode 15 Okt 2025 - 14 Juni 2026</strong></div>
+            </div>
+            <div id="existingSlide" class="existing-report-content"></div>
+          </section>
+
+          <section class="slide" data-slide="3" aria-labelledby="slide2Title" hidden>
+            <div class="slide-heading">
+              <div><p class="eyebrow">Market regional global</p><h1 id="slide2Title">Peta Kasus Regional Menurut Tingkat Keparahan</h1><p>D–M–U–P berasal dari kolom Tingkat Keparahan Kasus (Klaim).</p></div>
+              <span class="slide-chip">Regional</span>
+            </div>
+            <div id="regionalSlide" class="slide-content"></div>
+          </section>
+
+          <section class="slide" data-slide="4" aria-labelledby="slide3Title" hidden>
+            <div class="slide-heading">
+              <div><p class="eyebrow">Addressable market</p><h1 id="slide3Title">Kemampuan RS Target Pada Seluruh Layanan</h1><p id="slide3Subtitle"></p></div>
+              <span class="slide-chip">24 Layanan</span>
+            </div>
+            <div id="addressableSlide" class="slide-content"></div>
+          </section>
+
+          <section class="slide existing-detail-slide comparison-detail-slide" data-slide="5" aria-labelledby="comparisonSlideTitle" hidden>
+            <div class="existing-report-title">
+              <h1 id="comparisonSlideTitle">Perbandingan Kasus Per Layanan</h1>
+              <div class="existing-period-badge">Data Mirroring Uji Coba iDRG<br><strong>periode 15 Okt 2025 - 14 Juni 2026</strong></div>
+            </div>
+            <div id="comparisonSlide" class="existing-report-content"></div>
+          </section>
+
+          <section class="slide existing-detail-slide regional-cases-detail-slide" data-slide="6" aria-labelledby="regionalCasesSlideTitle" hidden>
+            <div class="existing-report-title">
+              <h1 id="regionalCasesSlideTitle">Kasus Regional Per Layanan</h1>
+              <div class="existing-period-badge">Data Mirroring Uji Coba iDRG<br><strong>periode 15 Okt 2025 - 14 Juni 2026</strong></div>
+            </div>
+            <div id="regionalCasesSlide" class="existing-report-content"></div>
+          </section>
+
+          <section class="slide existing-detail-slide regional-profile-detail-slide" data-slide="7" aria-labelledby="regionalProfileSlideTitle" hidden>
+            <div class="existing-report-title">
+              <h1 id="regionalProfileSlideTitle">Profil &amp; Kasus Regional</h1>
+              <div class="existing-period-badge">Data Mirroring Uji Coba iDRG<br><strong>periode 15 Okt 2025 - 14 Juni 2026</strong></div>
+            </div>
+            <div id="regionalProfileSlide" class="regional-profile-content"></div>
+          </section>
+
+          <section class="slide existing-detail-slide muhammadiyah-map-slide" data-slide="8" id="muhammadiyahMapSlideSection" aria-labelledby="muhammadiyahMapSlideTitle" hidden>
+            <div class="existing-report-title" style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <h1 id="muhammadiyahMapSlideTitle" style="display: flex; align-items: center; gap: 8px;">
+                  <span style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: #059669; color: white; border-radius: 7px; font-size: 16px;">🗺️</span>
+                  Peta Sebaran &amp; Profil Eksekutif Group RS Muhammadiyah
+                </h1>
+                <p style="margin: 3px 0 0; color: #64748b; font-size: 12.5px; font-weight: 600;">Sebaran Presisi 131 RS Jejaring Muhammadiyah &amp; 'Aisyiyah (123 RS Terdata Klaim) di 17 Provinsi · Paparan Pimpinan Kemenkes RI</p>
+              </div>
+              <div class="existing-period-badge">Data Mirroring Uji Coba iDRG<br><strong>periode 15 Okt 2025 - 14 Juni 2026</strong></div>
+            </div>
+            <div id="muhammadiyahMapSlide" class="muhammadiyah-map-content" style="padding: 8px 18px; display: flex; flex-direction: column; gap: 8px; height: calc(100% - 62px); overflow: hidden;"></div>
+          </section>
+
+          <section class="slide existing-detail-slide muhammadiyah-group-slide" data-slide="9" id="muhammadiyahGroupSlideSection" aria-labelledby="muhammadiyahSlideTitle" hidden>
+            <div class="existing-report-title" style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <h1 id="muhammadiyahSlideTitle" style="display: flex; align-items: center; gap: 8px;">
+                  <span style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: #059669; color: white; border-radius: 7px; font-size: 16px;">🏢</span>
+                  Analisis Rinci &amp; Tabel Group RS Muhammadiyah &amp; Aisyiyah
+                </h1>
+                <p style="margin: 3px 0 0; color: #64748b; font-size: 12.5px; font-weight: 600;">Evaluasi Kinerja 131 RS Jejaring Resmi Muhammadiyah &amp; 'Aisyiyah (Data RSMA.xlsx) · Data Uji Coba iDRG</p>
+              </div>
+              <div class="existing-period-badge">Data Mirroring Uji Coba iDRG<br><strong>periode 15 Okt 2025 - 14 Juni 2026</strong></div>
+            </div>
+            <div id="muhammadiyahGroupSlide" class="muhammadiyah-group-content" style="padding: 8px 18px; display: flex; flex-direction: column; gap: 8px; height: calc(100% - 62px); overflow: hidden;"></div>
+          </section>
+
+          <!-- Slide 10: Jumlah Data Masuk menurut Jenis Rawat -->
+          <section class="slide existing-detail-slide national-rawat-type-slide" data-slide="10" id="nationalRawatTypeSlideSection" aria-labelledby="nationalRawatTypeSlideTitle" hidden>
+            <div class="existing-report-title" style="background-color: #16a085; border-bottom: 6px solid #f1c40f; padding: 10px 24px; display: flex; justify-content: space-between; align-items: center; position: relative;">
+              <h1 id="nationalRawatTypeSlideTitle" style="color: white; font-size: 22px; font-weight: 700; margin: 0; letter-spacing: 0.5px;">Jumlah Data Masuk menurut Jenis Rawat</h1>
+              <div class="existing-period-badge" style="background-color: #e74c3c; color: white; border-radius: 99px; padding: 5px 14px; text-align: center; font-size: 12px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.2); position: absolute; right: 24px; top: 10px; transform: translateY(-10%); line-height: 1.2;">
+                Data Mirroring Uji Coba iDRG<br><span style="font-weight: 400;">periode 15 Okt 2025 - 14 Juni 2026</span>
+              </div>
+            </div>
+            <div id="nationalRawatTypeSlide" class="existing-report-content" style="padding: 16px 24px; height: calc(100% - 55px); overflow-y: auto; background-color: #ffffff;"></div>
+          </section>
+
+          <!-- Slide 11: Simulasi Spending iDRG Nasional menurut Jenis Layanan & Kelas RS -->
+          <section class="slide existing-detail-slide national-spending-class-slide" data-slide="11" id="nationalSpendingClassSlideSection" aria-labelledby="nationalSpendingClassSlideTitle" hidden>
+            <div class="existing-report-title" style="background-color: #16a085; border-bottom: 6px solid #f1c40f; padding: 10px 24px; display: flex; justify-content: space-between; align-items: center; position: relative;">
+              <h1 id="nationalSpendingClassSlideTitle" style="color: white; font-size: 22px; font-weight: 700; margin: 0; letter-spacing: 0.5px;">Simulasi Spending iDRG Nasional per Kelas RS</h1>
+              <div class="existing-period-badge" style="background-color: #e74c3c; color: white; border-radius: 99px; padding: 5px 14px; text-align: center; font-size: 12px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.2); position: absolute; right: 24px; top: 10px; transform: translateY(-10%); line-height: 1.2;">
+                Data Mirroring Uji Coba iDRG<br><span style="font-weight: 400;">periode 15 Okt 2025 - 14 Juni 2026</span>
+              </div>
+            </div>
+            <div id="nationalSpendingClassSlide" class="existing-report-content" style="padding: 14px 20px; height: calc(100% - 55px); overflow-y: auto; background-color: #ffffff;"></div>
+          </section>
+
+          <!-- Slide 12: Data Masuk Berdasarkan Kasus Rawat Inap (10 Besar CMG & MDC) -->
+          <section class="slide existing-detail-slide national-rawat-inap-slide" data-slide="12" id="nationalRawatInapSlideSection" aria-labelledby="nationalRawatInapSlideTitle" hidden>
+            <div class="existing-report-title" style="background-color: #16a085; border-bottom: 6px solid #f1c40f; padding: 10px 24px; display: flex; justify-content: space-between; align-items: center; position: relative;">
+              <h1 id="nationalRawatInapSlideTitle" style="color: white; font-size: 22px; font-weight: 700; margin: 0; letter-spacing: 0.5px;">Data Masuk Berdasarkan Kasus Rawat Inap</h1>
+              <div class="existing-period-badge" style="background-color: #e74c3c; color: white; border-radius: 99px; padding: 5px 14px; text-align: center; font-size: 12px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.2); position: absolute; right: 24px; top: 10px; transform: translateY(-10%); line-height: 1.2;">
+                Data Mirroring Uji Coba iDRG<br><span style="font-weight: 400;">periode 15 Okt 2025 - 14 Juni 2026</span>
+              </div>
+            </div>
+            <div id="nationalRawatInapSlide" class="existing-report-content" style="padding: 16px 24px; height: calc(100% - 55px); overflow-y: auto; background-color: #ffffff;"></div>
+          </section>
+
+          <!-- Slide 13: Perbandingan Tingkat Keparahan Rawat Inap -->
+          <section class="slide existing-detail-slide national-severity-slide" data-slide="13" id="nationalSeveritySlideSection" aria-labelledby="nationalSeveritySlideTitle" hidden>
+            <div class="existing-report-title" style="background-color: #16a085; border-bottom: 6px solid #f1c40f; padding: 10px 24px; display: flex; justify-content: space-between; align-items: center; position: relative;">
+              <h1 id="nationalSeveritySlideTitle" style="color: white; font-size: 22px; font-weight: 700; margin: 0; letter-spacing: 0.5px;">Perbandingan Tingkat Keparahan Rawat Inap</h1>
+              <div class="existing-period-badge" style="background-color: #e74c3c; color: white; border-radius: 99px; padding: 5px 14px; text-align: center; font-size: 12px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.2); position: absolute; right: 24px; top: 10px; transform: translateY(-10%); line-height: 1.2;">
+                Data Mirroring Uji Coba iDRG<br><span style="font-weight: 400;">periode 15 Okt 2025 - 14 Juni 2026</span>
+              </div>
+            </div>
+            <div id="nationalSeveritySlide" class="existing-report-content" style="padding: 16px 24px; height: calc(100% - 55px); overflow-y: auto; background-color: #ffffff;"></div>
+          </section>
+
+          <!-- Slide 14: Data Masuk Berdasarkan Kasus Rawat Jalan (10 Besar CMG & MDC) -->
+          <section class="slide existing-detail-slide national-rawat-jalan-slide" data-slide="14" id="nationalRawatJalanSlideSection" aria-labelledby="nationalRawatJalanSlideTitle" hidden>
+            <div class="existing-report-title" style="background-color: #16a085; border-bottom: 6px solid #f1c40f; padding: 10px 24px; display: flex; justify-content: space-between; align-items: center; position: relative;">
+              <h1 id="nationalRawatJalanSlideTitle" style="color: white; font-size: 22px; font-weight: 700; margin: 0; letter-spacing: 0.5px;">Data Masuk Berdasarkan Kasus Rawat Jalan</h1>
+              <div class="existing-period-badge" style="background-color: #e74c3c; color: white; border-radius: 99px; padding: 5px 14px; text-align: center; font-size: 12px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.2); position: absolute; right: 24px; top: 10px; transform: translateY(-10%); line-height: 1.2;">
+                Data Mirroring Uji Coba iDRG<br><span style="font-weight: 400;">periode 15 Okt 2025 - 14 Juni 2026</span>
+              </div>
+            </div>
+            <div id="nationalRawatJalanSlide" class="existing-report-content" style="padding: 16px 24px; height: calc(100% - 55px); overflow-y: auto; background-color: #ffffff;"></div>
+          </section>
+
+          <!-- Slide 15: Distribusi Q-5-44-0 (Rawat Jalan) -->
+          <section class="slide existing-detail-slide national-q5440-slide" data-slide="15" id="nationalQ5440SlideSection" aria-labelledby="nationalQ5440SlideTitle" hidden>
+            <div class="existing-report-title" style="background-color: #16a085; border-bottom: 6px solid #f1c40f; padding: 10px 24px; display: flex; justify-content: space-between; align-items: center; position: relative;">
+              <h1 id="nationalQ5440SlideTitle" style="color: white; font-size: 22px; font-weight: 700; margin: 0; letter-spacing: 0.5px;">Distribusi Q-5-44-0 (Rawat Jalan)</h1>
+              <div class="existing-period-badge" style="background-color: #e74c3c; color: white; border-radius: 99px; padding: 5px 14px; text-align: center; font-size: 12px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.2); position: absolute; right: 24px; top: 10px; transform: translateY(-10%); line-height: 1.2;">
+                Data Mirroring Uji Coba iDRG<br><span style="font-weight: 400;">periode 15 Okt 2025 - 14 Juni 2026</span>
+              </div>
+            </div>
+            <div id="nationalQ5440Slide" class="existing-report-content" style="padding: 14px 22px; height: calc(100% - 55px); overflow-y: auto; background-color: #ffffff;"></div>
+          </section>
+
+          <!-- Slide 16: Profil & Kasus Regional Berdasarkan Kompetensi ICD (Data Mirroring 7) -->
+          <section class="slide existing-detail-slide icd-competency-slide" data-slide="16" id="icdCompetencySlideSection" aria-labelledby="icdCompetencySlideTitle" hidden>
+            <div class="existing-report-title" style="background-color: #16a085; border-bottom: 6px solid #f1c40f; padding: 10px 24px; display: flex; justify-content: space-between; align-items: center; position: relative;">
+              <h1 id="icdCompetencySlideTitle" style="color: white; font-size: 22px; font-weight: 700; margin: 0; letter-spacing: 0.5px;">Profil &amp; Kasus Regional Berdasarkan Kompetensi ICD</h1>
+              <div class="existing-period-badge" style="background-color: #e74c3c; color: white; border-radius: 99px; padding: 5px 14px; text-align: center; font-size: 12px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.2); position: absolute; right: 24px; top: 10px; transform: translateY(-10%); line-height: 1.2;">
+                Data Mirroring Uji Coba iDRG<br><span style="font-weight: 400;">periode 15 Okt 2025 - 14 Juni 2026</span>
+              </div>
+            </div>
+            <div id="icdCompetencySlide" class="existing-report-content" style="padding: 12px 20px; display: flex; flex-direction: column; gap: 8px; height: calc(100% - 55px); overflow-y: auto; background-color: #ffffff;"></div>
+          </section>
+
+
+
+          <section class="slide" data-slide="17" aria-labelledby="slide6Title" hidden>
+            <div class="slide-heading">
+              <div><p class="eyebrow">Simulasi skenario (T/P)</p><h1 id="slide6Title">Simulasi Skenario Tambahan/Pengurangan Kasus</h1><p>Proyeksi linier proporsional terhadap kasus dan pendapatan *real* pada skenario persentase yang disesuaikan.</p></div>
+              <span class="slide-chip">Dinamis</span>
+            </div>
+            <div id="scenarioSlide" class="slide-content"></div>
+          </section>
+
+          <section class="slide" data-slide="18" aria-labelledby="recapSlideTitle" hidden>
+            <div class="slide-heading">
+              <div><p class="eyebrow">Rekapitulasi</p><h1 id="recapSlideTitle">Rekapitulasi Rentang Skenario Seluruh Layanan</h1><p>Rentang minimum s.d. maksimum tambahan dan pengurangan kasus serta pendapatan (iDRG/INA-CBG) dari seluruh skenario.</p></div>
+              <span class="slide-chip">Rekap Rentang</span>
+            </div>
+            <div id="recapSlide" class="slide-content" style="overflow-y: auto; padding-top: 10px;"></div>
+          </section>
+
+          <section class="slide" data-slide="19" aria-labelledby="logicalRecapSlideTitle" hidden>
+            <div class="slide-heading">
+              <div><p class="eyebrow">Rekapitulasi Optimal</p><h1 id="logicalRecapSlideTitle">Rekap Skenario Paling Logis Seluruh Layanan</h1><p>Skenario terpilih per layanan yang paling rasional (di mana total kasus pasca penambahan dan pengurangan tidak melebihi beban kasus eksisting awal).</p></div>
+              <span class="slide-chip" style="background:#0d9488; color:#fff;">Paling Logis</span>
+            </div>
+            <div id="logicalRecapSlide" class="slide-content" style="overflow-y: auto; padding-top: 10px;"></div>
+          </section>
+
+          <section class="slide" data-slide="20" aria-labelledby="slide10Title" hidden>
+            <div class="slide-heading compact-heading">
+              <div><p class="eyebrow">Simulator seluruh layanan</p><h1 id="slide10Title">Capture Pasar Eksternal dan Retensi Kasus Eksisting</h1><p>Persentase global berlaku pada semua layanan kecuali layanan yang diberi override.</p></div>
+              <span class="slide-chip">Dinamis</span>
+            </div>
+            <div id="simulatorSlide" class="slide-content"></div>
+          </section>
+
+          <section class="slide" data-slide="21" aria-labelledby="slide11Title" hidden>
+            <div class="slide-heading compact-heading">
+              <div><p class="eyebrow">Kompetitor dan override layanan</p><h1 id="slide11Title">Drill-down Persaingan Per Layanan dan Keparahan</h1><p>Target share adalah benchmark pembagian pasar; override mengubah proyeksi simulator.</p></div>
+              <span class="slide-chip">Drill-down</span>
+            </div>
+            <div id="competitionSlide" class="slide-content"></div>
+          </section>
+
+          <section class="slide" data-slide="22" aria-labelledby="slide12Title" hidden>
+            <div class="slide-heading">
+              <div><p class="eyebrow">Ringkasan hasil</p><h1 id="slide12Title">Dampak Skenario Terhadap RS Target</h1><p id="slide12Subtitle"></p></div>
+              <span class="slide-chip">Proyeksi</span>
+            </div>
+            <div id="summarySlide" class="slide-content"></div>
+          </section>
+          
+          <div id="dynamicServiceSlides"></div>
+
+        </div>
+
+        <nav class="deck-controls" aria-label="Navigasi slide">
+          <button id="previousSlide" type="button" aria-label="Slide sebelumnya">← Sebelum</button>
+          <div class="slide-dots" id="slideDots" aria-label="Daftar slide"></div>
+          <span class="deck-counter" id="slideCounter">1 / 8</span>
+          <div style="display: flex; gap: 8px;">
+            <button id="exportPptx" class="export-pptx-button" type="button" style="background:#1a73e8; font-size:10px; padding:4px 8px;">⬡ PPTX</button>
+            <button id="exportGSlidesBtn" class="export-pptx-button" type="button" style="background: #1a73e8; font-size: 10px; padding: 4px 8px;">⬡ GSlides</button>
+            <button id="exportExcelBtn" class="export-pptx-button export-excel-button" type="button" style="background:#1a73e8; font-size:10px; padding:4px 8px;">⬡ Excel</button>
+          </div>
+          <button id="nextSlide" type="button" aria-label="Slide berikutnya">Berikut →</button>
+          <span id="exportStatus" class="sr-only" aria-live="polite"></span>
+        </nav>
+      </div>
+    </div>
+  </main>
+  <aside class="sidebar-panel">
+    <div class="sidebar-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+      <div>
+        <h2>Pengaturan & Filter</h2>
+        <p>Sesuaikan cakupan regional</p>
+      </div>
+      <button id="sidebarToggleBtn" style="background: none; border: none; cursor: pointer; font-size: 18px; color: #64748b; padding: 4px;" title="Tutup Panel Filter">×</button>
+    </div>
+    <div class="sidebar-content">
+      <!-- Filter Periode / Sumber Data -->
+      <div class="target-picker filter-picker" style="background: #f8fafc; padding: 10px 12px; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom: 6px;">
+        <span style="font-size: 12px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 5px; margin-bottom: 6px;">
+          <span>📅</span> Periode / Sumber Data
+        </span>
+        <select id="datasetPeriodSelect" class="tariff-scenario-select" aria-label="Pilih Periode / Dataset" style="width: 100%; box-sizing: border-box; padding: 7px 10px; border-radius: 8px; border: 1.5px solid #2563eb; background: #ffffff; font-weight: 750; font-size: 12px; color: #0f172a; cursor: pointer; outline: none; transition: all 0.2s;">
+          <option value="okt_jun" selected>Okt 2025 - Jun 2026 (8 Bulan - 111,76 Jt Kasus)</option>
+          <option value="jan_des">Jan - Des (1 Tahun Penuh / 12 Bulan)</option>
+        </select>
+        <div id="datasetPeriodDesc" style="font-size: 10.5px; color: #64748b; margin-top: 4px; line-height: 1.35;">Master CSV: spending_okt_jun_v3_gabungan.csv</div>
+      </div>
+
+      <!-- Filter Skenario Tarif iDRG -->
+      <div class="target-picker filter-picker" style="background: #f8fafc; padding: 10px 12px; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom: 6px;">
+        <span style="font-size: 12px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 5px; margin-bottom: 6px;">
+          <span>💳</span> Skenario Tarif iDRG
+        </span>
+        <select id="tariffScenarioSelect" class="tariff-scenario-select" aria-label="Pilih skenario tarif iDRG" style="width: 100%; box-sizing: border-box; padding: 7px 10px; border-radius: 8px; border: 1.5px solid #0d9488; background: #ffffff; font-weight: 750; font-size: 12px; color: #0f172a; cursor: pointer; outline: none; transition: all 0.2s;">
+          <option value="1370_full" selected>iDRG 1370 - AF + AFreg + AFkep (Default)</option>
+          <option value="1370_afreg">iDRG 1370 - AF + AFreg</option>
+          <option value="1370_af">iDRG 1370 - AF Saja</option>
+          <option value="1370_noaf">iDRG 1370 - Tanpa AF (Base)</option>
+          <option value="1370_juknis">iDRG 1370 - Juknis Top-Up</option>
+          <option value="1363_full">iDRG 1363 - AF + AFreg + AFkep</option>
+        </select>
+        <div id="tariffScenarioDesc" style="font-size: 10.5px; color: #64748b; margin-top: 4px; line-height: 1.35;">Model 1.370 DRG dengan penyesuaian AF + AFreg + AFkep</div>
+      </div>
+
+      <div class="target-picker filter-picker custom-multi">
+        <span>Filter Provinsi</span>
+        <div class="multi-select-container" id="provContainer">
+          <button class="multi-select-btn" type="button" id="provBtn">Semua Provinsi</button>
+          <div class="multi-select-dropdown" id="provDropdown"></div>
+        </div>
+      </div>
+      <div class="target-picker filter-picker custom-multi">
+        <span>Filter Kab/Kota</span>
+        <div class="multi-select-container" id="cityContainer">
+          <button class="multi-select-btn" type="button" id="cityBtn">Semua Kab/Kota</button>
+          <div class="multi-select-dropdown" id="cityDropdown"></div>
+        </div>
+      </div>
+      <div class="target-picker">
+        <span>Shortcut Wilayah &amp; Jejaring</span>
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+          <button id="presetMuhammadiyahBtn" class="preset-muhammadiyah-btn" title="Filter khusus RS Jejaring Muhammadiyah &amp; Aisyiyah">RS Jejaring Muhammadiyah</button>
+          <button id="presetMoewardiBtn" class="preset-moewardi-btn" title="Filter khusus RS Moewardi">Preset Moewardi</button>
+          <button id="presetJabarBtn" class="preset-moewardi-btn" title="Filter Jabar tanpa Bebodepok">Jabar EX BEBODEPOK</button>
+        </div>
+      </div>
+      <div style="margin-top: 15px; border-top: 1px solid #e2e8f0; padding-top: 15px; display: flex; flex-direction: column; gap: 10px;">
+        <label style="font-size: 13px; display: flex; align-items: center; gap: 8px; cursor: pointer; color: #1e293b; font-weight: 700;">
+          <input type="checkbox" id="muhammadiyahFilterToggle" style="cursor: pointer; width: 16px; height: 16px; margin: 0;"> RS Jejaring Muhammadiyah
+        </label>
+        <div style="font-size: 11px; color: #64748b; margin-top: -4px; line-height: 1.4;">Hanya menampilkan 131 RS Jejaring Resmi Muhammadiyah &amp; 'Aisyiyah (Data RSMA.xlsx).</div>
+
+        <label style="font-size: 13px; display: flex; align-items: center; gap: 8px; cursor: pointer; color: #1e293b; font-weight: 700; margin-top: 4px;">
+          <input type="checkbox" id="excludeUnmappedToggle" style="cursor: pointer; width: 16px; height: 16px; margin: 0;"> Kecualikan Level 0
+        </label>
+        <div style="font-size: 11px; color: #64748b; margin-top: -4px; line-height: 1.4;">Mengecualikan perhitungan untuk kasus yang layanannya Tidak Kompeten (Level 0).</div>
+      </div>
+    </div>
+  </aside>
+  <script src="js/data.js?v=2026081612"></script>
+  <script src="js/xlsx.bundle.js"></script>
+  <script src="js/dom-to-pptx.bundle.js"></script>
+  <script src="js/pptxgen.bundle.js"></script>
+  <script src="js/scenarios-core.js?v=2026081612"></script>
+  <script src="js/export-gslides.js?v=2026081612"></script>
+  <script src="js/audit-excel.js?v=2026081612"></script>
+  <script src="js/app.js?v=2026081612"></script>
+</body>
+</html>
