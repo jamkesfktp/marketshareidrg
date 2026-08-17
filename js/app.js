@@ -935,32 +935,41 @@
 
 
 
-    // Hitung breakdown severity untuk RS Target
-    const targetTotalD = data.services.reduce((sum, svc) => {
-      const s = target.services[svc]; return sum + (s ? (severityMetric(s, 1)[CASES] || 0) : 0);
-    }, 0);
-    const targetTotalM = data.services.reduce((sum, svc) => {
-      const s = target.services[svc]; return sum + (s ? (severityMetric(s, 2)[CASES] || 0) : 0);
-    }, 0);
-    const targetTotalU = data.services.reduce((sum, svc) => {
-      const s = target.services[svc]; return sum + (s ? (severityMetric(s, 3)[CASES] || 0) : 0);
-    }, 0);
-    const targetTotalP = data.services.reduce((sum, svc) => {
-      const s = target.services[svc]; return sum + (s ? (severityMetric(s, 4)[CASES] || 0) : 0);
-    }, 0);
-    // Breakdown severity Regional
-    const regTotalD = data.services.reduce((sum, svc) => {
-      const s = data.regional.services[svc]; return sum + (s ? (severityMetric(s, 1)[CASES] || 0) : 0);
-    }, 0);
-    const regTotalM = data.services.reduce((sum, svc) => {
-      const s = data.regional.services[svc]; return sum + (s ? (severityMetric(s, 2)[CASES] || 0) : 0);
-    }, 0);
-    const regTotalU = data.services.reduce((sum, svc) => {
-      const s = data.regional.services[svc]; return sum + (s ? (severityMetric(s, 3)[CASES] || 0) : 0);
-    }, 0);
-    const regTotalP = data.services.reduce((sum, svc) => {
-      const s = data.regional.services[svc]; return sum + (s ? (severityMetric(s, 4)[CASES] || 0) : 0);
-    }, 0);
+    // Hitung breakdown severity untuk RS Target (Kasus & Rp)
+    const targetTotalD = data.services.reduce((acc, svc) => {
+      const s = target.services[svc]; const sm = s ? severityMetric(s, 1) : null;
+      return { cases: acc.cases + (sm ? (sm[CASES] || 0) : 0), rp: acc.rp + (sm ? (sm[IDRG] || 0) : 0) };
+    }, {cases: 0, rp: 0});
+    const targetTotalM = data.services.reduce((acc, svc) => {
+      const s = target.services[svc]; const sm = s ? severityMetric(s, 2) : null;
+      return { cases: acc.cases + (sm ? (sm[CASES] || 0) : 0), rp: acc.rp + (sm ? (sm[IDRG] || 0) : 0) };
+    }, {cases: 0, rp: 0});
+    const targetTotalU = data.services.reduce((acc, svc) => {
+      const s = target.services[svc]; const sm = s ? severityMetric(s, 3) : null;
+      return { cases: acc.cases + (sm ? (sm[CASES] || 0) : 0), rp: acc.rp + (sm ? (sm[IDRG] || 0) : 0) };
+    }, {cases: 0, rp: 0});
+    const targetTotalP = data.services.reduce((acc, svc) => {
+      const s = target.services[svc]; const sm = s ? severityMetric(s, 4) : null;
+      return { cases: acc.cases + (sm ? (sm[CASES] || 0) : 0), rp: acc.rp + (sm ? (sm[IDRG] || 0) : 0) };
+    }, {cases: 0, rp: 0});
+
+    // Breakdown severity Regional (Kasus & Rp)
+    const regTotalD = data.services.reduce((acc, svc) => {
+      const s = data.regional.services[svc]; const sm = s ? severityMetric(s, 1) : null;
+      return { cases: acc.cases + (sm ? (sm[CASES] || 0) : 0), rp: acc.rp + (sm ? (sm[IDRG] || 0) : 0) };
+    }, {cases: 0, rp: 0});
+    const regTotalM = data.services.reduce((acc, svc) => {
+      const s = data.regional.services[svc]; const sm = s ? severityMetric(s, 2) : null;
+      return { cases: acc.cases + (sm ? (sm[CASES] || 0) : 0), rp: acc.rp + (sm ? (sm[IDRG] || 0) : 0) };
+    }, {cases: 0, rp: 0});
+    const regTotalU = data.services.reduce((acc, svc) => {
+      const s = data.regional.services[svc]; const sm = s ? severityMetric(s, 3) : null;
+      return { cases: acc.cases + (sm ? (sm[CASES] || 0) : 0), rp: acc.rp + (sm ? (sm[IDRG] || 0) : 0) };
+    }, {cases: 0, rp: 0});
+    const regTotalP = data.services.reduce((acc, svc) => {
+      const s = data.regional.services[svc]; const sm = s ? severityMetric(s, 4) : null;
+      return { cases: acc.cases + (sm ? (sm[CASES] || 0) : 0), rp: acc.rp + (sm ? (sm[IDRG] || 0) : 0) };
+    }, {cases: 0, rp: 0});
 
     document.getElementById("globalSimulationSlide").innerHTML = `
       <!-- ═══ SCORECARD KEMENKES STYLE ═══ -->
@@ -994,39 +1003,39 @@
           <div style="border-top:1px solid #f1f5f9; padding-top:8px;">
             <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:6px;">RINCIAN KASUS EKSISTING RS:</div>
             <div style="display:flex; gap:16px;">
-              <div style="text-align:center; flex:1;"><div style="font-size:18px; font-weight:800; color:#0f766e;">${formatNumber(targetTotalD)}</div><div style="font-size:11px; color:#64748b; font-weight:600;">Dasar</div></div>
-              <div style="text-align:center; flex:1;"><div style="font-size:18px; font-weight:800; color:#0369a1;">${formatNumber(targetTotalM)}</div><div style="font-size:11px; color:#64748b; font-weight:600;">Madya</div></div>
-              <div style="text-align:center; flex:1;"><div style="font-size:18px; font-weight:800; color:#7c3aed;">${formatNumber(targetTotalU)}</div><div style="font-size:11px; color:#64748b; font-weight:600;">Utama</div></div>
-              <div style="text-align:center; flex:1;"><div style="font-size:18px; font-weight:800; color:#be185d;">${formatNumber(targetTotalP)}</div><div style="font-size:11px; color:#64748b; font-weight:600;">Paripurna</div></div>
+              <div style="text-align:center; flex:1;"><div style="font-size:18px; font-weight:800; color:#0f766e; line-height:1;">${formatNumber(targetTotalD.cases)}</div><div style="font-size:11px; color:#115e59; font-weight:700; margin-top:2px;">${fmtM(targetTotalD.rp)}</div><div style="font-size:10px; color:#64748b; font-weight:600; margin-top:1px;">Dasar</div></div>
+              <div style="text-align:center; flex:1;"><div style="font-size:18px; font-weight:800; color:#0369a1; line-height:1;">${formatNumber(targetTotalM.cases)}</div><div style="font-size:11px; color:#075985; font-weight:700; margin-top:2px;">${fmtM(targetTotalM.rp)}</div><div style="font-size:10px; color:#64748b; font-weight:600; margin-top:1px;">Madya</div></div>
+              <div style="text-align:center; flex:1;"><div style="font-size:18px; font-weight:800; color:#7c3aed; line-height:1;">${formatNumber(targetTotalU.cases)}</div><div style="font-size:11px; color:#5b21b6; font-weight:700; margin-top:2px;">${fmtM(targetTotalU.rp)}</div><div style="font-size:10px; color:#64748b; font-weight:600; margin-top:1px;">Utama</div></div>
+              <div style="text-align:center; flex:1;"><div style="font-size:18px; font-weight:800; color:#be185d; line-height:1;">${formatNumber(targetTotalP.cases)}</div><div style="font-size:11px; color:#9d174d; font-weight:700; margin-top:2px;">${fmtM(targetTotalP.rp)}</div><div style="font-size:10px; color:#64748b; font-weight:600; margin-top:1px;">Paripurna</div></div>
             </div>
           </div>
         </div>
         
         <!-- VS Divider -->
-        <div style="background:#f1f5f9; display:flex; align-items:center; justify-content:center; padding:0 10px; font-size:13px; font-weight:800; color:#94a3b8;">VS</div>
+        <div style="background:#e2e8f0; display:flex; align-items:center; justify-content:center; padding:0 10px; font-size:13px; font-weight:800; color:#94a3b8;">VS</div>
         
         <!-- Panel Regional -->
-        <div style="flex:1; background:#0f172a; padding:14px 16px;">
+        <div style="flex:1; background:#f0f9ff; padding:14px 16px; border-left:3px solid #0369a1;">
           <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
             <div style="width:38px; height:38px; border-radius:8px; background:linear-gradient(135deg,#1e40af,#1d4ed8); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
               <span style="font-size:18px;">🌐</span>
             </div>
             <div>
               <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.5px;">EKSISTING</div>
-              <div style="font-size:13px; font-weight:800; color:#f1f5f9; line-height:1.1;">REGIONAL</div>
+              <div style="font-size:13px; font-weight:800; color:#0f172a; line-height:1.1;">REGIONAL</div>
             </div>
             <div style="margin-left:auto; display:flex; gap:20px; align-items:center;">
               <div style="text-align:right;">
                 <div style="font-size:11px; color:#64748b; font-weight:600;">Total Kasus</div>
-                <div style="font-size:22px; font-weight:900; color:#f1f5f9; line-height:1;">${formatNumber(regionalKasus)}</div>
+                <div style="font-size:22px; font-weight:900; color:#0f172a; line-height:1;">${formatNumber(regionalKasus)}</div>
               </div>
               <div style="text-align:right;">
                 <div style="font-size:11px; color:#64748b; font-weight:600;">Pendapatan INACBG</div>
-                <div style="font-size:22px; font-weight:900; color:#fcd34d; line-height:1;">${fmtM(regionalIna)}</div>
+                <div style="font-size:22px; font-weight:900; color:#b45309; line-height:1;">${fmtM(regionalIna)}</div>
               </div>
               <div style="text-align:right;">
                 <div style="font-size:11px; color:#64748b; font-weight:600;">Pendapatan iDRG</div>
-                <div style="font-size:22px; font-weight:900; color:#6ee7b7; line-height:1;">${fmtM(regionalIdrg)}</div>
+                <div style="font-size:22px; font-weight:900; color:#0369a1; line-height:1;">${fmtM(regionalIdrg)}</div>
               </div>
             </div>
             <!-- MARKET SHARE BADGE -->
@@ -1036,13 +1045,13 @@
               <div style="font-size:10px; color:#bbf7d0; margin-top:2px;">Dari Total Kasus</div>
             </div>
           </div>
-          <div style="border-top:1px solid #1e293b; padding-top:8px;">
+          <div style="border-top:1px solid #bae6fd; padding-top:8px;">
             <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:6px;">RINCIAN KASUS EKSISTING REGIONAL:</div>
             <div style="display:flex; gap:16px;">
-              <div style="text-align:center; flex:1;"><div style="font-size:18px; font-weight:800; color:#6ee7b7;">${formatNumber(regTotalD)}</div><div style="font-size:11px; color:#64748b; font-weight:600;">Dasar</div></div>
-              <div style="text-align:center; flex:1;"><div style="font-size:18px; font-weight:800; color:#93c5fd;">${formatNumber(regTotalM)}</div><div style="font-size:11px; color:#64748b; font-weight:600;">Madya</div></div>
-              <div style="text-align:center; flex:1;"><div style="font-size:18px; font-weight:800; color:#c4b5fd;">${formatNumber(regTotalU)}</div><div style="font-size:11px; color:#64748b; font-weight:600;">Utama</div></div>
-              <div style="text-align:center; flex:1;"><div style="font-size:18px; font-weight:800; color:#f9a8d4;">${formatNumber(regTotalP)}</div><div style="font-size:11px; color:#64748b; font-weight:600;">Paripurna</div></div>
+              <div style="text-align:center; flex:1;"><div style="font-size:18px; font-weight:800; color:#0f766e; line-height:1;">${formatNumber(regTotalD.cases)}</div><div style="font-size:11px; color:#115e59; font-weight:700; margin-top:2px;">${fmtM(regTotalD.rp)}</div><div style="font-size:10px; color:#64748b; font-weight:600; margin-top:1px;">Dasar</div></div>
+              <div style="text-align:center; flex:1;"><div style="font-size:18px; font-weight:800; color:#0369a1; line-height:1;">${formatNumber(regTotalM.cases)}</div><div style="font-size:11px; color:#075985; font-weight:700; margin-top:2px;">${fmtM(regTotalM.rp)}</div><div style="font-size:10px; color:#64748b; font-weight:600; margin-top:1px;">Madya</div></div>
+              <div style="text-align:center; flex:1;"><div style="font-size:18px; font-weight:800; color:#7c3aed; line-height:1;">${formatNumber(regTotalU.cases)}</div><div style="font-size:11px; color:#5b21b6; font-weight:700; margin-top:2px;">${fmtM(regTotalU.rp)}</div><div style="font-size:10px; color:#64748b; font-weight:600; margin-top:1px;">Utama</div></div>
+              <div style="text-align:center; flex:1;"><div style="font-size:18px; font-weight:800; color:#be185d; line-height:1;">${formatNumber(regTotalP.cases)}</div><div style="font-size:11px; color:#9d174d; font-weight:700; margin-top:2px;">${fmtM(regTotalP.rp)}</div><div style="font-size:10px; color:#64748b; font-weight:600; margin-top:1px;">Paripurna</div></div>
             </div>
           </div>
         </div>
