@@ -444,7 +444,7 @@ input[type="number"] { outline-offset: 3px; }
 
 .table-wrap { overflow: auto; max-height: 100%; scrollbar-color: #aeb8c5 transparent; }
 table { width: 100%; border-collapse: collapse !important; border-spacing: 0; font-size: 15px; font-family: 'Quattrocento Sans', sans-serif; border: 1px solid black !important; }
-th { color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .045em; text-align: left; border: 1px solid black !important; }
+th { color: inherit; font-size: 13px; text-transform: uppercase; letter-spacing: .045em; text-align: left; border: 1px solid black !important; }
 td { border: 1px solid black !important; color: var(--ink); font-size: 14px; }
 th, td { padding: 9px 10px; vertical-align: middle; }
 td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
