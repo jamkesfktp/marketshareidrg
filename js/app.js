@@ -743,14 +743,16 @@
     const mode = document.getElementById('globalSimModeSelect') ? document.getElementById('globalSimModeSelect').value : 'regional_all';
     
     const fmtM = (val) => {
-      const absVal = Math.abs(val || 0);
+      const num = val || 0;
+      const absVal = Math.abs(num);
+      const sign = num < 0 ? '-' : '';
       if (absVal >= 1e12) {
-        return (absVal / 1e12).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " T";
+        return sign + (absVal / 1e12).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " T";
       }
       if (absVal >= 1e9) {
-        return (absVal / 1e9).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " M";
+        return sign + (absVal / 1e9).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " M";
       }
-      return Math.round(absVal).toLocaleString("id-ID");
+      return sign + Math.round(absVal).toLocaleString("id-ID");
     };
 
     // Hitung Kondisi Eksisting
@@ -823,15 +825,25 @@
     
     // Inisialisasi default skenario jika belum ada
     if (typeof window.globalSimScenarios === 'undefined' || window.globalSimScenarios === null) {
-      // Hitung jumlah kompetitor (semua RS lain di regional ini)
-      const totalCompetitors = data.hospitals.length > 1 ? data.hospitals.length - 1 : 0;
-      // Default: Market share alami = 100 / (N + 1)
+      // Hitung kompetitor REGIONAL (bukan nasional) — RS yang ada di data.regional
+      // data.regional adalah agregasi seluruh RS di region yang sama dengan RS target
+      // Kompetitor yang relevan: semua RS di data.hospitals yang punya setidaknya 1 layanan
+      // dan bukan RS target, dan ada di data regional yang sama
+      const targetH = target;
+      const regionalHospitals = data.hospitals.filter(h => {
+        if (h.id === targetH.id) return false;
+        // Cek apakah RS ini berkontribusi pada data regional
+        // (asumsi: jika RS punya services maka dia ada di regional yang sama)
+        return Object.keys(h.services || {}).length > 0;
+      });
+      const totalCompetitors = regionalHospitals.length;
+      // Default: Market share alami = 1 / (N_kompetitor + 1)
       const naturalShare = totalCompetitors > 0 ? (1 / (totalCompetitors + 1)) : 0.5;
       
       window.globalSimScenarios = [
-        1.0, // Skenario 1: 100% (Serap Semua)
-        naturalShare, // Skenario 2: Proporsional (Market Share Alami)
-        naturalShare / 2 // Skenario 3: Konservatif (Setengah dari Alami)
+        1.0,           // Skenario 1: Optimistik — serap 100% potensi
+        naturalShare,  // Skenario 2: Proporsional — market share alami (1/(N+1))
+        naturalShare / 2 // Skenario 3: Konservatif — setengah dari market share alami
       ];
     }
     
