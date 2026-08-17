@@ -848,6 +848,11 @@
       ];
     }
     
+    // Inisialisasi default skenario kurang jika belum ada
+    if (typeof window.globalSimKurangScenarios === 'undefined' || window.globalSimKurangScenarios === null) {
+      window.globalSimKurangScenarios = [1.0, 1.0, 1.0];
+    }
+    
     // Hitung data Regional (diperlukan untuk scorecard)
     const regionalKasus = data.regional.total[CASES] || 0;
     const regionalIna = data.regional.total[INA] || 0;
@@ -864,11 +869,14 @@
       const pctValue = pct; // Gunakan nilai mentah dari array (bisa desimal)
       const pctDisplay = Math.round(pctValue * 100);
       
+      const kurangPctValue = window.globalSimKurangScenarios[idx] !== undefined ? window.globalSimKurangScenarios[idx] : 1.0;
+      const kurangPctDisplay = Math.round(kurangPctValue * 100);
+      
       const tambahKasus = Math.round(potensiSerapanKasus * pctValue);
       const tambahIdrg = potensiSerapanIdrg * pctValue;
       
-      const kurangKasus = Math.round(potensiRedistribusiKasus * pctValue);
-      const kurangIdrg = potensiRedistribusiIdrg * pctValue;
+      const kurangKasus = Math.round(potensiRedistribusiKasus * kurangPctValue);
+      const kurangIdrg = potensiRedistribusiIdrg * kurangPctValue;
       
       const netKasus = tambahKasus - kurangKasus;
       const netIdrg = tambahIdrg - kurangIdrg;
@@ -910,6 +918,12 @@
           </td>
           <!-- Kurang -->
           <td style="text-align:center; border:1px solid #fecdd3; padding:14px 10px; background:#fff1f2;">
+            <div style="display:flex; align-items:center; justify-content:center; gap:4px; margin-bottom:6px;">
+              <input type="number" min="0" max="100" step="1" value="${kurangPctDisplay}" 
+                class="global-sim-kurang-input" data-idx="${idx}"
+                style="width:52px; padding:3px 4px; text-align:center; border:1px solid #fca5a5; border-radius:5px; font-size:13px; font-weight:700; color:#b91c1c; background:#fff;">
+              <span style="font-size:11px; color:#b91c1c;">%</span>
+            </div>
             <div style="font-size:16px; font-weight:700; color:#ea580c;">-${formatNumber(kurangKasus)}</div>
             <div style="font-size:13px; font-weight:600; color:#dc2626; margin-top:2px;">-${fmtM(kurangIdrg)}</div>
           </td>
@@ -1070,7 +1084,7 @@
               <th style="padding:12px 10px; border:1px solid #334155; min-width:120px;">SKENARIO<br><span style="font-size:10px; font-weight:400; color:#94a3b8;">Atur % serapan</span></th>
               <th style="padding:12px 10px; border:1px solid #334155; background-color:#1e293b;">EKSISTING<br><span style="font-size:10px; font-weight:400; color:#94a3b8;">Kasus / iDRG</span></th>
               <th style="padding:12px 10px; border:1px solid #065f46; background-color:#059669; min-width:130px;">+ TAMBAH KASUS<br><span style="font-size:10px; font-weight:400;">Kasus / Pendapatan</span></th>
-              <th style="padding:12px 10px; border:1px solid #7c2d12; background-color:#ea580c; min-width:130px;">- KURANG KASUS<br><span style="font-size:10px; font-weight:400;">Kasus / Pendapatan</span></th>
+              <th style="padding:12px 10px; border:1px solid #7c2d12; background-color:#ea580c; min-width:130px;">- KURANG KASUS<br><span style="font-size:10px; font-weight:400;">Atur % Redistribusi</span></th>
               <th style="padding:12px 10px; border:1px solid #3730a3; background-color:#4f46e5; min-width:130px;">NET +/- KASUS<br><span style="font-size:10px; font-weight:400;">Kasus / % thd Eksisting</span></th>
               <th style="padding:12px 10px; border:1px solid #3730a3; background-color:#4f46e5;">NET +/- PENDAPATAN<br><span style="font-size:10px; font-weight:400;">iDRG (M)</span></th>
               <th style="padding:12px 10px; border:1px solid #134e4a; background-color:#0f766e; min-width:130px;">✅ PENDAPATAN<br>PASCA RBKP</th>
@@ -1100,6 +1114,19 @@
         window.globalSimScenarios[idx] = val / 100;
         
         // Re-render slide to reflect new calculations
+        renderGlobalSimulationSlide();
+      });
+    });
+
+    document.querySelectorAll('.global-sim-kurang-input').forEach(input => {
+      input.addEventListener('change', function() {
+        const idx = parseInt(this.getAttribute('data-idx'), 10);
+        let val = parseFloat(this.value);
+        if (isNaN(val)) val = 0;
+        if (val < 0) val = 0;
+        if (val > 100) val = 100;
+        
+        window.globalSimKurangScenarios[idx] = val / 100;
         renderGlobalSimulationSlide();
       });
     });
@@ -8394,6 +8421,7 @@
     state.targetCode = state.targetCodes[0] || "";
     
     window.globalSimScenarios = null; // Reset skenario agar terhitung ulang dengan jumlah kompetitor yang baru
+    window.globalSimKurangScenarios = null;
     state.serviceScenarios = {};
     
     populateHospitalSelector();
@@ -8588,6 +8616,91 @@
       getLevelRules,
     });
   }
+
+  document.getElementById("btnDownloadGlobalSim")?.addEventListener("click", () => {
+    const target = data.hospitals.find((h) => h.code === state.targetCode) || (data.hospitals.length ? data.hospitals[0] : null);
+    if (!target) return alert("Target RS tidak ditemukan.");
+
+    const mode = document.getElementById('globalSimModeSelect') ? document.getElementById('globalSimModeSelect').value : 'regional_all';
+    
+    // Header
+    let csvContent = "Mode Simulator;Nama RS Target;Layanan;Target Dasar & Madya (Kasus);Target Utama & Paripurna (Kasus);Regional Dasar & Madya (Kasus);Regional Utama & Paripurna (Kasus);Potensi Tambah Kasus (Max);Potensi Tambah iDRG (Max);Potensi Kurang Kasus (Max);Potensi Kurang iDRG (Max);Keterangan\n";
+
+    data.services.forEach(service => {
+      const srvReg = regionalService(service);
+      const srvTarget = target.services[service];
+      if (!srvReg || !srvTarget) return;
+
+      const sTargetDasar = severityMetric(srvTarget, 1);
+      const sTargetMadya = severityMetric(srvTarget, 2);
+      const sTargetUtama = severityMetric(srvTarget, 3);
+      const sTargetParipurna = severityMetric(srvTarget, 4);
+      
+      const sRegDasar = severityMetric(srvReg, 1);
+      const sRegMadya = severityMetric(srvReg, 2);
+      const sRegUtama = severityMetric(srvReg, 3);
+      const sRegParipurna = severityMetric(srvReg, 4);
+
+      const targetDM = (sTargetDasar[CASES] || 0) + (sTargetMadya[CASES] || 0);
+      const targetUP = (sTargetUtama[CASES] || 0) + (sTargetParipurna[CASES] || 0);
+      
+      const regDM = (sRegDasar[CASES] || 0) + (sRegMadya[CASES] || 0);
+      const regUP = (sRegUtama[CASES] || 0) + (sRegParipurna[CASES] || 0);
+
+      let potensiSerapanKasus = 0;
+      let potensiSerapanIdrg = 0;
+      let potensiRedistribusiKasus = 0;
+      let potensiRedistribusiIdrg = 0;
+      let keterangan = "";
+
+      if (mode === 'regional_all') {
+        const sisaRegUtamaKasus = Math.max(0, (sRegUtama[CASES] || 0) - (sTargetUtama[CASES] || 0));
+        const sisaRegUtamaIdrg = Math.max(0, (sRegUtama[IDRG] || 0) - (sTargetUtama[IDRG] || 0));
+        const sisaRegParipurnaKasus = Math.max(0, (sRegParipurna[CASES] || 0) - (sTargetParipurna[CASES] || 0));
+        const sisaRegParipurnaIdrg = Math.max(0, (sRegParipurna[IDRG] || 0) - (sTargetParipurna[IDRG] || 0));
+        
+        potensiSerapanKasus = (sisaRegUtamaKasus + sisaRegParipurnaKasus);
+        potensiSerapanIdrg = (sisaRegUtamaIdrg + sisaRegParipurnaIdrg);
+        
+        potensiRedistribusiKasus = targetDM;
+        potensiRedistribusiIdrg = (sTargetDasar[IDRG] || 0) + (sTargetMadya[IDRG] || 0);
+        
+        keterangan = "Serapan dari Sisa Regional U/P; Redistribusi dari Target D/M";
+      } else {
+        data.hospitals.forEach(h => {
+          if (h.code === target.code) return;
+          const hCompetency = getCompetency(h, service);
+          const tCompetency = getCompetency(target, service);
+          
+          if (hCompetency > tCompetency) {
+            const hSrv = h.services[service];
+            if (hSrv) {
+              const hDasar = severityMetric(hSrv, 1);
+              const hMadya = severityMetric(hSrv, 2);
+              potensiSerapanKasus += (hDasar[CASES] || 0) + (hMadya[CASES] || 0);
+              potensiSerapanIdrg += (hDasar[IDRG] || 0) + (hMadya[IDRG] || 0);
+            }
+          }
+        });
+        
+        potensiRedistribusiKasus = targetDM;
+        potensiRedistribusiIdrg = (sTargetDasar[IDRG] || 0) + (sTargetMadya[IDRG] || 0);
+        
+        keterangan = "Serapan dari RS Kompetensi Tinggi; Redistribusi dari Target D/M";
+      }
+
+      csvContent += `${mode};"${target.name}";"${service}";${targetDM};${targetUP};${regDM};${regUP};${potensiSerapanKasus};${potensiSerapanIdrg};${potensiRedistribusiKasus};${potensiRedistribusiIdrg};"${keterangan}"\n`;
+    });
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Audit_Simulasi_Global_${target.name}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  });
 
   renderAll();
 })();
