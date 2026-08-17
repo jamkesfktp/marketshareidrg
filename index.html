@@ -5,7 +5,7 @@
   <link rel="icon" href="data:,">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Simulator Market Share Regional Rumah Sakit</title>
-  <link rel="stylesheet" href="css/style.css?v=2026081612">
+  <link rel="stylesheet" href="css/style.css?v=2026081648">
 </head>
 <body class="simulator-app">
   <!-- Login Gate Overlay (Kemenkes Theme) -->
@@ -197,6 +197,19 @@
             <div id="regionalCasesSlide" class="existing-report-content"></div>
           </section>
 
+          <section class="slide existing-detail-slide global-simulation-slide" data-slide="6-1" id="globalSimulationSlideSection" aria-labelledby="globalSimulationSlideTitle" hidden>
+            <div class="existing-report-title" style="background-color: #16a085; display: flex; justify-content: space-between; align-items: center; position: relative;">
+              <div>
+                <h1 id="globalSimulationSlideTitle" style="color: white; font-size: 22px; font-weight: 700; margin: 0; letter-spacing: 0.5px;">Simulasi Market Share Global (Target vs Regional)</h1>
+                <p style="color: rgba(255,255,255,0.8); font-size: 13px; margin: 2px 0 0 0;">Proyeksi pergeseran kasus dan pendapatan berdasarkan market kompetitor</p>
+              </div>
+              <div class="existing-period-badge" style="background-color: #e74c3c; color: white; border-radius: 99px; padding: 5px 14px; text-align: center; font-size: 12px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                Data Mirroring Uji Coba iDRG<br><span style="font-weight: 400;">periode 15 Okt 2025 - 14 Juni 2026</span>
+              </div>
+            </div>
+            <div id="globalSimulationSlide" class="existing-report-content" style="padding: 16px 24px; height: calc(100% - 65px); overflow-y: auto; background-color: #ffffff;"></div>
+          </section>
+
           <section class="slide existing-detail-slide regional-profile-detail-slide" data-slide="7" aria-labelledby="regionalProfileSlideTitle" hidden>
             <div class="existing-report-title">
               <h1 id="regionalProfileSlideTitle">Profil &amp; Kasus Regional</h1>
@@ -320,18 +333,50 @@
 
           <section class="slide" data-slide="18" aria-labelledby="recapSlideTitle" hidden>
             <div class="slide-heading">
-              <div><p class="eyebrow">Rekapitulasi</p><h1 id="recapSlideTitle">Rekapitulasi Rentang Skenario Seluruh Layanan</h1><p>Rentang minimum s.d. maksimum tambahan dan pengurangan kasus serta pendapatan (iDRG/INA-CBG) dari seluruh skenario.</p></div>
+              <div><p class="eyebrow">Rekapitulasi</p><h1 id="recapSlideTitle">Rekapitulasi Rentang Skenario Seluruh Layanan (Bagian 1)</h1><p>Rentang minimum s.d. maksimum tambahan dan pengurangan kasus serta pendapatan (iDRG/INA-CBG) dari seluruh skenario.</p></div>
               <span class="slide-chip">Rekap Rentang</span>
             </div>
             <div id="recapSlide" class="slide-content" style="overflow-y: auto; padding-top: 10px;"></div>
           </section>
 
+          <section class="slide" data-slide="18-2" aria-labelledby="recapSlideTitle2" hidden>
+            <div class="slide-heading">
+              <div><p class="eyebrow">Rekapitulasi (Lanjutan)</p><h1 id="recapSlideTitle2">Rekapitulasi Rentang Skenario Seluruh Layanan (Bagian 2)</h1><p>Lanjutan tabel rentang minimum s.d. maksimum tambahan dan pengurangan kasus.</p></div>
+              <span class="slide-chip">Rekap Rentang</span>
+            </div>
+            <div id="recapSlide2" class="slide-content" style="overflow-y: auto; padding-top: 10px;"></div>
+          </section>
+
+          <section class="slide" data-slide="18-3" aria-labelledby="recapSlideTitle3" hidden>
+            <div class="slide-heading">
+              <div><p class="eyebrow">Rekapitulasi (Lanjutan)</p><h1 id="recapSlideTitle3">Rekapitulasi Rentang Skenario Seluruh Layanan (Bagian 3)</h1><p>Lanjutan tabel rentang minimum s.d. maksimum tambahan dan pengurangan kasus.</p></div>
+              <span class="slide-chip">Rekap Rentang</span>
+            </div>
+            <div id="recapSlide3" class="slide-content" style="overflow-y: auto; padding-top: 10px;"></div>
+          </section>
+
           <section class="slide" data-slide="19" aria-labelledby="logicalRecapSlideTitle" hidden>
             <div class="slide-heading">
-              <div><p class="eyebrow">Rekapitulasi Optimal</p><h1 id="logicalRecapSlideTitle">Rekap Skenario Paling Logis Seluruh Layanan</h1><p>Skenario terpilih per layanan yang paling rasional (di mana total kasus pasca penambahan dan pengurangan tidak melebihi beban kasus eksisting awal).</p></div>
+              <div><p class="eyebrow">Rekapitulasi Optimal</p><h1 id="logicalRecapSlideTitle">Rekap Skenario Paling Logis Seluruh Layanan (Bagian 1)</h1><p>Skenario terpilih per layanan yang paling rasional (di mana total kasus pasca penambahan dan pengurangan tidak melebihi beban kasus eksisting awal).</p></div>
               <span class="slide-chip" style="background:#0d9488; color:#fff;">Paling Logis</span>
             </div>
             <div id="logicalRecapSlide" class="slide-content" style="overflow-y: auto; padding-top: 10px;"></div>
+          </section>
+
+          <section class="slide" data-slide="19-2" aria-labelledby="logicalRecapSlideTitle2" hidden>
+            <div class="slide-heading">
+              <div><p class="eyebrow">Rekapitulasi Optimal (Lanjutan)</p><h1 id="logicalRecapSlideTitle2">Rekap Skenario Paling Logis Seluruh Layanan (Bagian 2)</h1><p>Lanjutan skenario terpilih per layanan yang paling rasional.</p></div>
+              <span class="slide-chip" style="background:#0d9488; color:#fff;">Paling Logis</span>
+            </div>
+            <div id="logicalRecapSlide2" class="slide-content" style="overflow-y: auto; padding-top: 10px;"></div>
+          </section>
+
+          <section class="slide" data-slide="19-3" aria-labelledby="logicalRecapSlideTitle3" hidden>
+            <div class="slide-heading">
+              <div><p class="eyebrow">Rekapitulasi Optimal (Lanjutan)</p><h1 id="logicalRecapSlideTitle3">Rekap Skenario Paling Logis Seluruh Layanan (Bagian 3)</h1><p>Lanjutan skenario terpilih per layanan yang paling rasional.</p></div>
+              <span class="slide-chip" style="background:#0d9488; color:#fff;">Paling Logis</span>
+            </div>
+            <div id="logicalRecapSlide3" class="slide-content" style="overflow-y: auto; padding-top: 10px;"></div>
           </section>
 
           <section class="slide" data-slide="20" aria-labelledby="slide10Title" hidden>
@@ -414,6 +459,18 @@
         <div id="tariffScenarioDesc" style="font-size: 10.5px; color: #64748b; margin-top: 4px; line-height: 1.35;">Model 1.370 DRG dengan penyesuaian AF + AFreg + AFkep</div>
       </div>
 
+      <!-- Mode Simulasi Global -->
+      <div class="target-picker filter-picker" style="background: #fdf2f8; padding: 10px 12px; border-radius: 10px; border: 1px solid #fbcfe8; margin-bottom: 6px;">
+        <span style="font-size: 12px; font-weight: 800; color: #be185d; display: flex; align-items: center; gap: 5px; margin-bottom: 6px;">
+          <span>⚙️</span> Mode Simulasi Global
+        </span>
+        <select id="globalSimModeSelect" class="tariff-scenario-select" aria-label="Pilih Mode Simulasi Global" style="width: 100%; box-sizing: border-box; padding: 7px 10px; border-radius: 8px; border: 1.5px solid #be185d; background: #ffffff; font-weight: 750; font-size: 12px; color: #9d174d; cursor: pointer; outline: none; transition: all 0.2s;">
+          <option value="regional_all" selected>Mode 1: Kasus Regional Keseluruhan</option>
+          <option value="higher_tier">Mode 2: Serap dr RS Kelas Lebih Tinggi</option>
+        </select>
+        <div style="font-size: 10.5px; color: #be185d; margin-top: 4px; line-height: 1.35;">Mempengaruhi perhitungan di Slide 6-1 (Simulasi Global).</div>
+      </div>
+
       <div class="target-picker filter-picker custom-multi">
         <span>Filter Provinsi</span>
         <div class="multi-select-container" id="provContainer">
@@ -449,14 +506,14 @@
       </div>
     </div>
   </aside>
-  <script src="js/data.js?v=2026081612"></script>
+  <script src="js/data.js?v=2026081648"></script>
   <script src="js/xlsx.bundle.js"></script>
   <script src="js/dom-to-pptx.bundle.js"></script>
   <script src="js/pptxgen.bundle.js"></script>
-  <script src="js/scenarios-core.js?v=2026081612"></script>
-  <script src="js/export-gslides.js?v=2026081612"></script>
-  <script src="js/audit-excel.js?v=2026081612"></script>
-  <script src="js/app.js?v=2026081612"></script>
+  <script src="js/scenarios-core.js?v=2026081648"></script>
+  <script src="js/export-gslides.js?v=2026081648"></script>
+  <script src="js/audit-excel.js?v=2026081648"></script>
+  <script src="js/app.js?v=2026081648"></script>
   <script>
   (function initAuth() {
     const overlay = document.getElementById('loginOverlay');
@@ -551,3 +608,18 @@
   </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

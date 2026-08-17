@@ -7,6 +7,11 @@
   let data = allDatasets[activeDatasetKey] || window.marketSimulatorData;
   if (!data) throw new Error("Dataset simulator tidak tersedia.");
 
+  if (data.services && !data.services.includes('FORENSIK DAN MEDIKOLEGAL')) {
+    data.services.push('FORENSIK DAN MEDIKOLEGAL');
+    data.services.sort();
+  }
+
   const CASES = 0;
   const INA = 1;
   let IDRG = 2;
@@ -61,6 +66,11 @@
     state.activeDataset = datasetKey;
     originalData = allDatasets[datasetKey];
     data = allDatasets[datasetKey];
+
+    if (data && data.services && !data.services.includes('FORENSIK DAN MEDIKOLEGAL')) {
+      data.services.push('FORENSIK DAN MEDIKOLEGAL');
+      data.services.sort();
+    }
 
     const pInfo = DATASET_PERIODS[datasetKey] || DATASET_PERIODS["okt_jun"];
     const periodLabelEl = document.getElementById("activePeriodLabel");
@@ -197,11 +207,11 @@
     const numeric = Number(value) || 0;
     const absolute = Math.abs(numeric);
     const sign = numeric < 0 ? "−" : "";
-    if (absolute >= 1e12) return `${sign}Rp${compactFormatter.format(absolute / 1e12)} T`;
-    if (absolute >= 1e9) return `${sign}Rp${compactFormatter.format(absolute / 1e9)} M`;
-    if (absolute >= 1e6) return `${sign}Rp${compactFormatter.format(absolute / 1e6)} JT`;
-    if (absolute >= 1e3) return `${sign}Rp${compactFormatter.format(absolute / 1e3)} rb`;
-    return `${sign}Rp${numberFormatter.format(absolute)}`;
+    if (absolute >= 1e12) return `${sign}${compactFormatter.format(absolute / 1e12)} T`;
+    if (absolute >= 1e9) return `${sign}${compactFormatter.format(absolute / 1e9)} M`;
+    if (absolute >= 1e6) return `${sign}${compactFormatter.format(absolute / 1e6)} JT`;
+    if (absolute >= 1e3) return `${sign}${compactFormatter.format(absolute / 1e3)} rb`;
+    return `${sign}${numberFormatter.format(absolute)}`;
   };
   const formatMatrixMoney = (value) => {
     const numeric = Number(value) || 0;
@@ -360,19 +370,49 @@
     const target = targetHospitalObj || targetHospital();
     const targetComp = (competencyVal !== undefined) ? competencyVal : (target ? getCompetency(target, service) : 0);
     const rules = getLevelRules(targetComp, service);
-    const defaultLowLevels = [1, 2, 3, 4, 5, 10]; // Skenario 1 (1%), 2 (2%), 3 (3%), 4 (4%), 5 (5%), 6 (10%)
+    
+    // Hitung baseline market share alami per level (100 / (n_kompetitor + 1))
+    // Skenario 1 = Baseline  : % tambah = market share alami dari regional pool
+    // Skenario 2 = Konservatif: baseline × 1.25
+    // Skenario 3 = Moderat    : baseline × 1.5
+    // Skenario 4 = Optimistik : baseline × 2.0
+    // Skenario 5 = Agresif    : baseline × 2.5
+    // Skenario 6 = Maksimum   : 100% (ambil semua potensi)
+    const multipliers = [1.0, 1.25, 1.5, 2.0, 2.5, null]; // null = 100%
+    
+    // Hitung baseline % per level tambah
+    const baselinePct = {};
+    rules.tambah.forEach(lvl => {
+      const lvlComp = target
+        ? data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= lvl).length
+        : 0;
+      // Jika ada kompetitor: market share alami = 100/(kompetitor+1)
+      // Jika tidak ada kompetitor: ambil 50% (konservatif default)
+      baselinePct[lvl] = lvlComp > 0 ? parseFloat((100 / (lvlComp + 1)).toFixed(1)) : 50;
+    });
     
     return Array(6).fill().map((_, i) => {
       const scn = {};
+      const mult = multipliers[i];
+      
       rules.tambah.forEach(lvl => {
         if (lvl === 1 || lvl === 2) {
-          scn["tambah_" + lvl] = defaultLowLevels[i];
+          // Custom rule for Dasar (1) and Madya (2)
+          if (i === 0) scn["tambah_" + lvl] = baselinePct[lvl];
+          else if (i === 1) scn["tambah_" + lvl] = 1;
+          else if (i === 2) scn["tambah_" + lvl] = 2;
+          else if (i === 3) scn["tambah_" + lvl] = 3;
+          else if (i === 4) scn["tambah_" + lvl] = 4;
+          else if (i === 5) scn["tambah_" + lvl] = 5;
         } else {
-          let lvlComp = target ? data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= lvl).length : 0;
-          let base = lvlComp > 0 ? Math.min(50, 100 / (lvlComp + 1)) : 50;
-          scn["tambah_" + lvl] = parseFloat(Math.min(100, Math.max(0, base + i * 2)).toFixed(1));
+          if (mult === null) {
+            scn["tambah_" + lvl] = 100; // Skenario 6: Maksimum
+          } else {
+            scn["tambah_" + lvl] = parseFloat(Math.min(100, baselinePct[lvl] * mult).toFixed(1));
+          }
         }
       });
+      
       rules.kurang.forEach(lvl => {
         scn["kurang_" + lvl] = (lvl > targetComp || lvl === 4) ? 100 : 90;
       });
@@ -499,7 +539,7 @@
     const target = targetHospital();
     const delta = target.total[IDRG] - target.total[INA];
     const deltaPercent = target.total[INA] ? delta / target.total[INA] : 0;
-    const unclassifiedCases = metric(target.unclassified)[CASES];
+    const unclassifiedCases = state.excludeUnmapped ? 0 : metric(target.unclassified)[CASES];
     const severityTotals = Object.fromEntries(severityRanks.map((rank) => [rank,
       sumMetrics(data.services.map((service) => severityMetric(target.services?.[service], rank))),
     ]));
@@ -696,6 +736,175 @@
       </div>`;
   }
 
+  function renderGlobalSimulationSlide() {
+    const target = targetHospital();
+    if (!target) return;
+
+    const mode = document.getElementById('globalSimModeSelect') ? document.getElementById('globalSimModeSelect').value : 'regional_all';
+    
+    // Hitung Kondisi Eksisting
+    const eksistingKasus = target.total[CASES];
+    const eksistingIna = target.total[INA];
+    const eksistingIdrg = target.total[IDRG];
+    
+    // Hitung Potensi Serapan & Redistribusi berdasarkan Mode
+    let potensiSerapanKasus = 0;
+    let potensiSerapanIdrg = 0;
+    
+    let potensiRedistribusiKasus = 0;
+    let potensiRedistribusiIdrg = 0;
+
+    data.services.forEach(service => {
+      const srvReg = regionalService(service);
+      const srvTarget = target.services[service];
+      if (!srvReg || !srvTarget) return;
+
+      if (mode === 'regional_all') {
+        // Mode 1: Serap Utama & Paripurna dr Sisa Regional (Regional - Target)
+        // Redistribusi Dasar & Madya dr Target ke Regional
+        const sRegUtama = severityMetric(srvReg, 'utama');
+        const sRegParipurna = severityMetric(srvReg, 'paripurna');
+        const sTargetUtama = severityMetric(srvTarget, 'utama');
+        const sTargetParipurna = severityMetric(srvTarget, 'paripurna');
+        
+        const sisaRegUtamaKasus = Math.max(0, sRegUtama[CASES] - sTargetUtama[CASES]);
+        const sisaRegUtamaIdrg = Math.max(0, sRegUtama[IDRG] - sTargetUtama[IDRG]);
+        const sisaRegParipurnaKasus = Math.max(0, sRegParipurna[CASES] - sTargetParipurna[CASES]);
+        const sisaRegParipurnaIdrg = Math.max(0, sRegParipurna[IDRG] - sTargetParipurna[IDRG]);
+        
+        potensiSerapanKasus += (sisaRegUtamaKasus + sisaRegParipurnaKasus);
+        potensiSerapanIdrg += (sisaRegUtamaIdrg + sisaRegParipurnaIdrg);
+        
+        // Target melepas dasar madya
+        const sTargetDasar = severityMetric(srvTarget, 'dasar');
+        const sTargetMadya = severityMetric(srvTarget, 'madya');
+        potensiRedistribusiKasus += (sTargetDasar[CASES] + sTargetMadya[CASES]);
+        potensiRedistribusiIdrg += (sTargetDasar[IDRG] + sTargetMadya[IDRG]);
+      } else {
+        // Mode 2: Serap Dasar & Madya dr RS Kelas Lebih Tinggi (Utama & Paripurna) di regional
+        // Simulasi ini memerlukan iterasi per RS
+        data.hospitals.forEach(h => {
+          if (h.id === target.id) return;
+          const hCompetency = getHospitalCompetency(h.id, service);
+          const tCompetency = getHospitalCompetency(target.id, service);
+          
+          if (hCompetency > tCompetency) {
+            // RS Kompetitor lebih tinggi kelasnya, target (lebih rendah) bisa serap Dasar/Madya mereka
+            const hSrv = h.services[service];
+            if (hSrv) {
+              const hDasar = severityMetric(hSrv, 'dasar');
+              const hMadya = severityMetric(hSrv, 'madya');
+              potensiSerapanKasus += (hDasar[CASES] + hMadya[CASES]);
+              potensiSerapanIdrg += (hDasar[IDRG] + hMadya[IDRG]);
+            }
+          }
+        });
+        
+        // Redistribusi? Dalam Mode 2, Target (jika tinggi) melepas ke RS lebih rendah
+        data.hospitals.forEach(h => {
+          if (h.id === target.id) return;
+          const hCompetency = getHospitalCompetency(h.id, service);
+          const tCompetency = getHospitalCompetency(target.id, service);
+          
+          if (tCompetency > hCompetency) {
+            // Target lebih tinggi, melepas Dasar/Madya-nya sendiri
+            const tSrv = target.services[service];
+            if (tSrv) {
+               // Redistribute proportional to target's base/madya
+               // For simplicity in this mode, we just say Target redistributes ALL its Dasar/Madya
+            }
+          }
+        });
+        // Simply: target melepas semua dasar & madya miliknya
+        const sTargetDasar = severityMetric(srvTarget, 'dasar');
+        const sTargetMadya = severityMetric(srvTarget, 'madya');
+        potensiRedistribusiKasus += (sTargetDasar[CASES] + sTargetMadya[CASES]);
+        potensiRedistribusiIdrg += (sTargetDasar[IDRG] + sTargetMadya[IDRG]);
+      }
+    });
+    
+    const scenarios = [1.0, 0.5, 0.25]; // 100%, 50%, 25%
+    let rowsHtml = '';
+    
+    scenarios.forEach(pct => {
+      const tambahKasus = potensiSerapanKasus * pct;
+      const tambahIdrg = potensiSerapanIdrg * pct;
+      const kurangKasus = potensiRedistribusiKasus * pct;
+      const kurangIdrg = potensiRedistribusiIdrg * pct;
+      
+      const netKasus = tambahKasus - kurangKasus;
+      const netIdrg = tambahIdrg - kurangIdrg;
+      
+      const akhirIdrg = eksistingIdrg + netIdrg;
+      const pctNaik = eksistingIdrg > 0 ? (akhirIdrg - eksistingIdrg) / eksistingIdrg : 0;
+      
+      rowsHtml += `
+        <tr style="border-bottom: 1px solid #e2e8f0; background-color: ${pct === 1.0 ? '#f0fdf4' : '#fff'};">
+          <td style="padding: 12px 8px; font-weight: 700; color: #0f172a; border-right: 1px dashed #cbd5e1;">Skenario ${formatPercent(pct)}</td>
+          <td style="padding: 12px 8px; border-right: 1px dashed #cbd5e1; background-color: #f8fafc;">
+            <div style="font-weight: 700; color: #16a34a; font-size: 14px;">+ ${formatNumber(tambahKasus)} Kasus</div>
+            <div style="font-weight: 700; color: #15803d; font-size: 14px;">+ ${fmtM(tambahIdrg)}</div>
+            <div style="font-size: 11px; color: #64748b;">${formatPercent(pct)} Serapan</div>
+          </td>
+          <td style="padding: 12px 8px; border-right: 1px dashed #cbd5e1; background-color: #f8fafc;">
+            <div style="font-weight: 700; color: #dc2626; font-size: 14px;">- ${formatNumber(kurangKasus)} Kasus</div>
+            <div style="font-weight: 700; color: #b91c1c; font-size: 14px;">- ${fmtM(kurangIdrg)}</div>
+            <div style="font-size: 11px; color: #64748b;">${formatPercent(pct)} Redistribusi</div>
+          </td>
+          <td style="padding: 12px 8px; border-right: 1px dashed #cbd5e1;">
+            <div style="font-weight: 700; color: ${netKasus >= 0 ? '#0284c7' : '#ea580c'}; font-size: 14px;">${netKasus >= 0 ? '+' : ''}${formatNumber(netKasus)} Kasus</div>
+            <div style="font-weight: 700; color: ${netIdrg >= 0 ? '#0369a1' : '#c2410c'}; font-size: 14px;">${netIdrg >= 0 ? '+' : ''}${fmtM(netIdrg)}</div>
+          </td>
+          <td style="padding: 12px 8px; font-weight: 800; color: #1e293b; font-size: 15px; background-color: #f8fafc; border-left: 2px solid #0f766e;">
+            ${fmtM(akhirIdrg)}
+            <div style="font-size: 13px; color: ${pctNaik >= 0 ? '#16a34a' : '#dc2626'}; margin-top: 4px;">
+              ${pctNaik >= 0 ? '▲ +' : '▼ '}${formatPercent(pctNaik)}
+            </div>
+          </td>
+        </tr>
+      `;
+    });
+    
+    document.getElementById("globalSimulationSlide").innerHTML = `
+      <div style="margin-bottom: 20px;">
+        <table style="width: 100%; border-collapse: collapse; text-align: center; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+          <thead>
+            <tr style="background-color: #0f766e; color: white;">
+              <th style="padding: 12px; font-size: 13px; width: 12%;">SKENARIO</th>
+              <th style="padding: 12px; font-size: 13px; width: 22%; background-color: #16a34a;">(+) TAMBAHAN SERAPAN</th>
+              <th style="padding: 12px; font-size: 13px; width: 22%; background-color: #dc2626;">(-) REDISTRIBUSI</th>
+              <th style="padding: 12px; font-size: 13px; width: 22%; background-color: #0284c7;">(=) NET PERUBAHAN</th>
+              <th style="padding: 12px; font-size: 14px; width: 22%; background-color: #1e293b; border-left: 2px solid #0f766e;">(4) PROYEKSI AKHIR</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom: 2px solid #cbd5e1; background-color: #f1f5f9;">
+              <td style="padding: 12px; font-weight: 700; color: #475569;">KONDISI EKSISTING</td>
+              <td colspan="3" style="padding: 12px; color: #64748b; font-size: 13px; font-style: italic;">
+                Mode simulasi: ${mode === 'regional_all' ? 'Serapan dr Regional Keseluruhan' : 'Serapan Dasar/Madya dr RS Kelas Tinggi'}
+              </td>
+              <td style="padding: 12px; font-weight: 800; color: #0f172a; font-size: 15px; border-left: 2px solid #0f766e;">
+                ${formatNumber(eksistingKasus)} Kasus<br>
+                ${fmtM(eksistingIdrg)}
+              </td>
+            </tr>
+            ${rowsHtml}
+          </tbody>
+        </table>
+      </div>
+      <div style="display: flex; gap: 15px;">
+        <div style="flex: 1; background: #f0fdf4; padding: 12px; border-radius: 8px; border-left: 4px solid #16a34a;">
+          <h4 style="margin: 0 0 4px 0; color: #166534; font-size: 13px;">Potensi Maksimal Serapan</h4>
+          <div style="font-weight: 700; color: #15803d; font-size: 16px;">+${formatNumber(potensiSerapanKasus)} Kasus / +${fmtM(potensiSerapanIdrg)}</div>
+        </div>
+        <div style="flex: 1; background: #fef2f2; padding: 12px; border-radius: 8px; border-left: 4px solid #dc2626;">
+          <h4 style="margin: 0 0 4px 0; color: #991b1b; font-size: 13px;">Potensi Maksimal Redistribusi</h4>
+          <div style="font-weight: 700; color: #b91c1c; font-size: 16px;">-${formatNumber(potensiRedistribusiKasus)} Kasus / -${fmtM(potensiRedistribusiIdrg)}</div>
+        </div>
+      </div>
+    `;
+  }
+
   function renderRegionalProfileSlide() {
     const target = targetHospital();
     const totalCases = data.regional.total[CASES];
@@ -737,7 +946,7 @@
     const kMadya = severityMetric(data.regional, 2)[CASES];
     const kUtama = severityMetric(data.regional, 3)[CASES];
     const kParipurna = severityMetric(data.regional, 4)[CASES];
-    const kLainnya = metric(data.regional.unclassified)[CASES];
+    const kLainnya = state.excludeUnmapped ? 0 : metric(data.regional.unclassified)[CASES];
 
     const severityRows = [
       { name: "Dasar", cases: kDasar, pct: totalCases ? (kDasar / totalCases) * 100 : 0 },
@@ -850,28 +1059,42 @@
   }
 
   function getActiveMirroringHospitals() {
-    if (state.targetCodes && state.targetCodes.length > 0) {
-      const list = getTargetHospitals();
-      if (list && list.length > 0) return list;
-    }
+    // Agar perhitungan konsisten dengan Slide 6 (Regional), kita gunakan data rumah sakit yang sesuai dengan filter aktif
     return data.hospitals || [];
   }
 
   function formatTableMoney(val) {
-    if (!val || isNaN(val)) return "Rp 0";
+    if (!val || isNaN(val)) return "0";
     const absVal = Math.abs(val);
     const sign = val < 0 ? "-" : "";
     if (absVal >= 1e12) {
-      return sign + "Rp " + (absVal / 1e12).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " T";
+      return sign + (absVal / 1e12).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " T";
     } else if (absVal >= 1e9) {
-      return sign + "Rp " + (absVal / 1e9).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " M";
+      return sign + (absVal / 1e9).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " M";
     } else if (absVal >= 1e6) {
-      return sign + "Rp " + (absVal / 1e6).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " JT";
+      return sign + (absVal / 1e6).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " JT";
     } else if (absVal >= 1e3) {
-      return sign + "Rp " + (absVal / 1e3).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " rb";
+      return sign + (absVal / 1e3).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " rb";
     } else {
-      return sign + "Rp " + Math.round(absVal).toLocaleString("id-ID");
+      return sign + Math.round(absVal).toLocaleString("id-ID");
     }
+  }
+
+  function formatNetMoneyUnit(val) {
+      if (!val || isNaN(val)) return "0";
+      const sign = val < 0 ? "-" : "+";
+      const absVal = Math.abs(val);
+      if (absVal >= 1e12) {
+        return sign + (absVal / 1e12).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " T";
+      } else if (absVal >= 1e9) {
+        return sign + (absVal / 1e9).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " M";
+      } else if (absVal >= 1e6) {
+        return sign + (absVal / 1e6).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " JT";
+      } else if (absVal >= 1e3) {
+        return sign + (absVal / 1e3).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " rb";
+      } else {
+        return sign + Math.round(absVal).toLocaleString("id-ID");
+      }
   }
 
   function formatTablePct(pct) {
@@ -1066,7 +1289,9 @@
     const container = document.getElementById("icdCompetencySlide");
     if (!container) return;
 
-    const activeHospitals = getActiveMirroringHospitals();
+    // Gunakan data regional sesuai filter aktif
+    const activeHospitals = data.hospitals || [];
+    
     const metrics = computeNationalMirroringMetrics(activeHospitals);
     const { classCounts, result, diffRI_M, pctRI, diffRJ_M, pctRJ, diffTotal_T, pctTotal } = metrics;
     const totalActive = metrics.hospitalCount;
@@ -1085,12 +1310,12 @@
     const fmtM = (val) => {
       const absVal = Math.abs(val || 0);
       if (absVal >= 1e12) {
-        return "Rp " + (absVal / 1e12).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " T";
+        return (absVal / 1e12).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " T";
       }
       if (absVal >= 1e9) {
-        return "Rp " + (absVal / 1e9).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " M";
+        return (absVal / 1e9).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " M";
       }
-      return "Rp " + Math.round(absVal).toLocaleString("id-ID");
+      return Math.round(absVal).toLocaleString("id-ID");
     };
 
     const renderCells = (groupData) => {
@@ -4546,7 +4771,7 @@
         <div class="summary-right">
           <article class="panel"><div class="panel-heading"><h2>Layanan dengan penambahan terbesar</h2><span>Δ kasus</span></div><div class="ranked-list">${ranked(gains, "Belum ada penambahan kasus")}</div></article>
           <article class="panel"><div class="panel-heading"><h2>Asumsi dan risiko volume</h2><span>${overrideCount} override aktif</span></div>
-            <div class="two-column">
+          <div class="two-column">
               <div class="ranked-list">${ranked(losses, "Tidak ada layanan yang berkurang")}</div>
               <div class="assumption-summary">${severityRanks.map((rank) => `<div><span>${levelNames[rank]}</span><strong>Capture ${state.globalRates.capture[rank]}% · Retensi ${state.globalRates.retention[rank]}%</strong></div>`).join("")}</div>
             </div>
@@ -4556,7 +4781,11 @@
       </div>`;
   }
 
+  // --- SLIDE: RENTANG SKENARIO SELURUH LAYANAN ---
   function renderRecapSlide() {
+    const container = document.getElementById("recapSlide");
+    if (!container) return;
+
     const target = targetHospital();
     if (!target) return;
     
@@ -4566,37 +4795,36 @@
       return sign + (val * 100).toFixed(2).replace('.', ',') + "%";
     };
     
-    let html = `
-      <div class="table-container" style="max-height: 500px; overflow-y: auto;">
-        <table class="scenario-table" style="table-layout: auto; width: 100%; min-width: 1200px;">
-          <thead style="position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    let htmlHeader = `
+      <div class="table-container" style="max-height: 480px; overflow-y: auto;">
+        <table class="scenario-table" style="table-layout: auto; width: 100%; min-width: 1400px;">
+          <thead style="position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 3px rgba(0,0,0,0.15);">
             <tr>
-              <th rowspan="2" style="background-color: #0aa7ad; color: white;">No</th>
-              <th rowspan="2" style="background-color: #0aa7ad; color: white; text-align: left;">Layanan</th>
-              <th rowspan="2" style="background-color: #0aa7ad; color: white;">Komp.</th>
-              <th colspan="4" style="background-color: #16a085; color: white; text-align: center;">Dampak per Tingkat Kompetensi<br><span style="font-size: 11px; font-weight: normal;">(%, Jumlah Kasus, Rp M)</span></th>
-              <th colspan="3" style="background-color: #0e7490; color: white; text-align: center;">Net +/- Pasca iDRG & RBKP</th>
-              <th rowspan="2" style="background-color: #1e40af; color: white;">Pendapatan<br>Eksisting Dengan iDRG<br>(Rp M)</th>
-              <th rowspan="2" style="background-color: #1e40af; color: white;">Pendapatan<br>Pasca RBKP<br>(Rp M)</th>
-              <th rowspan="2" style="background-color: #1e40af; color: white;">% Kenaikan<br>thd INA-CBG</th>
+              <th rowspan="2" style="background-color: #0f766e; color: white;">No</th>
+              <th rowspan="2" style="background-color: #0f766e; color: white; text-align: left;">Layanan</th>
+              <th rowspan="2" style="background-color: #0f766e; color: white;">Komp.</th>
+              <th rowspan="2" style="background-color: #1e293b; color: white;">Eksisting Kasus<br><span style="font-size:10px; font-weight:normal;">(Sebelum Dikurangi)</span></th>
+              <th colspan="2" style="background-color: #be123c; color: white; text-align: center;">Dampak Pengurangan<br><span style="font-size: 10px; font-weight: normal;">(Keluar dari RS target)</span></th>
+              <th colspan="2" style="background-color: #16a34a; color: white; text-align: center;">Dampak Penambahan<br><span style="font-size: 10px; font-weight: normal;">(Capture dari Kompetitor)</span></th>
+              <th colspan="2" style="background-color: #0369a1; color: white; text-align: center;">Net +/- (Penambahan - Pengurangan)</th>
+              <th rowspan="2" style="background-color: #0891b2; color: white;">Sisa Kasus & Pendapatan<br><span style="font-size:10px; font-weight:normal;">(Eksisting - Kurang)</span></th>
+              <th rowspan="2" style="background-color: #1e40af; color: white;">PASCA KASUS<br><span style="font-size:10px; font-weight:normal;">(Sisa + Tambah)</span><br>& % Retensi</th>
+              <th rowspan="2" style="background-color: #1e40af; color: white;">PENDAPATAN<br>PASCA RBKP<br>(Rp M)</th>
+              <th rowspan="2" style="background-color: #0f766e; color: white;">% Kenaikan thd<br>INA-CBG Awal</th>
             </tr>
             <tr>
-              <th style="background-color: #20b2aa; color: white; min-width: 130px;">Paripurna</th>
-              <th style="background-color: #20b2aa; color: white; min-width: 130px;">Utama</th>
-              <th style="background-color: #20b2aa; color: white; min-width: 130px;">Madya</th>
-              <th style="background-color: #20b2aa; color: white; min-width: 130px;">Dasar</th>
-              <th style="background-color: #0284c7; color: white;">+/- Jml Kasus</th>
-              <th style="background-color: #0284c7; color: white;">% thd Kasus<br>Eksisting</th>
-              <th style="background-color: #0284c7; color: white;">+/- Net Rp (M)</th>
+              <th style="background-color: #e11d48; color: white; font-size: 11px;">- Kasus Keluar</th>
+              <th style="background-color: #e11d48; color: white; font-size: 11px;">- Pendapatan Hilang</th>
+              <th style="background-color: #22c55e; color: white; font-size: 11px;">+ Kasus Baru</th>
+              <th style="background-color: #22c55e; color: white; font-size: 11px;">+ Potensi Pendapatan</th>
+              <th style="background-color: #0284c7; color: white; font-size: 11px;">+/- Jml Kasus</th>
+              <th style="background-color: #0284c7; color: white; font-size: 11px;">+/- Net Rp (M)</th>
             </tr>
           </thead>
           <tbody>
     `;
     
-    let grandTotalKasus = 0;
-    let grandTotalIna = 0;
-    const totalScenarioK = Array(6).fill(0);
-    const totalScenarioRp = Array(6).fill(0);
+    let rowsHtml = [];
     
     const formatCell = (minVal, maxVal, isRp) => {
       if (minVal === 0 && maxVal === 0) return `<span style="color:#cbd5e1;">-</span>`;
@@ -4615,239 +4843,173 @@
       }
       
       if (minVal === maxVal) {
-        return `<span style="color:${color}; font-weight:600;">${signMin}${textMin}</span>`;
+        return `<span style="color:${color}; font-weight:700;">${signMin}${textMin}</span>`;
       } else {
-        return `<span style="color:${color}; font-weight:600;">${signMin}${textMin} <span style="color:#94a3b8; font-weight:normal; font-size: 11px;">s.d</span> ${signMax}${textMax}</span>`;
+        return `<span style="color:${color}; font-weight:700;">${signMin}${textMin} <span style="color:#94a3b8; font-weight:normal; font-size: 10px;">s.d</span> ${signMax}${textMax}</span>`;
       }
     };
-    
+
+    let grandEksKasus = 0;
+    let grandEksIna = 0;
+    let grandMinKk = 0, grandMaxKk = 0;
+    let grandMinKrp = 0, grandMaxKrp = 0;
+    let grandMinTk = 0, grandMaxTk = 0;
+    let grandMinTrp = 0, grandMaxTrp = 0;
+    let grandMinNetK = 0, grandMaxNetK = 0;
+    let grandMinNetRp = 0, grandMaxNetRp = 0;
+    let grandMinSisaK = 0, grandMaxSisaK = 0;
+    let grandMinSisaRp = 0, grandMaxSisaRp = 0;
+    let grandMinPascaK = 0, grandMaxPascaK = 0;
+    let grandMinPascaRp = 0, grandMaxPascaRp = 0;
 
     data.services.forEach((service, idx) => {
       const tHospSvc = target.services[service];
-      const svcData = data.regional.services[service];
-      const tSvcTotal = tHospSvc ? tHospSvc.total : [0,0,0];
-      
-      const tKasus = tSvcTotal[CASES] || 0;
-      const existingIna = tSvcTotal[INA] || 0;
-      const existingIdrg = tSvcTotal[IDRG] || 0;
-      
       const targetCompetency = tHospSvc ? (tHospSvc.competency || 0) : 0;
-      const rules = getLevelRules(targetCompetency, service);
-      
-      const allDampak = { 4: {k:[],rp:[]}, 3: {k:[],rp:[]}, 2: {k:[],rp:[]}, 1: {k:[],rp:[]} };
-      const allNetK = [], allNetRp = [];
-      const allPascaRp = [];
-      const allSisaRp = [];
-      const allPctRp = [];
-      const allPctK = [];
       
       const calcResult = window.computeServiceScenarios(
         service, target, data, state, CASES, INA, IDRG, severityMetric, getLevelRules
       );
       
-      calcResult.scnEvals.forEach((scnEval, i) => {
-        let totalNetK = scnEval.netKasus;
-        let totalNetRp = scnEval.netRp;
-        
-        [4,3,2,1].forEach(lvl => {
-          let k = 0, rp = 0;
-          if (scnEval.scn.hasOwnProperty("tambah_" + lvl)) {
-             const pp = scnEval.scn["tambah_" + lvl] / 100;
-             k = calcResult.baseTambahan[lvl][0] * pp;
-             rp = calcResult.baseTambahan[lvl][1] * pp;
-          } else if (scnEval.scn.hasOwnProperty("kurang_" + lvl)) {
-             const pk = scnEval.scn["kurang_" + lvl] / 100;
-             k = -(calcResult.basePengurangan[lvl][0] * pk);
-             rp = -(calcResult.basePengurangan[lvl][1] * pk);
-          }
-          allDampak[lvl].k[i] = k;
-          allDampak[lvl].rp[i] = rp;
-        });
-        
-        allNetK[i] = totalNetK;
-        allNetRp[i] = totalNetRp;
-        
+      const tKasus = calcResult.existingKasus;
+      const existingIna = calcResult.existingIna;
+      
+      const allKk = [], allKrp = [], allTk = [], allTrp = [];
+      const allNetK = [], allNetRp = [];
+      const allSisaK = [], allSisaRp = [];
+      const allPascaK = [], allPascaRp = [];
+      const allPctRp = [], allPctRetensi = [];
+      
+      calcResult.scnEvals.forEach(scnEval => {
+        allKk.push(scnEval.totalKurangKasus);
+        allKrp.push(scnEval.totalKurangRp);
+        allTk.push(scnEval.totalTambahKasus);
+        allTrp.push(scnEval.totalTambahRp);
+        allNetK.push(scnEval.netKasus);
+        allNetRp.push(scnEval.netRp);
+        allSisaK.push(scnEval.sisaKasus);
         allSisaRp.push(scnEval.sisaIdrg);
+        allPascaK.push(scnEval.pascaKasus);
         allPascaRp.push(scnEval.pascaRp);
         allPctRp.push(existingIna ? ((scnEval.pascaRp - existingIna) / existingIna) : 0);
-        allPctK.push(tKasus ? (totalNetK / tKasus) : 0);
+        allPctRetensi.push(tKasus ? (scnEval.pascaKasus / tKasus) : 0);
       });
 
-      scenarios.forEach((scn, i) => {
-        totalScenarioK[i] += allNetK[i];
-        totalScenarioRp[i] += allNetRp[i];
-      });
-      grandTotalKasus += tKasus;
-      grandTotalIna += existingIna;
-      let htmlDampak = "";
-      [4,3,2,1].forEach(lvl => {
-        const minK = Math.min(...allDampak[lvl].k);
-        const maxK = Math.max(...allDampak[lvl].k);
-        const minRp = Math.min(...allDampak[lvl].rp);
-        const maxRp = Math.max(...allDampak[lvl].rp);
-        
-        let minPct = 0;
-        let maxPct = 0;
-        if (tKasus > 0) {
-           minPct = minK / tKasus;
-           maxPct = maxK / tKasus;
-        }
-
-        if (minK === 0 && maxK === 0) {
-          htmlDampak += `<td style="background:#f8fafc; text-align:center; color:#cbd5e1;">-</td>`;
-        } else {
-          const pctStr = (minPct === maxPct) ? 
-             `<span style="color:${minPct > 0 ? '#15803d' : '#b91c1c'};">${formatSignedPercent(minPct)}</span>` :
-             `<span style="color:${minPct > 0 ? '#15803d' : '#b91c1c'};">${formatSignedPercent(minPct)}</span> <span style="color:#94a3b8; font-size: 10px;">s.d</span> <span style="color:${maxPct > 0 ? '#15803d' : '#b91c1c'};">${formatSignedPercent(maxPct)}</span>`;
-             
-          htmlDampak += `<td style="background:#ffffff; white-space:nowrap; text-align: center;">
-            <div style="font-size: 12px; margin-bottom: 2px;">${pctStr}</div>
-            <div style="font-size: 13px; margin-bottom: 2px;">${formatCell(minK, maxK, false)}</div>
-            <div style="font-size: 13px;">${formatCell(minRp, maxRp, true)}</div>
-          </td>`;
-        }
-      });
+      if (allKk.length === 0) {
+        allKk.push(0); allKrp.push(0); allTk.push(0); allTrp.push(0);
+        allNetK.push(0); allNetRp.push(0);
+        allSisaK.push(tKasus); allSisaRp.push(existingIdrg);
+        allPascaK.push(tKasus); allPascaRp.push(existingIdrg);
+        allPctRp.push(0); allPctRetensi.push(1);
+      }
       
-      const minNetK = Math.min(...allNetK);
-      const maxNetK = Math.max(...allNetK);
-      const minNetRp = Math.min(...allNetRp);
-      const maxNetRp = Math.max(...allNetRp);
+      const minKk = Math.min(...allKk), maxKk = Math.max(...allKk);
+      const minKrp = Math.min(...allKrp), maxKrp = Math.max(...allKrp);
+      const minTk = Math.min(...allTk), maxTk = Math.max(...allTk);
+      const minTrp = Math.min(...allTrp), maxTrp = Math.max(...allTrp);
+      const minNetK = Math.min(...allNetK), maxNetK = Math.max(...allNetK);
+      const minNetRp = Math.min(...allNetRp), maxNetRp = Math.max(...allNetRp);
+      const minSisaK = Math.min(...allSisaK), maxSisaK = Math.max(...allSisaK);
+      const minSisaRp = Math.min(...allSisaRp), maxSisaRp = Math.max(...allSisaRp);
+      const minPascaK = Math.min(...allPascaK), maxPascaK = Math.max(...allPascaK);
+      const minPascaRp = Math.min(...allPascaRp), maxPascaRp = Math.max(...allPascaRp);
+      const minPctRp = Math.min(...allPctRp), maxPctRp = Math.max(...allPctRp);
+      const minPctRetensi = Math.min(...allPctRetensi), maxPctRetensi = Math.max(...allPctRetensi);
       
-      // Calculate min/max from arrays
-      const minSisaRp = Math.min(...allSisaRp);
-      const maxSisaRp = Math.max(...allSisaRp);
-      const minPascaRp = Math.min(...allPascaRp);
-      const maxPascaRp = Math.max(...allPascaRp);
+      grandEksKasus += tKasus;
+      grandEksIna += existingIna;
+      grandMinKk += minKk; grandMaxKk += maxKk;
+      grandMinKrp += minKrp; grandMaxKrp += maxKrp;
+      grandMinTk += minTk; grandMaxTk += maxTk;
+      grandMinTrp += minTrp; grandMaxTrp += maxTrp;
+      grandMinNetK += minNetK; grandMaxNetK += maxNetK;
+      grandMinNetRp += minNetRp; grandMaxNetRp += maxNetRp;
+      grandMinSisaK += minSisaK; grandMaxSisaK += maxSisaK;
+      grandMinSisaRp += minSisaRp; grandMaxSisaRp += maxSisaRp;
+      grandMinPascaK += minPascaK; grandMaxPascaK += maxPascaK;
+      grandMinPascaRp += minPascaRp; grandMaxPascaRp += maxPascaRp;
       
-      const minPctK = Math.min(...allPctK);
-      const maxPctK = Math.max(...allPctK);
-      const minPctRp = Math.min(...allPctRp);
-      const maxPctRp = Math.max(...allPctRp);
-      
-      // For Pendapatan Eksisting, we display existingIna directly.
-      
-      html += `
+      rowsHtml.push(`
         <tr>
           <td style="color: #94a3b8; font-size: 13px;">${idx + 1}</td>
           <td style="text-align: left; font-weight: 600; font-size: 13px; white-space:nowrap;">${escapeHtml(formatService(service))}</td>
           <td style="font-size: 13px;">${levelBadge(targetCompetency)}</td>
-          ${htmlDampak}
-          <td style="background:#ffffff; white-space:nowrap;">${formatCell(minNetK, maxNetK, false)}</td>
-          <td style="background:#ffffff; white-space:nowrap;">
-            ${minPctK === maxPctK 
-                ? `<span style="color:${minPctK > 0 ? "#15803d" : (minPctK < 0 ? "#b91c1c" : "#334155")}; font-weight:600;">${formatSignedPercent(minPctK)}</span>`
-                : `<span style="color:${minPctK > 0 ? "#15803d" : "#b91c1c"}; font-weight:600;">${formatSignedPercent(minPctK)}</span> <span style="color:#94a3b8; font-size: 11px;">s.d</span> <span style="color:${maxPctK > 0 ? "#15803d" : "#b91c1c"}; font-weight:600;">${formatSignedPercent(maxPctK)}</span>`
-             }
+          
+          <td style="text-align: center; font-weight: 700; color: #1e293b;">
+            <div>${formatNumber(tKasus)}</div>
+            <div style="font-size: 10px; color: #64748b; font-weight: 500;">${formatTableMoney(existingIna)}</div>
           </td>
-          <td style="background:#ffffff; white-space:nowrap;">${formatCell(minNetRp, maxNetRp, true)}</td>
-          <td style="background:#ffffff; font-weight:700; white-space:nowrap;">
-            ${formatCell(minSisaRp, maxSisaRp, true)}
+          
+          <td style="background:#fff1f2; white-space:nowrap; text-align:center;">${formatCell(-maxKk, -minKk, false)}</td>
+          <td style="background:#fff1f2; white-space:nowrap; text-align:center;">${formatCell(-maxKrp, -minKrp, true)}</td>
+          
+          <td style="background:#f0fdf4; white-space:nowrap; text-align:center;">${formatCell(minTk, maxTk, false)}</td>
+          <td style="background:#f0fdf4; white-space:nowrap; text-align:center;">${formatCell(minTrp, maxTrp, true)}</td>
+          
+          <td style="background:#f0f9ff; white-space:nowrap; text-align:center;">${formatCell(minNetK, maxNetK, false)}</td>
+          <td style="background:#f0f9ff; white-space:nowrap; text-align:center;">${formatCell(minNetRp, maxNetRp, true)}</td>
+          
+          <td style="background:#ffffff; white-space:nowrap; text-align:center;">
+            <div style="font-weight:700; color:#0369a1;">${formatCell(minSisaK, maxSisaK, false).replace('+','')}</div>
+            <div style="font-size:11px;">${formatCell(minSisaRp, maxSisaRp, true).replace('+','')}</div>
           </td>
-          <td style="background:#ffffff; font-weight:700; white-space:nowrap;">
-            ${formatCell(minPascaRp, maxPascaRp, true)}
+          
+          <td style="background:#eff6ff; white-space:nowrap; text-align:center;">
+            <div style="font-weight:800; color:#1d4ed8; font-size:14px;">${formatCell(minPascaK, maxPascaK, false).replace('+','')}</div>
+            <div style="font-size:11px; font-weight:700; color:#2563eb;">${minPctRetensi === maxPctRetensi ? formatSignedPercent(minPctRetensi) : formatSignedPercent(minPctRetensi) + ' <span style="color:#94a3b8; font-size:9px; font-weight:normal;">s.d</span> ' + formatSignedPercent(maxPctRetensi)}</div>
           </td>
-          <td style="background:#ffffff; white-space:nowrap;">
+          
+          <td style="background:#eff6ff; white-space:nowrap; text-align:center; font-weight:800; color:#1e40af;">
+            ${formatCell(minPascaRp, maxPascaRp, true).replace('+','')}
+          </td>
+          
+          <td style="background:#ffffff; white-space:nowrap; text-align:center;">
             ${minPctRp === maxPctRp 
-                ? `<span style="color:${minPctRp > 0 ? "#15803d" : (minPctRp < 0 ? "#b91c1c" : "#334155")}; font-weight:600;">${formatSignedPercent(minPctRp)}</span>`
-                : `<span style="color:${minPctRp > 0 ? "#15803d" : "#b91c1c"}; font-weight:600;">${formatSignedPercent(minPctRp)}</span> <span style="color:#94a3b8; font-size: 11px;">s.d</span> <span style="color:${maxPctRp > 0 ? "#15803d" : "#b91c1c"}; font-weight:600;">${formatSignedPercent(maxPctRp)}</span>`
+                ? `<span style="color:${minPctRp >= 0 ? "#15803d" : "#b91c1c"}; font-weight:800; font-size:14px;">${formatSignedPercent(minPctRp)}</span>`
+                : `<span style="color:${minPctRp >= 0 ? "#15803d" : "#b91c1c"}; font-weight:800; font-size:13px;">${formatSignedPercent(minPctRp)}</span> <br> <span style="color:#94a3b8; font-size: 10px;">s.d</span> <span style="color:${maxPctRp >= 0 ? "#15803d" : "#b91c1c"}; font-weight:800; font-size:13px;">${formatSignedPercent(maxPctRp)}</span>`
              }
           </td>
         </tr>
-      `;
+      `);
     });
     
-    // We calculate footer min/max values per scenario (Pasca = Sisa + Tambahan Baru)
-    const grandPascaPerScenario = [];
-    const grandPctKPerScenario = [];
-    const grandPctRpPerScenario = [];
+    const minGrandPctRp = grandEksIna ? ((grandMinPascaRp - grandEksIna) / grandEksIna) : 0;
+    const maxGrandPctRp = grandEksIna ? ((grandMaxPascaRp - grandEksIna) / grandEksIna) : 0;
     
-    for (let i = 0; i < 6; i++) {
-       let sisaForScenario = 0;
-       let tambahForScenario = 0;
-       data.services.forEach(svc => {
-          let tComp = target.services[svc] ? (target.services[svc].competency || 0) : 0;
-          let r = getLevelRules(tComp, svc);
-          let scnObj = state.serviceScenarios[svc] ? state.serviceScenarios[svc][i] : null;
-          let tSvc = target.services[svc];
-          let svcIdrg = tSvc ? (tSvc.total[IDRG] || 0) : 0;
-          let kRp = 0;
-          let tRp = 0;
-          if (scnObj) {
-            r.kurang.forEach(lvl => {
-               if (scnObj.hasOwnProperty("kurang_" + lvl)) {
-                 const tM = tSvc ? severityMetric(tSvc, lvl) : [0,0,0];
-                 kRp += (tM[IDRG]||0) * (scnObj["kurang_" + lvl] / 100);
-               }
-            });
-            r.tambah.forEach(lvl => {
-               if (scnObj.hasOwnProperty("tambah_" + lvl)) {
-                 const rSvc = data.regional.services[svc];
-                 const rM = rSvc ? severityMetric(rSvc, lvl) : [0,0,0];
-                 const tM = tSvc ? severityMetric(tSvc, lvl) : [0,0,0];
-                 const baseTRp = Math.max(0, (rM[IDRG] || 0) - (tM[IDRG] || 0));
-                 tRp += baseTRp * (scnObj["tambah_" + lvl] / 100);
-               }
-            });
-          }
-          sisaForScenario += (svcIdrg - kRp);
-          tambahForScenario += tRp;
-       });
-       
-       const pasca = sisaForScenario + tambahForScenario;
-       grandPascaPerScenario.push(pasca);
-       
-       grandPctRpPerScenario.push(grandTotalIna ? ((pasca - grandTotalIna) / grandTotalIna) : 0);
-       grandPctKPerScenario.push(grandTotalKasus ? (totalScenarioK[i] / grandTotalKasus) : 0);
-    }
-    
-    const minGrandNetK = Math.min(...totalScenarioK);
-    const maxGrandNetK = Math.max(...totalScenarioK);
-    const minGrandNetRp = Math.min(...totalScenarioRp);
-    const maxGrandNetRp = Math.max(...totalScenarioRp);
-    
-    const minGrandPascaRp = Math.min(...grandPascaPerScenario);
-    const maxGrandPascaRp = Math.max(...grandPascaPerScenario);
-    
-    const minGrandPctK = Math.min(...grandPctKPerScenario);
-    const maxGrandPctK = Math.max(...grandPctKPerScenario);
-    const minGrandPctRp = Math.min(...grandPctRpPerScenario);
-    const maxGrandPctRp = Math.max(...grandPctRpPerScenario);
-
-    // Calculate a static grandSisa for display
-    let grandSisa = grandTotalIna;
-    data.services.forEach(svc => {
-       let tComp = target.services[svc] ? (target.services[svc].competency || 0) : 0;
-       let r = getLevelRules(tComp, svc);
-       let kRp = 0;
-       r.kurang.forEach(lvl => {
-          let tm = target.services[svc] ? severityMetric(target.services[svc], lvl) : [0,0,0];
-          kRp += tm[IDRG] || 0;
-       });
-       grandSisa -= kRp;
-    });
-
-    html += `
+    let htmlFooter = `
         <tr style="font-weight: bold; background-color: #e2e8f0; font-size: 13px;">
           <td colspan="3" style="text-align: right; padding-right: 12px; color: #0f172a;">Total Seluruh Layanan</td>
-          <td colspan="4" style="text-align: center; color: #64748b;">-</td>
-          <td style="white-space:nowrap;">${formatCell(minGrandNetK, maxGrandNetK, false)}</td>
-          <td style="white-space:nowrap;">
-            ${minGrandPctK === maxGrandPctK 
-                ? `<span style="color:${minGrandPctK > 0 ? "#15803d" : (minGrandPctK < 0 ? "#b91c1c" : "#334155")};">${formatSignedPercent(minGrandPctK)}</span>`
-                : `<span style="color:${minGrandPctK > 0 ? "#15803d" : "#b91c1c"};">${formatSignedPercent(minGrandPctK)}</span> <span style="color:#94a3b8; font-size: 11px;">s.d</span> <span style="color:${maxGrandPctK > 0 ? "#15803d" : "#b91c1c"};">${formatSignedPercent(maxGrandPctK)}</span>`
-             }
+          
+          <td style="text-align: center; font-weight: 800; color: #1e293b;">
+            <div>${formatNumber(grandEksKasus)}</div>
+            <div style="font-size: 10px; color: #64748b; font-weight: 600;">${formatTableMoney(grandEksIna)}</div>
           </td>
-          <td style="white-space:nowrap;">${formatCell(minGrandNetRp, maxGrandNetRp, true)}</td>
-          <td style="color:#0d9488; white-space:nowrap;">
-            ${(grandSisa / 1000000000).toFixed(2).replace('.', ',')} M
+          
+          <td style="background:#fff1f2; white-space:nowrap; text-align:center;">${formatCell(-grandMaxKk, -grandMinKk, false)}</td>
+          <td style="background:#fff1f2; white-space:nowrap; text-align:center;">${formatCell(-grandMaxKrp, -grandMinKrp, true)}</td>
+          
+          <td style="background:#f0fdf4; white-space:nowrap; text-align:center;">${formatCell(grandMinTk, grandMaxTk, false)}</td>
+          <td style="background:#f0fdf4; white-space:nowrap; text-align:center;">${formatCell(grandMinTrp, grandMaxTrp, true)}</td>
+          
+          <td style="background:#f0f9ff; white-space:nowrap; text-align:center;">${formatCell(grandMinNetK, grandMaxNetK, false)}</td>
+          <td style="background:#f0f9ff; white-space:nowrap; text-align:center;">${formatCell(grandMinNetRp, grandMaxNetRp, true)}</td>
+          
+          <td style="background:#ffffff; white-space:nowrap; text-align:center;">
+            <div style="font-weight:800; color:#0369a1;">${formatCell(grandMinSisaK, grandMaxSisaK, false).replace('+','')}</div>
+            <div style="font-size:11px;">${formatCell(grandMinSisaRp, grandMaxSisaRp, true).replace('+','')}</div>
           </td>
-          <td style="background:#ffffff; font-weight:700; white-space:nowrap;">
-            ${formatCell(minGrandPascaRp, maxGrandPascaRp, true)}
+          
+          <td style="background:#eff6ff; white-space:nowrap; text-align:center;">
+            <div style="font-weight:900; color:#1d4ed8; font-size:14px;">${formatCell(grandMinPascaK, grandMaxPascaK, false).replace('+','')}</div>
           </td>
-          <td style="white-space:nowrap;">
+          
+          <td style="background:#eff6ff; white-space:nowrap; text-align:center; font-weight:900; color:#1e40af;">
+            ${formatCell(grandMinPascaRp, grandMaxPascaRp, true).replace('+','')}
+          </td>
+          
+          <td style="background:#ffffff; white-space:nowrap; text-align:center;">
             ${minGrandPctRp === maxGrandPctRp 
-                ? `<span style="color:${minGrandPctRp > 0 ? "#15803d" : (minGrandPctRp < 0 ? "#b91c1c" : "#334155")};">${formatSignedPercent(minGrandPctRp)}</span>`
-                : `<span style="color:${minGrandPctRp > 0 ? "#15803d" : "#b91c1c"};">${formatSignedPercent(minGrandPctRp)}</span> <span style="color:#94a3b8; font-size: 11px;">s.d</span> <span style="color:${maxGrandPctRp > 0 ? "#15803d" : "#b91c1c"};">${formatSignedPercent(maxGrandPctRp)}</span>`
+                ? `<span style="color:${minGrandPctRp >= 0 ? "#15803d" : "#b91c1c"}; font-weight:800; font-size:14px;">${formatSignedPercent(minGrandPctRp)}</span>`
+                : `<span style="color:${minGrandPctRp >= 0 ? "#15803d" : "#b91c1c"}; font-weight:800; font-size:13px;">${formatSignedPercent(minGrandPctRp)}</span> <br> <span style="color:#94a3b8; font-size: 10px;">s.d</span> <span style="color:${maxGrandPctRp >= 0 ? "#15803d" : "#b91c1c"}; font-weight:800; font-size:13px;">${formatSignedPercent(maxGrandPctRp)}</span>`
              }
           </td>
         </tr>
@@ -4860,9 +5022,18 @@
       </div>
     `;
     
-    document.getElementById("recapSlide").innerHTML = html;
-  }
+    const partSize = Math.ceil(rowsHtml.length / 3);
+    const html1 = htmlHeader + rowsHtml.slice(0, partSize).join("") + `</tbody></table></div>`;
+    const html2 = htmlHeader + rowsHtml.slice(partSize, partSize * 2).join("") + `</tbody></table></div>`;
+    const html3 = htmlHeader + rowsHtml.slice(partSize * 2).join("") + htmlFooter;
     
+    document.getElementById("recapSlide").innerHTML = html1;
+    const slide2 = document.getElementById("recapSlide2");
+    if (slide2) slide2.innerHTML = html2;
+    const slide3 = document.getElementById("recapSlide3");
+    if (slide3) slide3.innerHTML = html3;
+  }
+
   function renderLogicalRecapSlide() {
     const target = targetHospital();
     const container = document.getElementById("logicalRecapSlide");
@@ -4938,6 +5109,31 @@
       chosen.index = chosen.idx + 1;
       chosen.paramStr = paramStr.trim();
       
+      const tD = tHospSvc ? severityMetric(tHospSvc, 1)[CASES] : 0;
+      const tM = tHospSvc ? severityMetric(tHospSvc, 2)[CASES] : 0;
+      const tU = tHospSvc ? severityMetric(tHospSvc, 3)[CASES] : 0;
+      const tP = tHospSvc ? severityMetric(tHospSvc, 4)[CASES] : 0;
+      
+      let bHtml = '';
+      if (tD > 0) bHtml += `<div>D: ${formatNumber(tD)}</div>`;
+      if (tM > 0) bHtml += `<div>M: ${formatNumber(tM)}</div>`;
+      if (tU > 0) bHtml += `<div>U: ${formatNumber(tU)}</div>`;
+      if (tP > 0) bHtml += `<div>P: ${formatNumber(tP)}</div>`;
+      const eksBreakdownHtml = bHtml ? `<div style="font-size: 10px; color: #64748b; font-weight: 500; margin-top: 4px; line-height: 1.2;">${bHtml}</div>` : '';
+      
+      let sD = tD, sM = tM, sU = tU, sP = tP;
+      if (chosen.scn.hasOwnProperty('kurang_1')) sD = tD - (calcResult.basePengurangan[1][0] * (chosen.scn['kurang_1'] / 100));
+      if (chosen.scn.hasOwnProperty('kurang_2')) sM = tM - (calcResult.basePengurangan[2][0] * (chosen.scn['kurang_2'] / 100));
+      if (chosen.scn.hasOwnProperty('kurang_3')) sU = tU - (calcResult.basePengurangan[3][0] * (chosen.scn['kurang_3'] / 100));
+      if (chosen.scn.hasOwnProperty('kurang_4')) sP = tP - (calcResult.basePengurangan[4][0] * (chosen.scn['kurang_4'] / 100));
+      
+      let sHtml = '';
+      if (sD > 0) sHtml += `<div>D: ${formatNumber(sD)}</div>`;
+      if (sM > 0) sHtml += `<div>M: ${formatNumber(sM)}</div>`;
+      if (sU > 0) sHtml += `<div>U: ${formatNumber(sU)}</div>`;
+      if (sP > 0) sHtml += `<div>P: ${formatNumber(sP)}</div>`;
+      const sisaBreakdownHtml = sHtml ? `<div style="font-size: 10px; color: #0284c7; font-weight: 500; margin-top: 4px; line-height: 1.2;">${sHtml}</div>` : '';
+      
       if (chosen.isSafe) {
         safeCount++;
       }
@@ -4970,7 +5166,9 @@
         existingIdrg,
         pctPascaIna,
         pctNetKasus,
-        pctRetensi
+        pctRetensi,
+        eksBreakdownHtml,
+        sisaBreakdownHtml
       });
     });
     
@@ -4978,7 +5176,7 @@
     const pctGrandNetKasus = grandEksKasus ? (grandNetKasus / grandEksKasus) : 0;
     const pctGrandRetensi = grandEksKasus ? (grandPascaKasus / grandEksKasus) : 0;
     
-    let html = `
+    let htmlHeader = `
       <div style="display: flex; gap: 12px; margin-bottom: 12px;">
         <div style="flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #0284c7; border-radius: 8px; padding: 10px 14px;">
           <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">Total Kasus Pasca RBKP (Optimal)</div>
@@ -5022,19 +5220,20 @@
               <th style="background-color: #0284c7; color: white; padding: 6px 6px;">Skenario Terpilih</th>
               <th style="background-color: #334155; color: white; padding: 6px 6px;">Kasus Eksisting</th>
               <th style="background-color: #e11d48; color: white; padding: 6px 6px;">Pengurangan (-)</th>
+              <th style="background-color: #0891b2; color: white; padding: 6px 6px;">Sisa Eksisting</th>
               <th style="background-color: #16a34a; color: white; padding: 6px 6px;">Tambahan (+)</th>
-              <th style="background-color: #0284c7; color: white; padding: 6px 6px;">Net Kasus (+/-)</th>
-              <th style="background-color: #0284c7; color: white; padding: 6px 6px;">Net Rp (+/-)</th>
-              <th style="background-color: #0f766e; color: white; padding: 6px 6px;">Sisa Eksisting</th>
-              <th style="background-color: #1e40af; color: white; padding: 6px 6px;">Proyeksi Kasus Pasca</th>
-              <th style="background-color: #1e40af; color: white; padding: 6px 6px;">Pendapatan Pasca RBKP</th>
-              <th style="background-color: #1e40af; color: white; padding: 6px 6px;">% vs INA-CBG</th>
-              <th style="background-color: #475569; color: white; padding: 6px 6px;">Status Kapasitas</th>
+              <th style="background-color: #b45309; color: white; padding: 6px 6px;">Proyeksi Kasus Pasca</th>
+              <th style="background-color: #b45309; color: white; padding: 6px 6px;">Pendapatan Pasca RBKP</th>
+              <th style="background-color: #475569; color: white; padding: 6px 6px;">Net Kasus (+/-)</th>
+              <th style="background-color: #475569; color: white; padding: 6px 6px;">Net Rp (+/-)</th>
+              <th style="background-color: #475569; color: white; padding: 6px 6px;">% vs INA-CBG</th>
+              <th style="background-color: #334155; color: white; padding: 6px 6px;">Status Kapasitas</th>
             </tr>
           </thead>
           <tbody>
     `;
     
+    let rowsHtml = [];
     rows.forEach(r => {
       const c = r.chosen;
       const netRpColor = c.netRp > 0 ? '#15803d' : (c.netRp < 0 ? '#b91c1c' : '#334155');
@@ -5045,7 +5244,7 @@
         ? `<span style="background: #dcfce7; color: #166534; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 10.5px; display: inline-flex; align-items: center; gap: 3px;">✅ Aman (≤ Eksisting)</span>`
         : `<span style="background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 10.5px; display: inline-flex; align-items: center; gap: 3px;">🟡 Konservatif (Skenario 1)</span>`;
       
-      html += `
+      rowsHtml.push(`
         <tr style="border-bottom: 1px solid #e2e8f0; font-size: 12px; background-color: #ffffff;">
           <td style="color: #64748b; text-align: center; padding: 5px 4px;">${r.idx}</td>
           <td style="text-align: left; font-weight: 600; color: #1e293b; padding: 5px 8px; white-space: nowrap;">${escapeHtml(formatService(r.service))}</td>
@@ -5056,44 +5255,48 @@
             </div>
             <div style="font-size: 10px; color: #9a3412; font-weight: 600; margin-top: 2px;">${c.paramStr}</div>
           </td>
-          <td style="text-align: center; font-weight: 700; color: #1e293b; padding: 5px 6px;">${formatNumber(r.tKasus)}</td>
+          <td style="text-align: center; font-weight: 700; color: #1e293b; padding: 5px 6px;">
+            <div>${formatNumber(r.tKasus)}</div>
+            ${r.eksBreakdownHtml}
+          </td>
           <td style="text-align: center; color: #b91c1c; padding: 5px 6px; background: #fff1f2;">
             <div>-${formatNumber(c.kk)}</div>
             <div style="font-size: 10.5px; font-weight: 600;">-${(c.krp/1e9).toFixed(2).replace('.', ',')} M</div>
+          </td>
+          <td style="text-align: center; color: #0891b2; font-weight: 700; padding: 5px 6px; background: #ecfeff;">
+            <div>${formatNumber(c.sisaK)}</div>
+            <div style="font-size: 10.5px;">${(c.sisaRp/1e9).toFixed(2).replace('.', ',')} M</div>
+            ${r.sisaBreakdownHtml}
           </td>
           <td style="text-align: center; color: #15803d; padding: 5px 6px; background: #f0fdf4;">
             <div>+${formatNumber(c.tk)}</div>
             <div style="font-size: 10.5px; font-weight: 600;">+${(c.trp/1e9).toFixed(2).replace('.', ',')} M</div>
           </td>
-          <td style="text-align: center; font-weight: 700; color: ${netKColor}; padding: 5px 6px;">
+          <td style="text-align: center; font-weight: 800; color: #92400e; padding: 5px 6px; background: #fffbeb;">
+            <div>${formatNumber(c.pascaK)}</div>
+            <div style="font-size: 10px; color: ${c.pascaK <= r.tKasus ? '#16a34a' : '#ea580c'}; font-weight: 700;">${formatPercent(r.pctRetensi)}</div>
+          </td>
+          <td style="text-align: center; font-weight: 800; color: ${c.pascaRp < 0 ? '#b91c1c' : '#92400e'}; padding: 5px 6px; background: #fffbeb;">
+            ${(c.pascaRp/1e9).toFixed(2).replace('.', ',')} M
+          </td>
+          <td style="text-align: center; font-weight: 700; color: ${netKColor}; padding: 5px 6px; background: #f8fafc;">
             ${c.netK > 0 ? '+' : ''}${formatNumber(c.netK)}
             <div style="font-size: 10px; font-weight: normal;">(${formatSignedPercent(r.pctNetKasus)})</div>
           </td>
           <td style="text-align: center; font-weight: 700; color: ${netRpColor}; padding: 5px 6px; background: #f8fafc;">
             ${c.netRp > 0 ? '+' : ''}${(c.netRp/1e9).toFixed(2).replace('.', ',')} M
           </td>
-          <td style="text-align: center; color: #0d9488; font-weight: 700; padding: 5px 6px; background: #f0fdfa;">
-            <div>${formatNumber(c.sisaK)}</div>
-            <div style="font-size: 10.5px;">${(c.sisaRp/1e9).toFixed(2).replace('.', ',')} M</div>
-          </td>
-          <td style="text-align: center; font-weight: 800; color: #1e40af; padding: 5px 6px; background: #eff6ff;">
-            <div>${formatNumber(c.pascaK)}</div>
-            <div style="font-size: 10px; color: ${c.pascaK <= r.tKasus ? '#16a34a' : '#ea580c'}; font-weight: 700;">${formatPercent(r.pctRetensi)}</div>
-          </td>
-          <td style="text-align: center; font-weight: 800; color: ${c.pascaRp < 0 ? '#b91c1c' : '#0f766e'}; padding: 5px 6px; background: #eff6ff;">
-            ${(c.pascaRp/1e9).toFixed(2).replace('.', ',')} M
-          </td>
-          <td style="text-align: center; font-weight: 700; color: ${pctPascaColor}; padding: 5px 6px;">
+          <td style="text-align: center; font-weight: 700; color: ${pctPascaColor}; padding: 5px 6px; background: #f8fafc;">
             ${formatSignedPercent(r.pctPascaIna)}
           </td>
           <td style="text-align: center; padding: 5px 6px;">
             ${statusBadge}
           </td>
         </tr>
-      `;
+      `);
     });
     
-    html += `
+    let htmlFooter = `
         <tr style="font-weight: bold; background-color: #e2e8f0; font-size: 12.5px; border-top: 2px solid #0d9488;">
           <td colspan="4" style="text-align: right; padding: 8px 10px; color: #0f172a; font-weight: 800;">TOTAL SELURUH LAYANAN (OPTIMAL & LOGIS)</td>
           <td style="text-align: center; padding: 8px 6px; font-weight: 800; color: #0f172a;">${formatNumber(grandEksKasus)}</td>
@@ -5133,13 +5336,21 @@
           </tbody>
         </table>
       </div>
-      <div style="margin-top: 8px; font-size: 11px; color: #64748b; display: flex; justify-content: space-between; align-items: center;">
-        <div><b>Prinsip Logis:</b> Skenario dipilih yang memberikan hasil terbaik tanpa melampaui beban kasus eksisting awal RS (≤ 100% kapasitas).</div>
-        <div>* Proyeksi Pendapatan Pasca RBKP = Sisa Eksisting (Pasca Pengurangan) + Tambahan Baru.</div>
+      <div style="margin-top: 10px; font-size: 13px; color: #4e5d59; font-style: italic; line-height: 1.5; background: #f4f8f7; padding: 6px 10px; border-radius: 6px; border: 1px solid #d9e5e2;">
+        <div>* <strong>Skenario Aman/Logis</strong>: Sistem mencari tingkat skenario tertinggi (Net Pendapatan paling besar) dimana <strong>Pasca Kasus ≤ Kasus Eksisting</strong>, agar RS tidak overload. Jika di Skenario 1 pun Pasca Kasus sudah melebihi Eksisting, sistem akan menandainya 🟡 Konservatif.</div>
       </div>
     `;
     
-    container.innerHTML = html;
+    const partSize = Math.ceil(rowsHtml.length / 3);
+    const html1 = htmlHeader + rowsHtml.slice(0, partSize).join("") + `</tbody></table></div>`;
+    const html2 = htmlHeader + rowsHtml.slice(partSize, partSize * 2).join("") + `</tbody></table></div>`;
+    const html3 = htmlHeader + rowsHtml.slice(partSize * 2).join("") + htmlFooter;
+    
+    container.innerHTML = html1;
+    const lslide2 = document.getElementById("logicalRecapSlide2");
+    if (lslide2) lslide2.innerHTML = html2;
+    const lslide3 = document.getElementById("logicalRecapSlide3");
+    if (lslide3) lslide3.innerHTML = html3;
   }
 
 
@@ -5217,61 +5428,17 @@
         state.serviceScenarios[service] = generateDefaultServiceScenarios(service, target, targetCompetency);
       }
 
+      const calcResult = window.computeServiceScenarios(service, target, data, state, CASES, INA, IDRG, severityMetric, getLevelRules);
+      const scnEvals = calcResult.scnEvals;
       const scenarios = state.serviceScenarios[service];
-      const baseTambahan = { 1: [0,0], 2: [0,0], 3: [0,0], 4: [0,0] };
-      const basePengurangan = { 1: [0,0], 2: [0,0], 3: [0,0], 4: [0,0] };
       
-      rules.tambah.forEach(lvl => {
-        const rMetric = regionalSvc ? severityMetric(regionalSvc, lvl) : [0,0,0];
-        const tMetric = targetSvc ? severityMetric(targetSvc, lvl) : [0,0,0];
-        baseTambahan[lvl][0] = Math.max(0, (rMetric[CASES] || 0) - (tMetric[CASES] || 0));
-        baseTambahan[lvl][1] = Math.max(0, (rMetric[IDRG] || 0) - (tMetric[IDRG] || 0));
-      });
-      
-      if (targetSvc) {
-        rules.kurang.forEach(lvl => {
-          const targetLvl = severityMetric(targetSvc, lvl);
-          basePengurangan[lvl][0] += targetLvl[CASES] || 0;
-          basePengurangan[lvl][1] += targetLvl[IDRG] || 0;
-        });
-      }
-      
-      let allTambahK = [];
-      let allTambahRp = [];
-      let allKurangK = [];
-      let allKurangRp = [];
-      let allNetK = [];
-      let allNetRp = [];
-      let allPascaRbkp = [];
-      
-      scenarios.forEach(scn => {
-        let tk = 0, trp = 0;
-        let kk = 0, krp = 0;
-        
-        rules.tambah.forEach(lvl => {
-          if (scn.hasOwnProperty('tambah_' + lvl)) {
-            let pct = scn['tambah_' + lvl] / 100;
-            tk += baseTambahan[lvl][0] * pct;
-            trp += baseTambahan[lvl][1] * pct;
-          }
-        });
-        
-        rules.kurang.forEach(lvl => {
-          if (scn.hasOwnProperty('kurang_' + lvl)) {
-            let pct = scn['kurang_' + lvl] / 100;
-            kk += basePengurangan[lvl][0] * pct;
-            krp += basePengurangan[lvl][1] * pct;
-          }
-        });
-        
-        allTambahK.push(tk);
-        allTambahRp.push(trp);
-        allKurangK.push(kk);
-        allKurangRp.push(krp);
-        allNetK.push(tk - kk);
-        allNetRp.push(trp - krp);
-        allPascaRbkp.push((existingIdrg - krp) + trp);
-      });
+      const allTambahK = scnEvals.map(s => s.tambahK);
+      const allTambahRp = scnEvals.map(s => s.tambahRp);
+      const allKurangK = scnEvals.map(s => s.kurangK);
+      const allKurangRp = scnEvals.map(s => s.kurangRp);
+      const allNetK = scnEvals.map(s => s.netK);
+      const allNetRp = scnEvals.map(s => s.netRp);
+      const allPascaRbkp = scnEvals.map(s => s.pascaRp);
       
       const minTK = Math.min(...allTambahK), maxTK = Math.max(...allTambahK);
       const minTRp = Math.min(...allTambahRp), maxTRp = Math.max(...allTambahRp);
@@ -5449,23 +5616,33 @@
         const groups = { 4: [], 3: [], 2: [], 1: [] };
         competitorsList.forEach(h => groups[getCompetency(h, service)].push(h));
         
+        let colsHtml = '';
         [4, 3, 2, 1].forEach(lvl => {
           if (groups[lvl].length > 0) {
             const badgeColor = lvl === 4 ? 'background: #fdf4ff; color: #a21caf; border: 1px solid #f5d0fe;' : 
                                lvl === 3 ? 'background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa;' : 
                                lvl === 2 ? 'background: #fefce8; color: #a16207; border: 1px solid #fef08a;' : 
                                            'background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4;';
-            competitorHtml += `
-              <div style="margin-top: 6px; text-align: right;">
-                <div style="font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 3px; text-transform: uppercase;">${levelNames[lvl]} (${groups[lvl].length} RS)</div>
+            const limit = 4;
+            const shownHospitals = groups[lvl].slice(0, limit);
+            const hiddenCount = groups[lvl].length - limit;
+            
+            let badgesHTML = shownHospitals.map(h => `<span style="font-size: 12px; padding: 2px 6px; border-radius: 4px; ${badgeColor} white-space: nowrap; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">${escapeHtml(h.name)}</span>`).join('');
+            if (hiddenCount > 0) {
+              badgesHTML += `<span style="font-size: 12px; padding: 2px 6px; border-radius: 4px; background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; white-space: nowrap; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">+ ${hiddenCount} lainnya</span>`;
+            }
+            
+            colsHtml += `
+              <div style="display: flex; flex-direction: column; align-items: flex-end; min-width: max-content; flex: 1;">
+                <div style="font-size: 11px; font-weight: 700; color: #94a3b8; margin-bottom: 4px; text-transform: uppercase;">${levelNames[lvl]} (${groups[lvl].length} RS)</div>
                 <div style="display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end;">
-                  ${groups[lvl].map(h => `<span style="font-size: 13px; padding: 2px 6px; border-radius: 4px; ${badgeColor} white-space: nowrap; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">${escapeHtml(h.name)}</span>`).join('')}
+                  ${badgesHTML}
                 </div>
               </div>
             `;
           }
         });
-        competitorHtml = `<div style="max-height: 48px; overflow-y: auto; padding-right: 4px; margin-top: 2px; margin-left: auto; max-width: 600px;">${competitorHtml}</div>`;
+        competitorHtml = `<div style="display: flex; flex-wrap: wrap; gap: 16px; justify-content: flex-end; padding-right: 4px; margin-top: 6px; max-width: 100%;">${colsHtml}</div>`;
       } else {
         competitorHtml = `<div style="font-size: 14px; color: var(--muted); margin-top: 2px;">Tidak ada kompetitor</div>`;
       }
@@ -5499,6 +5676,7 @@
       );
       
       const { baseTambahan, basePengurangan, scnEvals: scnMetrics, chosenIdx: mostLogicalScenarioIndex } = calcResult;
+      console.log('[DEBUG Skenario Logis]', service, '-> chosenIdx:', mostLogicalScenarioIndex, '| safeCount:', scnMetrics.filter(s=>s.isSafe).length, '| scnCount:', scnMetrics.length, '| scenarios in state:', (state.serviceScenarios[service]||[]).length);
       
       const formatMatrixMoneyJT = (val) => {
         if (val === 0 || isNaN(val)) return "0";
@@ -5517,6 +5695,18 @@
           return sign + absVal.toLocaleString('id-ID');
         }
       };
+      const targetSvcRef = target.services[service];
+      const regionalSvcRef = data.regional.services[service];
+
+      const tD = targetSvcRef ? severityMetric(targetSvcRef, 1)[CASES] : 0;
+      const tM = targetSvcRef ? severityMetric(targetSvcRef, 2)[CASES] : 0;
+      const tU = targetSvcRef ? severityMetric(targetSvcRef, 3)[CASES] : 0;
+      const tP = targetSvcRef ? severityMetric(targetSvcRef, 4)[CASES] : 0;
+
+      const rD = regionalSvcRef ? severityMetric(regionalSvcRef, 1)[CASES] : 0;
+      const rM = regionalSvcRef ? severityMetric(regionalSvcRef, 2)[CASES] : 0;
+      const rU = regionalSvcRef ? severityMetric(regionalSvcRef, 3)[CASES] : 0;
+      const rP = regionalSvcRef ? severityMetric(regionalSvcRef, 4)[CASES] : 0;
 
       const generateRow = (index, scn) => {
         let totalTambahKasus = 0;
@@ -5525,13 +5715,35 @@
         let totalKurangRp = 0;
         
         const isMostLogical = (index === mostLogicalScenarioIndex);
-        const bgRow = isMostLogical ? '#fff7ed' : '#ffffff';
+        const bgRow = isMostLogical ? '#fff7ed' : (index % 2 === 0 ? '#f8fafc' : '#ffffff');
         const outlineRow = isMostLogical ? 'box-shadow: inset 0 0 0 2px #ea580c;' : '';
-        const cellBorder = isMostLogical ? 'border: 1px solid #fdba74;' : 'border: 1px solid #cbd5e1;';
+        const cb = isMostLogical ? 'border: 1px solid #fdba74;' : 'border: 1px solid #e2e8f0;';
         const badge = isMostLogical 
           ? `<div style="margin-top: 3px;"><span style="font-size: 9px; color: #ffffff; background: linear-gradient(135deg, #f97316, #ea580c); padding: 2px 7px; border-radius: 4px; font-weight: 800; text-transform: uppercase; display: inline-flex; align-items: center; gap: 3px; box-shadow: 0 1px 3px rgba(234,88,12,0.4); letter-spacing: 0.3px;">⚡ Paling Logis</span></div>` 
           : '';
         
+        // ── PENGURANGAN (shared / rowspan di baris 0) ─────────────────────────────
+        let kurangCols = '';
+        [4, 3, 2, 1].forEach(lvl => {
+          if (scn.hasOwnProperty('kurang_' + lvl)) {
+            const pKurang = scn['kurang_' + lvl] / 100;
+            const kk = basePengurangan[lvl][0] * pKurang;
+            const krp = basePengurangan[lvl][1] * pKurang;
+            totalKurangKasus += kk;
+            totalKurangRp += krp;
+            if (index === 0) {
+              const nRows = state.serviceScenarios[service].length;
+              kurangCols += `
+                <td rowspan="${nRows}" style="border: 1px solid #fecaca; padding: 4px; vertical-align: middle; background-color: #fff5f5;">
+                  <input type="number" class="scenario-input dynamic-scenario-input" data-service="${escapeHtml(service)}" data-index="${index}" data-field="kurang_${lvl}" value="${scn['kurang_' + lvl]}" step="0.1" style="width: 52px; padding: 2px; font-size: 13px; text-align: center; border: 1px solid #fca5a5; border-radius: 4px; color: #b91c1c; background: transparent;">
+                </td>
+                <td rowspan="${nRows}" style="border: 1px solid #fecaca; padding: 4px; font-size: 13px; font-weight: 600; color: #b91c1c; vertical-align: middle; background-color: #fff5f5;">-${formatNumber(kk)}</td>
+              `;
+            }
+          }
+        });
+        
+        // ── TAMBAHAN (per baris skenario) ─────────────────────────────────────────
         let tambahCols = '';
         [4, 3, 2, 1].forEach(lvl => {
           if (scn.hasOwnProperty('tambah_' + lvl)) {
@@ -5541,108 +5753,88 @@
             totalTambahKasus += tk;
             totalTambahRp += trp;
             tambahCols += `
-              <td style="${cellBorder} padding: 4px; vertical-align: middle;">
-                <span style="opacity:0; width:0; height:0; display:inline-block; overflow:hidden;">${scn['tambah_' + lvl]}%</span>
-                <input type="number" class="scenario-input dynamic-scenario-input" data-service="${escapeHtml(service)}" data-index="${index}" data-field="tambah_${lvl}" value="${scn['tambah_' + lvl]}" step="0.1" style="width: 52px; padding: 2px; font-size: 13px; text-align: center; border: 1px solid #e2e8f0; border-radius: 4px; color: #475569; background: transparent;">
+              <td style="${cb} padding: 4px; vertical-align: middle; background-color: ${isMostLogical ? '#f0fdf4' : 'transparent'};">
+                <input type="number" class="scenario-input dynamic-scenario-input" data-service="${escapeHtml(service)}" data-index="${index}" data-field="tambah_${lvl}" value="${scn['tambah_' + lvl]}" step="0.1" style="width: 52px; padding: 2px; font-size: 13px; text-align: center; border: 1px solid #86efac; border-radius: 4px; color: #15803d; background: transparent;">
               </td>
-              <td style="${cellBorder} padding: 4px; font-size: 13px; color: #334155; vertical-align: middle;">${formatNumber(tk)}</td>
-              <td style="${cellBorder} padding: 4px; font-size: 13px; color: #334155; vertical-align: middle;">${formatMatrixMoneyJT(trp)}</td>
+              <td style="${cb} padding: 4px; font-size: 13px; font-weight: 600; color: #15803d; vertical-align: middle;">+${formatNumber(tk)}</td>
+              <td style="${cb} padding: 4px; font-size: 12px; color: #15803d; vertical-align: middle;">${formatMatrixMoneyJT(trp)}</td>
             `;
           }
         });
         
-        let kurangCols = '';
-        [4, 3, 2, 1].forEach(lvl => {
-          if (scn.hasOwnProperty('kurang_' + lvl)) {
-            const pKurang = scn['kurang_' + lvl] / 100;
-            const kk = basePengurangan[lvl][0] * pKurang;
-            const krp = basePengurangan[lvl][1] * pKurang;
-            totalKurangKasus += kk;
-            totalKurangRp += krp;
-
-            if (index === 0) {
-              kurangCols += `
-                <td rowspan="${state.serviceScenarios[service].length}" style="border: 1px solid #cbd5e1; padding: 4px; vertical-align: middle; background-color: #ffffff;">
-                  <span style="opacity:0; width:0; height:0; display:inline-block; overflow:hidden;">${scn['kurang_' + lvl]}%</span>
-                  <input type="number" class="scenario-input dynamic-scenario-input" data-service="${escapeHtml(service)}" data-index="${index}" data-field="kurang_${lvl}" value="${scn['kurang_' + lvl]}" step="0.1" style="width: 52px; padding: 2px; font-size: 13px; text-align: center; border: 1px solid #e2e8f0; border-radius: 4px; color: #475569; background: transparent;">
-                </td>
-                <td rowspan="${state.serviceScenarios[service].length}" style="border: 1px solid #cbd5e1; padding: 4px; font-size: 13px; color: #334155; vertical-align: middle; background-color: #ffffff;">${formatNumber(kk)}</td>
-                <td rowspan="${state.serviceScenarios[service].length}" style="border: 1px solid #cbd5e1; padding: 4px; font-size: 13px; color: #334155; vertical-align: middle; background-color: #ffffff;">${formatMatrixMoneyJT(krp)}</td>
-              `;
-            }
-          }
-        });
-        
-        const netKasus = totalTambahKasus - totalKurangKasus;
-        const pctNetKasus = existingKasus ? (netKasus / existingKasus) : 0;
-        
-        const netRp = totalTambahRp - totalKurangRp;
-        const sisaIdrg = existingIdrg - totalKurangRp;
-        const pascaRbkp = sisaIdrg + totalTambahRp;
+        // ── DERIVED VALUES ────────────────────────────────────────────────────────
+        const sisaKasus = existingKasus - totalKurangKasus;
+        const sisaIdrg  = existingIdrg  - totalKurangRp;
+        const pascaKasus = sisaKasus + totalTambahKasus;
+        const pascaRbkp  = sisaIdrg  + totalTambahRp;
+        const netKasus   = totalTambahKasus - totalKurangKasus;
+        const netRp      = totalTambahRp - totalKurangRp;
         const pctKenaikan = existingIna ? ((pascaRbkp - existingIna) / existingIna) : 0;
-
-        const remP = severityMetric(targetSvc, 4)[CASES] * (1 - (scn.hasOwnProperty('kurang_4') ? scn['kurang_4'] : 0) / 100);
-        const remU = severityMetric(targetSvc, 3)[CASES] * (1 - (scn.hasOwnProperty('kurang_3') ? scn['kurang_3'] : 0) / 100);
-        const remM = severityMetric(targetSvc, 2)[CASES] * (1 - (scn.hasOwnProperty('kurang_2') ? scn['kurang_2'] : 0) / 100);
-        const remD = severityMetric(targetSvc, 1)[CASES] * (1 - (scn.hasOwnProperty('kurang_1') ? scn['kurang_1'] : 0) / 100);
+        const isSafeRow  = (existingKasus === 0) || (pascaKasus <= existingKasus);
+        const safeIcon   = isSafeRow ? '<span style="color:#15803d;font-size:11px;"> ✅</span>' : '<span style="color:#b91c1c;font-size:11px;"> ⚠️</span>';
+        
+        let eksBreakdownHtml = '';
+        if (index === 0) {
+          let bHtml = '';
+          if (tD > 0) bHtml += `<div>D: ${formatNumber(tD)}</div>`;
+          if (tM > 0) bHtml += `<div>M: ${formatNumber(tM)}</div>`;
+          if (tU > 0) bHtml += `<div>U: ${formatNumber(tU)}</div>`;
+          if (tP > 0) bHtml += `<div>P: ${formatNumber(tP)}</div>`;
+          if (bHtml) {
+            eksBreakdownHtml = `<div style="font-size: 10px; color: #64748b; font-weight: 500; margin-top: 4px; line-height: 1.2;">${bHtml}</div>`;
+          }
+        }
+        
+        let sD = tD, sM = tM, sU = tU, sP = tP;
+        if (scn.hasOwnProperty('kurang_1')) sD = tD - (basePengurangan[1][0] * (scn['kurang_1'] / 100));
+        if (scn.hasOwnProperty('kurang_2')) sM = tM - (basePengurangan[2][0] * (scn['kurang_2'] / 100));
+        if (scn.hasOwnProperty('kurang_3')) sU = tU - (basePengurangan[3][0] * (scn['kurang_3'] / 100));
+        if (scn.hasOwnProperty('kurang_4')) sP = tP - (basePengurangan[4][0] * (scn['kurang_4'] / 100));
+        
+        let sisaBreakdownHtml = '';
+        let sHtml = '';
+        if (sD > 0) sHtml += `<div>D: ${formatNumber(sD)}</div>`;
+        if (sM > 0) sHtml += `<div>M: ${formatNumber(sM)}</div>`;
+        if (sU > 0) sHtml += `<div>U: ${formatNumber(sU)}</div>`;
+        if (sP > 0) sHtml += `<div>P: ${formatNumber(sP)}</div>`;
+        if (sHtml) {
+          sisaBreakdownHtml = `<div style="font-size: 10px; color: #0284c7; font-weight: 500; margin-top: 4px; line-height: 1.2;">${sHtml}</div>`;
+        }
 
         return `<tr style="background-color: ${bgRow}; ${outlineRow}">
-          <td style="${cellBorder} font-weight: 700; text-align: center; font-size: 13px; padding: 5px 4px; color: ${isMostLogical ? '#c2410c' : '#334155'}; background-color: ${isMostLogical ? '#ffedd5' : 'transparent'};">
+          <!-- SKENARIO -->
+          <td style="${cb} font-weight: 700; text-align: center; font-size: 13px; padding: 5px 4px; color: ${isMostLogical ? '#c2410c' : '#334155'}; background-color: ${isMostLogical ? '#ffedd5' : 'transparent'};">
             Skenario ${index + 1}
+            <div style="font-size: 10px; font-weight: 600; color: ${isMostLogical ? '#ea580c' : '#94a3b8'}; margin-top: 1px; text-transform: uppercase; letter-spacing: 0.3px;">${['Baseline','Konservatif','Moderat','Optimistik','Agresif','Maksimum'][index] || ''}</div>
             ${badge}
           </td>
-          ${tambahCols}
-          ${kurangCols}
-          <td style="${cellBorder} font-size: 13px; padding: 4px; color: ${netKasus > 0 ? '#15803d' : (netKasus < 0 ? '#b91c1c' : '#334155')}; font-weight: ${isMostLogical ? '700' : 'normal'};">${formatSignedNumber(netKasus)}</td>
-          <td style="${cellBorder} font-size: 13px; padding: 4px; color: ${pctNetKasus > 0 ? '#15803d' : (pctNetKasus < 0 ? '#b91c1c' : '#334155')}; font-weight: ${isMostLogical ? '700' : 'normal'};">${formatPercent(pctNetKasus)}</td>
-          <td style="${cellBorder} font-size: 13px; padding: 4px; color: ${netRp > 0 ? '#15803d' : (netRp < 0 ? '#b91c1c' : '#334155')}; font-weight: 700;">${netRp > 0 ? '+' : ''}${formatMatrixMoneyJT(netRp)}</td>
+          <!-- EKSISTING (rowspan) -->
           ${index === 0 ? `
-          <td rowspan="${state.serviceScenarios[service].length}" style="border: 1px solid #cbd5e1; font-size: 13px; padding: 4px; color: #334155; line-height: 1.3; vertical-align: middle; background-color: #ffffff;">
-            <div style="font-weight: 700; color: ${(existingIdrg - totalKurangRp) < 0 ? '#b91c1c' : '#0d9488'}; margin-bottom: 2px;">${formatMatrixMoneyJT(existingIdrg - totalKurangRp)}</div>
-            <div style="font-size: 12px; margin-bottom: 2px;">${formatNumber(existingKasus - totalKurangKasus)} Kasus</div>
-            <div style="font-size: 11px; color: #64748b; line-height: 1.1;">
-              P: ${formatNumber(remP || 0)}<br>U: ${formatNumber(remU || 0)}<br>M: ${formatNumber(remM || 0)}<br>D: ${formatNumber(remD || 0)}
-            </div>
+          <td rowspan="${state.serviceScenarios[service].length}" style="border: 1px solid #cbd5e1; padding: 5px; text-align: center; vertical-align: middle; background: #f1f5f9;">
+            <div style="font-size: 13px; font-weight: 700; color: #1e293b;">${formatNumber(existingKasus)}</div>
+            ${eksBreakdownHtml}
           </td>
+          <td rowspan="${state.serviceScenarios[service].length}" style="border: 1px solid #cbd5e1; font-size: 12px; padding: 5px; text-align: center; vertical-align: middle; background: #f1f5f9; color: #334155;">${formatMatrixMoneyJT(existingIdrg)}</td>
           ` : ''}
-          <td style="${cellBorder} font-size: 13px; padding: 4px; font-weight: 800; color: ${pascaRbkp < 0 ? '#b91c1c' : (pascaRbkp > 0 ? '#0f766e' : '#334155')}; background-color: ${isMostLogical ? '#ffedd5' : 'transparent'};">${formatMatrixMoneyJT(pascaRbkp)}</td>
-          <td style="${cellBorder} font-size: 13px; padding: 4px; color: ${pctKenaikan > 0 ? '#15803d' : (pctKenaikan < 0 ? '#b91c1c' : '#334155')}; font-weight: 700;">${pctKenaikan > 0 ? '+' : ''}${formatPercent(pctKenaikan)}</td>
+          <!-- PENGURANGAN -->
+          ${kurangCols}
+          <!-- SISA -->
+          <td style="border: 1px solid #bae6fd; padding: 5px; text-align: center; vertical-align: middle; background: #f0f9ff;">
+            <div style="font-size: 13px; font-weight: 700; color: #0369a1;">${formatNumber(sisaKasus)}</div>
+            ${sisaBreakdownHtml}
+          </td>
+          <td style="border: 1px solid #bae6fd; font-size: 12px; padding: 5px; text-align: center; vertical-align: middle; background: #f0f9ff; color: #0369a1;">${formatMatrixMoneyJT(sisaIdrg)}</td>
+          <!-- TAMBAHAN -->
+          ${tambahCols}
+          <!-- PASCA KASUS & PENDAPATAN -->
+          <td style="${cb} font-size: 13px; padding: 4px; font-weight: 700; color: ${isSafeRow ? '#b45309' : '#b91c1c'}; background-color: ${isMostLogical ? '#fffbeb' : 'transparent'};">${formatNumber(pascaKasus)}${safeIcon}</td>
+          <td style="${cb} font-size: 13px; padding: 4px; font-weight: 800; color: ${pascaRbkp < 0 ? '#b91c1c' : '#92400e'}; background-color: ${isMostLogical ? '#ffedd5' : 'transparent'};">Rp ${formatMatrixMoneyJT(pascaRbkp)}</td>
+          <!-- NET +/- -->
+          <td style="${cb} font-size: 13px; padding: 4px; color: ${netKasus > 0 ? '#15803d' : (netKasus < 0 ? '#b91c1c' : '#334155')}; font-weight: 700;">${netKasus > 0 ? '+' : ''}${formatNumber(netKasus)}</td>
+          <td style="${cb} font-size: 12px; padding: 4px; color: ${netRp > 0 ? '#15803d' : (netRp < 0 ? '#b91c1c' : '#334155')}; font-weight: 700;">${netRp > 0 ? '+' : ''}${formatMatrixMoneyJT(netRp)}<br><span style="font-size: 10px; font-weight: 600; color: ${pctKenaikan > 0 ? '#15803d' : (pctKenaikan < 0 ? '#b91c1c' : '#94a3b8')};">${pctKenaikan > 0 ? '+' : ''}${formatPercent(pctKenaikan)}</span></td>
         </tr>`;
       };
       
-      const tD = severityMetric(targetSvcRef, 1)[CASES];
-      const tM = severityMetric(targetSvcRef, 2)[CASES];
-      const tU = severityMetric(targetSvcRef, 3)[CASES];
-      const tP = severityMetric(targetSvcRef, 4)[CASES];
-
-      const rD = severityMetric(regionalSvc, 1)[CASES];
-      const rM = severityMetric(regionalSvc, 2)[CASES];
-      const rU = severityMetric(regionalSvc, 3)[CASES];
-      const rP = severityMetric(regionalSvc, 4)[CASES];
-
-      let highestRevenueNet = -Infinity;
-      let highestRevenueScenarioIndex = -1;
-      state.serviceScenarios[service].forEach((scn, i) => {
-        let tKasus = 0, tRp = 0, kKasus = 0, kRp = 0;
-        [4, 3, 2, 1].forEach((lvl) => {
-          if (scn.hasOwnProperty("tambah_" + lvl)) {
-            const pTambah = scn["tambah_" + lvl] / 100;
-            tKasus += baseTambahan[lvl][0] * pTambah;
-            tRp += baseTambahan[lvl][1] * pTambah;
-          }
-          if (scn.hasOwnProperty("kurang_" + lvl)) {
-            const pKurang = scn["kurang_" + lvl] / 100;
-            kKasus += basePengurangan[lvl][0] * pKurang;
-            kRp += basePengurangan[lvl][1] * pKurang;
-          }
-        });
-        const netRp = tRp - kRp;
-        if (netRp > highestRevenueNet) {
-          highestRevenueNet = netRp;
-          highestRevenueScenarioIndex = i;
-        }
-      });
-
       const totalTargetCases = targetKasusArr[CASES] || 0;
       const totalRegionalCases = data.regional.services[service]?.total?.[CASES] || 0;
       const competitorsCount = data.hospitals.filter((h) => h.code !== target.code && getCompetency(h, service) >= targetCompetency).length;
@@ -5662,10 +5854,12 @@
           ? `Terdapat <b>${competitorsCount} RS pesaing</b> se-level/setingkat lebih tinggi di wilayah ini.`
           : `Tidak ada pesaing langsung se-level di wilayah ini (peluang dominasi tinggi).`;
 
+      const highestRevenueNet = mostLogicalScenarioIndex >= 0 && scnMetrics[mostLogicalScenarioIndex] ? scnMetrics[mostLogicalScenarioIndex].netRp : 0;
+
       const scenarioInsight =
-        highestRevenueScenarioIndex >= 0
-          ? `Skenario ${highestRevenueScenarioIndex + 1} memberikan potensi net pendapatan INACBG terbaik`
-          : `Belum ada skenario yang menghasilkan kenaikan positif.`;
+        mostLogicalScenarioIndex >= 0
+          ? `Skenario ${mostLogicalScenarioIndex + 1} memberikan potensi net pendapatan terbaik yang logis`
+          : `Belum ada skenario yang aman/logis untuk dipilih.`;
 
       const formatNetMoneyUnit = (val) => {
         const absVal = Math.abs(val);
@@ -5689,15 +5883,15 @@
       const formatMoneyM = (val) => {
         const absVal = Math.abs(val || 0);
         if (absVal >= 1e12) {
-          return "Rp " + (absVal / 1e12).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " T";
+          return (absVal / 1e12).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " T";
         }
         if (absVal >= 1e9) {
-          return "Rp " + (absVal / 1e9).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " M";
+          return (absVal / 1e9).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " M";
         }
         if (absVal >= 1e6) {
-          return "Rp " + (absVal / 1e6).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " JT";
+          return (absVal / 1e6).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " JT";
         }
-        return "Rp " + absVal.toLocaleString('id-ID');
+        return absVal.toLocaleString('id-ID');
       };
 
       html += `
@@ -5780,7 +5974,7 @@
             <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 12px;">
               <div>
                 <div style="font-weight: 800; font-size: 14px; color: #1e293b; margin-bottom: 8px;">Kompetensi Layanan RS : <span style="font-weight: 400;">Kompetensi ${levelNames[targetCompetency]}</span></div>
-                <div style="display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 14px; color: #1e293b;">
+                <div style="display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 14px; color: #1e293b; flex-wrap: wrap;">
                   RS Kompetitor Regional per Kompetensi :
                   ${(() => {
                     const compCountByLevel = { 1: 0, 2: 0, 3: 0, 4: 0 };
@@ -5789,10 +5983,10 @@
                       if (comp in compCountByLevel) compCountByLevel[comp]++;
                     });
                     return `
-                      <span style="font-weight: 700; font-size: 14px; color: #86198f; border: 1px solid #d946ef; border-radius: 99px; padding: 2px 10px; background: #fdf4ff;">Paripurna: ${compCountByLevel[4]} RS</span>
-                      <span style="font-weight: 700; font-size: 14px; color: #c2410c; border: 1px solid #f97316; border-radius: 99px; padding: 2px 10px; background: #fff7ed;">Utama: ${compCountByLevel[3]} RS</span>
-                      <span style="font-weight: 700; font-size: 14px; color: #a16207; border: 1px solid #eab308; border-radius: 99px; padding: 2px 10px; background: #fefce8;">Madya: ${compCountByLevel[2]} RS</span>
-                      <span style="font-weight: 700; font-size: 14px; color: #0f766e; border: 1px solid #14b8a6; border-radius: 99px; padding: 2px 10px; background: #f0fdfa;">Dasar: ${compCountByLevel[1]} RS</span>
+                      <span style="font-weight: 700; font-size: 14px; color: #86198f; border: 1px solid #d946ef; border-radius: 99px; padding: 2px 10px; background: #fdf4ff; white-space: nowrap;">Paripurna: ${compCountByLevel[4]} RS</span>
+                      <span style="font-weight: 700; font-size: 14px; color: #c2410c; border: 1px solid #f97316; border-radius: 99px; padding: 2px 10px; background: #fff7ed; white-space: nowrap;">Utama: ${compCountByLevel[3]} RS</span>
+                      <span style="font-weight: 700; font-size: 14px; color: #a16207; border: 1px solid #eab308; border-radius: 99px; padding: 2px 10px; background: #fefce8; white-space: nowrap;">Madya: ${compCountByLevel[2]} RS</span>
+                      <span style="font-weight: 700; font-size: 14px; color: #0f766e; border: 1px solid #14b8a6; border-radius: 99px; padding: 2px 10px; background: #f0fdfa; white-space: nowrap;">Dasar: ${compCountByLevel[1]} RS</span>
                     `;
                   })()}
                 </div>
@@ -5811,38 +6005,48 @@
                 if (comp in compCountByLevel) compCountByLevel[comp]++;
               });
 
-              let tHead1 = '';
-              let tHead2 = '';
+              // Bangun header sesuai alur logis:
+              // SKENARIO | KASUS EKSISTING (rowspan) | PENGURANGAN per level | SISA (rowspan) | TAMBAHAN per level | PASCA KASUS | PASCA PENDAPATAN | NET +/- | % KENAIKAN
+              let kurangHead1 = '', kurangHead2 = '';
+              let tambahHead1 = '', tambahHead2 = '';
+              
               [4, 3, 2, 1].forEach(lvl => {
-                if (state.serviceScenarios[service][0].hasOwnProperty('tambah_' + lvl)) {
-                  tHead1 += `<th colspan="3" style="background-color: #22c55e; color: white; padding: 6px; font-size: 14px; border: 1px solid white;">TAMBAHAN KASUS<br>${levelNames[lvl].toUpperCase()}</th>`;
-                  tHead2 += `<th style="background-color: #4ade80; color: white; padding: 6px; font-size: 13px; border: 1px solid white; width: 70px;">PERSEN<br>TASE<br>(%)</th><th style="background-color: #4ade80; color: white; padding: 6px; font-size: 13px; border: 1px solid white; width: 70px;">JUMLAH<br>KASUS</th><th style="background-color: #4ade80; color: white; padding: 6px; font-size: 13px; border: 1px solid white;">TAMBAHAN<br>PENDAPATAN<br>(Rp)</th>`;
+                if (state.serviceScenarios[service][0].hasOwnProperty('kurang_' + lvl)) {
+                  kurangHead1 += `<th colspan="2" style="background-color: #dc2626; color: white; padding: 4px; font-size: 11px; border: 1px solid white; line-height: 1.2;">⬇ KURANG<br>${levelNames[lvl].toUpperCase()}</th>`;
+                  kurangHead2 += `<th style="background-color: #f87171; color: white; padding: 4px 2px; font-size: 10px; border: 1px solid white; width: 55px; white-space: nowrap;">% Krg</th><th style="background-color: #f87171; color: white; padding: 4px 2px; font-size: 10px; border: 1px solid white; width: 60px; white-space: nowrap;">Ks Keluar</th>`;
                 }
               });
               [4, 3, 2, 1].forEach(lvl => {
-                if (state.serviceScenarios[service][0].hasOwnProperty('kurang_' + lvl)) {
-                  tHead1 += `<th colspan="3" style="background-color: #dc2626; color: white; padding: 6px; font-size: 14px; border: 1px solid white;">PENGURANGAN KASUS EKSISTING<br>${levelNames[lvl].toUpperCase()}</th>`;
-                  tHead2 += `<th style="background-color: #f87171; color: white; padding: 6px; font-size: 13px; border: 1px solid white; width: 70px;">PERSEN<br>TASE<br>(%)</th><th style="background-color: #f87171; color: white; padding: 6px; font-size: 13px; border: 1px solid white; width: 70px;">JUMLAH<br>KASUS</th><th style="background-color: #f87171; color: white; padding: 6px; font-size: 13px; border: 1px solid white;">PENDAPATAN YG<br>BERKURANG<br>(Rp)</th>`;
+                if (state.serviceScenarios[service][0].hasOwnProperty('tambah_' + lvl)) {
+                  tambahHead1 += `<th colspan="3" style="background-color: #16a34a; color: white; padding: 4px; font-size: 11px; border: 1px solid white; line-height: 1.2;">⬆ TAMBAH<br>${levelNames[lvl].toUpperCase()}</th>`;
+                  tambahHead2 += `<th style="background-color: #4ade80; color: #064e3b; padding: 4px 2px; font-size: 10px; border: 1px solid white; width: 55px; white-space: nowrap;">% Msk</th><th style="background-color: #4ade80; color: #064e3b; padding: 4px 2px; font-size: 10px; border: 1px solid white; width: 60px; white-space: nowrap;">Ks Masuk</th><th style="background-color: #4ade80; color: #064e3b; padding: 4px 2px; font-size: 10px; border: 1px solid white; width: 75px; white-space: nowrap;">Rp Masuk</th>`;
                 }
               });
               
               return `
                 <div style="overflow-x: auto; width: 100%;">
-                  <table style="width: 100%; border-collapse: collapse; text-align: center; margin-top: 4px;">
+                  <table style="width: 100%; border-collapse: collapse; text-align: center; margin-top: 4px; font-size: 12px;">
                     <thead>
                       <tr>
-                        <th rowspan="2" style="background-color: #16a085; color: white; padding: 6px; font-size: 14px; border: 1px solid white; width: 80px;">SKENARIO</th>
-                        ${tHead1}
-                        <th colspan="3" style="background-color: #0ea5e9; color: white; padding: 6px; font-size: 14px; border: 1px solid white;">NET +/- PASCA iDRG & RBKP</th>
-                        <th rowspan="2" style="background-color: #16a085; color: white; padding: 6px; font-size: 13px; border: 1px solid white; min-width: 130px;">PENDAPATAN & KASUS<br>EKSISTING iDRG<br>(Pasca Pengurangan)</th>
-                        <th rowspan="2" style="background-color: #16a085; color: white; padding: 6px; font-size: 13px; border: 1px solid white; width: 100px;">PENDAPATAN<br>PASCA RBKP<br>(Rp)</th>
-                        <th rowspan="2" style="background-color: #16a085; color: white; padding: 6px; font-size: 13px; border: 1px solid white; width: 80px;">% KENAIKAN<br>PENDAPATAN</th>
+                        <th rowspan="2" style="background-color: #0f766e; color: white; padding: 4px; font-size: 11px; border: 1px solid white; width: 75px; line-height: 1.2;">SKENARIO</th>
+                        <th colspan="2" rowspan="1" style="background-color: #0f766e; color: white; padding: 4px; font-size: 11px; border: 1px solid white;">📊 EKSISTING</th>
+                        ${kurangHead1}
+                        <th colspan="2" rowspan="1" style="background-color: #0369a1; color: white; padding: 4px; font-size: 11px; border: 1px solid white; line-height: 1.2;">🔵 SISA<br>(Pasca Krg)</th>
+                        ${tambahHead1}
+                        <th colspan="2" rowspan="1" style="background-color: #b45309; color: white; padding: 4px; font-size: 11px; border: 1px solid white;">✅ PASCA RBKP</th>
+                        <th colspan="2" rowspan="1" style="background-color: #374151; color: white; padding: 4px; font-size: 11px; border: 1px solid white;">NET +/-</th>
                       </tr>
                       <tr>
-                        ${tHead2}
-                        <th style="background-color: #38bdf8; color: white; padding: 6px; font-size: 13px; border: 1px solid white; width: 70px;">+/-<br>JUMLAH<br>KASUS</th>
-                        <th style="background-color: #38bdf8; color: white; padding: 6px; font-size: 13px; border: 1px solid white;">% THD TOTAL<br>KASUS<br>EKSISTING</th>
-                        <th style="background-color: #38bdf8; color: white; padding: 6px; font-size: 13px; border: 1px solid white;">+/-<br>PENDAPATAN<br>(Rp)</th>
+                        <th style="background-color: #134e4a; color: white; padding: 4px 2px; font-size: 10px; border: 1px solid white; width: 65px;">Kasus</th>
+                        <th style="background-color: #134e4a; color: white; padding: 4px 2px; font-size: 10px; border: 1px solid white; width: 85px;">Pendapatan</th>
+                        ${kurangHead2}
+                        <th style="background-color: #075985; color: white; padding: 4px 2px; font-size: 10px; border: 1px solid white; width: 60px;">Ks Sisa</th>
+                        <th style="background-color: #075985; color: white; padding: 4px 2px; font-size: 10px; border: 1px solid white; width: 85px;">Rp Sisa</th>
+                        ${tambahHead2}
+                        <th style="background-color: #92400e; color: white; padding: 4px 2px; font-size: 10px; border: 1px solid white; width: 65px;">Pasca Ks</th>
+                        <th style="background-color: #92400e; color: white; padding: 4px 2px; font-size: 10px; border: 1px solid white; width: 85px;">Pasca Rp</th>
+                        <th style="background-color: #1f2937; color: white; padding: 4px 2px; font-size: 10px; border: 1px solid white; width: 60px;">Net Ks</th>
+                        <th style="background-color: #1f2937; color: white; padding: 4px 2px; font-size: 10px; border: 1px solid white; width: 85px;">Net Rp & %</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -5908,25 +6112,7 @@
         } else {
           state.serviceScenarios[srv][idx][field] = val;
         }
-        
-        // Save current slide position before re-render
-        const savedSlide = state.activeSlide;
-        const savedService = srv;
-        const savedIndex = idx;
-        const savedField = field;
-        
-        renderDynamicServiceSlides();
-        
-        // Restore slide position and focus after re-render
-        showSlide(savedSlide);
-        setTimeout(() => {
-          const selector = `.dynamic-scenario-input[data-service="${savedService.replace(/"/g, '\\"')}"][data-index="${savedIndex}"][data-field="${savedField}"]`;
-          const inputToFocus = document.querySelector(selector);
-          if (inputToFocus) {
-            inputToFocus.focus();
-            try { inputToFocus.select(); } catch(e) {}
-          }
-        }, 0);
+        renderAll();
       });
     });
   }
@@ -7000,6 +7186,15 @@
       try { selectionStart = activeEl.selectionStart; } catch(e) {}
     }
 
+    const target = targetHospital();
+    if (target && data.services) {
+      data.services.sort((a, b) => {
+        const casesA = target.services[a] && target.services[a].total ? target.services[a].total[0] : 0;
+        const casesB = target.services[b] && target.services[b].total ? target.services[b].total[0] : 0;
+        return casesB - casesA;
+      });
+    }
+
     updateTargetMeta();
     renderTargetSummarySlide();
     renderMapSlide();
@@ -7008,6 +7203,7 @@
     renderAddressableSlide();
     renderComparisonSlide();
     renderRegionalCasesSlide();
+    renderGlobalSimulationSlide();
     renderRegionalProfileSlide();
     renderIcdCompetencySlide();
     renderMuhammadiyahMapSlide();
@@ -7725,13 +7921,41 @@
       .pptx-export-page p, .pptx-export-page table, .pptx-export-page th, .pptx-export-page td, .pptx-export-page li { font-size: 8pt; }
       .pptx-export-page h1, .pptx-export-page h2 { font-size: 14pt !important; font-weight: bold; }
       .pptx-export-page h1 *, .pptx-export-page h2 * { font-size: 14pt !important; }
-      .pptx-kemenkes-logo { position: absolute; top: 16px; right: 24px; height: 48px; object-fit: contain; z-index: 50; }
+      .pptx-kemenkes-logo { position: absolute; top: 16px; right: 24px; height: 48px; width: auto; z-index: 50; }
       .pptx-export-page th, .pptx-export-page td { white-space: nowrap !important; }
       .pptx-export-page .kpi-value, .pptx-export-page .summary-big strong { line-height: 1.2 !important; }
+      
+      /* Optimize Scenario Table for PPTX to prevent overflowing */
+      .pptx-export-page .scenario-table th, .pptx-export-page .scenario-table td { padding: 3px 4px !important; font-size: 8px !important; line-height: 1.1 !important; }
+      .pptx-export-page .scenario-table div { font-size: 7.5px !important; margin-top: 0px !important; line-height: 1.1 !important; }
+      .pptx-export-page .table-container { max-height: none !important; overflow: hidden !important; margin-top: 0 !important; margin-bottom: 0 !important; }
+      .pptx-export-page .scenario-table tbody tr { height: 18px !important; }
+
     `;
     exportStage.appendChild(style);
 
-    const sourceSlides = [...document.querySelectorAll(".slide")];
+    const allSlides = [...document.querySelectorAll(".slide")];
+    const layoutOrder = ["0", "2", "5", "6", "7", "16", "19", "19-2", "19-3"];
+    
+    // Add all dynamic slides (23 and onwards)
+    allSlides.forEach(s => {
+      const dsStr = s.getAttribute("data-slide");
+      const ds = parseInt(dsStr);
+      if (!isNaN(ds) && ds >= 23 && dsStr === String(ds)) {
+        layoutOrder.push(String(ds));
+      }
+    });
+    
+    // Add slide 18 at the very end
+    layoutOrder.push("18", "18-2", "18-3");
+    
+    const sourceSlides = [];
+    
+    layoutOrder.forEach(ds => {
+      const s = allSlides.find(x => x.getAttribute("data-slide") === ds);
+      if (s) sourceSlides.push(s);
+    });
+    
     const target = targetHospital();
 
     const pages = sourceSlides.map((sourceSlide, index) => {
@@ -8009,6 +8233,9 @@
     updateActiveTariff(e.target.value);
     renderAll();
   });
+  document.getElementById("globalSimModeSelect")?.addEventListener("change", (e) => {
+    renderGlobalSimulationSlide();
+  });
   document.getElementById("exportExcelBtn").addEventListener("click", () => {
     try {
       exportToExcel();
@@ -8171,4 +8398,5 @@
       openBtn.style.display = 'none';
     });
   }
+
 
