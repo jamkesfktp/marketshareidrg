@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1920, initial-scale=1">
+  <title>03A — Simulasi Volume Eligible</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="deck-page">
+  <main class="slide">
+    <header class="slide-header">
+      <div class="slide-header-main">
+        <p class="eyebrow">Simulasi market share · volume</p>
+        <h1>Capture <span id="workScenarioShare">—</span> merebut <span id="workScenarioCases">—</span> kasus dari RS kompetensi setara</h1>
+        <p class="headline-message">Pada skenario kerja, total volume Moewardi meningkat menjadi <b id="workScenarioTotalCases">—</b> kasus.</p>
+      </div>
+      <div class="page-chip"><strong>03A</strong><span>/ 06</span></div>
+    </header>
+
+    <section class="eligible-layout">
+      <article class="section-card eligible-hero">
+        <span class="hero-label">Market kompetensi setara</span>
+        <strong class="hero-value" id="eligibleBase">—</strong>
+        <p class="hero-copy">Kasus SESUAI pada RS lain dengan layanan dan kompetensi yang sama dengan Moewardi.</p>
+        <span class="share-chip"><span id="eligibleShareRegional">—</span> dari total volume regional</span>
+      </article>
+
+      <div class="eligible-right">
+        <div class="scenario-grid" id="scenarioCards" aria-label="Kartu skenario volume"></div>
+        <article class="section-card volume-chart-card">
+          <div class="section-heading"><h2>Kasus incremental yang direbut</h2><span class="section-kicker">Ditambahkan ke 325.682 kasus eksisting</span></div>
+          <div class="volume-chart-box"><canvas id="volumeScenarioChart"></canvas></div>
+        </article>
+      </div>
+    </section>
+
+    <footer class="slide-footer">
+      <span class="footer-source">Metode: incremental cases = matched-market pool × capture rate; projected total = existing + incremental.</span>
+      <span class="footer-brand">RS Dr. Moewardi · Market Share Regional</span>
+    </footer>
+  </main>
+  <script src="../js/chart.umd.min.js"></script>
+  <script src="../js/data.js"></script>
+  <script src="../js/charts.js"></script>
+  <script>MarketCharts.initSlide3A();</script>
+</body>
+</html>

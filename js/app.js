@@ -740,10 +740,13 @@
     const target = targetHospital();
     if (!target) return;
 
-    const mode = document.getElementById('globalSimModeSelect') ? document.getElementById('globalSimModeSelect').value : 'regional_all';
+    const tambahMode = document.getElementById('globalSimTambahSelect') ? document.getElementById('globalSimTambahSelect').value : 'tambah_up';
+    const kurangMode = document.getElementById('globalSimKurangSelect') ? document.getElementById('globalSimKurangSelect').value : 'kurang_dm';
     // Helper agar mode mudah diakses di helper function lain
-    if (!window.getSimMode) {
-      window.getSimMode = () => document.getElementById('globalSimModeSelect')?.value || 'regional_all';
+    if (!window.getSimTambahMode) {
+      window.getSimMode = () => document.getElementById('globalSimTambahSelect')?.value === 'tambah_dm' ? 'higher_tier' : 'regional_all';
+      window.getSimTambahMode = () => document.getElementById('globalSimTambahSelect')?.value || 'tambah_up';
+      window.getSimKurangMode = () => document.getElementById('globalSimKurangSelect')?.value || 'kurang_dm';
     }
     
     const fmtM = (val) => {
@@ -780,9 +783,8 @@
       const srvTarget = target.services[service];
       if (!srvReg || !srvTarget) return;
 
-      if (mode === 'regional_all') {
-        // Mode 1: Serap Utama & Paripurna dr Sisa Regional (Regional - Target)
-        // Redistribusi Dasar & Madya dr Target ke Regional
+      // --- PENAMBAH KASUS ---
+      if (tambahMode === 'tambah_up') {
         const sRegUtama = severityMetric(srvReg, 3);
         const sRegParipurna = severityMetric(srvReg, 4);
         const sTargetUtama = severityMetric(srvTarget, 3);
@@ -795,14 +797,7 @@
         
         potensiSerapanKasus += (sisaRegUtamaKasus + sisaRegParipurnaKasus);
         potensiSerapanIdrg += (sisaRegUtamaIdrg + sisaRegParipurnaIdrg);
-        
-        // Target melepas dasar madya
-        const sTargetDasar = severityMetric(srvTarget, 1);
-        const sTargetMadya = severityMetric(srvTarget, 2);
-        potensiRedistribusiKasus += (sTargetDasar[CASES] + sTargetMadya[CASES]);
-        potensiRedistribusiIdrg += (sTargetDasar[IDRG] + sTargetMadya[IDRG]);
       } else {
-        // Mode 2: Serap Dasar & Madya dr RS Kelas Lebih Tinggi (Utama & Paripurna) di regional
         data.hospitals.forEach(h => {
           if (h.code === target.code) return;
           const hCompetency = getCompetency(h, service);
@@ -818,8 +813,15 @@
             }
           }
         });
-        
-        // Redistribusi
+      }
+
+      // --- PENGURANG KASUS ---
+      if (kurangMode === 'kurang_dm') {
+        const sTargetDasar = severityMetric(srvTarget, 1);
+        const sTargetMadya = severityMetric(srvTarget, 2);
+        potensiRedistribusiKasus += (sTargetDasar[CASES] + sTargetMadya[CASES]);
+        potensiRedistribusiIdrg += (sTargetDasar[IDRG] + sTargetMadya[IDRG]);
+      } else {
         const sTargetUtama = severityMetric(srvTarget, 3);
         const sTargetParipurna = severityMetric(srvTarget, 4);
         potensiRedistribusiKasus += (sTargetUtama[CASES] + sTargetParipurna[CASES]);
@@ -1071,7 +1073,8 @@
       <!-- MODE AKTIF -->
       <div style="margin-bottom: 10px; font-size: 12px; color: #475569; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
         <span style="background:#e0f2fe; color:#0369a1; padding:3px 10px; border-radius:99px; font-weight:600;">
-          Mode: ${mode === 'regional_all' ? '📊 Serapan Regional Keseluruhan' : '⬆️ Serap Dasar/Madya dari RS Kelas Lebih Tinggi'}
+          + ${tambahMode === 'tambah_up' ? 'Serap U/P dari Regional' : 'Serap D/M dari RS Kelas Lebih Tinggi'} 
+          | - ${kurangMode === 'kurang_dm' ? 'Lepas Dasar/Madya Eksisting' : 'Lepas Utama/Paripurna Eksisting'}
         </span>
         <span style="color:#94a3b8;">Potensi Tambah: <strong style="color:#059669;">${formatNumber(Math.round(potensiSerapanKasus))}</strong> kasus · Potensi Kurang: <strong style="color:#ea580c;">${formatNumber(Math.round(potensiRedistribusiKasus))}</strong> kasus</span>
       </div>
@@ -1095,7 +1098,7 @@
           </tbody>
         </table>
         <p class="source-note" style="margin-top:12px; font-size:11px; padding: 0 10px 10px 10px; color: #475569;">
-          * <strong>Kurang Kasus (Redistribusi)</strong> dihitung dari estimasi kasus ${mode === 'regional_all' ? 'Dasar & Madya' : 'Utama & Paripurna'} milik RS Target yang diproyeksikan akan berpindah ke RS Kompetitor di regional yang sama, sesuai proporsi skenario (Mode Serapan Regional).
+          * <strong>Kurang Kasus (Redistribusi)</strong> dihitung dari estimasi kasus ${kurangMode === 'kurang_dm' ? 'Dasar & Madya' : 'Utama & Paripurna'} <strong>milik RS Eksisting (RS Target)</strong> yang diproyeksikan akan berpindah, sesuai proporsi Atur % Redistribusi.
         </p>
       </div>
     `;
@@ -8466,8 +8469,18 @@
     updateActiveTariff(e.target.value);
     renderAll();
   });
-  document.getElementById("globalSimModeSelect")?.addEventListener("change", (e) => {
-    window.globalSimScenarios = null; // reset skenario agar dihitung ulang dengan mode baru
+  document.getElementById("globalSimTambahSelect")?.addEventListener("change", (e) => {
+    window.globalSimScenarios = null;
+    window.globalSimKurangScenarios = null;
+    renderGlobalSimulationSlide();
+    renderRecapSlide();
+    renderLogicalRecapSlide();
+    renderScenarioSlide();
+  });
+  
+  document.getElementById("globalSimKurangSelect")?.addEventListener("change", (e) => {
+    window.globalSimScenarios = null;
+    window.globalSimKurangScenarios = null;
     renderGlobalSimulationSlide();
     renderRecapSlide();
     renderLogicalRecapSlide();
@@ -8621,7 +8634,8 @@
     const target = data.hospitals.find((h) => h.code === state.targetCode) || (data.hospitals.length ? data.hospitals[0] : null);
     if (!target) return alert("Target RS tidak ditemukan.");
 
-    const mode = document.getElementById('globalSimModeSelect') ? document.getElementById('globalSimModeSelect').value : 'regional_all';
+    const tambahMode = document.getElementById('globalSimTambahSelect') ? document.getElementById('globalSimTambahSelect').value : 'tambah_up';
+    const kurangMode = document.getElementById('globalSimKurangSelect') ? document.getElementById('globalSimKurangSelect').value : 'kurang_dm';
     
     // Header
     let csvContent = "Mode Simulator;Nama RS Target;Layanan;Target Dasar & Madya (Kasus);Target Utama & Paripurna (Kasus);Regional Dasar & Madya (Kasus);Regional Utama & Paripurna (Kasus);Potensi Tambah Kasus (Max);Potensi Tambah iDRG (Max);Potensi Kurang Kasus (Max);Potensi Kurang iDRG (Max);Keterangan\n";
@@ -8653,7 +8667,7 @@
       let potensiRedistribusiIdrg = 0;
       let keterangan = "";
 
-      if (mode === 'regional_all') {
+      if (tambahMode === 'tambah_up') {
         const sisaRegUtamaKasus = Math.max(0, (sRegUtama[CASES] || 0) - (sTargetUtama[CASES] || 0));
         const sisaRegUtamaIdrg = Math.max(0, (sRegUtama[IDRG] || 0) - (sTargetUtama[IDRG] || 0));
         const sisaRegParipurnaKasus = Math.max(0, (sRegParipurna[CASES] || 0) - (sTargetParipurna[CASES] || 0));
@@ -8661,11 +8675,6 @@
         
         potensiSerapanKasus = (sisaRegUtamaKasus + sisaRegParipurnaKasus);
         potensiSerapanIdrg = (sisaRegUtamaIdrg + sisaRegParipurnaIdrg);
-        
-        potensiRedistribusiKasus = targetDM;
-        potensiRedistribusiIdrg = (sTargetDasar[IDRG] || 0) + (sTargetMadya[IDRG] || 0);
-        
-        keterangan = "Serapan dari Sisa Regional U/P; Redistribusi dari Target D/M";
       } else {
         data.hospitals.forEach(h => {
           if (h.code === target.code) return;
@@ -8682,14 +8691,20 @@
             }
           }
         });
-        
-        potensiRedistribusiKasus = targetUP;
-        potensiRedistribusiIdrg = (sTargetUtama[IDRG] || 0) + (sTargetParipurna[IDRG] || 0);
-        
-        keterangan = "Serapan dari RS Kompetensi Tinggi; Redistribusi dari Target U/P";
       }
 
-      csvContent += `${mode};"${target.name}";"${service}";${targetDM};${targetUP};${regDM};${regUP};${potensiSerapanKasus};${potensiSerapanIdrg};${potensiRedistribusiKasus};${potensiRedistribusiIdrg};"${keterangan}"\n`;
+      if (kurangMode === 'kurang_dm') {
+        potensiRedistribusiKasus = targetDM;
+        potensiRedistribusiIdrg = (sTargetDasar[IDRG] || 0) + (sTargetMadya[IDRG] || 0);
+      } else {
+        potensiRedistribusiKasus = targetUP;
+        potensiRedistribusiIdrg = (sTargetUtama[IDRG] || 0) + (sTargetParipurna[IDRG] || 0);
+      }
+      
+      keterangan = `Serapan dari ${tambahMode === 'tambah_up' ? 'Sisa Regional U/P' : 'RS Tinggi D/M'}; Lepas ${kurangMode === 'kurang_dm' ? 'D/M' : 'U/P'} RS Eksisting`;
+      const modeStr = (tambahMode === 'tambah_up' ? 'T:UP' : 'T:DM') + ' / ' + (kurangMode === 'kurang_dm' ? 'K:DM' : 'K:UP');
+
+      csvContent += `${modeStr};"${target.name}";"${service}";${targetDM};${targetUP};${regDM};${regUP};${potensiSerapanKasus};${potensiSerapanIdrg};${potensiRedistribusiKasus};${potensiRedistribusiIdrg};"${keterangan}"\n`;
     });
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });

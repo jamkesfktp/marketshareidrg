@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1920, initial-scale=1">
+  <title>03B — Simulasi Pendapatan</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="deck-page">
+  <main class="slide">
+    <header class="slide-header">
+      <div class="slide-header-main">
+        <p class="eyebrow">Simulasi market share · pendapatan</p>
+        <h1>Capture 20% menambah <span id="workCapturedIdrg">—</span> iDRG dari market kompetensi setara</h1>
+        <p class="headline-message">Pendapatan iDRG total Moewardi setelah capture diproyeksikan menjadi <b id="workProjectedIdrg">—</b>.</p>
+      </div>
+      <div class="page-chip"><strong>03B</strong><span>/ 06</span></div>
+    </header>
+
+    <section class="revenue-layout">
+      <article class="section-card revenue-chart-card">
+          <div class="section-heading"><h2>Pendapatan incremental: INA-CBG vs iDRG</h2><span class="section-kicker">Case mix RS kompetensi setara</span></div>
+        <div class="revenue-chart-box"><canvas id="revenueScenarioChart"></canvas></div>
+      </article>
+
+      <div class="revenue-right">
+        <article class="delta-callout">
+          <div class="delta-number" id="marketDeltaPct">—</div>
+          <div class="delta-copy"><strong>Tekanan tarif pada matched-market pool</strong><span>Selisih pool penuh: <b id="marketDeltaAmount">—</b></span></div>
+        </article>
+        <article class="section-card revenue-table-card">
+          <table class="data-table" aria-label="Tabel simulasi pendapatan">
+            <thead><tr><th>Capture</th><th>Kasus +</th><th>INA +</th><th>iDRG +</th><th>Total iDRG</th><th>Gap</th></tr></thead>
+            <tbody id="revenueScenarioRows"></tbody>
+          </table>
+        </article>
+      </div>
+    </section>
+
+    <footer class="slide-footer">
+      <span class="footer-source">Metode: pendapatan incremental = nilai matched-market pool × capture rate; total = eksisting Moewardi + incremental.</span>
+      <span class="footer-brand">RS Dr. Moewardi · Market Share Regional</span>
+    </footer>
+  </main>
+  <script src="../js/chart.umd.min.js"></script>
+  <script src="../js/data.js"></script>
+  <script src="../js/charts.js"></script>
+  <script>MarketCharts.initSlide3B();</script>
+</body>
+</html>

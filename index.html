@@ -459,17 +459,28 @@
         <div id="tariffScenarioDesc" style="font-size: 10.5px; color: #64748b; margin-top: 4px; line-height: 1.35;">Model 1.370 DRG dengan penyesuaian AF + AFreg + AFkep</div>
       </div>
 
-      <!-- Mode Simulasi Global -->
+      <!-- Pengaturan Skenario Simulasi Global -->
       <div class="target-picker filter-picker" style="background: #fdf2f8; padding: 10px 12px; border-radius: 10px; border: 1px solid #fbcfe8; margin-bottom: 6px;">
-        <span style="font-size: 12px; font-weight: 800; color: #be185d; display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-          <span style="display:flex; align-items:center; gap:5px;"><span>⚙️</span> Mode Simulasi Global</span>
+        <span style="font-size: 12px; font-weight: 800; color: #be185d; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+          <span style="display:flex; align-items:center; gap:5px;"><span>⚙️</span> Parameter Simulasi Global</span>
           <button id="btnDownloadGlobalSim" aria-label="Download Audit Perhitungan (CSV)" style="background: #be185d; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">📥 Data Excel (CSV)</button>
         </span>
-        <select id="globalSimModeSelect" class="tariff-scenario-select" aria-label="Pilih Mode Simulasi Global" style="width: 100%; box-sizing: border-box; padding: 7px 10px; border-radius: 8px; border: 1.5px solid #be185d; background: #ffffff; font-weight: 750; font-size: 12px; color: #9d174d; cursor: pointer; outline: none; transition: all 0.2s;">
-          <option value="regional_all" selected>Mode 1: Kasus Regional Keseluruhan</option>
-          <option value="higher_tier">Mode 2: Serap dr RS Kelas Lebih Tinggi</option>
-        </select>
-        <div style="font-size: 10.5px; color: #be185d; margin-top: 4px; line-height: 1.35;">Mempengaruhi perhitungan di Slide 6-1 (Simulasi Global).</div>
+        
+        <div style="margin-bottom: 8px;">
+          <div style="font-size: 10.5px; font-weight: 700; color: #059669; margin-bottom: 4px;">+ Sumber Penambah Kasus:</div>
+          <select id="globalSimTambahSelect" class="tariff-scenario-select" style="width: 100%; box-sizing: border-box; padding: 6px 8px; border-radius: 6px; border: 1.5px solid #059669; background: #ffffff; font-weight: 700; font-size: 11px; color: #065f46; cursor: pointer; outline: none;">
+            <option value="tambah_up" selected>Serap Utama & Paripurna (dari Sisa Regional)</option>
+            <option value="tambah_dm">Serap Dasar & Madya (dari RS Kelas Lebih Tinggi)</option>
+          </select>
+        </div>
+
+        <div>
+          <div style="font-size: 10.5px; font-weight: 700; color: #ea580c; margin-bottom: 4px;">- Sasaran Pengurang Kasus:</div>
+          <select id="globalSimKurangSelect" class="tariff-scenario-select" style="width: 100%; box-sizing: border-box; padding: 6px 8px; border-radius: 6px; border: 1.5px solid #ea580c; background: #ffffff; font-weight: 700; font-size: 11px; color: #9a3412; cursor: pointer; outline: none;">
+            <option value="kurang_dm" selected>Lepas Dasar & Madya (dari Eksisting RS Target)</option>
+            <option value="kurang_up">Lepas Utama & Paripurna (dari Eksisting RS Target)</option>
+          </select>
+        </div>
       </div>
 
       <div class="target-picker filter-picker custom-multi">
