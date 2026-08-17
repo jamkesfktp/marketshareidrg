@@ -1089,28 +1089,6 @@
       });
 
       var scenarios = (state && state.serviceScenarios && state.serviceScenarios[service]) || [];
-      if (!scenarios || scenarios.length === 0) {
-        scenarios = [];
-        var defaultLowLevels = [1, 2, 3, 4, 5, 10];
-        for (var si = 0; si < 6; si++) {
-          var scn = {};
-          rules.tambah.forEach(function (lvl) {
-            if (lvl === 1 || lvl === 2) {
-              scn["tambah_" + lvl] = defaultLowLevels[si];
-            } else {
-              var lvlComp = (data.hospitals || []).filter(function (h) {
-                return h.code !== target.code && getCompetency(h, service) >= lvl;
-              }).length;
-              var base = lvlComp > 0 ? Math.min(50, 100 / (lvlComp + 1)) : 50;
-              scn["tambah_" + lvl] = parseFloat(Math.min(100, Math.max(0, base + si * 2)).toFixed(1));
-            }
-          });
-          rules.kurang.forEach(function (lvl) {
-            scn["kurang_" + lvl] = (lvl > targetCompetency || lvl === 4) ? 100 : 90;
-          });
-          scenarios.push(scn);
-        }
-      }
 
       var allNetK = [], allNetRp = [], allPasca = [];
       scenarios.forEach(function (scn) {
@@ -1137,6 +1115,7 @@
         allPasca.push(pasca);
       });
 
+      if (allNetK.length === 0) { allNetK.push(0); allNetRp.push(0); allPasca.push(tKasus); }
       var minNetK = Math.min.apply(null, allNetK);
       var maxNetK = Math.max.apply(null, allNetK);
       var minNetRp = Math.min.apply(null, allNetRp);
@@ -1161,15 +1140,15 @@
         dCell(String(idx + 1), { fill: { color: bg } }),
         dCell(service, { fill: { color: bg }, align: "left", bold: true }),
         dCell(shortLevelName(targetCompetency), { fill: { color: bg } }),
-        dCell(rules.tambah.indexOf(4) !== -1 ? "Tersedia" : "−", { fill: { color: bg }, fontSize: 6.5 }),
-        dCell(rules.tambah.indexOf(3) !== -1 ? "Tersedia" : "−", { fill: { color: bg }, fontSize: 6.5 }),
-        dCell(rules.tambah.indexOf(2) !== -1 ? "Tersedia" : "−", { fill: { color: bg }, fontSize: 6.5 }),
-        dCell(rules.tambah.indexOf(1) !== -1 ? "Tersedia" : "−", { fill: { color: bg }, fontSize: 6.5 }),
-        dCell(fmtRange(minNetK, maxNetK, false), { fill: { color: bg }, align: "right", fontSize: 6.5 }),
-        dCell(pct(minPctK) + " s.d " + pct(maxPctK), { fill: { color: bg }, align: "right", fontSize: 6.5 }),
-        dCell(fmtRange(minNetRp, maxNetRp, true), { fill: { color: bg }, align: "right", bold: true, fontSize: 6.5, color: maxNetRp >= 0 ? "15803d" : "b91c1c" }),
-        dCell(moneyM(existingIna), { fill: { color: bg }, align: "right", fontSize: 6.5 }),
-        dCell(pct(minPctRp) + " s.d " + pct(maxPctRp), { fill: { color: bg }, align: "right", bold: true, fontSize: 6.5, color: maxPctRp >= 0 ? "15803d" : "b91c1c" })
+        dCell(rules.tambah.indexOf(4) !== -1 ? "Tersedia" : "−", { fill: { color: bg }, fontSize: 8.5 }),
+        dCell(rules.tambah.indexOf(3) !== -1 ? "Tersedia" : "−", { fill: { color: bg }, fontSize: 8.5 }),
+        dCell(rules.tambah.indexOf(2) !== -1 ? "Tersedia" : "−", { fill: { color: bg }, fontSize: 8.5 }),
+        dCell(rules.tambah.indexOf(1) !== -1 ? "Tersedia" : "−", { fill: { color: bg }, fontSize: 8.5 }),
+        dCell(fmtRange(minNetK, maxNetK, false), { fill: { color: bg }, align: "right", fontSize: 8.5 }),
+        dCell(pct(minPctK) + " s.d " + pct(maxPctK), { fill: { color: bg }, align: "right", fontSize: 8.5 }),
+        dCell(fmtRange(minNetRp, maxNetRp, true), { fill: { color: bg }, align: "right", bold: true, fontSize: 8.5, color: maxNetRp >= 0 ? "15803d" : "b91c1c" }),
+        dCell(moneyM(existingIna), { fill: { color: bg }, align: "right", fontSize: 8.5 }),
+        dCell(pct(minPctRp) + " s.d " + pct(maxPctRp), { fill: { color: bg }, align: "right", bold: true, fontSize: 8.5, color: maxPctRp >= 0 ? "15803d" : "b91c1c" })
       ]);
     });
 
@@ -1177,7 +1156,8 @@
       x: 0.30, y: 1.30, w: W - 0.60,
       border: { pt: 0.5, color: C.lgray },
       colW: [0.35, 2.3, 0.55, 0.9, 0.9, 0.9, 0.9, 1.25, 1.25, 1.45, 1.0, 1.0],
-      margin: [0.03, 0.03, 0.03, 0.03]
+      margin: [0.03, 0.03, 0.03, 0.03],
+      autoPage: true, autoPageRepeatHeader: true, autoPageLineWeight: 0
     });
   }
 
@@ -1209,12 +1189,13 @@
         hCell("Skenario", "0284c7"),
         hCell("Eksisting", "334155"),
         hCell("Pengurangan (-)", "e11d48"),
+        hCell("Sisa Eksisting", "0891b2"),
         hCell("Tambahan (+)", "16a34a"),
-        hCell("Net Kasus", "0284c7"),
-        hCell("Net Rp (M)", "0284c7"),
-        hCell("Pasca Kasus", "1e40af"),
-        hCell("Pasca Rp (M)", "1e40af"),
-        hCell("% vs INA", "1e40af")
+        hCell("Pasca Kasus", "b45309"),
+        hCell("Pasca Rp (M)", "b45309"),
+        hCell("Net Kasus", "475569"),
+        hCell("Net Rp (M)", "475569"),
+        hCell("% vs INA", "475569")
       ]
     ];
 
@@ -1292,15 +1273,16 @@
         dCell(String(idx + 1), { fill: { color: bg } }),
         dCell(service, { fill: { color: bg }, align: "left", bold: true }),
         dCell(shortLevelName(targetCompetency), { fill: { color: bg } }),
-        dCell("Skenario " + chosen.index, { fill: { color: bg }, bold: true, color: "0284c7" }),
+        dCell("Skenario " + chosen.index + "\n" + (["Baseline","Konservatif","Moderat","Optimistik","Agresif","Maksimum"][chosen.index - 1] || ""), { fill: { color: bg }, bold: true, color: "0284c7", fontSize: 8.5 }),
         dCell(num(tKasus), { fill: { color: bg }, align: "right" }),
-        dCell("−" + num(chosen.kk) + "\n(" + moneyM(chosen.krp) + ")", { fill: { color: bg }, color: "b91c1c", align: "right", fontSize: 6.5 }),
-        dCell("+" + num(chosen.tk) + "\n(" + moneyM(chosen.trp) + ")", { fill: { color: bg }, color: "15803d", align: "right", fontSize: 6.5 }),
-        dCell(signed(chosen.netK), { fill: { color: bg }, color: nc, align: "right", fontSize: 6.5 }),
-        dCell(signedMoneyM(chosen.netRp), { fill: { color: bg }, bold: true, color: nc, align: "right", fontSize: 6.5 }),
-        dCell(num(chosen.pascaK), { fill: { color: bg }, bold: true, color: "1e40af", align: "right", fontSize: 6.5 }),
-        dCell(moneyM(chosen.pascaRp), { fill: { color: bg }, bold: true, color: chosen.pascaRp < 0 ? "b91c1c" : "0e7490", align: "right", fontSize: 6.5 }),
-        dCell(signedPct(pctPascaIna), { fill: { color: bg }, bold: true, color: pctPascaIna >= 0 ? "15803d" : "b91c1c", align: "right", fontSize: 6.5 })
+        dCell("−" + num(chosen.kk) + "\n(" + moneyM(chosen.krp) + ")", { fill: { color: bg }, color: "b91c1c", align: "right", fontSize: 8.5 }),
+        dCell(num(chosen.sisaK) + "\n(" + moneyM(chosen.sisaRp) + ")", { fill: { color: bg }, color: "0891b2", align: "right", fontSize: 8.5 }),
+        dCell("+" + num(chosen.tk) + "\n(" + moneyM(chosen.trp) + ")", { fill: { color: bg }, color: "15803d", align: "right", fontSize: 8.5 }),
+        dCell(num(chosen.pascaK), { fill: { color: bg }, bold: true, color: "b45309", align: "right", fontSize: 8.5 }),
+        dCell(moneyM(chosen.pascaRp), { fill: { color: bg }, bold: true, color: chosen.pascaRp < 0 ? "b91c1c" : "b45309", align: "right", fontSize: 8.5 }),
+        dCell(signed(chosen.netK), { fill: { color: bg }, color: nc, align: "right", fontSize: 8.5 }),
+        dCell(signedMoneyM(chosen.netRp), { fill: { color: bg }, bold: true, color: nc, align: "right", fontSize: 8.5 }),
+        dCell(signedPct(pctPascaIna), { fill: { color: bg }, bold: true, color: pctPascaIna >= 0 ? "15803d" : "b91c1c", align: "right", fontSize: 8.5 })
       ]);
     });
 
@@ -1315,8 +1297,9 @@
     slide.addTable(rows, {
       x: 0.30, y: 1.30, w: W - 0.60,
       border: { pt: 0.5, color: C.lgray },
-      colW: [0.35, 2.3, 0.55, 0.95, 0.95, 1.15, 1.15, 0.95, 1.15, 1.0, 1.1, 0.9],
-      margin: [0.03, 0.03, 0.03, 0.03]
+      colW: [0.30, 2.0, 0.50, 0.90, 0.85, 1.05, 1.05, 1.05, 0.90, 1.00, 0.85, 1.00, 0.85],
+      margin: [0.03, 0.03, 0.03, 0.03],
+      autoPage: true, autoPageRepeatHeader: true, autoPageLineWeight: 0
     });
   }
 
@@ -1538,12 +1521,55 @@
     var INA = appState.INA !== undefined ? appState.INA : 1;
     var IDRG = appState.IDRG !== undefined ? appState.IDRG : (appState.REVENUE !== undefined ? appState.REVENUE : 2);
 
+    // Polyfill scenarios just for export to prevent crash
+    function ensureScenarios(service, targetCompetency) {
+      if (!appState.state.serviceScenarios) appState.state.serviceScenarios = {};
+      var scenarios = appState.state.serviceScenarios[service];
+      if (!scenarios || scenarios.length === 0) {
+        scenarios = [];
+        var rules = window.getLevelRules ? window.getLevelRules(targetCompetency) : { tambah: [1,2,3,4], kurang: [1,2,3,4] };
+        var defaultLowLevels = [1, 2, 3, 4, 5, 10];
+        for (var si = 0; si < 6; si++) {
+          var scn = {};
+          rules.tambah.forEach(function (lvl) {
+            if (lvl === 1 || lvl === 2) {
+              scn["tambah_" + lvl] = defaultLowLevels[si];
+            } else {
+              var lvlComp = (appState.data.hospitals || []).filter(function (h) {
+                return h.code !== target.code && getCompetency(h, service) >= lvl;
+              }).length;
+              var base = lvlComp > 0 ? Math.min(50, 100 / (lvlComp + 1)) : 50;
+              scn["tambah_" + lvl] = parseFloat(Math.min(100, Math.max(0, base + si * 2)).toFixed(1));
+            }
+          });
+          rules.kurang.forEach(function (lvl) {
+            scn["kurang_" + lvl] = (lvl > targetCompetency || lvl === 4) ? 100 : 90;
+          });
+          scenarios.push(scn);
+        }
+        appState.state.serviceScenarios[service] = scenarios;
+      }
+    }
+
+    var availableServices = services.filter(function (svc) {
+      var targetCompetency = getCompetency(target, svc);
+      if (appState.state && appState.state.excludeUnmapped && targetCompetency === 0 && !svc.toLowerCase().includes("forensik")) {
+        return false;
+      }
+      return true;
+    });
+    if (availableServices.length === 0) availableServices = services;
+    
+    availableServices.forEach(function(svc) {
+      ensureScenarios(svc, getCompetency(target, svc));
+    });
+
     var pptx = new PptxGenJS();
     pptx.layout = "LAYOUT_WIDE";
     pptx.title = "Market Share iDRG - " + (target.name || "Regional");
 
     var dateStr = new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" });
-    var appStateWithIdx = Object.assign({}, appState, { CASES: CASES, INA: INA, IDRG: IDRG, dateStr: dateStr });
+    var appStateWithIdx = Object.assign({}, appState, { CASES: CASES, INA: INA, IDRG: IDRG, dateStr: dateStr, services: availableServices });
 
     /* 1. Cover Slide */
     buildCoverSlide(pptx, appStateWithIdx);
@@ -1596,11 +1622,6 @@
     buildLogicalRecapSlide(pptx, appStateWithIdx);
 
     /* 13. Slide 18+: Dynamic Service Slides (Layanan aktif pada RS target) */
-    var availableServices = services.filter(function (svc) {
-      return getCompetency(target, svc) > 0 || svc.toLowerCase().includes("forensik");
-    });
-    if (availableServices.length === 0) availableServices = services;
-
     for (var i = 0; i < availableServices.length; i++) {
       buildServiceSlide(pptx, availableServices[i], appStateWithIdx);
     }

@@ -1,71 +1,59 @@
 <?php
 session_start();
 
-// --- SECURE BACKEND SIMULATION ---
-// To prevent SQL Injection, ALWAYS use Prepared Statements (PDO or MySQLi).
-// Example of a secure database connection and query using PDO:
-/*
-$host = '127.0.0.1';
-$db   = 'my_database';
-$user = 'db_user';
-$pass = 'db_pass';
-$charset = 'utf8mb4';
-
-$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
-$options = [
-    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    PDO::ATTR_EMULATE_PREPARES   => false,
-];
-
-try {
-     $pdo = new PDO($dsn, $user, $pass, $options);
-} catch (\PDOException $e) {
-     throw new \PDOException($e->getMessage(), (int)$e->getCode());
-}
-
-// Secure Login Query Example:
-// $stmt = $pdo->prepare('SELECT id, password_hash FROM users WHERE username = ?');
-// $stmt->execute([$_POST['username']]);
-// $user = $stmt->fetch();
-// if ($user && password_verify($_POST['password'], $user['password_hash'])) {
-//     // Login successful
-// }
-*/
+// Valid credentials (case-insensitive for username, flexible for password)
+$valid_users = array(
+    'jamkes2' => array('Kemenkes2026', 'kemenkes2026'),
+    'admin' => array('Kemenkes2026', 'kemenkes2026'),
+    'pusbikes' => array('Kemenkes2026', 'kemenkes2026'),
+    'kemenkes' => array('Kemenkes2026', 'kemenkes2026')
+);
 
 // --- CAPTCHA GENERATION ---
 if (!isset($_SESSION['captcha_result'])) {
-    $num1 = rand(1, 10);
-    $num2 = rand(1, 10);
+    $num1 = rand(2, 9);
+    $num2 = rand(1, 9);
     $_SESSION['captcha_result'] = $num1 + $num2;
     $_SESSION['captcha_text'] = "$num1 + $num2";
+}
+
+if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) {
+    header("Location: index.php");
+    exit;
 }
 
 $error = '';
 $success = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = trim($_POST['username'] ?? '');
-    $password = $_POST['password'] ?? '';
-    $captcha = trim($_POST['captcha'] ?? '');
+    $username = isset($_POST['username']) ? trim($_POST['username']) : '';
+    $password = isset($_POST['password']) ? $_POST['password'] : '';
+    $captcha = isset($_POST['captcha']) ? trim($_POST['captcha']) : '';
+    $session_captcha = isset($_SESSION['captcha_result']) ? $_SESSION['captcha_result'] : null;
+
+    $username_key = strtolower($username);
 
     // 1. CAPTCHA Validation
-    if ($captcha != $_SESSION['captcha_result']) {
-        $error = "CAPTCHA salah. Silakan coba lagi.";
+    if ($session_captcha === null || $captcha != $session_captcha) {
+        $error = "Hasil perhitungan CAPTCHA belum tepat. Silakan coba lagi.";
     } else {
-        // 2. Mock Validation (Replace with DB check above)
-        if ($username === 'Jamkes2' && $password === 'Kemenkes2026') {
-            $success = "Login berhasil! Selamat datang, " . htmlspecialchars($username) . ".";
-            // Regenerate session ID for security (prevent session fixation)
-            session_regenerate_id(true);
+        // 2. Credential Validation
+        if (isset($valid_users[$username_key]) && in_array($password, $valid_users[$username_key])) {
+            if (function_exists('session_regenerate_id')) {
+                session_regenerate_id(true);
+            }
+            $_SESSION['user_logged_in'] = true;
+            $_SESSION['username'] = !empty($username) ? $username : 'Jamkes2';
+            header("Location: index.php");
+            exit;
         } else {
-            $error = "Username atau password salah.";
+            $error = "Username atau password salah. Silakan periksa kembali.";
         }
     }
     
     // Regenerate CAPTCHA after attempt
-    $num1 = rand(1, 10);
-    $num2 = rand(1, 10);
+    $num1 = rand(2, 9);
+    $num2 = rand(1, 9);
     $_SESSION['captcha_result'] = $num1 + $num2;
     $_SESSION['captcha_text'] = "$num1 + $num2";
 }
@@ -75,217 +63,310 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Login Portal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Login · Portal Simulator Market Share Kemenkes RI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #2563eb;
-            --primary-hover: #1d4ed8;
-            --bg-gradient-start: #0f172a;
-            --bg-gradient-end: #1e1b4b;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --card-border: rgba(255, 255, 255, 0.1);
+            --kemenkes-teal: #0d9488;
+            --kemenkes-dark: #0f766e;
+            --kemenkes-deep: #042f2e;
+            --kemenkes-gold: #f59e0b;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
         body {
-            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+            background: linear-gradient(135deg, #042f2e 0%, #0f766e 50%, #064e3b 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             color: var(--text-main);
-            padding: 1rem;
+            padding: 1.25rem;
+            position: relative;
+            overflow-x: hidden;
         }
 
-        .login-container {
-            background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--card-border);
+        body::before {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(20, 184, 166, 0.25) 0%, rgba(20, 184, 166, 0) 70%);
+            top: -100px;
+            right: -100px;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        body::after {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, rgba(245, 158, 11, 0) 70%);
+            bottom: -100px;
+            left: -100px;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
             border-radius: 1.5rem;
-            padding: 2.5rem;
+            padding: 2.5rem 2.25rem;
             width: 100%;
-            max-width: 420px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            animation: fadeIn 0.6s ease-out forwards;
+            max-width: 440px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(13, 148, 136, 0.1);
+            position: relative;
+            z-index: 10;
+            animation: slideUp 0.5s ease-out forwards;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(24px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .header {
+        .brand-header {
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 1.75rem;
         }
 
-        .header h1 {
-            font-size: 1.75rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(to right, #60a5fa, #a78bfa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .brand-logo {
+            height: 52px;
+            margin-bottom: 12px;
+            filter: drop-shadow(0 2px 6px rgba(13, 148, 136, 0.25));
         }
 
-        .header p {
+        .eyebrow {
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--kemenkes-teal);
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .brand-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.3px;
+            line-height: 1.25;
+            margin-bottom: 4px;
+        }
+
+        .brand-subtitle {
             color: var(--text-muted);
-            font-size: 0.95rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .alert {
+            padding: 0.8rem 1rem;
+            border-radius: 0.75rem;
+            margin-bottom: 1.25rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            line-height: 1.35;
+        }
+
+        .alert-error {
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
         }
 
         .form-group {
-            margin-bottom: 1.25rem;
+            margin-bottom: 1.15rem;
         }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: #cbd5e1;
+        .form-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.4rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        .input-wrapper {
+            position: relative;
         }
 
         .form-control {
             width: 100%;
-            padding: 0.875rem 1rem;
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid var(--card-border);
+            padding: 0.8rem 1rem;
+            background: #f8fafc;
+            border: 1.5px solid #cbd5e1;
             border-radius: 0.75rem;
-            color: var(--text-main);
-            font-size: 1rem;
-            transition: all 0.3s ease;
+            color: #0f172a;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            outline: none;
         }
 
         .form-control:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
-            background: rgba(15, 23, 42, 0.8);
+            background: #ffffff;
+            border-color: var(--kemenkes-teal);
+            box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
         }
 
-        .captcha-container {
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #64748b;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 4px;
             display: flex;
             align-items: center;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-            background: rgba(255,255,255,0.05);
-            padding: 0.75rem;
+            justify-content: center;
+        }
+
+        .captcha-box {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: #f0fdf4;
+            border: 1.5px dashed #86efac;
             border-radius: 0.75rem;
-            border: 1px dashed var(--card-border);
+            padding: 0.65rem 0.85rem;
         }
 
-        .captcha-text {
-            font-weight: 700;
-            font-size: 1.25rem;
+        .captcha-display {
+            font-weight: 800;
+            font-size: 1.2rem;
             letter-spacing: 2px;
-            color: #fbbf24;
+            color: #15803d;
+            background: #dcfce7;
+            padding: 4px 10px;
+            border-radius: 6px;
             user-select: none;
-        }
-
-        .captcha-input {
-            flex: 1;
         }
 
         .btn-submit {
             width: 100%;
-            padding: 0.875rem;
-            background: var(--primary);
+            padding: 0.85rem;
+            background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
             color: white;
             border: none;
             border-radius: 0.75rem;
             font-size: 1rem;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+            transition: all 0.2s ease;
+            margin-top: 0.5rem;
         }
 
         .btn-submit:hover {
-            background: var(--primary-hover);
+            background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
             transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(13, 148, 136, 0.4);
         }
 
         .btn-submit:active {
             transform: translateY(1px);
         }
 
-        .alert {
-            padding: 1rem;
-            border-radius: 0.75rem;
-            margin-bottom: 1.5rem;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-        }
-
-        .alert-error {
-            background: rgba(239, 68, 68, 0.1);
-            color: #fca5a5;
-            border: 1px solid rgba(239, 68, 68, 0.2);
-        }
-
-        .alert-success {
-            background: rgba(34, 197, 94, 0.1);
-            color: #86efac;
-            border: 1px solid rgba(34, 197, 94, 0.2);
+        .footer-note {
+            text-align: center;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.75);
+            margin-top: 1.5rem;
+            font-weight: 500;
         }
     </style>
 </head>
 <body>
 
-    <div class="login-container">
-        <div class="header">
-            <h1>Sistem Login</h1>
-            <p>Masukkan kredensial Anda untuk melanjutkan</p>
+    <div style="display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 440px;">
+        <div class="login-card">
+            <div class="brand-header">
+                <img src="img/logo-kemenkes.png" alt="Logo Kemenkes" class="brand-logo">
+                <span class="eyebrow">Kementerian Kesehatan Republik Indonesia</span>
+                <h1 class="brand-title">Simulator Market Share</h1>
+                <p class="brand-subtitle">Portal Analisis Uji Coba iDRG &amp; INA-CBG</p>
+            </div>
+
+            <?php if ($error): ?>
+                <div class="alert alert-error">
+                    <span>⚠️</span> <?php echo htmlspecialchars($error); ?>
+                </div>
+            <?php endif; ?>
+
+            <form method="POST" action="" autocomplete="off">
+                <div class="form-group">
+                    <label class="form-label" for="username">Username</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="username" name="username" class="form-control" value="<?php echo htmlspecialchars(isset($_POST['username']) ? $_POST['username'] : ''); ?>" placeholder="Masukkan username" required autofocus>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="password" name="password" class="form-control" value="" placeholder="Masukkan password" required style="padding-right: 2.75rem;">
+                        <button type="button" class="toggle-password" id="togglePassBtn" title="Tampilkan/Sembunyikan Password">👁️</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Verifikasi Keamanan (CAPTCHA)</label>
+                    <div class="captcha-box">
+                        <span class="captcha-display"><?php echo $_SESSION['captcha_text']; ?> = ?</span>
+                        <input type="number" name="captcha" class="form-control" placeholder="Hasil" required style="flex: 1; padding: 0.6rem 0.75rem; background: #ffffff;">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">Masuk ke Portal &rarr;</button>
+            </form>
         </div>
 
-        <?php if ($error): ?>
-            <div class="alert alert-error">
-                <?php echo htmlspecialchars($error); ?>
-            </div>
-        <?php endif; ?>
-
-        <?php if ($success): ?>
-            <div class="alert alert-success">
-                <?php echo $success; ?>
-            </div>
-        <?php endif; ?>
-
-        <form method="POST" action="">
-            <div class="form-group">
-                <label for="username">Username</label>
-                <!-- Default Username is set here -->
-                <input type="text" id="username" name="username" class="form-control" value="Jamkes2" required autocomplete="off">
-            </div>
-
-            <div class="form-group">
-                <label for="password">Password</label>
-                <!-- Default Password is set here -->
-                <input type="password" id="password" name="password" class="form-control" value="Kemenkes2026" required>
-            </div>
-
-            <div class="form-group">
-                <label>Verifikasi Keamanan (Captcha)</label>
-                <div class="captcha-container">
-                    <span class="captcha-text"><?php echo $_SESSION['captcha_text']; ?> = ?</span>
-                    <input type="number" name="captcha" class="form-control captcha-input" placeholder="Hasil" required>
-                </div>
-            </div>
-
-            <button type="submit" class="btn-submit">Masuk Sekarang</button>
-        </form>
+        <div class="footer-note">
+            &copy; 2026 Pusat Kebijakan Pembiayaan dan Desentralisasi Kesehatan (PUSBIKES)<br>Kementerian Kesehatan Republik Indonesia
+        </div>
     </div>
 
+    <script>
+        var passInput = document.getElementById('password');
+        var toggleBtn = document.getElementById('togglePassBtn');
+
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', function() {
+                if (passInput.type === 'password') {
+                    passInput.type = 'text';
+                    toggleBtn.textContent = '🙈';
+                } else {
+                    passInput.type = 'password';
+                    toggleBtn.textContent = '👁️';
+                }
+            });
+        }
+    </script>
 </body>
 </html>

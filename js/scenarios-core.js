@@ -3,8 +3,8 @@
   window.computeServiceScenarios = function(service, target, data, state, CASES, INA, IDRG, severityMetricFn, getLevelRulesFn) {
     const targetSvcRef = target.services[service];
     const regionalSvc = data.regional.services[service];
-    const targetCompetency = target.competencies ? target.competencies[service] : 0;
-    const scenarios = state.serviceScenarios[service];
+    const targetCompetency = targetSvcRef ? (targetSvcRef.competency || 0) : 0;
+    const scenarios = state.serviceScenarios && state.serviceScenarios[service];
   
     // get target level
     const rules = getLevelRulesFn(targetCompetency, service);
@@ -30,6 +30,16 @@
         basePengurangan[lvl][0] = targetLvl[CASES] || 0;
         basePengurangan[lvl][1] = targetLvl[IDRG] || 0;
       });
+    }
+  
+    // Guard: return empty result if no scenarios
+    if (!scenarios || scenarios.length === 0) {
+      return {
+        baseTambahan, basePengurangan,
+        scnEvals: [], chosenIdx: -1, chosen: null,
+        existingKasus, existingIna, existingIdrg,
+        targetSvcRef, regionalSvc, targetCompetency
+      };
     }
   
     const scnEvals = scenarios.map((scn, idx) => {
@@ -91,8 +101,9 @@
       chosen = safeOnes[0];
       chosenIdx = chosen.idx;
     } else {
-      chosen = scnEvals[0];
-      chosenIdx = 0;
+      const sortedUnsafe = [...scnEvals].sort((a, b) => (a.pascaKasus - b.pascaKasus) || (b.netRp - a.netRp));
+      chosen = sortedUnsafe[0];
+      chosenIdx = chosen.idx;
     }
     
     return {

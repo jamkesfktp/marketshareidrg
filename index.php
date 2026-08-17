@@ -13,7 +13,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
   <link rel="icon" href="data:,">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Simulator Market Share Regional Rumah Sakit</title>
-  <link rel="stylesheet" href="css/style.css?v=2026081612">
+  <link rel="stylesheet" href="css/style.css?v=2026081648">
 </head>
 <body class="simulator-app">
   <main class="viewport-stage" aria-label="Simulator market share regional rumah sakit">
@@ -418,13 +418,28 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
       </div>
     </div>
   </aside>
-  <script src="js/data.js?v=2026081612"></script>
+  <script src="js/data.js?v=2026081648"></script>
   <script src="js/xlsx.bundle.js"></script>
   <script src="js/dom-to-pptx.bundle.js"></script>
   <script src="js/pptxgen.bundle.js"></script>
-  <script src="js/scenarios-core.js?v=2026081612"></script>
-  <script src="js/export-gslides.js?v=2026081612"></script>
-  <script src="js/audit-excel.js?v=2026081612"></script>
-  <script src="js/app.js?v=2026081612"></script>
+  <script src="js/scenarios-core.js?v=2026081648"></script>
+  <script src="js/export-gslides.js?v=2026081648"></script>
+  <script src="js/audit-excel.js?v=2026081648"></script>
+  <script src="js/app.js?v=2026081648"></script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
