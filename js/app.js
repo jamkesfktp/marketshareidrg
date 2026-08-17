@@ -804,7 +804,7 @@
       } else {
         // Mode 2: Serap Dasar & Madya dr RS Kelas Lebih Tinggi (Utama & Paripurna) di regional
         data.hospitals.forEach(h => {
-          if (h.id === target.id) return;
+          if (h.code === target.code) return;
           const hCompetency = getCompetency(h, service);
           const tCompetency = getCompetency(target, service);
           
@@ -935,47 +935,121 @@
 
 
 
+    // Hitung breakdown severity untuk RS Target
+    const targetTotalD = data.services.reduce((sum, svc) => {
+      const s = target.services[svc]; return sum + (s ? (severityMetric(s, 1)[CASES] || 0) : 0);
+    }, 0);
+    const targetTotalM = data.services.reduce((sum, svc) => {
+      const s = target.services[svc]; return sum + (s ? (severityMetric(s, 2)[CASES] || 0) : 0);
+    }, 0);
+    const targetTotalU = data.services.reduce((sum, svc) => {
+      const s = target.services[svc]; return sum + (s ? (severityMetric(s, 3)[CASES] || 0) : 0);
+    }, 0);
+    const targetTotalP = data.services.reduce((sum, svc) => {
+      const s = target.services[svc]; return sum + (s ? (severityMetric(s, 4)[CASES] || 0) : 0);
+    }, 0);
+    // Breakdown severity Regional
+    const regTotalD = data.services.reduce((sum, svc) => {
+      const s = data.regional.services[svc]; return sum + (s ? (severityMetric(s, 1)[CASES] || 0) : 0);
+    }, 0);
+    const regTotalM = data.services.reduce((sum, svc) => {
+      const s = data.regional.services[svc]; return sum + (s ? (severityMetric(s, 2)[CASES] || 0) : 0);
+    }, 0);
+    const regTotalU = data.services.reduce((sum, svc) => {
+      const s = data.regional.services[svc]; return sum + (s ? (severityMetric(s, 3)[CASES] || 0) : 0);
+    }, 0);
+    const regTotalP = data.services.reduce((sum, svc) => {
+      const s = data.regional.services[svc]; return sum + (s ? (severityMetric(s, 4)[CASES] || 0) : 0);
+    }, 0);
+
     document.getElementById("globalSimulationSlide").innerHTML = `
-      <!-- SCORECARD RS -->
-      <div class="existing-report-kpis" style="margin-bottom: 10px;">
-        <article class="existing-report-kpi kpi-cases"><span>Total Kasus RS</span><strong>${formatNumber(eksistingKasus)}</strong><em>Kasus Eklaim</em></article>
-        <article class="existing-report-kpi kpi-ina"><span>Pendapatan INA CBGs</span><strong>${fmtM(eksistingIna)}</strong><em>Tarif INA Eksisting</em></article>
-        <article class="existing-report-kpi kpi-idrg"><span>Pendapatan iDRG</span><strong>${fmtM(eksistingIdrg)}</strong><em>Klaim Uji Coba iDRG</em></article>
-        <article class="existing-report-kpi ${deltaIdrg < 0 ? 'kpi-difference is-loss' : 'kpi-difference is-gain'}"><span>Selisih iDRG - INA</span><strong>${deltaIdrg > 0 ? '+' : ''}${fmtM(deltaIdrg)}</strong><em>${deltaIdrg > 0 ? 'Tambahan' : 'Pengurangan'} Pendapatan</em></article>
-        <article class="existing-report-kpi ${deltaIdrg < 0 ? 'kpi-percentage is-loss' : 'kpi-percentage is-gain'}"><span>Persentase Selisih</span><strong>${deltaPercentIdrg > 0 ? '+' : ''}${formatPercent(deltaPercentIdrg)}</strong><em>thd INA CBGs</em></article>
-      </div>
-      
-      <!-- SCORECARD REGIONAL -->
-      <div class="existing-report-kpis" style="margin-bottom: 14px;">
-        <article class="existing-report-kpi" style="background: linear-gradient(135deg,#0f172a,#1e293b); color:white;">
-          <span style="color:#94a3b8;">Total Kasus Regional</span>
-          <strong style="color:#f1f5f9;">${formatNumber(regionalKasus)}</strong>
-          <em style="color:#64748b;">Seluruh RS di Regional</em>
-        </article>
-        <article class="existing-report-kpi" style="background: linear-gradient(135deg,#0f172a,#1e293b); color:white;">
-          <span style="color:#94a3b8;">Pendapatan INA Regional</span>
-          <strong style="color:#fcd34d;">${fmtM(regionalIna)}</strong>
-          <em style="color:#64748b;">Total INA CBGs Regional</em>
-        </article>
-        <article class="existing-report-kpi" style="background: linear-gradient(135deg,#0f172a,#1e293b); color:white;">
-          <span style="color:#94a3b8;">Pendapatan iDRG Regional</span>
-          <strong style="color:#6ee7b7;">${fmtM(regionalIdrg)}</strong>
-          <em style="color:#64748b;">Total iDRG Regional</em>
-        </article>
-        <article class="existing-report-kpi" style="background: linear-gradient(135deg,#0f172a,#1e293b); color:white;">
-          <span style="color:#94a3b8;">Market Share Kasus</span>
-          <strong style="color:#93c5fd;">${formatPercent(marketShareKasus)}</strong>
-          <em style="color:#64748b;">RS Target / Regional</em>
-        </article>
-        <article class="existing-report-kpi" style="background: linear-gradient(135deg,#0f172a,#1e293b); color:white;">
-          <span style="color:#94a3b8;">Market Share iDRG</span>
-          <strong style="color:#c4b5fd;">${formatPercent(marketShareIdrg)}</strong>
-          <em style="color:#64748b;">Pendapatan RS / Regional</em>
-        </article>
+      <!-- ═══ SCORECARD KEMENKES STYLE ═══ -->
+      <div style="display:flex; gap:0; margin-bottom:14px; border-radius:10px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.12); border:1px solid #e2e8f0;">
+        
+        <!-- Panel RS Target -->
+        <div style="flex:1; background:#ffffff; padding:14px 16px;">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
+            <div style="width:38px; height:38px; border-radius:8px; background:linear-gradient(135deg,#005a9e,#003e77); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+              <span style="font-size:18px;">🏥</span>
+            </div>
+            <div>
+              <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.5px;">EKSISTING</div>
+              <div style="font-size:13px; font-weight:800; color:#0f172a; line-height:1.1;">RUMAH SAKIT</div>
+            </div>
+            <div style="margin-left:auto; display:flex; gap:20px; align-items:center;">
+              <div style="text-align:right;">
+                <div style="font-size:11px; color:#64748b; font-weight:600;">Total Kasus</div>
+                <div style="font-size:22px; font-weight:900; color:#0f172a; line-height:1;">${formatNumber(eksistingKasus)}</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:11px; color:#64748b; font-weight:600;">Pendapatan INACBG</div>
+                <div style="font-size:22px; font-weight:900; color:#ca8a04; line-height:1;">${fmtM(eksistingIna)}</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:11px; color:#64748b; font-weight:600;">Pendapatan iDRG</div>
+                <div style="font-size:22px; font-weight:900; color:#0369a1; line-height:1;">${fmtM(eksistingIdrg)}</div>
+              </div>
+            </div>
+          </div>
+          <div style="border-top:1px solid #f1f5f9; padding-top:8px;">
+            <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:6px;">RINCIAN KASUS EKSISTING RS:</div>
+            <div style="display:flex; gap:16px;">
+              <div style="text-align:center; flex:1;"><div style="font-size:18px; font-weight:800; color:#0f766e;">${formatNumber(targetTotalD)}</div><div style="font-size:11px; color:#64748b; font-weight:600;">Dasar</div></div>
+              <div style="text-align:center; flex:1;"><div style="font-size:18px; font-weight:800; color:#0369a1;">${formatNumber(targetTotalM)}</div><div style="font-size:11px; color:#64748b; font-weight:600;">Madya</div></div>
+              <div style="text-align:center; flex:1;"><div style="font-size:18px; font-weight:800; color:#7c3aed;">${formatNumber(targetTotalU)}</div><div style="font-size:11px; color:#64748b; font-weight:600;">Utama</div></div>
+              <div style="text-align:center; flex:1;"><div style="font-size:18px; font-weight:800; color:#be185d;">${formatNumber(targetTotalP)}</div><div style="font-size:11px; color:#64748b; font-weight:600;">Paripurna</div></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- VS Divider -->
+        <div style="background:#f1f5f9; display:flex; align-items:center; justify-content:center; padding:0 10px; font-size:13px; font-weight:800; color:#94a3b8;">VS</div>
+        
+        <!-- Panel Regional -->
+        <div style="flex:1; background:#0f172a; padding:14px 16px;">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
+            <div style="width:38px; height:38px; border-radius:8px; background:linear-gradient(135deg,#1e40af,#1d4ed8); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+              <span style="font-size:18px;">🌐</span>
+            </div>
+            <div>
+              <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.5px;">EKSISTING</div>
+              <div style="font-size:13px; font-weight:800; color:#f1f5f9; line-height:1.1;">REGIONAL</div>
+            </div>
+            <div style="margin-left:auto; display:flex; gap:20px; align-items:center;">
+              <div style="text-align:right;">
+                <div style="font-size:11px; color:#64748b; font-weight:600;">Total Kasus</div>
+                <div style="font-size:22px; font-weight:900; color:#f1f5f9; line-height:1;">${formatNumber(regionalKasus)}</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:11px; color:#64748b; font-weight:600;">Pendapatan INACBG</div>
+                <div style="font-size:22px; font-weight:900; color:#fcd34d; line-height:1;">${fmtM(regionalIna)}</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:11px; color:#64748b; font-weight:600;">Pendapatan iDRG</div>
+                <div style="font-size:22px; font-weight:900; color:#6ee7b7; line-height:1;">${fmtM(regionalIdrg)}</div>
+              </div>
+            </div>
+            <!-- MARKET SHARE BADGE -->
+            <div style="background:linear-gradient(135deg,#16a34a,#15803d); border-radius:8px; padding:10px 14px; text-align:center; flex-shrink:0; margin-left:4px; min-width:90px;">
+              <div style="font-size:10px; font-weight:700; color:#bbf7d0; text-transform:uppercase; letter-spacing:0.4px;">MARKET<br>SHARE</div>
+              <div style="font-size:22px; font-weight:900; color:#ffffff; line-height:1.1;">${formatPercent(marketShareKasus)}</div>
+              <div style="font-size:10px; color:#bbf7d0; margin-top:2px;">Dari Total Kasus</div>
+            </div>
+          </div>
+          <div style="border-top:1px solid #1e293b; padding-top:8px;">
+            <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:6px;">RINCIAN KASUS EKSISTING REGIONAL:</div>
+            <div style="display:flex; gap:16px;">
+              <div style="text-align:center; flex:1;"><div style="font-size:18px; font-weight:800; color:#6ee7b7;">${formatNumber(regTotalD)}</div><div style="font-size:11px; color:#64748b; font-weight:600;">Dasar</div></div>
+              <div style="text-align:center; flex:1;"><div style="font-size:18px; font-weight:800; color:#93c5fd;">${formatNumber(regTotalM)}</div><div style="font-size:11px; color:#64748b; font-weight:600;">Madya</div></div>
+              <div style="text-align:center; flex:1;"><div style="font-size:18px; font-weight:800; color:#c4b5fd;">${formatNumber(regTotalU)}</div><div style="font-size:11px; color:#64748b; font-weight:600;">Utama</div></div>
+              <div style="text-align:center; flex:1;"><div style="font-size:18px; font-weight:800; color:#f9a8d4;">${formatNumber(regTotalP)}</div><div style="font-size:11px; color:#64748b; font-weight:600;">Paripurna</div></div>
+            </div>
+          </div>
+        </div>
       </div>
       
       <!-- MODE AKTIF -->
-      <div style="margin-bottom: 12px; font-size: 12px; color: #475569; display:flex; align-items:center; gap:8px;">
+      <div style="margin-bottom: 10px; font-size: 12px; color: #475569; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
         <span style="background:#e0f2fe; color:#0369a1; padding:3px 10px; border-radius:99px; font-weight:600;">
           Mode: ${mode === 'regional_all' ? '📊 Serapan Regional Keseluruhan' : '⬆️ Serap Dasar/Madya dari RS Kelas Lebih Tinggi'}
         </span>
@@ -984,7 +1058,7 @@
       
       <!-- TABEL SIMULASI (SIMPLIFIED) -->
       <div style="width: 100%; overflow-x: auto; padding-bottom: 10px;">
-        <table style="width: 100%; min-width: 800px; border-collapse: collapse; font-size: 14px; font-family: sans-serif;">
+        <table style="width: 100%; min-width: 800px; border-collapse: collapse; font-size: 14px; font-family: sans-serif; box-shadow:0 2px 6px rgba(0,0,0,0.08); border-radius:8px; overflow:hidden;">
           <thead>
             <tr style="background-color: #0f172a; color: white; text-align:center;">
               <th style="padding:12px 10px; border:1px solid #334155; min-width:120px;">SKENARIO<br><span style="font-size:10px; font-weight:400; color:#94a3b8;">Atur % serapan</span></th>
@@ -1002,6 +1076,7 @@
         </table>
       </div>
     `;
+
     
     // Attach event listeners to dynamic inputs
     document.querySelectorAll('.global-sim-input').forEach(input => {

@@ -21,7 +21,7 @@
     if (mode === 'kelasatas' && typeof getCompetencyFn === 'function') {
       // Mode kelasatas: kumpulkan kasus Dasar & Madya dari RS yang kompetensinya > target
       const higherHospitals = data.hospitals.filter(h => {
-        if (!h || h.id === target.id) return false;
+        if (!h || h.code === target.code) return false;
         return getCompetencyFn(h, service) > targetCompetency;
       });
       [1, 2].forEach(lvl => {
