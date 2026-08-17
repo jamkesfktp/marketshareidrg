@@ -1,0 +1,12 @@
+node_modules/
+outputs/
+scratch/
+err.log
+*.log
+*.txt
+*.pptx
+*.xlsx
+old_*
+patch-*.txt
+diff.txt
+syntax_error.txt
