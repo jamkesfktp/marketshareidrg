@@ -1170,6 +1170,16 @@
 
 
   function renderCompetencySimSlide() {
+    const formatMoneyUnit = (val) => {
+      if (!val || isNaN(val)) return '0,00';
+      const sign = val < 0 ? '-' : '';
+      const absVal = Math.abs(val);
+      if (absVal >= 1e12) return sign + (absVal / 1e12).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' T';
+      if (absVal >= 1e9) return sign + (absVal / 1e9).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' M';
+      if (absVal >= 1e6) return sign + (absVal / 1e6).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' JT';
+      return sign + absVal.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    };
+
     const container = document.getElementById('competencyTableSlide');
     if (!container) return;
 
