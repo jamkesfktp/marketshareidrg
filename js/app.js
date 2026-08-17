@@ -85,7 +85,15 @@
     updateDataState();
     populateFilters(true);
     populateHospitalSelector();
-    renderAll();
+    
+  document.getElementById('globalSimServiceSelect')?.addEventListener('change', () => {
+    if(typeof renderGlobalSimulationSlide === "function") renderGlobalSimulationSlide();
+    if(typeof renderCompetencySimSlide === "function") renderCompetencySimSlide();
+    if(typeof renderRecapSlide === "function") renderRecapSlide();
+    if(typeof renderLogicalRecapSlide === "function") renderLogicalRecapSlide();
+  });
+
+  renderAll();
   }
   
   let hospitalByCode = new Map();
@@ -778,7 +786,32 @@
     let potensiRedistribusiKasus = 0;
     let potensiRedistribusiIdrg = 0;
 
-    data.services.forEach(service => {
+    
+    (function(){
+      const targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
+      const servicesToSimulate = targetServiceSelect === 'ALL' ? data.services : (data.services.includes(targetServiceSelect) ? [targetServiceSelect] : []);
+      
+      // Compute Competitor count for the badge (we only need to do this once per function, but doing it in an IIFE wrapper is safe)
+      let competitorCount = 0;
+      if (targetServiceSelect !== 'ALL') {
+        data.hospitals.forEach(h => {
+          if (h.code === targetHospital()?.code) return;
+          const hComp = getCompetency(h, targetServiceSelect);
+          if (hComp && hComp > 0) competitorCount++;
+        });
+      } else {
+        competitorCount = Math.max(0, data.hospitals.length - 1);
+      }
+      
+      const compBadge = document.getElementById('globalSimCompetitorBadge');
+      if (compBadge) {
+        compBadge.innerHTML = targetServiceSelect === 'ALL' 
+          ? `Menampilkan ${competitorCount} RS Regional` 
+          : `<strong>${competitorCount}</strong> RS Kompetitor Regional`;
+      }
+      
+      return servicesToSimulate;
+    })().forEach(service => {
       const srvReg = regionalService(service);
       const srvTarget = target.services[service];
       if (!srvReg || !srvTarget) return;
@@ -1240,7 +1273,32 @@
     let inaDasar = 0, inaMadya = 0, inaUtama = 0, inaParipurna = 0;
     let idrgDasar = 0, idrgMadya = 0, idrgUtama = 0, idrgParipurna = 0;
 
-    data.services.forEach(service => {
+    
+    (function(){
+      const targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
+      const servicesToSimulate = targetServiceSelect === 'ALL' ? data.services : (data.services.includes(targetServiceSelect) ? [targetServiceSelect] : []);
+      
+      // Compute Competitor count for the badge (we only need to do this once per function, but doing it in an IIFE wrapper is safe)
+      let competitorCount = 0;
+      if (targetServiceSelect !== 'ALL') {
+        data.hospitals.forEach(h => {
+          if (h.code === targetHospital()?.code) return;
+          const hComp = getCompetency(h, targetServiceSelect);
+          if (hComp && hComp > 0) competitorCount++;
+        });
+      } else {
+        competitorCount = Math.max(0, data.hospitals.length - 1);
+      }
+      
+      const compBadge = document.getElementById('globalSimCompetitorBadge');
+      if (compBadge) {
+        compBadge.innerHTML = targetServiceSelect === 'ALL' 
+          ? `Menampilkan ${competitorCount} RS Regional` 
+          : `<strong>${competitorCount}</strong> RS Kompetitor Regional`;
+      }
+      
+      return servicesToSimulate;
+    })().forEach(service => {
       const targetSrv = target.services[service];
       if (!targetSrv) return;
 
@@ -5411,7 +5469,32 @@
     let grandMinPascaK = 0, grandMaxPascaK = 0;
     let grandMinPascaRp = 0, grandMaxPascaRp = 0;
 
-    data.services.forEach((service, idx) => {
+    
+    (function(){
+      const targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
+      const servicesToSimulate = targetServiceSelect === 'ALL' ? data.services : (data.services.includes(targetServiceSelect) ? [targetServiceSelect] : []);
+      
+      // Compute Competitor count for the badge (we only need to do this once per function, but doing it in an IIFE wrapper is safe)
+      let competitorCount = 0;
+      if (targetServiceSelect !== 'ALL') {
+        data.hospitals.forEach(h => {
+          if (h.code === targetHospital()?.code) return;
+          const hComp = getCompetency(h, targetServiceSelect);
+          if (hComp && hComp > 0) competitorCount++;
+        });
+      } else {
+        competitorCount = Math.max(0, data.hospitals.length - 1);
+      }
+      
+      const compBadge = document.getElementById('globalSimCompetitorBadge');
+      if (compBadge) {
+        compBadge.innerHTML = targetServiceSelect === 'ALL' 
+          ? `Menampilkan ${competitorCount} RS Regional` 
+          : `<strong>${competitorCount}</strong> RS Kompetitor Regional`;
+      }
+      
+      return servicesToSimulate;
+    })().forEach((service, idx) => {
       const tHospSvc = target.services[service];
       const targetCompetency = tHospSvc ? (tHospSvc.competency || 0) : 0;
       
@@ -5617,7 +5700,32 @@
     
     const rows = [];
     
-    data.services.forEach((service, idx) => {
+    
+    (function(){
+      const targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
+      const servicesToSimulate = targetServiceSelect === 'ALL' ? data.services : (data.services.includes(targetServiceSelect) ? [targetServiceSelect] : []);
+      
+      // Compute Competitor count for the badge (we only need to do this once per function, but doing it in an IIFE wrapper is safe)
+      let competitorCount = 0;
+      if (targetServiceSelect !== 'ALL') {
+        data.hospitals.forEach(h => {
+          if (h.code === targetHospital()?.code) return;
+          const hComp = getCompetency(h, targetServiceSelect);
+          if (hComp && hComp > 0) competitorCount++;
+        });
+      } else {
+        competitorCount = Math.max(0, data.hospitals.length - 1);
+      }
+      
+      const compBadge = document.getElementById('globalSimCompetitorBadge');
+      if (compBadge) {
+        compBadge.innerHTML = targetServiceSelect === 'ALL' 
+          ? `Menampilkan ${competitorCount} RS Regional` 
+          : `<strong>${competitorCount}</strong> RS Kompetitor Regional`;
+      }
+      
+      return servicesToSimulate;
+    })().forEach((service, idx) => {
       const tHospSvc = target.services[service];
       const svcData = data.regional.services[service];
       const tSvcTotal = tHospSvc ? tHospSvc.total : [0,0,0];
@@ -8110,6 +8218,18 @@
 
     const provBtn = document.getElementById("provBtn");
     const cityBtn = document.getElementById("cityBtn");
+    
+    const globalSimServiceSelect = document.getElementById("globalSimServiceSelect");
+    if (globalSimServiceSelect && originalData.services) {
+      const currentVal = globalSimServiceSelect.value || 'ALL';
+      // Use standard JS replacement instead of formatService since formatService might not be available here, or it is?
+      // formatService is usually available globally. Let's assume it is.
+      globalSimServiceSelect.innerHTML = '<option value="ALL">Semua Layanan (Global)</option>' + originalData.services.map(s => `<option value="${s}">${typeof formatService === 'function' ? formatService(s) : s.replace(/_/g, ' ')}</option>`).join('');
+      if (Array.from(globalSimServiceSelect.options).some(o => o.value === currentVal)) {
+        globalSimServiceSelect.value = currentVal;
+      }
+    }
+
     const provDropdown = document.getElementById("provDropdown");
     const cityDropdown = document.getElementById("cityDropdown");
 
@@ -8962,7 +9082,32 @@
     // Header
     let csvContent = "Mode Simulator;Nama RS Target;Layanan;Target Dasar & Madya (Kasus);Target Utama & Paripurna (Kasus);Regional Dasar & Madya (Kasus);Regional Utama & Paripurna (Kasus);Potensi Tambah Kasus (Max);Potensi Tambah iDRG (Max);Potensi Kurang Kasus (Max);Potensi Kurang iDRG (Max);Keterangan\n";
 
-    data.services.forEach(service => {
+    
+    (function(){
+      const targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
+      const servicesToSimulate = targetServiceSelect === 'ALL' ? data.services : (data.services.includes(targetServiceSelect) ? [targetServiceSelect] : []);
+      
+      // Compute Competitor count for the badge (we only need to do this once per function, but doing it in an IIFE wrapper is safe)
+      let competitorCount = 0;
+      if (targetServiceSelect !== 'ALL') {
+        data.hospitals.forEach(h => {
+          if (h.code === targetHospital()?.code) return;
+          const hComp = getCompetency(h, targetServiceSelect);
+          if (hComp && hComp > 0) competitorCount++;
+        });
+      } else {
+        competitorCount = Math.max(0, data.hospitals.length - 1);
+      }
+      
+      const compBadge = document.getElementById('globalSimCompetitorBadge');
+      if (compBadge) {
+        compBadge.innerHTML = targetServiceSelect === 'ALL' 
+          ? `Menampilkan ${competitorCount} RS Regional` 
+          : `<strong>${competitorCount}</strong> RS Kompetitor Regional`;
+      }
+      
+      return servicesToSimulate;
+    })().forEach(service => {
       const srvReg = regionalService(service);
       const srvTarget = target.services[service];
       if (!srvReg || !srvTarget) return;
