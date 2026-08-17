@@ -743,9 +743,13 @@
     const mode = document.getElementById('globalSimModeSelect') ? document.getElementById('globalSimModeSelect').value : 'regional_all';
     
     // Hitung Kondisi Eksisting
-    const eksistingKasus = target.total[CASES];
-    const eksistingIna = target.total[INA];
-    const eksistingIdrg = target.total[IDRG];
+    const eksistingKasus = target.total[CASES] || 0;
+    const eksistingIna = target.total[INA] || 0;
+    const eksistingIdrg = target.total[IDRG] || 0;
+    
+    // Selisih Eksisting
+    const selisihPendapatan = eksistingIdrg - eksistingIna;
+    const persentaseSelisih = eksistingIna > 0 ? (selisihPendapatan / eksistingIna) : 0;
     
     // Hitung Potensi Serapan & Redistribusi berdasarkan Mode
     let potensiSerapanKasus = 0;
@@ -782,14 +786,12 @@
         potensiRedistribusiIdrg += (sTargetDasar[IDRG] + sTargetMadya[IDRG]);
       } else {
         // Mode 2: Serap Dasar & Madya dr RS Kelas Lebih Tinggi (Utama & Paripurna) di regional
-        // Simulasi ini memerlukan iterasi per RS
         data.hospitals.forEach(h => {
           if (h.id === target.id) return;
           const hCompetency = getHospitalCompetency(h.id, service);
           const tCompetency = getHospitalCompetency(target.id, service);
           
           if (hCompetency > tCompetency) {
-            // RS Kompetitor lebih tinggi kelasnya, target (lebih rendah) bisa serap Dasar/Madya mereka
             const hSrv = h.services[service];
             if (hSrv) {
               const hDasar = severityMetric(hSrv, 'dasar');
@@ -800,22 +802,7 @@
           }
         });
         
-        // Redistribusi? Dalam Mode 2, Target (jika tinggi) melepas ke RS lebih rendah
-        data.hospitals.forEach(h => {
-          if (h.id === target.id) return;
-          const hCompetency = getHospitalCompetency(h.id, service);
-          const tCompetency = getHospitalCompetency(target.id, service);
-          
-          if (tCompetency > hCompetency) {
-            // Target lebih tinggi, melepas Dasar/Madya-nya sendiri
-            const tSrv = target.services[service];
-            if (tSrv) {
-               // Redistribute proportional to target's base/madya
-               // For simplicity in this mode, we just say Target redistributes ALL its Dasar/Madya
-            }
-          }
-        });
-        // Simply: target melepas semua dasar & madya miliknya
+        // Redistribusi
         const sTargetDasar = severityMetric(srvTarget, 'dasar');
         const sTargetMadya = severityMetric(srvTarget, 'madya');
         potensiRedistribusiKasus += (sTargetDasar[CASES] + sTargetMadya[CASES]);
@@ -826,82 +813,109 @@
     const scenarios = [1.0, 0.5, 0.25]; // 100%, 50%, 25%
     let rowsHtml = '';
     
-    scenarios.forEach(pct => {
-      const tambahKasus = potensiSerapanKasus * pct;
+    scenarios.forEach((pct, idx) => {
+      const tambahKasus = Math.round(potensiSerapanKasus * pct);
       const tambahIdrg = potensiSerapanIdrg * pct;
-      const kurangKasus = potensiRedistribusiKasus * pct;
+      
+      const kurangKasus = Math.round(potensiRedistribusiKasus * pct);
       const kurangIdrg = potensiRedistribusiIdrg * pct;
       
       const netKasus = tambahKasus - kurangKasus;
       const netIdrg = tambahIdrg - kurangIdrg;
+      const pctThdEksisting = eksistingKasus > 0 ? (netKasus / eksistingKasus) : 0;
       
       const akhirIdrg = eksistingIdrg + netIdrg;
-      const pctNaik = eksistingIdrg > 0 ? (akhirIdrg - eksistingIdrg) / eksistingIdrg : 0;
       
       rowsHtml += `
-        <tr style="border-bottom: 1px solid #e2e8f0; background-color: ${pct === 1.0 ? '#f0fdf4' : '#fff'};">
-          <td style="padding: 12px 8px; font-weight: 700; color: #0f172a; border-right: 1px dashed #cbd5e1;">Skenario ${formatPercent(pct)}</td>
-          <td style="padding: 12px 8px; border-right: 1px dashed #cbd5e1; background-color: #f8fafc;">
-            <div style="font-weight: 700; color: #16a34a; font-size: 14px;">+ ${formatNumber(tambahKasus)} Kasus</div>
-            <div style="font-weight: 700; color: #15803d; font-size: 14px;">+ ${fmtM(tambahIdrg)}</div>
-            <div style="font-size: 11px; color: #64748b;">${formatPercent(pct)} Serapan</div>
+        <tr>
+          <td style="text-align:center; border:1px solid #d1d5db; padding:8px;">${idx + 1}</td>
+          <td style="text-align:center; border:1px solid #d1d5db; padding:8px;">
+            ${formatNumber(eksistingKasus)}<br>
+            <strong>${fmtM(eksistingIdrg)}</strong>
           </td>
-          <td style="padding: 12px 8px; border-right: 1px dashed #cbd5e1; background-color: #f8fafc;">
-            <div style="font-weight: 700; color: #dc2626; font-size: 14px;">- ${formatNumber(kurangKasus)} Kasus</div>
-            <div style="font-weight: 700; color: #b91c1c; font-size: 14px;">- ${fmtM(kurangIdrg)}</div>
-            <div style="font-size: 11px; color: #64748b;">${formatPercent(pct)} Redistribusi</div>
-          </td>
-          <td style="padding: 12px 8px; border-right: 1px dashed #cbd5e1;">
-            <div style="font-weight: 700; color: ${netKasus >= 0 ? '#0284c7' : '#ea580c'}; font-size: 14px;">${netKasus >= 0 ? '+' : ''}${formatNumber(netKasus)} Kasus</div>
-            <div style="font-weight: 700; color: ${netIdrg >= 0 ? '#0369a1' : '#c2410c'}; font-size: 14px;">${netIdrg >= 0 ? '+' : ''}${fmtM(netIdrg)}</div>
-          </td>
-          <td style="padding: 12px 8px; font-weight: 800; color: #1e293b; font-size: 15px; background-color: #f8fafc; border-left: 2px solid #0f766e;">
-            ${fmtM(akhirIdrg)}
-            <div style="font-size: 13px; color: ${pctNaik >= 0 ? '#16a34a' : '#dc2626'}; margin-top: 4px;">
-              ${pctNaik >= 0 ? '▲ +' : '▼ '}${formatPercent(pctNaik)}
-            </div>
-          </td>
+          <!-- Tambahan -->
+          <td style="text-align:center; border:1px solid #d1d5db; padding:8px;">${formatPercent(pct)}</td>
+          <td style="text-align:center; border:1px solid #d1d5db; padding:8px;">${formatNumber(tambahKasus)}</td>
+          <td style="text-align:center; border:1px solid #d1d5db; padding:8px; font-weight:bold;">${fmtM(tambahIdrg)}</td>
+          <!-- Pengurang -->
+          <td style="text-align:center; border:1px solid #d1d5db; padding:8px;">${formatPercent(pct)}</td>
+          <td style="text-align:center; border:1px solid #d1d5db; padding:8px;">${formatNumber(kurangKasus)}</td>
+          <td style="text-align:center; border:1px solid #d1d5db; padding:8px; font-weight:bold;">${fmtM(kurangIdrg)}</td>
+          <!-- Net -->
+          <td style="text-align:center; border:1px solid #d1d5db; padding:8px; color:${netKasus >= 0 ? '#15803d' : '#b91c1c'}">${netKasus > 0 ? '+' : ''}${formatNumber(netKasus)}</td>
+          <td style="text-align:center; border:1px solid #d1d5db; padding:8px; color:${pctThdEksisting >= 0 ? '#15803d' : '#b91c1c'}">${formatPercent(pctThdEksisting)}</td>
+          <td style="text-align:center; border:1px solid #d1d5db; padding:8px; font-weight:bold; color:${netIdrg >= 0 ? '#15803d' : '#b91c1c'}">${netIdrg > 0 ? '+' : ''}${fmtM(netIdrg)}</td>
+          <!-- Pasca -->
+          <td style="text-align:center; border:1px solid #d1d5db; padding:8px; font-weight:bold; font-size:14px;">${fmtM(akhirIdrg)}</td>
         </tr>
       `;
     });
     
+    // KPI Styling
+    const kpiStyle = "background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center; flex: 1;";
+    const kpiTitle = "font-size: 13px; color: #64748b; font-weight: 600; margin-bottom: 8px;";
+    const kpiValue = "font-size: 20px; font-weight: 800; color: #0f172a;";
+    
     document.getElementById("globalSimulationSlide").innerHTML = `
-      <div style="margin-bottom: 20px;">
-        <table style="width: 100%; border-collapse: collapse; text-align: center; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-          <thead>
-            <tr style="background-color: #0f766e; color: white;">
-              <th style="padding: 12px; font-size: 13px; width: 12%;">SKENARIO</th>
-              <th style="padding: 12px; font-size: 13px; width: 22%; background-color: #16a34a;">(+) TAMBAHAN SERAPAN</th>
-              <th style="padding: 12px; font-size: 13px; width: 22%; background-color: #dc2626;">(-) REDISTRIBUSI</th>
-              <th style="padding: 12px; font-size: 13px; width: 22%; background-color: #0284c7;">(=) NET PERUBAHAN</th>
-              <th style="padding: 12px; font-size: 14px; width: 22%; background-color: #1e293b; border-left: 2px solid #0f766e;">(4) PROYEKSI AKHIR</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr style="border-bottom: 2px solid #cbd5e1; background-color: #f1f5f9;">
-              <td style="padding: 12px; font-weight: 700; color: #475569;">KONDISI EKSISTING</td>
-              <td colspan="3" style="padding: 12px; color: #64748b; font-size: 13px; font-style: italic;">
-                Mode simulasi: ${mode === 'regional_all' ? 'Serapan dr Regional Keseluruhan' : 'Serapan Dasar/Madya dr RS Kelas Tinggi'}
-              </td>
-              <td style="padding: 12px; font-weight: 800; color: #0f172a; font-size: 15px; border-left: 2px solid #0f766e;">
-                ${formatNumber(eksistingKasus)} Kasus<br>
-                ${fmtM(eksistingIdrg)}
-              </td>
-            </tr>
-            ${rowsHtml}
-          </tbody>
-        </table>
-      </div>
-      <div style="display: flex; gap: 15px;">
-        <div style="flex: 1; background: #f0fdf4; padding: 12px; border-radius: 8px; border-left: 4px solid #16a34a;">
-          <h4 style="margin: 0 0 4px 0; color: #166534; font-size: 13px;">Potensi Maksimal Serapan</h4>
-          <div style="font-weight: 700; color: #15803d; font-size: 16px;">+${formatNumber(potensiSerapanKasus)} Kasus / +${fmtM(potensiSerapanIdrg)}</div>
+      <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+        <div style="${kpiStyle}">
+          <div style="${kpiTitle}">Total Kasus*</div>
+          <div style="${kpiValue}; color:#b91c1c;">${formatNumber(eksistingKasus)}</div>
         </div>
-        <div style="flex: 1; background: #fef2f2; padding: 12px; border-radius: 8px; border-left: 4px solid #dc2626;">
-          <h4 style="margin: 0 0 4px 0; color: #991b1b; font-size: 13px;">Potensi Maksimal Redistribusi</h4>
-          <div style="font-weight: 700; color: #b91c1c; font-size: 16px;">-${formatNumber(potensiRedistribusiKasus)} Kasus / -${fmtM(potensiRedistribusiIdrg)}</div>
+        <div style="${kpiStyle}">
+          <div style="${kpiTitle}">Pendapatan INA CBGs</div>
+          <div style="${kpiValue}; color:#d97706;">${fmtM(eksistingIna)}</div>
+        </div>
+        <div style="${kpiStyle}">
+          <div style="${kpiTitle}">Pendapatan iDRG</div>
+          <div style="${kpiValue}; color:#ca8a04;">${fmtM(eksistingIdrg)}</div>
+        </div>
+        <div style="${kpiStyle}">
+          <div style="${kpiTitle}">Selisih Pendapatan</div>
+          <div style="${kpiValue}; color:${selisihPendapatan >= 0 ? '#16a34a' : '#b91c1c'};">
+            ${selisihPendapatan > 0 ? '+' : ''}${fmtM(selisihPendapatan)}
+          </div>
+        </div>
+        <div style="${kpiStyle}">
+          <div style="${kpiTitle}">Persentase</div>
+          <div style="${kpiValue}; color:${persentaseSelisih >= 0 ? '#16a34a' : '#b91c1c'};">
+            ${persentaseSelisih > 0 ? '+' : ''}${formatPercent(persentaseSelisih)}
+          </div>
         </div>
       </div>
+      
+      <div style="margin-bottom: 15px; font-size: 12px; font-style: italic; color: #475569;">
+        *Mode Simulasi aktif: <strong>${mode === 'regional_all' ? 'Serapan dr Regional Keseluruhan' : 'Serapan dr RS Kelas Tinggi (Dasar/Madya)'}</strong>
+      </div>
+      
+      <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+        <thead>
+          <tr style="background-color: #38bdf8; color: white;">
+            <th rowspan="2" style="border:1px solid #d1d5db; padding:8px;">SKENARIO</th>
+            <th rowspan="2" style="border:1px solid #d1d5db; padding:8px;">PENDAPATAN &amp; KASUS EKSISTING iDRG</th>
+            <th colspan="3" style="border:1px solid #d1d5db; padding:8px; background-color:#34d399;">TAMBAHAN KASUS</th>
+            <th colspan="3" style="border:1px solid #d1d5db; padding:8px; background-color:#fb923c;">PENGURANGAN KASUS</th>
+            <th colspan="3" style="border:1px solid #d1d5db; padding:8px; background-color:#818cf8;">NET +/- PASCA IDRG &amp; RBKP</th>
+            <th rowspan="2" style="border:1px solid #d1d5db; padding:8px; background-color:#1e293b;">PENDAPATAN PASCA RBKP</th>
+          </tr>
+          <tr style="background-color: #f1f5f9; color: #334155;">
+            <th style="border:1px solid #d1d5db; padding:6px;">PERSENTASE (%)</th>
+            <th style="border:1px solid #d1d5db; padding:6px;">JUMLAH KASUS</th>
+            <th style="border:1px solid #d1d5db; padding:6px;">TAMBAHAN PENDAPATAN (M)</th>
+            
+            <th style="border:1px solid #d1d5db; padding:6px;">PERSENTASE (%)</th>
+            <th style="border:1px solid #d1d5db; padding:6px;">JUMLAH KASUS</th>
+            <th style="border:1px solid #d1d5db; padding:6px;">PENGURANG PENDAPATAN (M)</th>
+            
+            <th style="border:1px solid #d1d5db; padding:6px;">+/- JUMLAH KASUS</th>
+            <th style="border:1px solid #d1d5db; padding:6px;">% THD TOTAL KASUS EKSISTING</th>
+            <th style="border:1px solid #d1d5db; padding:6px;">+/- PENDAPATAN (M)</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rowsHtml}
+        </tbody>
+      </table>
     `;
   }
 
