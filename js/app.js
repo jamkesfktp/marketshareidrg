@@ -1148,7 +1148,8 @@
         window.globalSimScenarios[idx] = val / 100;
         
         // Re-render slide to reflect new calculations
-        renderGlobalSimulationSlide();\n    if(typeof renderCompetencySimSlide === "function") renderCompetencySimSlide();
+        renderGlobalSimulationSlide();
+    if(typeof renderCompetencySimSlide === "function") renderCompetencySimSlide();
       });
     });
 
@@ -1161,7 +1162,8 @@
         if (val > 100) val = 100;
         
         window.globalSimKurangScenarios[idx] = val / 100;
-        renderGlobalSimulationSlide();\n    if(typeof renderCompetencySimSlide === "function") renderCompetencySimSlide();
+        renderGlobalSimulationSlide();
+    if(typeof renderCompetencySimSlide === "function") renderCompetencySimSlide();
       });
     });
   }
@@ -7635,7 +7637,8 @@
     renderAddressableSlide();
     renderComparisonSlide();
     renderRegionalCasesSlide();
-    renderGlobalSimulationSlide();\n    if(typeof renderCompetencySimSlide === "function") renderCompetencySimSlide();
+    renderGlobalSimulationSlide();
+    if(typeof renderCompetencySimSlide === "function") renderCompetencySimSlide();
     renderRegionalProfileSlide();
     renderIcdCompetencySlide();
     renderMuhammadiyahMapSlide();
@@ -8670,7 +8673,8 @@
   document.getElementById("globalSimTambahSelect")?.addEventListener("change", (e) => {
     window.globalSimScenarios = null;
     window.globalSimKurangScenarios = null;
-    renderGlobalSimulationSlide();\n    if(typeof renderCompetencySimSlide === "function") renderCompetencySimSlide();
+    renderGlobalSimulationSlide();
+    if(typeof renderCompetencySimSlide === "function") renderCompetencySimSlide();
     renderRecapSlide();
     renderLogicalRecapSlide();
     renderScenarioSlide();
@@ -8679,7 +8683,8 @@
   document.getElementById("globalSimKurangSelect")?.addEventListener("change", (e) => {
     window.globalSimScenarios = null;
     window.globalSimKurangScenarios = null;
-    renderGlobalSimulationSlide();\n    if(typeof renderCompetencySimSlide === "function") renderCompetencySimSlide();
+    renderGlobalSimulationSlide();
+    if(typeof renderCompetencySimSlide === "function") renderCompetencySimSlide();
     renderRecapSlide();
     renderLogicalRecapSlide();
     renderScenarioSlide();
