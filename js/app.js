@@ -851,7 +851,17 @@
       ];
     }
     
+    // Hitung data Regional (diperlukan untuk scorecard)
+    const regionalKasus = data.regional.total[CASES] || 0;
+    const regionalIna = data.regional.total[INA] || 0;
+    const regionalIdrg = data.regional.total[IDRG] || 0;
+    const marketShareKasus = regionalKasus > 0 ? (eksistingKasus / regionalKasus) : 0;
+    const marketShareIdrg = regionalIdrg > 0 ? (eksistingIdrg / regionalIdrg) : 0;
+    const deltaIdrg = eksistingIdrg - eksistingIna;
+    const deltaPercentIdrg = eksistingIna > 0 ? (deltaIdrg / eksistingIna) : 0;
+
     let rowsHtml = '';
+
     
     window.globalSimScenarios.forEach((pct, idx) => {
       const pctValue = pct; // Gunakan nilai mentah dari array (bisa desimal)
@@ -877,94 +887,113 @@
         <span style="font-size:11px; color:#64748b; font-weight:normal;">%</span>
       </div>`;
       
+      const scnLabels = ['Optimistik', 'Proporsional', 'Konservatif'];
       rowsHtml += `
-        <tr style="background-color: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'}; border-bottom: 1px solid #e2e8f0;">
-          <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px; font-weight:bold; color:#0f172a;">
+        <tr style="background-color: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'}; border-bottom: 2px solid #e2e8f0;">
+          <!-- Skenario -->
+          <td style="text-align:center; border:1px solid #e2e8f0; padding:14px 10px; font-weight:800; color:#0f172a; background:${idx === 0 ? '#eff6ff' : idx === 1 ? '#f0fdf4' : '#fff7ed'};">
             Skenario ${idx + 1}<br>
-            <div style="margin-top:4px;">${inputHtml}</div>
+            <span style="font-size:11px; color:#64748b; font-weight:500;">${scnLabels[idx] || ''}</span><br>
+            <div style="display:flex; align-items:center; justify-content:center; gap:4px; margin-top:6px;">
+              <input type="number" min="0" max="100" step="1" value="${pctDisplay}" 
+                class="global-sim-input" data-idx="${idx}"
+                style="width:52px; padding:3px 4px; text-align:center; border:1.5px solid #94a3b8; border-radius:5px; font-size:13px; font-weight:700; color:#0f172a; background:#fff;">
+              <span style="font-size:11px; color:#64748b;">%</span>
+            </div>
           </td>
-          <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px;">
-            ${formatNumber(eksistingKasus)}<br>
-            <strong style="color:#0f172a;">${fmtM(eksistingIdrg)}</strong>
+          <!-- Eksisting -->
+          <td style="text-align:center; border:1px solid #e2e8f0; padding:14px 10px; background:#f8fafc;">
+            <div style="font-size:16px; font-weight:700; color:#1e293b;">${formatNumber(eksistingKasus)}</div>
+            <div style="font-size:13px; font-weight:600; color:#64748b; margin-top:2px;">${fmtM(eksistingIdrg)}</div>
           </td>
-          <!-- Tambahan -->
-          <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px; color:#059669; font-weight:600;">${formatPercent(pctValue)}</td>
-          <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px; color:#059669; font-weight:600;">${formatNumber(tambahKasus)}</td>
-          <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px; font-weight:bold; color:#059669;">${fmtM(tambahIdrg)}</td>
-          <!-- Pengurang -->
-          <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px; color:#ea580c; font-weight:600;">${formatPercent(pctValue)}</td>
-          <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px; color:#ea580c; font-weight:600;">${formatNumber(kurangKasus)}</td>
-          <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px; font-weight:bold; color:#ea580c;">${fmtM(kurangIdrg)}</td>
-          <!-- Net -->
-          <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px; font-weight:600; color:${netKasus >= 0 ? '#15803d' : '#b91c1c'}">${netKasus > 0 ? '+' : ''}${formatNumber(netKasus)}</td>
-          <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px; font-weight:600; color:${pctThdEksisting >= 0 ? '#15803d' : '#b91c1c'}">${formatPercent(pctThdEksisting)}</td>
-          <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px; font-weight:bold; color:${netIdrg >= 0 ? '#15803d' : '#b91c1c'}">${netIdrg > 0 ? '+' : ''}${fmtM(netIdrg)}</td>
-          <!-- Pasca -->
-          <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px; font-weight:900; font-size:15px; background-color:#f8fafc; color:#0f172a;">${fmtM(akhirIdrg)}</td>
+          <!-- Tambah -->
+          <td style="text-align:center; border:1px solid #bbf7d0; padding:14px 10px; background:#f0fdf4;">
+            <div style="font-size:16px; font-weight:700; color:#059669;">+${formatNumber(tambahKasus)}</div>
+            <div style="font-size:13px; font-weight:600; color:#16a34a; margin-top:2px;">+${fmtM(tambahIdrg)}</div>
+          </td>
+          <!-- Kurang -->
+          <td style="text-align:center; border:1px solid #fecdd3; padding:14px 10px; background:#fff1f2;">
+            <div style="font-size:16px; font-weight:700; color:#ea580c;">-${formatNumber(kurangKasus)}</div>
+            <div style="font-size:13px; font-weight:600; color:#dc2626; margin-top:2px;">-${fmtM(kurangIdrg)}</div>
+          </td>
+          <!-- Net Kasus -->
+          <td style="text-align:center; border:1px solid #c7d2fe; padding:14px 10px; background:#eef2ff;">
+            <div style="font-size:16px; font-weight:800; color:${netKasus >= 0 ? '#15803d' : '#b91c1c'};">${netKasus > 0 ? '+' : ''}${formatNumber(netKasus)}</div>
+            <div style="font-size:12px; color:${pctThdEksisting >= 0 ? '#059669' : '#b91c1c'}; margin-top:2px; font-weight:600;">${pctThdEksisting > 0 ? '+' : ''}${formatPercent(pctThdEksisting)}</div>
+          </td>
+          <!-- Net Pendapatan -->
+          <td style="text-align:center; border:1px solid #c7d2fe; padding:14px 10px; background:#eef2ff;">
+            <div style="font-size:16px; font-weight:800; color:${netIdrg >= 0 ? '#15803d' : '#b91c1c'};">${netIdrg > 0 ? '+' : ''}${fmtM(netIdrg)}</div>
+          </td>
+          <!-- Pasca RBKP -->
+          <td style="text-align:center; border:1px solid #99f6e4; padding:14px 10px; background:#f0fdfa;">
+            <div style="font-size:18px; font-weight:900; color:#0f766e;">${fmtM(akhirIdrg)}</div>
+          </td>
         </tr>
       `;
     });
-    
-    // KPI Styling
-    const kpiStyle = "background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center; flex: 1; min-width: 180px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);";
-    const kpiTitle = "font-size: 13px; color: #64748b; font-weight: 600; margin-bottom: 8px;";
-    const kpiValue = "font-size: 22px; font-weight: 800; color: #0f172a;";
-    
+
+
+
     document.getElementById("globalSimulationSlide").innerHTML = `
-      <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center;">
-        <div style="${kpiStyle}">
-          <div style="${kpiTitle}">Total Kasus Eksisting*</div>
-          <div style="${kpiValue}; color:#0f172a;">${formatNumber(eksistingKasus)}</div>
-        </div>
-        <div style="${kpiStyle}">
-          <div style="${kpiTitle}">Pendapatan INA CBGs</div>
-          <div style="${kpiValue}; color:#d97706;">${fmtM(eksistingIna)}</div>
-        </div>
-        <div style="${kpiStyle}">
-          <div style="${kpiTitle}">Pendapatan iDRG</div>
-          <div style="${kpiValue}; color:#ca8a04;">${fmtM(eksistingIdrg)}</div>
-        </div>
-        <div style="${kpiStyle}">
-          <div style="${kpiTitle}">Selisih Pendapatan</div>
-          <div style="${kpiValue}; color:${selisihPendapatan >= 0 ? '#16a34a' : '#b91c1c'};">
-            ${selisihPendapatan > 0 ? '+' : ''}${fmtM(selisihPendapatan)}
-          </div>
-        </div>
-        <div style="${kpiStyle}">
-          <div style="${kpiTitle}">Persentase Selisih</div>
-          <div style="${kpiValue}; color:${persentaseSelisih >= 0 ? '#16a34a' : '#b91c1c'};">
-            ${persentaseSelisih > 0 ? '+' : ''}${formatPercent(persentaseSelisih)}
-          </div>
-        </div>
+      <!-- SCORECARD RS -->
+      <div class="existing-report-kpis" style="margin-bottom: 10px;">
+        <article class="existing-report-kpi kpi-cases"><span>Total Kasus RS</span><strong>${formatNumber(eksistingKasus)}</strong><em>Kasus Eklaim</em></article>
+        <article class="existing-report-kpi kpi-ina"><span>Pendapatan INA CBGs</span><strong>${fmtM(eksistingIna)}</strong><em>Tarif INA Eksisting</em></article>
+        <article class="existing-report-kpi kpi-idrg"><span>Pendapatan iDRG</span><strong>${fmtM(eksistingIdrg)}</strong><em>Klaim Uji Coba iDRG</em></article>
+        <article class="existing-report-kpi ${deltaIdrg < 0 ? 'kpi-difference is-loss' : 'kpi-difference is-gain'}"><span>Selisih iDRG - INA</span><strong>${deltaIdrg > 0 ? '+' : ''}${fmtM(deltaIdrg)}</strong><em>${deltaIdrg > 0 ? 'Tambahan' : 'Pengurangan'} Pendapatan</em></article>
+        <article class="existing-report-kpi ${deltaIdrg < 0 ? 'kpi-percentage is-loss' : 'kpi-percentage is-gain'}"><span>Persentase Selisih</span><strong>${deltaPercentIdrg > 0 ? '+' : ''}${formatPercent(deltaPercentIdrg)}</strong><em>thd INA CBGs</em></article>
       </div>
       
-      <div style="margin-bottom: 15px; font-size: 12px; font-style: italic; color: #475569;">
-        *Mode Simulasi aktif: <strong>${mode === 'regional_all' ? 'Serapan dr Regional Keseluruhan' : 'Serapan dr RS Kelas Tinggi (Dasar/Madya)'}</strong>
+      <!-- SCORECARD REGIONAL -->
+      <div class="existing-report-kpis" style="margin-bottom: 14px;">
+        <article class="existing-report-kpi" style="background: linear-gradient(135deg,#0f172a,#1e293b); color:white;">
+          <span style="color:#94a3b8;">Total Kasus Regional</span>
+          <strong style="color:#f1f5f9;">${formatNumber(regionalKasus)}</strong>
+          <em style="color:#64748b;">Seluruh RS di Regional</em>
+        </article>
+        <article class="existing-report-kpi" style="background: linear-gradient(135deg,#0f172a,#1e293b); color:white;">
+          <span style="color:#94a3b8;">Pendapatan INA Regional</span>
+          <strong style="color:#fcd34d;">${fmtM(regionalIna)}</strong>
+          <em style="color:#64748b;">Total INA CBGs Regional</em>
+        </article>
+        <article class="existing-report-kpi" style="background: linear-gradient(135deg,#0f172a,#1e293b); color:white;">
+          <span style="color:#94a3b8;">Pendapatan iDRG Regional</span>
+          <strong style="color:#6ee7b7;">${fmtM(regionalIdrg)}</strong>
+          <em style="color:#64748b;">Total iDRG Regional</em>
+        </article>
+        <article class="existing-report-kpi" style="background: linear-gradient(135deg,#0f172a,#1e293b); color:white;">
+          <span style="color:#94a3b8;">Market Share Kasus</span>
+          <strong style="color:#93c5fd;">${formatPercent(marketShareKasus)}</strong>
+          <em style="color:#64748b;">RS Target / Regional</em>
+        </article>
+        <article class="existing-report-kpi" style="background: linear-gradient(135deg,#0f172a,#1e293b); color:white;">
+          <span style="color:#94a3b8;">Market Share iDRG</span>
+          <strong style="color:#c4b5fd;">${formatPercent(marketShareIdrg)}</strong>
+          <em style="color:#64748b;">Pendapatan RS / Regional</em>
+        </article>
       </div>
       
-      <div style="width: 100%; overflow-x: auto; padding-bottom: 15px;">
-        <table style="width: 100%; min-width: 1200px; border-collapse: collapse; font-size: 13px; font-family: sans-serif; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+      <!-- MODE AKTIF -->
+      <div style="margin-bottom: 12px; font-size: 12px; color: #475569; display:flex; align-items:center; gap:8px;">
+        <span style="background:#e0f2fe; color:#0369a1; padding:3px 10px; border-radius:99px; font-weight:600;">
+          Mode: ${mode === 'regional_all' ? '📊 Serapan Regional Keseluruhan' : '⬆️ Serap Dasar/Madya dari RS Kelas Lebih Tinggi'}
+        </span>
+        <span style="color:#94a3b8;">Potensi Tambah: <strong style="color:#059669;">${formatNumber(Math.round(potensiSerapanKasus))}</strong> kasus · Potensi Kurang: <strong style="color:#ea580c;">${formatNumber(Math.round(potensiRedistribusiKasus))}</strong> kasus</span>
+      </div>
+      
+      <!-- TABEL SIMULASI (SIMPLIFIED) -->
+      <div style="width: 100%; overflow-x: auto; padding-bottom: 10px;">
+        <table style="width: 100%; min-width: 800px; border-collapse: collapse; font-size: 14px; font-family: sans-serif;">
           <thead>
-            <tr style="background-color: #0369a1; color: white;">
-              <th rowspan="2" style="border:1px solid #bae6fd; padding:10px 8px; vertical-align:middle;">SKENARIO</th>
-              <th rowspan="2" style="border:1px solid #bae6fd; padding:10px 8px; vertical-align:middle;">PENDAPATAN &amp; KASUS EKSISTING iDRG</th>
-              <th colspan="3" style="border:1px solid #bae6fd; padding:8px; background-color:#059669; text-align:center;">TAMBAHAN KASUS</th>
-              <th colspan="3" style="border:1px solid #bae6fd; padding:8px; background-color:#ea580c; text-align:center;">PENGURANGAN KASUS</th>
-              <th colspan="3" style="border:1px solid #bae6fd; padding:8px; background-color:#4f46e5; text-align:center;">NET +/- PASCA IDRG &amp; RBKP</th>
-              <th rowspan="2" style="border:1px solid #bae6fd; padding:10px 8px; background-color:#0f172a; vertical-align:middle;">PENDAPATAN PASCA RBKP</th>
-            </tr>
-            <tr style="background-color: #f1f5f9; color: #334155;">
-              <th style="border:1px solid #cbd5e1; padding:8px; font-size:11px;">PERSENTASE (%)</th>
-              <th style="border:1px solid #cbd5e1; padding:8px; font-size:11px;">JUMLAH KASUS</th>
-              <th style="border:1px solid #cbd5e1; padding:8px; font-size:11px;">TAMBAHAN PENDAPATAN (M)</th>
-              
-              <th style="border:1px solid #cbd5e1; padding:8px; font-size:11px;">PERSENTASE (%)</th>
-              <th style="border:1px solid #cbd5e1; padding:8px; font-size:11px;">JUMLAH KASUS</th>
-              <th style="border:1px solid #cbd5e1; padding:8px; font-size:11px;">PENGURANG PENDAPATAN (M)</th>
-              
-              <th style="border:1px solid #cbd5e1; padding:8px; font-size:11px;">+/- JUMLAH KASUS</th>
-              <th style="border:1px solid #cbd5e1; padding:8px; font-size:11px;">% THD TOTAL KASUS EKSISTING</th>
-              <th style="border:1px solid #cbd5e1; padding:8px; font-size:11px;">+/- PENDAPATAN (M)</th>
+            <tr style="background-color: #0f172a; color: white; text-align:center;">
+              <th style="padding:12px 10px; border:1px solid #334155; min-width:120px;">SKENARIO<br><span style="font-size:10px; font-weight:400; color:#94a3b8;">Atur % serapan</span></th>
+              <th style="padding:12px 10px; border:1px solid #334155; background-color:#1e293b;">EKSISTING<br><span style="font-size:10px; font-weight:400; color:#94a3b8;">Kasus / iDRG</span></th>
+              <th style="padding:12px 10px; border:1px solid #065f46; background-color:#059669; min-width:130px;">+ TAMBAH KASUS<br><span style="font-size:10px; font-weight:400;">Kasus / Pendapatan</span></th>
+              <th style="padding:12px 10px; border:1px solid #7c2d12; background-color:#ea580c; min-width:130px;">- KURANG KASUS<br><span style="font-size:10px; font-weight:400;">Kasus / Pendapatan</span></th>
+              <th style="padding:12px 10px; border:1px solid #3730a3; background-color:#4f46e5; min-width:130px;">NET +/- KASUS<br><span style="font-size:10px; font-weight:400;">Kasus / % thd Eksisting</span></th>
+              <th style="padding:12px 10px; border:1px solid #3730a3; background-color:#4f46e5;">NET +/- PENDAPATAN<br><span style="font-size:10px; font-weight:400;">iDRG (M)</span></th>
+              <th style="padding:12px 10px; border:1px solid #134e4a; background-color:#0f766e; min-width:130px;">✅ PENDAPATAN<br>PASCA RBKP</th>
             </tr>
           </thead>
           <tbody>
