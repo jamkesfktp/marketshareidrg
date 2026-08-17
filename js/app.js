@@ -777,10 +777,10 @@
       if (mode === 'regional_all') {
         // Mode 1: Serap Utama & Paripurna dr Sisa Regional (Regional - Target)
         // Redistribusi Dasar & Madya dr Target ke Regional
-        const sRegUtama = severityMetric(srvReg, 'utama');
-        const sRegParipurna = severityMetric(srvReg, 'paripurna');
-        const sTargetUtama = severityMetric(srvTarget, 'utama');
-        const sTargetParipurna = severityMetric(srvTarget, 'paripurna');
+        const sRegUtama = severityMetric(srvReg, 3);
+        const sRegParipurna = severityMetric(srvReg, 4);
+        const sTargetUtama = severityMetric(srvTarget, 3);
+        const sTargetParipurna = severityMetric(srvTarget, 4);
         
         const sisaRegUtamaKasus = Math.max(0, sRegUtama[CASES] - sTargetUtama[CASES]);
         const sisaRegUtamaIdrg = Math.max(0, sRegUtama[IDRG] - sTargetUtama[IDRG]);
@@ -791,22 +791,22 @@
         potensiSerapanIdrg += (sisaRegUtamaIdrg + sisaRegParipurnaIdrg);
         
         // Target melepas dasar madya
-        const sTargetDasar = severityMetric(srvTarget, 'dasar');
-        const sTargetMadya = severityMetric(srvTarget, 'madya');
+        const sTargetDasar = severityMetric(srvTarget, 1);
+        const sTargetMadya = severityMetric(srvTarget, 2);
         potensiRedistribusiKasus += (sTargetDasar[CASES] + sTargetMadya[CASES]);
         potensiRedistribusiIdrg += (sTargetDasar[IDRG] + sTargetMadya[IDRG]);
       } else {
         // Mode 2: Serap Dasar & Madya dr RS Kelas Lebih Tinggi (Utama & Paripurna) di regional
         data.hospitals.forEach(h => {
           if (h.id === target.id) return;
-          const hCompetency = getHospitalCompetency(h.id, service);
-          const tCompetency = getHospitalCompetency(target.id, service);
+          const hCompetency = getCompetency(h, service);
+          const tCompetency = getCompetency(target, service);
           
           if (hCompetency > tCompetency) {
             const hSrv = h.services[service];
             if (hSrv) {
-              const hDasar = severityMetric(hSrv, 'dasar');
-              const hMadya = severityMetric(hSrv, 'madya');
+              const hDasar = severityMetric(hSrv, 1);
+              const hMadya = severityMetric(hSrv, 2);
               potensiSerapanKasus += (hDasar[CASES] + hMadya[CASES]);
               potensiSerapanIdrg += (hDasar[IDRG] + hMadya[IDRG]);
             }
@@ -814,8 +814,8 @@
         });
         
         // Redistribusi
-        const sTargetDasar = severityMetric(srvTarget, 'dasar');
-        const sTargetMadya = severityMetric(srvTarget, 'madya');
+        const sTargetDasar = severityMetric(srvTarget, 1);
+        const sTargetMadya = severityMetric(srvTarget, 2);
         potensiRedistribusiKasus += (sTargetDasar[CASES] + sTargetMadya[CASES]);
         potensiRedistribusiIdrg += (sTargetDasar[IDRG] + sTargetMadya[IDRG]);
       }
