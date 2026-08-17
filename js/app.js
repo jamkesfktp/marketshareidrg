@@ -1335,7 +1335,8 @@
 
     container.innerHTML = html;
   }
-\n  function renderRegionalProfileSlide() {
+
+  function renderRegionalProfileSlide() {
     const target = targetHospital();
     const totalCases = data.regional.total[CASES];
     const totalIna = data.regional.total[INA];
