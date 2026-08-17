@@ -741,6 +741,10 @@
     if (!target) return;
 
     const mode = document.getElementById('globalSimModeSelect') ? document.getElementById('globalSimModeSelect').value : 'regional_all';
+    // Helper agar mode mudah diakses di helper function lain
+    if (!window.getSimMode) {
+      window.getSimMode = () => document.getElementById('globalSimModeSelect')?.value || 'regional_all';
+    }
     
     const fmtM = (val) => {
       const num = val || 0;
@@ -4950,7 +4954,8 @@
       const targetCompetency = tHospSvc ? (tHospSvc.competency || 0) : 0;
       
       const calcResult = window.computeServiceScenarios(
-        service, target, data, state, CASES, INA, IDRG, severityMetric, getLevelRules
+        service, target, data, state, CASES, INA, IDRG, severityMetric, getLevelRules,
+        window.getSimMode ? window.getSimMode() : 'regional_all', getCompetency
       );
       
       const tKasus = calcResult.existingKasus;
@@ -5167,7 +5172,8 @@
       }
       
       const calcResult = window.computeServiceScenarios(
-        service, target, data, state, CASES, INA, IDRG, severityMetric, getLevelRules
+        service, target, data, state, CASES, INA, IDRG, severityMetric, getLevelRules,
+        window.getSimMode ? window.getSimMode() : 'regional_all', getCompetency
       );
       
       const chosen = Object.assign({}, calcResult.chosen);
@@ -5511,7 +5517,8 @@
         state.serviceScenarios[service] = generateDefaultServiceScenarios(service, target, targetCompetency);
       }
 
-      const calcResult = window.computeServiceScenarios(service, target, data, state, CASES, INA, IDRG, severityMetric, getLevelRules);
+      const calcResult = window.computeServiceScenarios(service, target, data, state, CASES, INA, IDRG, severityMetric, getLevelRules,
+        window.getSimMode ? window.getSimMode() : 'regional_all', getCompetency);
       const scnEvals = calcResult.scnEvals;
       const scenarios = state.serviceScenarios[service];
       
@@ -5755,7 +5762,8 @@
       const existingIdrg = targetKasusArr[IDRG] || 0;
       
       const calcResult = window.computeServiceScenarios(
-        service, target, data, state, CASES, INA, IDRG, severityMetric, getLevelRules
+        service, target, data, state, CASES, INA, IDRG, severityMetric, getLevelRules,
+        window.getSimMode ? window.getSimMode() : 'regional_all', getCompetency
       );
       
       const { baseTambahan, basePengurangan, scnEvals: scnMetrics, chosenIdx: mostLogicalScenarioIndex } = calcResult;
@@ -8317,7 +8325,11 @@
     renderAll();
   });
   document.getElementById("globalSimModeSelect")?.addEventListener("change", (e) => {
+    window.globalSimScenarios = null; // reset skenario agar dihitung ulang dengan mode baru
     renderGlobalSimulationSlide();
+    renderRecapSlide();
+    renderLogicalRecapSlide();
+    renderScenarioSlide();
   });
   document.getElementById("exportExcelBtn").addEventListener("click", () => {
     try {

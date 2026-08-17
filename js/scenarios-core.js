@@ -1,12 +1,14 @@
 (function() {
   "use strict";
-  window.computeServiceScenarios = function(service, target, data, state, CASES, INA, IDRG, severityMetricFn, getLevelRulesFn) {
+  // mode: 'regional_all' (default) = sisa regional - target
+  //       'kelasatas'               = serap Dasar/Madya dari RS kompetitor kelas LEBIH TINGGI
+  window.computeServiceScenarios = function(service, target, data, state, CASES, INA, IDRG, severityMetricFn, getLevelRulesFn, mode, getCompetencyFn) {
     const targetSvcRef = target.services[service];
     const regionalSvc = data.regional.services[service];
     const targetCompetency = targetSvcRef ? (targetSvcRef.competency || 0) : 0;
     const scenarios = state.serviceScenarios && state.serviceScenarios[service];
   
-    // get target level
+    // get target level rules
     const rules = getLevelRulesFn(targetCompetency, service);
     
     const targetKasusArr = targetSvcRef ? targetSvcRef.total : [0,0,0];
@@ -16,12 +18,33 @@
     
     const baseTambahan = { 1: [0,0], 2: [0,0], 3: [0,0], 4: [0,0] };
     
-    rules.tambah.forEach(lvl => {
-      const rMetric = regionalSvc ? severityMetricFn(regionalSvc, lvl) : [0,0,0];
-      const tMetric = targetSvcRef ? severityMetricFn(targetSvcRef, lvl) : [0,0,0];
-      baseTambahan[lvl][0] = Math.max(0, (rMetric[CASES] || 0) - (tMetric[CASES] || 0));
-      baseTambahan[lvl][1] = Math.max(0, (rMetric[IDRG] || 0) - (tMetric[IDRG] || 0));
-    });
+    if (mode === 'kelasatas' && typeof getCompetencyFn === 'function') {
+      // Mode kelasatas: kumpulkan kasus Dasar & Madya dari RS yang kompetensinya > target
+      const higherHospitals = data.hospitals.filter(h => {
+        if (!h || h.id === target.id) return false;
+        return getCompetencyFn(h, service) > targetCompetency;
+      });
+      [1, 2].forEach(lvl => {
+        let poolK = 0, poolRp = 0;
+        higherHospitals.forEach(h => {
+          const hSrv = h.services && h.services[service];
+          if (!hSrv) return;
+          const m = severityMetricFn(hSrv, lvl);
+          poolK += m[CASES] || 0;
+          poolRp += m[IDRG] || 0;
+        });
+        baseTambahan[lvl][0] = poolK;
+        baseTambahan[lvl][1] = poolRp;
+      });
+    } else {
+      // Mode regional_all (default): sisa = regional - target
+      rules.tambah.forEach(lvl => {
+        const rMetric = regionalSvc ? severityMetricFn(regionalSvc, lvl) : [0,0,0];
+        const tMetric = targetSvcRef ? severityMetricFn(targetSvcRef, lvl) : [0,0,0];
+        baseTambahan[lvl][0] = Math.max(0, (rMetric[CASES] || 0) - (tMetric[CASES] || 0));
+        baseTambahan[lvl][1] = Math.max(0, (rMetric[IDRG] || 0) - (tMetric[IDRG] || 0));
+      });
+    }
     
     const basePengurangan = { 1: [0,0], 2: [0,0], 3: [0,0], 4: [0,0] };
     if (targetSvcRef) {
