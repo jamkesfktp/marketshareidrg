@@ -742,6 +742,17 @@
 
     const mode = document.getElementById('globalSimModeSelect') ? document.getElementById('globalSimModeSelect').value : 'regional_all';
     
+    const fmtM = (val) => {
+      const absVal = Math.abs(val || 0);
+      if (absVal >= 1e12) {
+        return (absVal / 1e12).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " T";
+      }
+      if (absVal >= 1e9) {
+        return (absVal / 1e9).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " M";
+      }
+      return Math.round(absVal).toLocaleString("id-ID");
+    };
+
     // Hitung Kondisi Eksisting
     const eksistingKasus = target.total[CASES] || 0;
     const eksistingIna = target.total[INA] || 0;
