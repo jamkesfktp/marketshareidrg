@@ -820,10 +820,10 @@
         });
         
         // Redistribusi
-        const sTargetDasar = severityMetric(srvTarget, 1);
-        const sTargetMadya = severityMetric(srvTarget, 2);
-        potensiRedistribusiKasus += (sTargetDasar[CASES] + sTargetMadya[CASES]);
-        potensiRedistribusiIdrg += (sTargetDasar[IDRG] + sTargetMadya[IDRG]);
+        const sTargetUtama = severityMetric(srvTarget, 3);
+        const sTargetParipurna = severityMetric(srvTarget, 4);
+        potensiRedistribusiKasus += (sTargetUtama[CASES] + sTargetParipurna[CASES]);
+        potensiRedistribusiIdrg += (sTargetUtama[IDRG] + sTargetParipurna[IDRG]);
       }
     });
     
@@ -1095,7 +1095,7 @@
           </tbody>
         </table>
         <p class="source-note" style="margin-top:12px; font-size:11px; padding: 0 10px 10px 10px; color: #475569;">
-          * <strong>Kurang Kasus (Redistribusi)</strong> dihitung dari estimasi kasus Dasar & Madya milik RS Target yang diproyeksikan akan berpindah ke RS Kompetitor di regional yang sama, sesuai proporsi skenario (Mode Serapan Regional).
+          * <strong>Kurang Kasus (Redistribusi)</strong> dihitung dari estimasi kasus ${mode === 'regional_all' ? 'Dasar & Madya' : 'Utama & Paripurna'} milik RS Target yang diproyeksikan akan berpindah ke RS Kompetitor di regional yang sama, sesuai proporsi skenario (Mode Serapan Regional).
         </p>
       </div>
     `;
@@ -8683,10 +8683,10 @@
           }
         });
         
-        potensiRedistribusiKasus = targetDM;
-        potensiRedistribusiIdrg = (sTargetDasar[IDRG] || 0) + (sTargetMadya[IDRG] || 0);
+        potensiRedistribusiKasus = targetUP;
+        potensiRedistribusiIdrg = (sTargetUtama[IDRG] || 0) + (sTargetParipurna[IDRG] || 0);
         
-        keterangan = "Serapan dari RS Kompetensi Tinggi; Redistribusi dari Target D/M";
+        keterangan = "Serapan dari RS Kompetensi Tinggi; Redistribusi dari Target U/P";
       }
 
       csvContent += `${mode};"${target.name}";"${service}";${targetDM};${targetUP};${regDM};${regUP};${potensiSerapanKasus};${potensiSerapanIdrg};${potensiRedistribusiKasus};${potensiRedistribusiIdrg};"${keterangan}"\n`;
