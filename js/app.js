@@ -821,15 +821,31 @@
       }
     });
     
-    const scenarios = [1.0, 0.5, 0.25]; // 100%, 50%, 25%
+    // Inisialisasi default skenario jika belum ada
+    if (typeof window.globalSimScenarios === 'undefined' || window.globalSimScenarios === null) {
+      // Hitung jumlah kompetitor (semua RS lain di regional ini)
+      const totalCompetitors = data.hospitals.length > 1 ? data.hospitals.length - 1 : 0;
+      // Default: Market share alami = 100 / (N + 1)
+      const naturalShare = totalCompetitors > 0 ? (1 / (totalCompetitors + 1)) : 0.5;
+      
+      window.globalSimScenarios = [
+        1.0, // Skenario 1: 100% (Serap Semua)
+        naturalShare, // Skenario 2: Proporsional (Market Share Alami)
+        naturalShare / 2 // Skenario 3: Konservatif (Setengah dari Alami)
+      ];
+    }
+    
     let rowsHtml = '';
     
-    scenarios.forEach((pct, idx) => {
-      const tambahKasus = Math.round(potensiSerapanKasus * pct);
-      const tambahIdrg = potensiSerapanIdrg * pct;
+    window.globalSimScenarios.forEach((pct, idx) => {
+      const pctValue = pct; // Gunakan nilai mentah dari array (bisa desimal)
+      const pctDisplay = Math.round(pctValue * 100);
       
-      const kurangKasus = Math.round(potensiRedistribusiKasus * pct);
-      const kurangIdrg = potensiRedistribusiIdrg * pct;
+      const tambahKasus = Math.round(potensiSerapanKasus * pctValue);
+      const tambahIdrg = potensiSerapanIdrg * pctValue;
+      
+      const kurangKasus = Math.round(potensiRedistribusiKasus * pctValue);
+      const kurangIdrg = potensiRedistribusiIdrg * pctValue;
       
       const netKasus = tambahKasus - kurangKasus;
       const netIdrg = tambahIdrg - kurangIdrg;
@@ -837,19 +853,30 @@
       
       const akhirIdrg = eksistingIdrg + netIdrg;
       
+      // Input dinamis
+      const inputHtml = `<div style="display:flex; align-items:center; justify-content:center; gap:4px;">
+        <input type="number" min="0" max="100" step="1" value="${pctDisplay}" 
+          class="global-sim-input" data-idx="${idx}"
+          style="width:50px; padding:2px 4px; text-align:center; border:1px solid #94a3b8; border-radius:4px; font-size:12px; font-weight:bold; color:#0f172a;">
+        <span style="font-size:11px; color:#64748b; font-weight:normal;">%</span>
+      </div>`;
+      
       rowsHtml += `
         <tr style="background-color: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'}; border-bottom: 1px solid #e2e8f0;">
-          <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px; font-weight:bold; color:#0f172a;">Skenario ${idx + 1}<br><span style="font-size:11px; color:#64748b;">(${formatPercent(pct)})</span></td>
+          <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px; font-weight:bold; color:#0f172a;">
+            Skenario ${idx + 1}<br>
+            <div style="margin-top:4px;">${inputHtml}</div>
+          </td>
           <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px;">
             ${formatNumber(eksistingKasus)}<br>
             <strong style="color:#0f172a;">${fmtM(eksistingIdrg)}</strong>
           </td>
           <!-- Tambahan -->
-          <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px; color:#059669; font-weight:600;">${formatPercent(pct)}</td>
+          <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px; color:#059669; font-weight:600;">${formatPercent(pctValue)}</td>
           <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px; color:#059669; font-weight:600;">${formatNumber(tambahKasus)}</td>
           <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px; font-weight:bold; color:#059669;">${fmtM(tambahIdrg)}</td>
           <!-- Pengurang -->
-          <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px; color:#ea580c; font-weight:600;">${formatPercent(pct)}</td>
+          <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px; color:#ea580c; font-weight:600;">${formatPercent(pctValue)}</td>
           <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px; color:#ea580c; font-weight:600;">${formatNumber(kurangKasus)}</td>
           <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px; font-weight:bold; color:#ea580c;">${fmtM(kurangIdrg)}</td>
           <!-- Net -->
@@ -930,6 +957,23 @@
         </table>
       </div>
     `;
+    
+    // Attach event listeners to dynamic inputs
+    document.querySelectorAll('.global-sim-input').forEach(input => {
+      input.addEventListener('change', function() {
+        const idx = parseInt(this.getAttribute('data-idx'), 10);
+        let val = parseFloat(this.value);
+        if (isNaN(val)) val = 0;
+        if (val < 0) val = 0;
+        if (val > 100) val = 100;
+        
+        // Update global scenario value (convert back to decimal)
+        window.globalSimScenarios[idx] = val / 100;
+        
+        // Re-render slide to reflect new calculations
+        renderGlobalSimulationSlide();
+      });
+    });
   }
 
   function renderRegionalProfileSlide() {
