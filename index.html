@@ -461,8 +461,9 @@
 
       <!-- Mode Simulasi Global -->
       <div class="target-picker filter-picker" style="background: #fdf2f8; padding: 10px 12px; border-radius: 10px; border: 1px solid #fbcfe8; margin-bottom: 6px;">
-        <span style="font-size: 12px; font-weight: 800; color: #be185d; display: flex; align-items: center; gap: 5px; margin-bottom: 6px;">
-          <span>⚙️</span> Mode Simulasi Global
+        <span style="font-size: 12px; font-weight: 800; color: #be185d; display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+          <span style="display:flex; align-items:center; gap:5px;"><span>⚙️</span> Mode Simulasi Global</span>
+          <button id="btnDownloadGlobalSim" aria-label="Download Audit Perhitungan (CSV)" style="background: #be185d; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">📥 Data Excel (CSV)</button>
         </span>
         <select id="globalSimModeSelect" class="tariff-scenario-select" aria-label="Pilih Mode Simulasi Global" style="width: 100%; box-sizing: border-box; padding: 7px 10px; border-radius: 8px; border: 1.5px solid #be185d; background: #ffffff; font-weight: 750; font-size: 12px; color: #9d174d; cursor: pointer; outline: none; transition: all 0.2s;">
           <option value="regional_all" selected>Mode 1: Kasus Regional Keseluruhan</option>
