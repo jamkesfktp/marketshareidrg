@@ -838,40 +838,40 @@
       const akhirIdrg = eksistingIdrg + netIdrg;
       
       rowsHtml += `
-        <tr>
-          <td style="text-align:center; border:1px solid #d1d5db; padding:8px;">${idx + 1}</td>
-          <td style="text-align:center; border:1px solid #d1d5db; padding:8px;">
+        <tr style="background-color: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'}; border-bottom: 1px solid #e2e8f0;">
+          <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px; font-weight:bold; color:#0f172a;">Skenario ${idx + 1}<br><span style="font-size:11px; color:#64748b;">(${formatPercent(pct)})</span></td>
+          <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px;">
             ${formatNumber(eksistingKasus)}<br>
-            <strong>${fmtM(eksistingIdrg)}</strong>
+            <strong style="color:#0f172a;">${fmtM(eksistingIdrg)}</strong>
           </td>
           <!-- Tambahan -->
-          <td style="text-align:center; border:1px solid #d1d5db; padding:8px;">${formatPercent(pct)}</td>
-          <td style="text-align:center; border:1px solid #d1d5db; padding:8px;">${formatNumber(tambahKasus)}</td>
-          <td style="text-align:center; border:1px solid #d1d5db; padding:8px; font-weight:bold;">${fmtM(tambahIdrg)}</td>
+          <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px; color:#059669; font-weight:600;">${formatPercent(pct)}</td>
+          <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px; color:#059669; font-weight:600;">${formatNumber(tambahKasus)}</td>
+          <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px; font-weight:bold; color:#059669;">${fmtM(tambahIdrg)}</td>
           <!-- Pengurang -->
-          <td style="text-align:center; border:1px solid #d1d5db; padding:8px;">${formatPercent(pct)}</td>
-          <td style="text-align:center; border:1px solid #d1d5db; padding:8px;">${formatNumber(kurangKasus)}</td>
-          <td style="text-align:center; border:1px solid #d1d5db; padding:8px; font-weight:bold;">${fmtM(kurangIdrg)}</td>
+          <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px; color:#ea580c; font-weight:600;">${formatPercent(pct)}</td>
+          <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px; color:#ea580c; font-weight:600;">${formatNumber(kurangKasus)}</td>
+          <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px; font-weight:bold; color:#ea580c;">${fmtM(kurangIdrg)}</td>
           <!-- Net -->
-          <td style="text-align:center; border:1px solid #d1d5db; padding:8px; color:${netKasus >= 0 ? '#15803d' : '#b91c1c'}">${netKasus > 0 ? '+' : ''}${formatNumber(netKasus)}</td>
-          <td style="text-align:center; border:1px solid #d1d5db; padding:8px; color:${pctThdEksisting >= 0 ? '#15803d' : '#b91c1c'}">${formatPercent(pctThdEksisting)}</td>
-          <td style="text-align:center; border:1px solid #d1d5db; padding:8px; font-weight:bold; color:${netIdrg >= 0 ? '#15803d' : '#b91c1c'}">${netIdrg > 0 ? '+' : ''}${fmtM(netIdrg)}</td>
+          <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px; font-weight:600; color:${netKasus >= 0 ? '#15803d' : '#b91c1c'}">${netKasus > 0 ? '+' : ''}${formatNumber(netKasus)}</td>
+          <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px; font-weight:600; color:${pctThdEksisting >= 0 ? '#15803d' : '#b91c1c'}">${formatPercent(pctThdEksisting)}</td>
+          <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px; font-weight:bold; color:${netIdrg >= 0 ? '#15803d' : '#b91c1c'}">${netIdrg > 0 ? '+' : ''}${fmtM(netIdrg)}</td>
           <!-- Pasca -->
-          <td style="text-align:center; border:1px solid #d1d5db; padding:8px; font-weight:bold; font-size:14px;">${fmtM(akhirIdrg)}</td>
+          <td style="text-align:center; border:1px solid #cbd5e1; padding:10px 8px; font-weight:900; font-size:15px; background-color:#f8fafc; color:#0f172a;">${fmtM(akhirIdrg)}</td>
         </tr>
       `;
     });
     
     // KPI Styling
-    const kpiStyle = "background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center; flex: 1;";
+    const kpiStyle = "background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center; flex: 1; min-width: 180px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);";
     const kpiTitle = "font-size: 13px; color: #64748b; font-weight: 600; margin-bottom: 8px;";
-    const kpiValue = "font-size: 20px; font-weight: 800; color: #0f172a;";
+    const kpiValue = "font-size: 22px; font-weight: 800; color: #0f172a;";
     
     document.getElementById("globalSimulationSlide").innerHTML = `
-      <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+      <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center;">
         <div style="${kpiStyle}">
-          <div style="${kpiTitle}">Total Kasus*</div>
-          <div style="${kpiValue}; color:#b91c1c;">${formatNumber(eksistingKasus)}</div>
+          <div style="${kpiTitle}">Total Kasus Eksisting*</div>
+          <div style="${kpiValue}; color:#0f172a;">${formatNumber(eksistingKasus)}</div>
         </div>
         <div style="${kpiStyle}">
           <div style="${kpiTitle}">Pendapatan INA CBGs</div>
@@ -888,7 +888,7 @@
           </div>
         </div>
         <div style="${kpiStyle}">
-          <div style="${kpiTitle}">Persentase</div>
+          <div style="${kpiTitle}">Persentase Selisih</div>
           <div style="${kpiValue}; color:${persentaseSelisih >= 0 ? '#16a34a' : '#b91c1c'};">
             ${persentaseSelisih > 0 ? '+' : ''}${formatPercent(persentaseSelisih)}
           </div>
@@ -899,34 +899,36 @@
         *Mode Simulasi aktif: <strong>${mode === 'regional_all' ? 'Serapan dr Regional Keseluruhan' : 'Serapan dr RS Kelas Tinggi (Dasar/Madya)'}</strong>
       </div>
       
-      <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-        <thead>
-          <tr style="background-color: #38bdf8; color: white;">
-            <th rowspan="2" style="border:1px solid #d1d5db; padding:8px;">SKENARIO</th>
-            <th rowspan="2" style="border:1px solid #d1d5db; padding:8px;">PENDAPATAN &amp; KASUS EKSISTING iDRG</th>
-            <th colspan="3" style="border:1px solid #d1d5db; padding:8px; background-color:#34d399;">TAMBAHAN KASUS</th>
-            <th colspan="3" style="border:1px solid #d1d5db; padding:8px; background-color:#fb923c;">PENGURANGAN KASUS</th>
-            <th colspan="3" style="border:1px solid #d1d5db; padding:8px; background-color:#818cf8;">NET +/- PASCA IDRG &amp; RBKP</th>
-            <th rowspan="2" style="border:1px solid #d1d5db; padding:8px; background-color:#1e293b;">PENDAPATAN PASCA RBKP</th>
-          </tr>
-          <tr style="background-color: #f1f5f9; color: #334155;">
-            <th style="border:1px solid #d1d5db; padding:6px;">PERSENTASE (%)</th>
-            <th style="border:1px solid #d1d5db; padding:6px;">JUMLAH KASUS</th>
-            <th style="border:1px solid #d1d5db; padding:6px;">TAMBAHAN PENDAPATAN (M)</th>
-            
-            <th style="border:1px solid #d1d5db; padding:6px;">PERSENTASE (%)</th>
-            <th style="border:1px solid #d1d5db; padding:6px;">JUMLAH KASUS</th>
-            <th style="border:1px solid #d1d5db; padding:6px;">PENGURANG PENDAPATAN (M)</th>
-            
-            <th style="border:1px solid #d1d5db; padding:6px;">+/- JUMLAH KASUS</th>
-            <th style="border:1px solid #d1d5db; padding:6px;">% THD TOTAL KASUS EKSISTING</th>
-            <th style="border:1px solid #d1d5db; padding:6px;">+/- PENDAPATAN (M)</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rowsHtml}
-        </tbody>
-      </table>
+      <div style="width: 100%; overflow-x: auto; padding-bottom: 15px;">
+        <table style="width: 100%; min-width: 1200px; border-collapse: collapse; font-size: 13px; font-family: sans-serif; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+          <thead>
+            <tr style="background-color: #0369a1; color: white;">
+              <th rowspan="2" style="border:1px solid #bae6fd; padding:10px 8px; vertical-align:middle;">SKENARIO</th>
+              <th rowspan="2" style="border:1px solid #bae6fd; padding:10px 8px; vertical-align:middle;">PENDAPATAN &amp; KASUS EKSISTING iDRG</th>
+              <th colspan="3" style="border:1px solid #bae6fd; padding:8px; background-color:#059669; text-align:center;">TAMBAHAN KASUS</th>
+              <th colspan="3" style="border:1px solid #bae6fd; padding:8px; background-color:#ea580c; text-align:center;">PENGURANGAN KASUS</th>
+              <th colspan="3" style="border:1px solid #bae6fd; padding:8px; background-color:#4f46e5; text-align:center;">NET +/- PASCA IDRG &amp; RBKP</th>
+              <th rowspan="2" style="border:1px solid #bae6fd; padding:10px 8px; background-color:#0f172a; vertical-align:middle;">PENDAPATAN PASCA RBKP</th>
+            </tr>
+            <tr style="background-color: #f1f5f9; color: #334155;">
+              <th style="border:1px solid #cbd5e1; padding:8px; font-size:11px;">PERSENTASE (%)</th>
+              <th style="border:1px solid #cbd5e1; padding:8px; font-size:11px;">JUMLAH KASUS</th>
+              <th style="border:1px solid #cbd5e1; padding:8px; font-size:11px;">TAMBAHAN PENDAPATAN (M)</th>
+              
+              <th style="border:1px solid #cbd5e1; padding:8px; font-size:11px;">PERSENTASE (%)</th>
+              <th style="border:1px solid #cbd5e1; padding:8px; font-size:11px;">JUMLAH KASUS</th>
+              <th style="border:1px solid #cbd5e1; padding:8px; font-size:11px;">PENGURANG PENDAPATAN (M)</th>
+              
+              <th style="border:1px solid #cbd5e1; padding:8px; font-size:11px;">+/- JUMLAH KASUS</th>
+              <th style="border:1px solid #cbd5e1; padding:8px; font-size:11px;">% THD TOTAL KASUS EKSISTING</th>
+              <th style="border:1px solid #cbd5e1; padding:8px; font-size:11px;">+/- PENDAPATAN (M)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+      </div>
     `;
   }
 
