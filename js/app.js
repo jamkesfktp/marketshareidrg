@@ -784,7 +784,38 @@
       if (!srvReg || !srvTarget) return;
 
       // --- PENAMBAH KASUS ---
-      if (tambahMode === 'tambah_up') {
+      if (tambahMode === 'tambah_cross_comp') {
+        data.hospitals.forEach(h => {
+          if (h.code === target.code) return;
+          const hCompetency = getCompetency(h, service);
+          if (!hCompetency || hCompetency === 0) return;
+
+          const hSrv = h.services[service];
+          if (hSrv) {
+            const hDasar = severityMetric(hSrv, 1);
+            const hMadya = severityMetric(hSrv, 2);
+            const hUtama = severityMetric(hSrv, 3);
+            const hParipurna = severityMetric(hSrv, 4);
+
+            if (hCompetency !== 1) {
+              potensiSerapanKasus += hDasar[CASES];
+              potensiSerapanIdrg += hDasar[IDRG];
+            }
+            if (hCompetency !== 2) {
+              potensiSerapanKasus += hMadya[CASES];
+              potensiSerapanIdrg += hMadya[IDRG];
+            }
+            if (hCompetency !== 3) {
+              potensiSerapanKasus += hUtama[CASES];
+              potensiSerapanIdrg += hUtama[IDRG];
+            }
+            if (hCompetency !== 4) {
+              potensiSerapanKasus += hParipurna[CASES];
+              potensiSerapanIdrg += hParipurna[IDRG];
+            }
+          }
+        });
+      } else if (tambahMode === 'tambah_up') {
         const sRegUtama = severityMetric(srvReg, 3);
         const sRegParipurna = severityMetric(srvReg, 4);
         const sTargetUtama = severityMetric(srvTarget, 3);
@@ -8667,7 +8698,38 @@
       let potensiRedistribusiIdrg = 0;
       let keterangan = "";
 
-      if (tambahMode === 'tambah_up') {
+      if (tambahMode === 'tambah_cross_comp') {
+        data.hospitals.forEach(h => {
+          if (h.code === target.code) return;
+          const hCompetency = getCompetency(h, service);
+          if (!hCompetency || hCompetency === 0) return;
+
+          const hSrv = h.services[service];
+          if (hSrv) {
+            const hDasar = severityMetric(hSrv, 1);
+            const hMadya = severityMetric(hSrv, 2);
+            const hUtama = severityMetric(hSrv, 3);
+            const hParipurna = severityMetric(hSrv, 4);
+
+            if (hCompetency !== 1) {
+              potensiSerapanKasus += (hDasar[CASES] || 0);
+              potensiSerapanIdrg += (hDasar[IDRG] || 0);
+            }
+            if (hCompetency !== 2) {
+              potensiSerapanKasus += (hMadya[CASES] || 0);
+              potensiSerapanIdrg += (hMadya[IDRG] || 0);
+            }
+            if (hCompetency !== 3) {
+              potensiSerapanKasus += (hUtama[CASES] || 0);
+              potensiSerapanIdrg += (hUtama[IDRG] || 0);
+            }
+            if (hCompetency !== 4) {
+              potensiSerapanKasus += (hParipurna[CASES] || 0);
+              potensiSerapanIdrg += (hParipurna[IDRG] || 0);
+            }
+          }
+        });
+      } else if (tambahMode === 'tambah_up') {
         const sisaRegUtamaKasus = Math.max(0, (sRegUtama[CASES] || 0) - (sTargetUtama[CASES] || 0));
         const sisaRegUtamaIdrg = Math.max(0, (sRegUtama[IDRG] || 0) - (sTargetUtama[IDRG] || 0));
         const sisaRegParipurnaKasus = Math.max(0, (sRegParipurna[CASES] || 0) - (sTargetParipurna[CASES] || 0));
@@ -8701,8 +8763,8 @@
         potensiRedistribusiIdrg = (sTargetUtama[IDRG] || 0) + (sTargetParipurna[IDRG] || 0);
       }
       
-      keterangan = `Serapan dari ${tambahMode === 'tambah_up' ? 'Sisa Regional U/P' : 'RS Tinggi D/M'}; Lepas ${kurangMode === 'kurang_dm' ? 'D/M' : 'U/P'} RS Eksisting`;
-      const modeStr = (tambahMode === 'tambah_up' ? 'T:UP' : 'T:DM') + ' / ' + (kurangMode === 'kurang_dm' ? 'K:DM' : 'K:UP');
+      keterangan = `Serapan dari ${tambahMode === 'tambah_cross_comp' ? 'Lintas Kompetensi' : (tambahMode === 'tambah_up' ? 'Sisa Regional U/P' : 'RS Tinggi D/M')}; Lepas ${kurangMode === 'kurang_dm' ? 'D/M' : 'U/P'} RS Eksisting`;
+      const modeStr = (tambahMode === 'tambah_cross_comp' ? 'T:CC' : (tambahMode === 'tambah_up' ? 'T:UP' : 'T:DM')) + ' / ' + (kurangMode === 'kurang_dm' ? 'K:DM' : 'K:UP');
 
       csvContent += `${modeStr};"${target.name}";"${service}";${targetDM};${targetUP};${regDM};${regUP};${potensiSerapanKasus};${potensiSerapanIdrg};${potensiRedistribusiKasus};${potensiRedistribusiIdrg};"${keterangan}"\n`;
     });
