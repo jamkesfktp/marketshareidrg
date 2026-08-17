@@ -1,0 +1,10 @@
+﻿const fs = require('fs');
+let content = fs.readFileSync('js/app.js', 'utf8');
+const lastIdx = content.indexOf('document.getElementById("recapSlide").innerHTML = html;\n  }');
+console.log(content.charCodeAt(lastIdx + 56));
+console.log(content.charCodeAt(lastIdx + 57));
+console.log(content.charCodeAt(lastIdx + 58));
+console.log(content.charCodeAt(lastIdx + 59));
+console.log(content.charCodeAt(lastIdx + 60));
+console.log(content.charCodeAt(lastIdx + 61));
+console.log(content.charCodeAt(lastIdx + 62));

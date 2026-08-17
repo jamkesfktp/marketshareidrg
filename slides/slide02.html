@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1920, initial-scale=1">
+  <title>02 — Total Market Regional</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="deck-page">
+  <main class="slide">
+    <header class="slide-header">
+      <div class="slide-header-main">
+        <p class="eyebrow">Market kompetensi setara</p>
+        <h1>Setelah pencocokan kompetensi, pool yang relevan adalah <span id="matchedCasesHeadline">—</span> kasus</h1>
+        <p class="headline-message">Hanya kasus SESUAI dari RS lain dengan layanan dan tingkat kompetensi yang sama dengan Moewardi.</p>
+      </div>
+      <div class="page-chip"><strong>02</strong><span>/ 06</span></div>
+    </header>
+
+    <section class="market-kpis" aria-label="KPI market kompetensi setara">
+      <article class="kpi-card"><div class="kpi-label">Total regional</div><div class="kpi-value" id="regionalCases">—</div><div class="kpi-note">Sebelum filter</div></article>
+      <article class="kpi-card primary"><div class="kpi-label">Market kompetensi setara</div><div class="kpi-value" id="matchedCases">—</div><div class="kpi-note"><span id="matchedMarketShare">—</span> dari regional</div></article>
+      <article class="kpi-card"><div class="kpi-label">RS kompetitor setara</div><div class="kpi-value"><span id="peerHospitalCount">—</span> RS</div><div class="kpi-note">Moewardi dikeluarkan</div></article>
+      <article class="kpi-card"><div class="kpi-label">Nilai iDRG pool</div><div class="kpi-value" id="matchedIdrg">—</div><div class="kpi-note"><span id="matchedServiceCount">—</span> layanan memiliki peer</div></article>
+    </section>
+
+    <section class="matched-layout" aria-label="Hasil pencocokan kompetensi">
+      <article class="section-card matched-chart-card">
+        <div class="section-heading"><h2>Pool kasus terbesar setelah pencocokan</h2><span class="section-kicker">Paripurna / Utama Moewardi</span></div>
+        <div class="matched-chart-box"><canvas id="matchedServiceChart"></canvas></div>
+      </article>
+
+      <article class="section-card filter-card">
+        <div class="section-heading"><h2>Aturan pembentukan eligible market</h2><span class="section-kicker">Audit funnel</span></div>
+        <div class="filter-funnel">
+          <div class="filter-step"><span>1</span><div><strong>Layanan sama</strong><small>Contoh: Neoplasma</small></div></div>
+          <div class="filter-arrow">↓</div>
+          <div class="filter-step"><span>2</span><div><strong>Kompetensi RS sama</strong><small>Contoh: Utama = Utama</small></div></div>
+          <div class="filter-arrow">↓</div>
+          <div class="filter-step"><span>3</span><div><strong>Kasus berstatus SESUAI</strong><small><b id="excludedCases">—</b> kasus tidak sesuai dikeluarkan</small></div></div>
+          <div class="filter-arrow">↓</div>
+          <div class="filter-step filter-result"><span>4</span><div><strong>Keluarkan Moewardi</strong><small>Pool akhir: <b id="matchedCasesFunnel">—</b> kasus</small></div></div>
+        </div>
+        <div class="filter-audit"><span>Sebelum filter SESUAI</span><strong id="sameCompetencyCases">—</strong></div>
+        <div class="no-peer-block">
+          <strong><span id="noPeerCount">—</span> layanan tanpa pool RS setara pada sumber</strong>
+          <div class="no-peer-services" id="noPeerServices"></div>
+        </div>
+      </article>
+    </section>
+
+    <footer class="slide-footer">
+      <span class="footer-source">Metode: Layanan sama + Kompetensi RS sama + Kesesuaian Kompetensi = SESUAI + Nama RS ≠ Moewardi.</span>
+      <span class="footer-brand">RS Dr. Moewardi · Market Share Regional</span>
+    </footer>
+  </main>
+  <script src="../js/chart.umd.min.js"></script>
+  <script src="../js/data.js"></script>
+  <script src="../js/charts.js"></script>
+  <script>MarketCharts.initSlide2();</script>
+</body>
+</html>

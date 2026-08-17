@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1920, initial-scale=1">
+  <title>01 — Kinerja Eksisting Rumah Sakit</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="deck-page">
+  <main class="slide">
+    <header class="slide-header">
+      <div class="slide-header-main">
+        <p class="eyebrow">Kinerja eksisting rumah sakit</p>
+        <h1>Moewardi memetakan <span id="serviceCoverageHeadline">—</span> layanan; <span id="missingServiceHeadline">—</span> belum tersedia dalam workbook</h1>
+        <p class="headline-message">Case mix eksisting kuat, tetapi cakupan layanan dan tekanan iDRG harus dibaca secara terpisah.</p>
+      </div>
+      <div class="page-chip"><strong>01</strong><span>/ 06</span></div>
+    </header>
+
+    <section class="kpi-grid profile-kpis" aria-label="KPI kinerja rumah sakit">
+      <article class="kpi-card primary">
+        <div class="kpi-label">Kasus eksisting</div>
+        <div class="kpi-value" id="existingCases">—</div>
+        <div class="kpi-note">Agregat case mix rumah sakit</div>
+      </article>
+      <article class="kpi-card">
+        <div class="kpi-label">Pendapatan INA-CBG</div>
+        <div class="kpi-value" id="inaRevenue">—</div>
+        <div class="kpi-note">Baseline klaim</div>
+      </article>
+      <article class="kpi-card">
+        <div class="kpi-label">Pendapatan iDRG</div>
+        <div class="kpi-value" id="idrgRevenue">—</div>
+        <div class="kpi-note">Skenario 2 workbook</div>
+      </article>
+      <article class="kpi-card negative">
+        <div class="kpi-label">Selisih pendapatan</div>
+        <div class="kpi-value" id="revenueDifference">—</div>
+        <div class="kpi-note" id="revenueDifferencePct">—</div>
+      </article>
+      <article class="kpi-card">
+        <div class="kpi-label">Cakupan layanan</div>
+        <div class="kpi-value"><span id="serviceCoverage">—</span></div>
+        <div class="kpi-note">Tidak terpetakan: <b id="missingService">—</b></div>
+      </article>
+    </section>
+
+    <section class="profile-layout">
+      <article class="section-card hospital-profile">
+        <div class="hospital-identity">
+          <span class="icon-box"><img src="../assets/icons/hospital.svg" alt=""></span>
+          <div>
+            <h2 id="hospitalName">—</h2>
+            <p id="hospitalCode">—</p>
+          </div>
+        </div>
+        <div class="profile-facts">
+          <div class="fact"><span>Klasifikasi</span><strong id="hospitalClass">—</strong></div>
+          <div class="fact"><span>Lokasi</span><strong id="hospitalLocation">—</strong></div>
+        </div>
+        <div class="competency-summary">
+          <div class="competency-total"><strong id="serviceCoverageProfile">—</strong><span>layanan terpetakan</span><small>Gap: <b id="missingServiceProfile">—</b></small></div>
+          <div class="tier-counts">
+            <div class="tier-count"><span>Paripurna</span><strong id="paripurnaCount">—</strong></div>
+            <div class="tier-count"><span>Utama</span><strong id="utamaCount">—</strong></div>
+            <div class="tier-count tier-count-unmapped"><span>Tidak terpetakan</span><strong id="unmappedCount">—</strong></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="section-card competency-panel">
+        <div class="section-heading">
+          <h2>Peta kompetensi layanan</h2>
+          <span class="section-kicker" id="competencySummaryLabel">—</span>
+        </div>
+        <div class="competency-matrix" id="competencyMatrix" aria-label="Matriks kompetensi layanan"></div>
+      </article>
+    </section>
+
+    <footer class="slide-footer">
+      <span class="footer-source">Sumber: workbook Data Agregat · Referensi klasifikasi layanan: RSPG LAKIP 2025, Tabel 3.7.</span>
+      <span class="footer-brand">RS Dr. Moewardi · Market Share Regional</span>
+    </footer>
+  </main>
+  <script src="../js/chart.umd.min.js"></script>
+  <script src="../js/data.js"></script>
+  <script src="../js/charts.js"></script>
+  <script>MarketCharts.initSlide1();</script>
+</body>
+</html>

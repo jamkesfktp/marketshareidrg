@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1920, initial-scale=1">
+  <title>04 — Prioritas Layanan</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="deck-page">
+  <main class="slide">
+    <header class="slide-header">
+      <div class="slide-header-main">
+        <p class="eyebrow">Perbandingan RS kompetensi setara</p>
+        <h1>Neoplasma <span id="neoplasmaCompetency">—</span>: <span id="neoplasmaPool">—</span> kasus berada di <span id="neoplasmaCompetitorCount">—</span> RS peer</h1>
+        <p class="headline-message">Market pool dibangun per layanan—bukan menggunakan seluruh kasus regional atau kasus Moewardi sendiri.</p>
+      </div>
+      <div class="page-chip"><strong>04</strong><span>/ 06</span></div>
+    </header>
+
+    <section class="peer-layout">
+      <article class="section-card peer-table-card">
+        <div class="section-heading"><h2>Lima pool layanan terbesar</h2><span class="section-kicker">Kasus SESUAI di RS peer</span></div>
+        <div class="peer-service-header"><span>#</span><span>Layanan</span><span>Kompetensi</span><span>Pool kasus</span><span>Jumlah peer</span><span>RS peer terbesar</span></div>
+        <div id="peerServiceRows" aria-label="Daftar market pool layanan"></div>
+        <p class="method-note">Baris Neoplasma disorot untuk menunjukkan cara kerja pencocokan layanan + kompetensi RS.</p>
+      </article>
+
+      <article class="section-card neoplasma-detail">
+        <div class="section-heading"><h2>Drill-down Neoplasma · Utama</h2><span class="section-kicker">Contoh pengguna</span></div>
+        <div class="neoplasma-kpis">
+          <div><span>Pool peer</span><strong id="neoplasmaPoolKpi">—</strong></div>
+          <div><span>Capture 20%</span><strong id="neoplasmaCaptureCases">—</strong></div>
+          <div><span>iDRG @20%</span><strong id="neoplasmaCaptureRevenue">—</strong></div>
+        </div>
+        <div class="neoplasma-chart-box"><canvas id="neoplasmaCompetitorChart"></canvas></div>
+        <div class="competitor-cards" id="neoplasmaCompetitors"></div>
+      </article>
+    </section>
+
+    <footer class="slide-footer">
+      <span class="footer-source">Neoplasma: Moewardi Utama → hanya kasus SESUAI pada RS lain dengan Kompetensi RS Utama yang masuk pool.</span>
+      <span class="footer-brand">RS Dr. Moewardi · Market Share Regional</span>
+    </footer>
+  </main>
+  <script src="../js/chart.umd.min.js"></script>
+  <script src="../js/data.js"></script>
+  <script src="../js/charts.js"></script>
+  <script>MarketCharts.initSlide4();</script>
+</body>
+</html>
