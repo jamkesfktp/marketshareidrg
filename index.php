@@ -383,6 +383,30 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
         <div id="tariffScenarioDesc" style="font-size: 10.5px; color: #64748b; margin-top: 4px; line-height: 1.35;">Model 1.370 DRG dengan penyesuaian AF + AFreg + AFkep</div>
       </div>
 
+      <!-- Pengaturan Skenario Simulasi Global -->
+      <div class="target-picker filter-picker" style="background: #fdf2f8; padding: 10px 12px; border-radius: 10px; border: 1px solid #fbcfe8; margin-bottom: 6px;">
+        <span style="font-size: 12px; font-weight: 800; color: #be185d; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+          <span style="display:flex; align-items:center; gap:5px;"><span>⚙️</span> Parameter Simulasi Global</span>
+          <button id="btnDownloadGlobalSim" aria-label="Download Audit Perhitungan (CSV)" style="background: #be185d; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">📥 Data Excel (CSV)</button>
+        </span>
+        
+        <div style="margin-bottom: 8px;">
+          <div style="font-size: 10.5px; font-weight: 700; color: #059669; margin-bottom: 4px;">+ Sumber Penambah Kasus:</div>
+          <select id="globalSimTambahSelect" class="tariff-scenario-select" style="width: 100%; box-sizing: border-box; padding: 6px 8px; border-radius: 6px; border: 1.5px solid #059669; background: #ffffff; font-weight: 700; font-size: 11px; color: #065f46; cursor: pointer; outline: none;">
+            <option value="tambah_up" selected>Serap Utama & Paripurna (dari Sisa Regional)</option>
+            <option value="tambah_dm">Serap Dasar & Madya (dari RS Kelas Lebih Tinggi)</option>
+          </select>
+        </div>
+
+        <div>
+          <div style="font-size: 10.5px; font-weight: 700; color: #ea580c; margin-bottom: 4px;">- Sasaran Pengurang Kasus:</div>
+          <select id="globalSimKurangSelect" class="tariff-scenario-select" style="width: 100%; box-sizing: border-box; padding: 6px 8px; border-radius: 6px; border: 1.5px solid #ea580c; background: #ffffff; font-weight: 700; font-size: 11px; color: #9a3412; cursor: pointer; outline: none;">
+            <option value="kurang_dm" selected>Lepas Dasar & Madya (dari Eksisting RS Target)</option>
+            <option value="kurang_up">Lepas Utama & Paripurna (dari Eksisting RS Target)</option>
+          </select>
+        </div>
+      </div>
+
       <div class="target-picker filter-picker custom-multi">
         <span>Filter Provinsi</span>
         <div class="multi-select-container" id="provContainer">
@@ -425,7 +449,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
   <script src="js/scenarios-core.js?v=2026081648"></script>
   <script src="js/export-gslides.js?v=2026081648"></script>
   <script src="js/audit-excel.js?v=2026081648"></script>
-  <script src="js/app.js?v=2026081648"></script>
+  <script src="js/app.js?v=202608171828"></script>
 </body>
 </html>
 
