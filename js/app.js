@@ -828,19 +828,16 @@
     });
     
     // Inisialisasi default skenario jika belum ada
+    // Selalu hitung kompetitor untuk ditampilkan di UI
+    const targetH = target;
+    const regionalHospitals = data.hospitals.filter(h => {
+      if (h.id === targetH.id) return false;
+      return Object.keys(h.services || {}).length > 0;
+    });
+    const totalCompetitors = regionalHospitals.length;
+
+    // Inisialisasi default skenario jika belum ada
     if (typeof window.globalSimScenarios === 'undefined' || window.globalSimScenarios === null) {
-      // Hitung kompetitor REGIONAL (bukan nasional) — RS yang ada di data.regional
-      // data.regional adalah agregasi seluruh RS di region yang sama dengan RS target
-      // Kompetitor yang relevan: semua RS di data.hospitals yang punya setidaknya 1 layanan
-      // dan bukan RS target, dan ada di data regional yang sama
-      const targetH = target;
-      const regionalHospitals = data.hospitals.filter(h => {
-        if (h.id === targetH.id) return false;
-        // Cek apakah RS ini berkontribusi pada data regional
-        // (asumsi: jika RS punya services maka dia ada di regional yang sama)
-        return Object.keys(h.services || {}).length > 0;
-      });
-      const totalCompetitors = regionalHospitals.length;
       // Default: Market share alami = 1 / (N_kompetitor + 1)
       const naturalShare = totalCompetitors > 0 ? (1 / (totalCompetitors + 1)) : 0.5;
       
@@ -1022,7 +1019,7 @@
             </div>
             <div>
               <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.5px;">EKSISTING</div>
-              <div style="font-size:13px; font-weight:800; color:#0f172a; line-height:1.1;">REGIONAL</div>
+              <div style="font-size:13px; font-weight:800; color:#0f172a; line-height:1.1;">REGIONAL <span style="color:#0369a1; font-weight:700;">(${totalCompetitors + 1} RS)</span></div>
             </div>
             <div style="margin-left:auto; display:flex; gap:20px; align-items:center;">
               <div style="text-align:right;">
@@ -1083,6 +1080,9 @@
             ${rowsHtml}
           </tbody>
         </table>
+        <p class="source-note" style="margin-top:12px; font-size:11px; padding: 0 10px 10px 10px; color: #475569;">
+          * <strong>Kurang Kasus (Redistribusi)</strong> dihitung dari estimasi kasus Dasar & Madya milik RS Target yang diproyeksikan akan berpindah ke RS Kompetitor di regional yang sama, sesuai proporsi skenario (Mode Serapan Regional).
+        </p>
       </div>
     `;
 
@@ -8393,6 +8393,7 @@
     }
     state.targetCode = state.targetCodes[0] || "";
     
+    window.globalSimScenarios = null; // Reset skenario agar terhitung ulang dengan jumlah kompetitor yang baru
     state.serviceScenarios = {};
     
     populateHospitalSelector();
