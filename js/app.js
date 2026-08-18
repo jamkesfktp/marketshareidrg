@@ -5824,6 +5824,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       
       const tKasus = calcResult.existingKasus;
       const existingIna = calcResult.existingIna;
+      const existingIdrg = calcResult.existingIdrg || 0;
       
       const allKk = [], allKrp = [], allTk = [], allTrp = [];
       const allNetK = [], allNetRp = [];
