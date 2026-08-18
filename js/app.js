@@ -818,9 +818,11 @@
       let compCountM = 0;
       let compCountU = 0;
       let compCountP = 0;
-      if (targetServiceSelect !== 'ALL') {
-        data.hospitals.forEach(h => {
-          if (h.code === targetHospital()?.code) return;
+      
+      data.hospitals.forEach(h => {
+        if (h.code === targetHospital()?.code) return;
+        
+        if (targetServiceSelect !== 'ALL') {
           const hComp = getCompetency(h, targetServiceSelect);
           if (hComp && hComp > 0) {
             competitorCount++;
@@ -829,10 +831,15 @@
             if (hComp === 3) compCountU++;
             if (hComp === 4) compCountP++;
           }
-        });
-      } else {
-        competitorCount = Math.max(0, data.hospitals.length - 1);
-      }
+        } else {
+          competitorCount++;
+          const hClass = String(h.class || "").trim().toUpperCase();
+          if (hClass === 'A') compCountP++;
+          else if (hClass === 'B') compCountU++;
+          else if (hClass === 'C') compCountM++;
+          else if (hClass === 'D') compCountD++;
+        }
+      });
       
       const compBadge = document.getElementById('globalSimCompetitorBadge');
       const compVal = document.getElementById('globalSimCompetitorValue');
@@ -842,7 +849,7 @@
           compVal.innerHTML = `${competitorCount} RS`;
         } else {
           compBadge.querySelector('div').innerText = 'RS KOMPETITOR';
-          compVal.innerHTML = `${competitorCount} RS <div style="font-size:10px; color:#64748b; margin-top:5px; font-weight:600; line-height:1.3; background:#f1f5f9; padding:4px; border-radius:4px;">Paripurna ${compCountP}<br>Utama ${compCountU} | Madya ${compCountM}<br>Dasar ${compCountD}</div>`;
+          compVal.innerHTML = `${competitorCount} RS`;
         }
       }
       
@@ -1193,6 +1200,9 @@
       
       <!-- MODE AKTIF -->
       <div style="margin-bottom: 10px; font-size: 12px; color: #475569; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+        <span style="background:#fce7f3; color:#be185d; padding:3px 10px; border-radius:99px; font-weight:700;">
+          ${competitorCount} RS Kompetitor: Paripurna ${compCountP} RS, Utama ${compCountU} RS, Madya ${compCountM} RS, Dasar ${compCountD} RS
+        </span>
         <span style="background:#e0f2fe; color:#0369a1; padding:3px 10px; border-radius:99px; font-weight:600;">
           + ${tambahMode === 'tambah_up' ? 'Serap U/P dari Regional' : 'Serap D/M dari RS Kelas Lebih Tinggi'} 
           | - ${kurangMode === 'kurang_dm' ? 'Lepas Dasar/Madya Eksisting' : 'Lepas Utama/Paripurna Eksisting'}
@@ -1320,9 +1330,11 @@
       let compCountM = 0;
       let compCountU = 0;
       let compCountP = 0;
-      if (targetServiceSelect !== 'ALL') {
-        data.hospitals.forEach(h => {
-          if (h.code === targetHospital()?.code) return;
+      
+      data.hospitals.forEach(h => {
+        if (h.code === targetHospital()?.code) return;
+        
+        if (targetServiceSelect !== 'ALL') {
           const hComp = getCompetency(h, targetServiceSelect);
           if (hComp && hComp > 0) {
             competitorCount++;
@@ -1331,10 +1343,15 @@
             if (hComp === 3) compCountU++;
             if (hComp === 4) compCountP++;
           }
-        });
-      } else {
-        competitorCount = Math.max(0, data.hospitals.length - 1);
-      }
+        } else {
+          competitorCount++;
+          const hClass = String(h.class || "").trim().toUpperCase();
+          if (hClass === 'A') compCountP++;
+          else if (hClass === 'B') compCountU++;
+          else if (hClass === 'C') compCountM++;
+          else if (hClass === 'D') compCountD++;
+        }
+      });
       
       const compBadge = document.getElementById('globalSimCompetitorBadge');
       const compVal = document.getElementById('globalSimCompetitorValue');
@@ -1344,7 +1361,7 @@
           compVal.innerHTML = `${competitorCount} RS`;
         } else {
           compBadge.querySelector('div').innerText = 'RS KOMPETITOR';
-          compVal.innerHTML = `${competitorCount} RS <div style="font-size:10px; color:#64748b; margin-top:5px; font-weight:600; line-height:1.3; background:#f1f5f9; padding:4px; border-radius:4px;">Paripurna ${compCountP}<br>Utama ${compCountU} | Madya ${compCountM}<br>Dasar ${compCountD}</div>`;
+          compVal.innerHTML = `${competitorCount} RS`;
         }
       }
       
@@ -5531,9 +5548,11 @@
       let compCountM = 0;
       let compCountU = 0;
       let compCountP = 0;
-      if (targetServiceSelect !== 'ALL') {
-        data.hospitals.forEach(h => {
-          if (h.code === targetHospital()?.code) return;
+      
+      data.hospitals.forEach(h => {
+        if (h.code === targetHospital()?.code) return;
+        
+        if (targetServiceSelect !== 'ALL') {
           const hComp = getCompetency(h, targetServiceSelect);
           if (hComp && hComp > 0) {
             competitorCount++;
@@ -5542,10 +5561,15 @@
             if (hComp === 3) compCountU++;
             if (hComp === 4) compCountP++;
           }
-        });
-      } else {
-        competitorCount = Math.max(0, data.hospitals.length - 1);
-      }
+        } else {
+          competitorCount++;
+          const hClass = String(h.class || "").trim().toUpperCase();
+          if (hClass === 'A') compCountP++;
+          else if (hClass === 'B') compCountU++;
+          else if (hClass === 'C') compCountM++;
+          else if (hClass === 'D') compCountD++;
+        }
+      });
       
       const compBadge = document.getElementById('globalSimCompetitorBadge');
       const compVal = document.getElementById('globalSimCompetitorValue');
@@ -5555,7 +5579,7 @@
           compVal.innerHTML = `${competitorCount} RS`;
         } else {
           compBadge.querySelector('div').innerText = 'RS KOMPETITOR';
-          compVal.innerHTML = `${competitorCount} RS <div style="font-size:10px; color:#64748b; margin-top:5px; font-weight:600; line-height:1.3; background:#f1f5f9; padding:4px; border-radius:4px;">Paripurna ${compCountP}<br>Utama ${compCountU} | Madya ${compCountM}<br>Dasar ${compCountD}</div>`;
+          compVal.innerHTML = `${competitorCount} RS`;
         }
       }
       
@@ -5777,9 +5801,11 @@
       let compCountM = 0;
       let compCountU = 0;
       let compCountP = 0;
-      if (targetServiceSelect !== 'ALL') {
-        data.hospitals.forEach(h => {
-          if (h.code === targetHospital()?.code) return;
+      
+      data.hospitals.forEach(h => {
+        if (h.code === targetHospital()?.code) return;
+        
+        if (targetServiceSelect !== 'ALL') {
           const hComp = getCompetency(h, targetServiceSelect);
           if (hComp && hComp > 0) {
             competitorCount++;
@@ -5788,10 +5814,15 @@
             if (hComp === 3) compCountU++;
             if (hComp === 4) compCountP++;
           }
-        });
-      } else {
-        competitorCount = Math.max(0, data.hospitals.length - 1);
-      }
+        } else {
+          competitorCount++;
+          const hClass = String(h.class || "").trim().toUpperCase();
+          if (hClass === 'A') compCountP++;
+          else if (hClass === 'B') compCountU++;
+          else if (hClass === 'C') compCountM++;
+          else if (hClass === 'D') compCountD++;
+        }
+      });
       
       const compBadge = document.getElementById('globalSimCompetitorBadge');
       const compVal = document.getElementById('globalSimCompetitorValue');
@@ -5801,7 +5832,7 @@
           compVal.innerHTML = `${competitorCount} RS`;
         } else {
           compBadge.querySelector('div').innerText = 'RS KOMPETITOR';
-          compVal.innerHTML = `${competitorCount} RS <div style="font-size:10px; color:#64748b; margin-top:5px; font-weight:600; line-height:1.3; background:#f1f5f9; padding:4px; border-radius:4px;">Paripurna ${compCountP}<br>Utama ${compCountU} | Madya ${compCountM}<br>Dasar ${compCountD}</div>`;
+          compVal.innerHTML = `${competitorCount} RS`;
         }
       }
       
@@ -9180,9 +9211,11 @@
       let compCountM = 0;
       let compCountU = 0;
       let compCountP = 0;
-      if (targetServiceSelect !== 'ALL') {
-        data.hospitals.forEach(h => {
-          if (h.code === targetHospital()?.code) return;
+      
+      data.hospitals.forEach(h => {
+        if (h.code === targetHospital()?.code) return;
+        
+        if (targetServiceSelect !== 'ALL') {
           const hComp = getCompetency(h, targetServiceSelect);
           if (hComp && hComp > 0) {
             competitorCount++;
@@ -9191,10 +9224,15 @@
             if (hComp === 3) compCountU++;
             if (hComp === 4) compCountP++;
           }
-        });
-      } else {
-        competitorCount = Math.max(0, data.hospitals.length - 1);
-      }
+        } else {
+          competitorCount++;
+          const hClass = String(h.class || "").trim().toUpperCase();
+          if (hClass === 'A') compCountP++;
+          else if (hClass === 'B') compCountU++;
+          else if (hClass === 'C') compCountM++;
+          else if (hClass === 'D') compCountD++;
+        }
+      });
       
       const compBadge = document.getElementById('globalSimCompetitorBadge');
       const compVal = document.getElementById('globalSimCompetitorValue');
@@ -9204,7 +9242,7 @@
           compVal.innerHTML = `${competitorCount} RS`;
         } else {
           compBadge.querySelector('div').innerText = 'RS KOMPETITOR';
-          compVal.innerHTML = `${competitorCount} RS <div style="font-size:10px; color:#64748b; margin-top:5px; font-weight:600; line-height:1.3; background:#f1f5f9; padding:4px; border-radius:4px;">Paripurna ${compCountP}<br>Utama ${compCountU} | Madya ${compCountM}<br>Dasar ${compCountD}</div>`;
+          compVal.innerHTML = `${competitorCount} RS`;
         }
       }
       
