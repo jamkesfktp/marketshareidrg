@@ -5,7 +5,7 @@ const XLSX = require('xlsx');
 
 const csvOktJunPath = 'C:\\Backup Riki\\Drive D\\Analsisi Uji Coba\\spending_okt_jun_v3_gabungan.csv';
 const csvJanDesPath = 'C:\\Backup Riki\\Drive D\\Analsisi Uji Coba\\spending_jan_des_v11_gabungan.csv';
-const excelCompetencyPath = 'C:\\Backup Riki\\Download\\RS Online - Monitoring Kompetensi dan olah tarikan 30 Juli 2026.xlsx';
+const excelCompetencyPath = 'C:\\Backup Riki\\Dokumen\\Market Share\\RS Online - Monitoring Kompetensi 13 Agustus 2026.xlsx';
 const outputPath = path.join(__dirname, 'js', 'data.js');
 
 function parseCsvLine(line) {
@@ -85,16 +85,74 @@ function loadCompetencyMap() {
     try {
       const wb = XLSX.readFile(excelCompetencyPath);
       const wsTarik = wb.Sheets['Tarik'] || wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(wsTarik);
-      rows.forEach((r) => {
-        const code = String(r['kode_rs'] || r['KODE RS'] || '').trim();
-        const rawSvc = String(r['jenis_kompetensi'] || '').trim().toUpperCase();
-        const svc = serviceNameMap[rawSvc] || rawSvc;
-        const strata = String(r['strata'] || '').trim();
-        const lvl = parseLevel(strata);
-        if (!hospCompetencies.has(code)) hospCompetencies.set(code, {});
-        hospCompetencies.get(code)[svc] = lvl;
-      });
+      
+      const rawData = XLSX.utils.sheet_to_json(wsTarik, {header: 1});
+      
+      if (rawData.length > 1) {
+        let headerRowIdx = 0;
+        for (let i = 0; i < Math.min(5, rawData.length); i++) {
+          if (rawData[i] && rawData[i].some(c => String(c).match(/kode rs|kode_rs/i))) {
+            headerRowIdx = i;
+            break;
+          }
+        }
+        
+        const headers = rawData[headerRowIdx];
+        const isPivoted = headers.some(h => String(h).includes('Jantung dan Pembuluh Darah'));
+        
+        if (isPivoted) {
+          const codeCol = headers.findIndex(h => String(h).match(/kode rs/i));
+          const serviceCols = {};
+          
+          for (let i = 0; i < headers.length; i++) {
+            if (i === codeCol || !headers[i]) continue;
+            const h = String(headers[i]).toUpperCase();
+            
+            let cleanSvc = h.replace(/\s*\(\d+\)\s*/, '').trim();
+            if (cleanSvc.includes('HEPATOBIAR')) cleanSvc = 'PENCERNAAN DAN HEPATOBILIER';
+            if (cleanSvc.includes('BURN')) cleanSvc = 'LUKA BAKAR';
+            if (cleanSvc === 'GIGI') cleanSvc = 'GIGI DAN MULUT';
+            if (cleanSvc === 'FORENSIK') cleanSvc = 'FORENSIK DAN MEDIKOLEGAL';
+            if (cleanSvc.includes('ENDOKRIN, NUTRISI DAM METABOLIK')) cleanSvc = 'ENDOKRIN, NUTRISI DAN METABOLIK';
+            
+            if (serviceNameMap[cleanSvc]) {
+              serviceCols[i] = serviceNameMap[cleanSvc];
+            } else {
+              for (const k of Object.keys(serviceNameMap)) {
+                if (cleanSvc.includes(k) || k.includes(cleanSvc)) {
+                  serviceCols[i] = serviceNameMap[k];
+                  break;
+                }
+              }
+            }
+          }
+          
+          for (let r = headerRowIdx + 1; r < rawData.length; r++) {
+            const row = rawData[r];
+            if (!row || !row[codeCol]) continue;
+            const code = String(row[codeCol]).trim();
+            if (!hospCompetencies.has(code)) hospCompetencies.set(code, {});
+            
+            for (const [colIdx, svcName] of Object.entries(serviceCols)) {
+              const strata = String(row[colIdx] || '').trim();
+              if (strata && !strata.toLowerCase().includes('tidak kompeten')) {
+                hospCompetencies.get(code)[svcName] = parseLevel(strata);
+              }
+            }
+          }
+        } else {
+          const rows = XLSX.utils.sheet_to_json(wsTarik);
+          rows.forEach((r) => {
+            const code = String(r['kode_rs'] || r['KODE RS'] || '').trim();
+            const rawSvc = String(r['jenis_kompetensi'] || '').trim().toUpperCase();
+            const svc = serviceNameMap[rawSvc] || rawSvc;
+            const strata = String(r['strata'] || '').trim();
+            const lvl = parseLevel(strata);
+            if (!hospCompetencies.has(code)) hospCompetencies.set(code, {});
+            hospCompetencies.get(code)[svc] = lvl;
+          });
+        }
+      }
       console.log(`Loaded competencies for ${hospCompetencies.size} hospitals.`);
     } catch (e) {
       console.warn("Warning reading Excel:", e.message);

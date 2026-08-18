@@ -1287,7 +1287,16 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       <!-- MODE AKTIF -->
       <div style="margin-bottom: 10px; font-size: 12px; color: #475569; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
         <div style="width: 100%; margin-bottom: 5px; font-size: 12px; font-weight: 700; color: #0f172a; background: #f8fafc; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; line-height: 1.6;">
-          <div style="color: #be185d;">Jumlah RS : ${competitorCount} &rarr; Kompetensi layanan : Dasar : ${compCountD}, Madya: ${compCountM}, Utama: ${compCountU}, Paripurna: ${compCountP}</div>
+          <div style="color: #be185d; display: flex; flex-direction: column; gap: 4px;">
+            <div style="font-size: 14px; font-weight: 800; color: #0f766e;">
+              Layanan: ${targetServiceSelect === 'ALL' ? 'Lintas Kompetensi Layanan (Semua)' : targetServiceSelect} 
+              ${targetServiceSelect !== 'ALL' ? ` | Kompetensi RS Target: <span style="color:#b91c1c;">${levelNames[getCompetency(targetHospital(), targetServiceSelect)] || 'Tidak Kompeten'}</span>` : ''}
+            </div>
+            <div>
+              Jumlah RS : ${competitorCount} &rarr; Kompetensi layanan : Dasar : ${compCountD}, Madya: ${compCountM}, Utama: ${compCountU}, Paripurna: ${compCountP}
+              <span style="font-size:10px; font-weight:normal; color:#64748b; margin-left:8px;">(Berdasarkan Update Data 13 Agustus 2026)</span>
+            </div>
+          </div>
           <div style="color: #0369a1;">Kasus Regional : ${formatNumber(regTotalD.cases + regTotalM.cases + regTotalU.cases + regTotalP.cases)} kasus &rarr; Dasar : ${formatNumber(regTotalD.cases)} Kasus (${formatMoneyUnit(regTotalD.rp)}), Madya: ${formatNumber(regTotalM.cases)} Kasus (${formatMoneyUnit(regTotalM.rp)}), Utama: ${formatNumber(regTotalU.cases)} Kasus (${formatMoneyUnit(regTotalU.rp)}), Paripurna: ${formatNumber(regTotalP.cases)} Kasus (${formatMoneyUnit(regTotalP.rp)})</div>
         </div>
         <span style="background:#e0f2fe; color:#0369a1; padding:3px 10px; border-radius:99px; font-weight:600;">
@@ -1505,9 +1514,9 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       idrgParipurna += tParipurna[IDRG] || 0;
     });
 
-    const targetTotalKasus = target.total[CASES] || 0;
-    const targetInaTotal = target.total[INA] || 0;
-    const targetIdrgTotal = target.total[IDRG] || 0;
+    const targetTotalKasus = kasusDasar + kasusMadya + kasusUtama + kasusParipurna;
+    const targetInaTotal = inaDasar + inaMadya + inaUtama + inaParipurna;
+    const targetIdrgTotal = idrgDasar + idrgMadya + idrgUtama + idrgParipurna;
     
     const selisihPendapatan = targetIdrgTotal - targetInaTotal;
     const pctSelisih = targetInaTotal > 0 ? (selisihPendapatan / targetInaTotal) * 100 : 0;
@@ -1783,7 +1792,29 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       { name: "Lainnya", cases: kLainnya, pct: totalCases ? (kLainnya / totalCases) * 100 : 0 }
     ];
 
-    document.getElementById("regionalProfileSlideTitle").textContent = `Profil & Kasus Regional - ${target.name}`;
+    
+    const getChecked = (dropdown) => Array.from(dropdown?.querySelectorAll("input:checked") || []).map(i => i.value);
+    const selectedProvinces = getChecked(document.getElementById("provDropdown"));
+    const selectedCities = getChecked(document.getElementById("cityDropdown"));
+    const baseData = allDatasets[activeDatasetKey] || window.marketSimulatorData;
+    
+    let filterText = 'NASIONAL';
+    if (selectedProvinces.length > 0) {
+      const parts = [];
+      for (const p of selectedProvinces) {
+        const pCities = selectedCities.filter(c => {
+          return baseData.hospitals.some(h => h.city === c && h.province === p);
+        });
+        if (pCities.length > 0) {
+          parts.push(`${p} (${pCities.join(', ')})`);
+        } else {
+          parts.push(p);
+        }
+      }
+      filterText = parts.join(' | ');
+    }
+
+    document.getElementById("regionalProfileSlideTitle").innerHTML = `Profil & Kasus Regional - ${target.name} <span style="font-size:12px; font-weight:normal; color:#64748b; margin-left:10px;">Filter: ${filterText}</span>`;
     document.getElementById("regionalProfileSlide").innerHTML = `
       <div class="regional-profile-layout" style="display: grid; grid-template-columns: 460px minmax(0, 1fr); gap: 20px; height: 100%; min-height: 0;">
         <!-- Left: Interactive Vector Map Container -->
