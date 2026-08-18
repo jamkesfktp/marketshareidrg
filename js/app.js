@@ -825,10 +825,15 @@
       }
       
       const compBadge = document.getElementById('globalSimCompetitorBadge');
-      if (compBadge) {
-        compBadge.innerHTML = targetServiceSelect === 'ALL' 
-          ? `Menampilkan ${competitorCount} RS Regional` 
-          : `<strong>${competitorCount}</strong> RS Kompetitor Regional`;
+      const compVal = document.getElementById('globalSimCompetitorValue');
+      if (compBadge && compVal) {
+        if (targetServiceSelect === 'ALL') {
+          compBadge.querySelector('div').innerText = 'TOTAL RS REGIONAL';
+          compVal.innerHTML = `${competitorCount} RS`;
+        } else {
+          compBadge.querySelector('div').innerText = 'RS KOMPETITOR';
+          compVal.innerHTML = `${competitorCount} RS`;
+        }
       }
       
       return servicesToSimulate;
@@ -1312,10 +1317,15 @@
       }
       
       const compBadge = document.getElementById('globalSimCompetitorBadge');
-      if (compBadge) {
-        compBadge.innerHTML = targetServiceSelect === 'ALL' 
-          ? `Menampilkan ${competitorCount} RS Regional` 
-          : `<strong>${competitorCount}</strong> RS Kompetitor Regional`;
+      const compVal = document.getElementById('globalSimCompetitorValue');
+      if (compBadge && compVal) {
+        if (targetServiceSelect === 'ALL') {
+          compBadge.querySelector('div').innerText = 'TOTAL RS REGIONAL';
+          compVal.innerHTML = `${competitorCount} RS`;
+        } else {
+          compBadge.querySelector('div').innerText = 'RS KOMPETITOR';
+          compVal.innerHTML = `${competitorCount} RS`;
+        }
       }
       
       return servicesToSimulate;
@@ -5508,10 +5518,15 @@
       }
       
       const compBadge = document.getElementById('globalSimCompetitorBadge');
-      if (compBadge) {
-        compBadge.innerHTML = targetServiceSelect === 'ALL' 
-          ? `Menampilkan ${competitorCount} RS Regional` 
-          : `<strong>${competitorCount}</strong> RS Kompetitor Regional`;
+      const compVal = document.getElementById('globalSimCompetitorValue');
+      if (compBadge && compVal) {
+        if (targetServiceSelect === 'ALL') {
+          compBadge.querySelector('div').innerText = 'TOTAL RS REGIONAL';
+          compVal.innerHTML = `${competitorCount} RS`;
+        } else {
+          compBadge.querySelector('div').innerText = 'RS KOMPETITOR';
+          compVal.innerHTML = `${competitorCount} RS`;
+        }
       }
       
       return servicesToSimulate;
@@ -5739,10 +5754,15 @@
       }
       
       const compBadge = document.getElementById('globalSimCompetitorBadge');
-      if (compBadge) {
-        compBadge.innerHTML = targetServiceSelect === 'ALL' 
-          ? `Menampilkan ${competitorCount} RS Regional` 
-          : `<strong>${competitorCount}</strong> RS Kompetitor Regional`;
+      const compVal = document.getElementById('globalSimCompetitorValue');
+      if (compBadge && compVal) {
+        if (targetServiceSelect === 'ALL') {
+          compBadge.querySelector('div').innerText = 'TOTAL RS REGIONAL';
+          compVal.innerHTML = `${competitorCount} RS`;
+        } else {
+          compBadge.querySelector('div').innerText = 'RS KOMPETITOR';
+          compVal.innerHTML = `${competitorCount} RS`;
+        }
       }
       
       return servicesToSimulate;
@@ -9121,10 +9141,15 @@
       }
       
       const compBadge = document.getElementById('globalSimCompetitorBadge');
-      if (compBadge) {
-        compBadge.innerHTML = targetServiceSelect === 'ALL' 
-          ? `Menampilkan ${competitorCount} RS Regional` 
-          : `<strong>${competitorCount}</strong> RS Kompetitor Regional`;
+      const compVal = document.getElementById('globalSimCompetitorValue');
+      if (compBadge && compVal) {
+        if (targetServiceSelect === 'ALL') {
+          compBadge.querySelector('div').innerText = 'TOTAL RS REGIONAL';
+          compVal.innerHTML = `${competitorCount} RS`;
+        } else {
+          compBadge.querySelector('div').innerText = 'RS KOMPETITOR';
+          compVal.innerHTML = `${competitorCount} RS`;
+        }
       }
       
       return servicesToSimulate;
