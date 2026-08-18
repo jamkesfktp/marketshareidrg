@@ -1464,6 +1464,11 @@
           </div>
         </div>
 
+        <!-- Competitor Breakdown -->
+        <div style="margin-bottom: 10px; font-size: 13px; font-weight: 700; color: #be185d; background: #fce7f3; padding: 6px 12px; border-radius: 6px; display: inline-block;">
+          ${competitorCount} RS Kompetitor: Paripurna ${compCountP} RS, Utama ${compCountU} RS, Madya ${compCountM} RS, Dasar ${compCountD} RS
+        </div>
+
         <!-- Table -->
         <div style="overflow-x: auto;">
           <table style="width: 100%; border-collapse: collapse; border: 1px solid #1e293b; text-align: center; font-size: 13px;">
