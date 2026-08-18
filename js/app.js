@@ -1489,7 +1489,7 @@
             <thead style="background: #38bdf8; color: white;">
               <tr>
                 <th rowspan="2" style="border: 1px solid #1e293b; padding: 8px; background: #0f766e;">Skenario</th>
-                <th rowspan="2" style="border: 1px solid #1e293b; padding: 8px; background: #334155;">Eksisting Kasus & Pendapatan<br><span style="font-size:10px;font-weight:normal;">(Dasar & Madya)</span></th>
+                <th rowspan="2" style="border: 1px solid #1e293b; padding: 8px; background: #334155;">Eksisting Kasus & Pendapatan (Rp M)<br><span style="font-size:10px;font-weight:normal;">(${isTambahUP ? 'Utama & Paripurna' : 'Dasar & Madya'})</span></th>
                 <th colspan="3" style="border: 1px solid #1e293b; padding: 8px; background: #059669;">${headerTambahan}</th>
                 <th colspan="3" style="border: 1px solid #1e293b; padding: 8px; background: #e11d48;">${headerPengurangan}</th>
                 <th rowspan="2" style="border: 1px solid #1e293b; padding: 8px; background: #047857;">Total Pendapatan Pasca iDRG & RBKP (Rp M)</th>
@@ -1531,8 +1531,15 @@
                     <!-- Eksisting -->
                     ${idx === 0 ? `
                       <td rowspan="${window.competencySimScenarios.length}" style="border: 1px solid #1e293b; padding: 8px; background: #f8fafc;">
+                        <div style="font-size:11px; color:#475569; margin-bottom:2px;">Total Kasus:</div>
                         <div style="font-weight:bold; font-size:14px; color:#0f172a;">${formatNumber(isTambahUP ? (kasusUtama + kasusParipurna) : (kasusDasar + kasusMadya))}</div>
-                        <div style="font-weight:bold; font-size:12px; color:#c2410c; margin-top:4px;">${(eksistingTambahan / 1000000000).toFixed(2).replace('.', ',')}</div>
+                        <div style="font-size:11px; color:#475569; margin-top:4px; display:flex; justify-content:center; gap:8px;">
+                          ${isTambahUP ? 
+                            `<div>U: ${formatNumber(kasusUtama)}</div><div>P: ${formatNumber(kasusParipurna)}</div>` : 
+                            `<div>D: ${formatNumber(kasusDasar)}</div><div>M: ${formatNumber(kasusMadya)}</div>`
+                          }
+                        </div>
+                        <div style="font-weight:bold; font-size:13px; color:#c2410c; margin-top:6px; padding-top:6px; border-top:1px solid #e2e8f0;">${(eksistingTambahan / 1000000000).toFixed(2).replace('.', ',')}</div>
                       </td>
                     ` : ''}
 
