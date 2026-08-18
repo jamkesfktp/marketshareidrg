@@ -815,6 +815,27 @@
     let compCountP = 0;
     let targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
     
+    // Compute Regional Cases for the target service(s)
+    const activeServices = targetServiceSelect === 'ALL' ? data.services : (data.services.includes(targetServiceSelect) ? [targetServiceSelect] : []);
+    const regTotalD = {cases: 0, rp: 0};
+    const regTotalM = {cases: 0, rp: 0};
+    const regTotalU = {cases: 0, rp: 0};
+    const regTotalP = {cases: 0, rp: 0};
+    
+    activeServices.forEach(svc => {
+      const s = data.regional?.services?.[svc];
+      if (!s) return;
+      const sD = severityMetric(s, 1);
+      const sM = severityMetric(s, 2);
+      const sU = severityMetric(s, 3);
+      const sP = severityMetric(s, 4);
+      
+      regTotalD.cases += sD[CASES] || 0; regTotalD.rp += sD[IDRG] || 0;
+      regTotalM.cases += sM[CASES] || 0; regTotalM.rp += sM[IDRG] || 0;
+      regTotalU.cases += sU[CASES] || 0; regTotalU.rp += sU[IDRG] || 0;
+      regTotalP.cases += sP[CASES] || 0; regTotalP.rp += sP[IDRG] || 0;
+    });
+
     (function(){
       targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
       const servicesToSimulate = targetServiceSelect === 'ALL' ? data.services : (data.services.includes(targetServiceSelect) ? [targetServiceSelect] : []);
@@ -1101,26 +1122,8 @@
       return { cases: acc.cases + (sm ? (sm[CASES] || 0) : 0), rp: acc.rp + (sm ? (sm[IDRG] || 0) : 0) };
     }, {cases: 0, rp: 0});
 
-    // Breakdown severity Regional (Kasus & Rp)
-    const regTotalD = data.services.reduce((acc, svc) => {
-      const s = data.regional.services[svc]; const sm = s ? severityMetric(s, 1) : null;
-      return { cases: acc.cases + (sm ? (sm[CASES] || 0) : 0), rp: acc.rp + (sm ? (sm[IDRG] || 0) : 0) };
-    }, {cases: 0, rp: 0});
-    const regTotalM = data.services.reduce((acc, svc) => {
-      const s = data.regional.services[svc]; const sm = s ? severityMetric(s, 2) : null;
-      return { cases: acc.cases + (sm ? (sm[CASES] || 0) : 0), rp: acc.rp + (sm ? (sm[IDRG] || 0) : 0) };
-    }, {cases: 0, rp: 0});
-    const regTotalU = data.services.reduce((acc, svc) => {
-      const s = data.regional.services[svc]; const sm = s ? severityMetric(s, 3) : null;
-      return { cases: acc.cases + (sm ? (sm[CASES] || 0) : 0), rp: acc.rp + (sm ? (sm[IDRG] || 0) : 0) };
-    }, {cases: 0, rp: 0});
-    const regTotalP = data.services.reduce((acc, svc) => {
-      const s = data.regional.services[svc]; const sm = s ? severityMetric(s, 4) : null;
-      return { cases: acc.cases + (sm ? (sm[CASES] || 0) : 0), rp: acc.rp + (sm ? (sm[IDRG] || 0) : 0) };
-    }, {cases: 0, rp: 0});
-
-    document.getElementById("globalSimulationSlide").innerHTML = `
-      <!-- ═══ SCORECARD KEMENKES STYLE ═══ -->
+    
+document.getElementById("globalSimulationSlide").innerHTML = `
       <div style="display:flex; gap:0; margin-bottom:14px; border-radius:10px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.12); border:1px solid #e2e8f0;">
         
         <!-- Panel RS Target -->
@@ -1207,9 +1210,10 @@
       
       <!-- MODE AKTIF -->
       <div style="margin-bottom: 10px; font-size: 12px; color: #475569; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-        <span style="background:#fce7f3; color:#be185d; padding:3px 10px; border-radius:99px; font-weight:700;">
-          ${competitorCount} Kompetensi Layanan RS: Paripurna ${compCountP} RS, Utama ${compCountU} RS, Madya ${compCountM} RS, Dasar ${compCountD} RS
-        </span>
+        <div style="width: 100%; margin-bottom: 5px; font-size: 12px; font-weight: 700; color: #0f172a; background: #f8fafc; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; line-height: 1.6;">
+          <div style="color: #be185d;">Jumlah RS : ${competitorCount} &rarr; Kompetensi layanan : Dasar : ${compCountD}, Madya: ${compCountM}, Utama: ${compCountU}, Paripurna: ${compCountP}</div>
+          <div style="color: #0369a1;">Kasus Regional : ${formatNumber(regTotalD.cases + regTotalM.cases + regTotalU.cases + regTotalP.cases)} kasus &rarr; Dasar : ${formatNumber(regTotalD.cases)} Kasus (${(regTotalD.rp / 1000000000).toFixed(2).replace('.', ',')} M), Madya: ${formatNumber(regTotalM.cases)} Kasus (${(regTotalM.rp / 1000000000).toFixed(2).replace('.', ',')} M), Utama: ${formatNumber(regTotalU.cases)} Kasus (${(regTotalU.rp / 1000000000).toFixed(2).replace('.', ',')} M), Paripurna: ${formatNumber(regTotalP.cases)} Kasus (${(regTotalP.rp / 1000000000).toFixed(2).replace('.', ',')} M)</div>
+        </div>
         <span style="background:#e0f2fe; color:#0369a1; padding:3px 10px; border-radius:99px; font-weight:600;">
           + ${tambahMode === 'tambah_up' ? 'Serap U/P dari Regional' : 'Serap D/M dari RS Kelas Lebih Tinggi'} 
           | - ${kurangMode === 'kurang_dm' ? 'Lepas Dasar/Madya Eksisting' : 'Lepas Utama/Paripurna Eksisting'}
@@ -1334,6 +1338,27 @@
     let compCountP = 0;
     let targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
     
+    // Compute Regional Cases for the target service(s)
+    const activeServices = targetServiceSelect === 'ALL' ? data.services : (data.services.includes(targetServiceSelect) ? [targetServiceSelect] : []);
+    const regTotalD = {cases: 0, rp: 0};
+    const regTotalM = {cases: 0, rp: 0};
+    const regTotalU = {cases: 0, rp: 0};
+    const regTotalP = {cases: 0, rp: 0};
+    
+    activeServices.forEach(svc => {
+      const s = data.regional?.services?.[svc];
+      if (!s) return;
+      const sD = severityMetric(s, 1);
+      const sM = severityMetric(s, 2);
+      const sU = severityMetric(s, 3);
+      const sP = severityMetric(s, 4);
+      
+      regTotalD.cases += sD[CASES] || 0; regTotalD.rp += sD[IDRG] || 0;
+      regTotalM.cases += sM[CASES] || 0; regTotalM.rp += sM[IDRG] || 0;
+      regTotalU.cases += sU[CASES] || 0; regTotalU.rp += sU[IDRG] || 0;
+      regTotalP.cases += sP[CASES] || 0; regTotalP.rp += sP[IDRG] || 0;
+    });
+
     (function(){
       targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
       const servicesToSimulate = targetServiceSelect === 'ALL' ? data.services : (data.services.includes(targetServiceSelect) ? [targetServiceSelect] : []);
@@ -1479,8 +1504,9 @@
         </div>
 
         <!-- Competitor Breakdown -->
-        <div style="margin-bottom: 10px; font-size: 13px; font-weight: 700; color: #be185d; background: #fce7f3; padding: 6px 12px; border-radius: 6px; display: inline-block;">
-          ${competitorCount} Kompetensi Layanan RS: Paripurna ${compCountP}, Utama ${compCountU}, Madya ${compCountM}, Dasar ${compCountD}
+        <div style="width: 100%; margin-bottom: 5px; font-size: 12px; font-weight: 700; color: #0f172a; background: #f8fafc; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; line-height: 1.6;">
+          <div style="color: #be185d;">Jumlah RS : ${competitorCount} &rarr; Kompetensi layanan : Dasar : ${compCountD}, Madya: ${compCountM}, Utama: ${compCountU}, Paripurna: ${compCountP}</div>
+          <div style="color: #0369a1;">Kasus Regional : ${formatNumber(regTotalD.cases + regTotalM.cases + regTotalU.cases + regTotalP.cases)} kasus &rarr; Dasar : ${formatNumber(regTotalD.cases)} Kasus (${(regTotalD.rp / 1000000000).toFixed(2).replace('.', ',')} M), Madya: ${formatNumber(regTotalM.cases)} Kasus (${(regTotalM.rp / 1000000000).toFixed(2).replace('.', ',')} M), Utama: ${formatNumber(regTotalU.cases)} Kasus (${(regTotalU.rp / 1000000000).toFixed(2).replace('.', ',')} M), Paripurna: ${formatNumber(regTotalP.cases)} Kasus (${(regTotalP.rp / 1000000000).toFixed(2).replace('.', ',')} M)</div>
         </div>
 
         <!-- Table -->
@@ -1493,7 +1519,7 @@
                 <th colspan="3" style="border: 1px solid #1e293b; padding: 8px; background: #059669;">${headerTambahan}</th>
                 <th colspan="3" style="border: 1px solid #1e293b; padding: 8px; background: #e11d48;">${headerPengurangan}</th>
                 <th rowspan="2" style="border: 1px solid #1e293b; padding: 8px; background: #047857;">Total Pendapatan Pasca iDRG & RBKP (Rp M)</th>
-                <th colspan="3" style="border: 1px solid #1e293b; padding: 8px; background: #0d9488;">Net +/- Pasca iDRG & RBKP</th>
+                <th colspan="4" style="border: 1px solid #1e293b; padding: 8px; background: #0d9488;">Net +/- Pasca iDRG & RBKP (vs INACBG)</th>
               </tr>
               <tr>
                 <th style="border: 1px solid #1e293b; padding: 8px; background: #10b981;">Persentase</th>
@@ -1505,6 +1531,7 @@
                 <th style="border: 1px solid #1e293b; padding: 8px; background: #14b8a6;">+/- Kasus</th>
                 <th style="border: 1px solid #1e293b; padding: 8px; background: #14b8a6;">% thd total kasus</th>
                 <th style="border: 1px solid #1e293b; padding: 8px; background: #14b8a6;">+/- Pendapatan (Rp M)</th>
+                <th style="border: 1px solid #1e293b; padding: 8px; background: #14b8a6;">% +/- Pendapatan</th>
               </tr>
             </thead>
             <tbody>
@@ -1523,6 +1550,8 @@
                 
                 // Total Pasca RS Keseluruhan = Total Awal + Tambahan - Pengurangan
                 const totalPasca = targetIdrgTotal + netIdrg;
+                const selisihVsInacbg = totalPasca - targetInaTotal;
+                const pctSelisihVsInacbg = targetInaTotal > 0 ? (selisihVsInacbg / targetInaTotal) * 100 : 0;
 
                 return `
                   <tr>
@@ -1569,7 +1598,8 @@
                     <!-- Net -->
                     <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: ${netKasus >= 0 ? '#059669' : '#e11d48'}">${netKasus >= 0 ? '+' : ''}${formatNumber(netKasus)}</td>
                     <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: ${netKasus >= 0 ? '#059669' : '#e11d48'}">${netKasus >= 0 ? '+' : ''}${netKasusPct.toFixed(2).replace('.', ',')} %</td>
-                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: ${netIdrg >= 0 ? '#059669' : '#e11d48'}">${netIdrg >= 0 ? '+' : ''}${(netIdrg / 1000000000).toFixed(1).replace('.', ',')}</td>
+                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: ${selisihVsInacbg >= 0 ? '#059669' : '#e11d48'}">${selisihVsInacbg >= 0 ? '+' : ''}${(selisihVsInacbg / 1000000000).toFixed(1).replace('.', ',')}</td>
+                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: ${selisihVsInacbg >= 0 ? '#059669' : '#e11d48'}">${selisihVsInacbg >= 0 ? '+' : ''}${pctSelisihVsInacbg.toFixed(2).replace('.', ',')} %</td>
                   </tr>
                 `;
               }).join('')}
@@ -5574,6 +5604,27 @@
     let compCountP = 0;
     let targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
     
+    // Compute Regional Cases for the target service(s)
+    const activeServices = targetServiceSelect === 'ALL' ? data.services : (data.services.includes(targetServiceSelect) ? [targetServiceSelect] : []);
+    const regTotalD = {cases: 0, rp: 0};
+    const regTotalM = {cases: 0, rp: 0};
+    const regTotalU = {cases: 0, rp: 0};
+    const regTotalP = {cases: 0, rp: 0};
+    
+    activeServices.forEach(svc => {
+      const s = data.regional?.services?.[svc];
+      if (!s) return;
+      const sD = severityMetric(s, 1);
+      const sM = severityMetric(s, 2);
+      const sU = severityMetric(s, 3);
+      const sP = severityMetric(s, 4);
+      
+      regTotalD.cases += sD[CASES] || 0; regTotalD.rp += sD[IDRG] || 0;
+      regTotalM.cases += sM[CASES] || 0; regTotalM.rp += sM[IDRG] || 0;
+      regTotalU.cases += sU[CASES] || 0; regTotalU.rp += sU[IDRG] || 0;
+      regTotalP.cases += sP[CASES] || 0; regTotalP.rp += sP[IDRG] || 0;
+    });
+
     (function(){
       targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
       const servicesToSimulate = targetServiceSelect === 'ALL' ? data.services : (data.services.includes(targetServiceSelect) ? [targetServiceSelect] : []);
@@ -5834,6 +5885,27 @@
     let compCountP = 0;
     let targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
     
+    // Compute Regional Cases for the target service(s)
+    const activeServices = targetServiceSelect === 'ALL' ? data.services : (data.services.includes(targetServiceSelect) ? [targetServiceSelect] : []);
+    const regTotalD = {cases: 0, rp: 0};
+    const regTotalM = {cases: 0, rp: 0};
+    const regTotalU = {cases: 0, rp: 0};
+    const regTotalP = {cases: 0, rp: 0};
+    
+    activeServices.forEach(svc => {
+      const s = data.regional?.services?.[svc];
+      if (!s) return;
+      const sD = severityMetric(s, 1);
+      const sM = severityMetric(s, 2);
+      const sU = severityMetric(s, 3);
+      const sP = severityMetric(s, 4);
+      
+      regTotalD.cases += sD[CASES] || 0; regTotalD.rp += sD[IDRG] || 0;
+      regTotalM.cases += sM[CASES] || 0; regTotalM.rp += sM[IDRG] || 0;
+      regTotalU.cases += sU[CASES] || 0; regTotalU.rp += sU[IDRG] || 0;
+      regTotalP.cases += sP[CASES] || 0; regTotalP.rp += sP[IDRG] || 0;
+    });
+
     (function(){
       targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
       const servicesToSimulate = targetServiceSelect === 'ALL' ? data.services : (data.services.includes(targetServiceSelect) ? [targetServiceSelect] : []);
@@ -9251,6 +9323,27 @@
     let compCountP = 0;
     let targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
     
+    // Compute Regional Cases for the target service(s)
+    const activeServices = targetServiceSelect === 'ALL' ? data.services : (data.services.includes(targetServiceSelect) ? [targetServiceSelect] : []);
+    const regTotalD = {cases: 0, rp: 0};
+    const regTotalM = {cases: 0, rp: 0};
+    const regTotalU = {cases: 0, rp: 0};
+    const regTotalP = {cases: 0, rp: 0};
+    
+    activeServices.forEach(svc => {
+      const s = data.regional?.services?.[svc];
+      if (!s) return;
+      const sD = severityMetric(s, 1);
+      const sM = severityMetric(s, 2);
+      const sU = severityMetric(s, 3);
+      const sP = severityMetric(s, 4);
+      
+      regTotalD.cases += sD[CASES] || 0; regTotalD.rp += sD[IDRG] || 0;
+      regTotalM.cases += sM[CASES] || 0; regTotalM.rp += sM[IDRG] || 0;
+      regTotalU.cases += sU[CASES] || 0; regTotalU.rp += sU[IDRG] || 0;
+      regTotalP.cases += sP[CASES] || 0; regTotalP.rp += sP[IDRG] || 0;
+    });
+
     (function(){
       targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
       const servicesToSimulate = targetServiceSelect === 'ALL' ? data.services : (data.services.includes(targetServiceSelect) ? [targetServiceSelect] : []);
