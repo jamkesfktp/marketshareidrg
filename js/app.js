@@ -1867,6 +1867,22 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     return data.hospitals || [];
   }
 
+  // Alias untuk format uang: T (triliun), M (miliar), 2 desimal
+  function formatMoneyUnit(val) {
+    if (!val || isNaN(val)) return "0";
+    const absVal = Math.abs(val);
+    const sign = val < 0 ? "-" : "";
+    if (absVal >= 1e12) {
+      return sign + (absVal / 1e12).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " T";
+    } else if (absVal >= 1e9) {
+      return sign + (absVal / 1e9).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " M";
+    } else if (absVal >= 1e6) {
+      return sign + (absVal / 1e6).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " JT";
+    } else {
+      return sign + Math.round(absVal).toLocaleString("id-ID");
+    }
+  }
+
   function formatTableMoney(val) {
     if (!val || isNaN(val)) return "0";
     const absVal = Math.abs(val);
