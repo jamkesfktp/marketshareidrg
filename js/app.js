@@ -945,12 +945,49 @@
         
         potensiSerapanKasus += (sisaRegDasarKasus + sisaRegMadyaKasus);
         potensiSerapanIdrg += (sisaRegDasarIdrg + sisaRegMadyaIdrg);
+      } else if (tambahMode === 'tambah_mu_reg') {
+        const sRegMadyaX = severityMetric(srvReg, 2);
+        const sRegUtamaX = severityMetric(srvReg, 3);
+        const sTargetMadyaX = severityMetric(srvTarget, 2);
+        const sTargetUtamaX = severityMetric(srvTarget, 3);
+        potensiSerapanKasus += Math.max(0, sRegMadyaX[CASES] - sTargetMadyaX[CASES]) + Math.max(0, sRegUtamaX[CASES] - sTargetUtamaX[CASES]);
+        potensiSerapanIdrg += Math.max(0, sRegMadyaX[IDRG] - sTargetMadyaX[IDRG]) + Math.max(0, sRegUtamaX[IDRG] - sTargetUtamaX[IDRG]);
+      } else if (tambahMode === 'tambah_d_reg') {
+        const sRegDasarX = severityMetric(srvReg, 1);
+        const sTargetDasarX = severityMetric(srvTarget, 1);
+        potensiSerapanKasus += Math.max(0, sRegDasarX[CASES] - sTargetDasarX[CASES]);
+        potensiSerapanIdrg += Math.max(0, sRegDasarX[IDRG] - sTargetDasarX[IDRG]);
+      } else if (tambahMode === 'tambah_mu_higher') {
+        data.hospitals.forEach(h => {
+          if (h.code === target.code) return;
+          if (getCompetency(h, service) > getCompetency(target, service)) {
+            const hSrv = h.services[service];
+            if (hSrv) {
+              const hMadyaX = severityMetric(hSrv, 2);
+              const hUtamaX = severityMetric(hSrv, 3);
+              potensiSerapanKasus += (hMadyaX[CASES] || 0) + (hUtamaX[CASES] || 0);
+              potensiSerapanIdrg += (hMadyaX[IDRG] || 0) + (hUtamaX[IDRG] || 0);
+            }
+          }
+        });
+      } else if (tambahMode === 'tambah_d_higher') {
+        data.hospitals.forEach(h => {
+          if (h.code === target.code) return;
+          if (getCompetency(h, service) > getCompetency(target, service)) {
+            const hSrv = h.services[service];
+            if (hSrv) {
+              const hDasarX = severityMetric(hSrv, 1);
+              potensiSerapanKasus += (hDasarX[CASES] || 0);
+              potensiSerapanIdrg += (hDasarX[IDRG] || 0);
+            }
+          }
+        });
       } else {
+        // Default: tambah_dm — Serap Dasar & Madya dari RS kompetensi lebih tinggi
         data.hospitals.forEach(h => {
           if (h.code === target.code) return;
           const hCompetency = getCompetency(h, service);
           const tCompetency = getCompetency(target, service);
-          
           if (hCompetency > tCompetency) {
             const hSrv = h.services[service];
             if (hSrv) {
@@ -964,16 +1001,28 @@
       }
 
       // --- PENGURANG KASUS ---
-      if (kurangMode === 'kurang_dm') {
-        const sTargetDasar = severityMetric(srvTarget, 1);
-        const sTargetMadya = severityMetric(srvTarget, 2);
-        potensiRedistribusiKasus += (sTargetDasar[CASES] + sTargetMadya[CASES]);
-        potensiRedistribusiIdrg += (sTargetDasar[IDRG] + sTargetMadya[IDRG]);
-      } else {
+      if (kurangMode === 'kurang_up') {
         const sTargetUtama = severityMetric(srvTarget, 3);
         const sTargetParipurna = severityMetric(srvTarget, 4);
         potensiRedistribusiKasus += (sTargetUtama[CASES] + sTargetParipurna[CASES]);
         potensiRedistribusiIdrg += (sTargetUtama[IDRG] + sTargetParipurna[IDRG]);
+      } else if (kurangMode === 'kurang_dp') {
+        const sTargetDasarK = severityMetric(srvTarget, 1);
+        const sTargetParipurnaK = severityMetric(srvTarget, 4);
+        potensiRedistribusiKasus += (sTargetDasarK[CASES] + sTargetParipurnaK[CASES]);
+        potensiRedistribusiIdrg += (sTargetDasarK[IDRG] + sTargetParipurnaK[IDRG]);
+      } else if (kurangMode === 'kurang_mup') {
+        const sTargetMadyaK = severityMetric(srvTarget, 2);
+        const sTargetUtamaK = severityMetric(srvTarget, 3);
+        const sTargetParipurnaK2 = severityMetric(srvTarget, 4);
+        potensiRedistribusiKasus += (sTargetMadyaK[CASES] + sTargetUtamaK[CASES] + sTargetParipurnaK2[CASES]);
+        potensiRedistribusiIdrg += (sTargetMadyaK[IDRG] + sTargetUtamaK[IDRG] + sTargetParipurnaK2[IDRG]);
+      } else {
+        // Default: kurang_dm — Lepas Dasar & Madya
+        const sTargetDasar = severityMetric(srvTarget, 1);
+        const sTargetMadya = severityMetric(srvTarget, 2);
+        potensiRedistribusiKasus += (sTargetDasar[CASES] + sTargetMadya[CASES]);
+        potensiRedistribusiIdrg += (sTargetDasar[IDRG] + sTargetMadya[IDRG]);
       }
     });
     
@@ -1212,7 +1261,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       <div style="margin-bottom: 10px; font-size: 12px; color: #475569; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
         <div style="width: 100%; margin-bottom: 5px; font-size: 12px; font-weight: 700; color: #0f172a; background: #f8fafc; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; line-height: 1.6;">
           <div style="color: #be185d;">Jumlah RS : ${competitorCount} &rarr; Kompetensi layanan : Dasar : ${compCountD}, Madya: ${compCountM}, Utama: ${compCountU}, Paripurna: ${compCountP}</div>
-          <div style="color: #0369a1;">Kasus Regional : ${formatNumber(regTotalD.cases + regTotalM.cases + regTotalU.cases + regTotalP.cases)} kasus &rarr; Dasar : ${formatNumber(regTotalD.cases)} Kasus (${(regTotalD.rp / 1000000000).toFixed(2).replace('.', ',')} M), Madya: ${formatNumber(regTotalM.cases)} Kasus (${(regTotalM.rp / 1000000000).toFixed(2).replace('.', ',')} M), Utama: ${formatNumber(regTotalU.cases)} Kasus (${(regTotalU.rp / 1000000000).toFixed(2).replace('.', ',')} M), Paripurna: ${formatNumber(regTotalP.cases)} Kasus (${(regTotalP.rp / 1000000000).toFixed(2).replace('.', ',')} M)</div>
+          <div style="color: #0369a1;">Kasus Regional : ${formatNumber(regTotalD.cases + regTotalM.cases + regTotalU.cases + regTotalP.cases)} kasus &rarr; Dasar : ${formatNumber(regTotalD.cases)} Kasus (${formatMoneyUnit(regTotalD.rp)}), Madya: ${formatNumber(regTotalM.cases)} Kasus (${formatMoneyUnit(regTotalM.rp)}), Utama: ${formatNumber(regTotalU.cases)} Kasus (${formatMoneyUnit(regTotalU.rp)}), Paripurna: ${formatNumber(regTotalP.cases)} Kasus (${formatMoneyUnit(regTotalP.rp)})</div>
         </div>
         <span style="background:#e0f2fe; color:#0369a1; padding:3px 10px; border-radius:99px; font-weight:600;">
           + ${tambahMode === 'tambah_up' ? 'Serap U/P dari Regional' : 'Serap D/M dari RS Kelas Lebih Tinggi'} 
@@ -1447,11 +1496,26 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const isTambahUP = (tambahMode === 'tambah_up');
     const isKurangDM = (kurangMode === 'kurang_dm');
 
-    const headerTambahan = isTambahUP ? 'Tambahan Kasus Utama & Paripurna' : 'Tambahan Kasus Dasar & Madya';
-    const headerPengurangan = isKurangDM ? 'Pengurangan Kasus Dasar & Madya' : 'Pengurangan Kasus Utama & Paripurna';
-    const headerEksisting = isTambahUP ? 'Pendapatan Eksisting iDRG Kasus Utama & Paripurna (Rp M)' : 'Pendapatan Eksisting iDRG Kasus Dasar & Madya (Rp M)';
+    
+    let headerTambahan = 'Tambahan Kasus Dasar & Madya';
+    if (tambahMode === 'tambah_up') headerTambahan = 'Tambahan Kasus Utama & Paripurna';
+    else if (tambahMode === 'tambah_mu_reg' || tambahMode === 'tambah_mu_higher') headerTambahan = 'Tambahan Kasus Madya & Utama';
+    else if (tambahMode === 'tambah_d_reg' || tambahMode === 'tambah_d_higher') headerTambahan = 'Tambahan Kasus Dasar';
+    
+    let headerPengurangan = 'Pengurangan Kasus Dasar & Madya';
+    if (kurangMode === 'kurang_up') headerPengurangan = 'Pengurangan Kasus Utama & Paripurna';
+    else if (kurangMode === 'kurang_dp') headerPengurangan = 'Pengurangan Kasus Dasar & Paripurna';
+    else if (kurangMode === 'kurang_mup') headerPengurangan = 'Pengurangan Kasus Madya, Utama & Paripurna';
+    
+    let headerEksisting = 'Pendapatan Eksisting iDRG Kasus Dasar & Madya (Rp)';
+    if (tambahMode === 'tambah_up') headerEksisting = 'Pendapatan Eksisting iDRG Kasus Utama & Paripurna (Rp)';
+    else if (tambahMode === 'tambah_mu_reg' || tambahMode === 'tambah_mu_higher') headerEksisting = 'Pendapatan Eksisting iDRG Kasus Madya & Utama (Rp)';
+    else if (tambahMode === 'tambah_d_reg' || tambahMode === 'tambah_d_higher') headerEksisting = 'Pendapatan Eksisting iDRG Kasus Dasar (Rp)';
 
-    const eksistingTambahan = isTambahUP ? eksistingUP_Idrg : eksistingDM_Idrg;
+    let eksistingTambahan = eksistingDM_Idrg;
+    if (tambahMode === 'tambah_up') eksistingTambahan = eksistingUP_Idrg;
+    else if (tambahMode === 'tambah_mu_reg' || tambahMode === 'tambah_mu_higher') eksistingTambahan = idrgMadya + idrgUtama;
+    else if (tambahMode === 'tambah_d_reg' || tambahMode === 'tambah_d_higher') eksistingTambahan = idrgDasar;
 
     const html = `
       <div style="font-family: Arial, sans-serif; padding-top: 10px;">
@@ -1506,7 +1570,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         <!-- Competitor Breakdown -->
         <div style="width: 100%; margin-bottom: 5px; font-size: 12px; font-weight: 700; color: #0f172a; background: #f8fafc; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; line-height: 1.6;">
           <div style="color: #be185d;">Jumlah RS : ${competitorCount} &rarr; Kompetensi layanan : Dasar : ${compCountD}, Madya: ${compCountM}, Utama: ${compCountU}, Paripurna: ${compCountP}</div>
-          <div style="color: #0369a1;">Kasus Regional : ${formatNumber(regTotalD.cases + regTotalM.cases + regTotalU.cases + regTotalP.cases)} kasus &rarr; Dasar : ${formatNumber(regTotalD.cases)} Kasus (${(regTotalD.rp / 1000000000).toFixed(2).replace('.', ',')} M), Madya: ${formatNumber(regTotalM.cases)} Kasus (${(regTotalM.rp / 1000000000).toFixed(2).replace('.', ',')} M), Utama: ${formatNumber(regTotalU.cases)} Kasus (${(regTotalU.rp / 1000000000).toFixed(2).replace('.', ',')} M), Paripurna: ${formatNumber(regTotalP.cases)} Kasus (${(regTotalP.rp / 1000000000).toFixed(2).replace('.', ',')} M)</div>
+          <div style="color: #0369a1;">Kasus Regional : ${formatNumber(regTotalD.cases + regTotalM.cases + regTotalU.cases + regTotalP.cases)} kasus &rarr; Dasar : ${formatNumber(regTotalD.cases)} Kasus (${formatMoneyUnit(regTotalD.rp)}), Madya: ${formatNumber(regTotalM.cases)} Kasus (${formatMoneyUnit(regTotalM.rp)}), Utama: ${formatNumber(regTotalU.cases)} Kasus (${formatMoneyUnit(regTotalU.rp)}), Paripurna: ${formatNumber(regTotalP.cases)} Kasus (${formatMoneyUnit(regTotalP.rp)})</div>
         </div>
 
         <!-- Table -->
@@ -1515,22 +1579,22 @@ document.getElementById("globalSimulationSlide").innerHTML = `
             <thead style="background: #38bdf8; color: white;">
               <tr>
                 <th rowspan="2" style="border: 1px solid #1e293b; padding: 8px; background: #0f766e;">Skenario</th>
-                <th rowspan="2" style="border: 1px solid #1e293b; padding: 8px; background: #334155;">Eksisting Kasus & Pendapatan (Rp M)<br><span style="font-size:10px;font-weight:normal;">(${isTambahUP ? 'Utama & Paripurna' : 'Dasar & Madya'})</span></th>
+                <th rowspan="2" style="border: 1px solid #1e293b; padding: 8px; background: #334155;">Eksisting Kasus & Pendapatan (Rp)<br><span style="font-size:10px;font-weight:normal;">(${headerTambahan.replace('Tambahan Kasus ', '')})</span></th>
                 <th colspan="3" style="border: 1px solid #1e293b; padding: 8px; background: #059669;">${headerTambahan}</th>
                 <th colspan="3" style="border: 1px solid #1e293b; padding: 8px; background: #e11d48;">${headerPengurangan}</th>
-                <th rowspan="2" style="border: 1px solid #1e293b; padding: 8px; background: #047857;">Total Pendapatan Pasca iDRG & RBKP (Rp M)</th>
+                <th rowspan="2" style="border: 1px solid #1e293b; padding: 8px; background: #047857;">Total Pendapatan Pasca iDRG & RBKP (Rp)</th>
                 <th colspan="4" style="border: 1px solid #1e293b; padding: 8px; background: #0d9488;">Net +/- Pasca iDRG & RBKP (vs INACBG)</th>
               </tr>
               <tr>
                 <th style="border: 1px solid #1e293b; padding: 8px; background: #10b981;">Persentase</th>
                 <th style="border: 1px solid #1e293b; padding: 8px; background: #10b981;">Jumlah Kasus</th>
-                <th style="border: 1px solid #1e293b; padding: 8px; background: #10b981;">Tambahan (Rp M)</th>
+                <th style="border: 1px solid #1e293b; padding: 8px; background: #10b981;">Tambahan (Rp)</th>
                 <th style="border: 1px solid #1e293b; padding: 8px; background: #f43f5e;">Persentase</th>
                 <th style="border: 1px solid #1e293b; padding: 8px; background: #f43f5e;">Jumlah Kasus</th>
-                <th style="border: 1px solid #1e293b; padding: 8px; background: #f43f5e;">Pengurangan (Rp M)</th>
+                <th style="border: 1px solid #1e293b; padding: 8px; background: #f43f5e;">Pengurangan (Rp)</th>
                 <th style="border: 1px solid #1e293b; padding: 8px; background: #14b8a6;">+/- Kasus</th>
                 <th style="border: 1px solid #1e293b; padding: 8px; background: #14b8a6;">% thd total kasus</th>
-                <th style="border: 1px solid #1e293b; padding: 8px; background: #14b8a6;">+/- Pendapatan (Rp M)</th>
+                <th style="border: 1px solid #1e293b; padding: 8px; background: #14b8a6;">+/- Pendapatan (Rp)</th>
                 <th style="border: 1px solid #1e293b; padding: 8px; background: #14b8a6;">% +/- Pendapatan</th>
               </tr>
             </thead>
@@ -1561,14 +1625,20 @@ document.getElementById("globalSimulationSlide").innerHTML = `
                     ${idx === 0 ? `
                       <td rowspan="${window.competencySimScenarios.length}" style="border: 1px solid #1e293b; padding: 8px; background: #f8fafc;">
                         <div style="font-size:11px; color:#475569; margin-bottom:2px;">Total Kasus:</div>
-                        <div style="font-weight:bold; font-size:14px; color:#0f172a;">${formatNumber(isTambahUP ? (kasusUtama + kasusParipurna) : (kasusDasar + kasusMadya))}</div>
+                        <div style="font-weight:bold; font-size:14px; color:#0f172a;">${formatNumber(
+                          tambahMode === 'tambah_up' ? (kasusUtama + kasusParipurna) :
+                          (tambahMode === 'tambah_mu_reg' || tambahMode === 'tambah_mu_higher') ? (kasusMadya + kasusUtama) :
+                          (tambahMode === 'tambah_d_reg' || tambahMode === 'tambah_d_higher') ? kasusDasar :
+                          (kasusDasar + kasusMadya)
+                        )}</div>
                         <div style="font-size:11px; color:#475569; margin-top:4px; display:flex; justify-content:center; gap:8px;">
-                          ${isTambahUP ? 
-                            `<div>U: ${formatNumber(kasusUtama)}</div><div>P: ${formatNumber(kasusParipurna)}</div>` : 
-                            `<div>D: ${formatNumber(kasusDasar)}</div><div>M: ${formatNumber(kasusMadya)}</div>`
-                          }
+                          ${tambahMode === 'tambah_up' ? `<div>U: ${formatNumber(kasusUtama)}</div><div>P: ${formatNumber(kasusParipurna)}</div>` :
+                            (tambahMode === 'tambah_mu_reg' || tambahMode === 'tambah_mu_higher') ? `<div>M: ${formatNumber(kasusMadya)}</div><div>U: ${formatNumber(kasusUtama)}</div>` :
+                            (tambahMode === 'tambah_d_reg' || tambahMode === 'tambah_d_higher') ? `<div>D: ${formatNumber(kasusDasar)}</div>` :
+                            `<div>D: ${formatNumber(kasusDasar)}</div><div>M: ${formatNumber(kasusMadya)}</div>`}
+                        
                         </div>
-                        <div style="font-weight:bold; font-size:13px; color:#c2410c; margin-top:6px; padding-top:6px; border-top:1px solid #e2e8f0;">${(eksistingTambahan / 1000000000).toFixed(2).replace('.', ',')}</div>
+                        <div style="font-weight:bold; font-size:13px; color:#c2410c; margin-top:6px; padding-top:6px; border-top:1px solid #e2e8f0;">${formatMoneyUnit(eksistingTambahan)}</div>
                       </td>
                     ` : ''}
 
@@ -1580,7 +1650,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
                       </div>
                     </td>
                     <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold;">${formatNumber(tambahKasus)}</td>
-                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: #059669;">+${(tambahIdrg / 1000000000).toFixed(1).replace('.', ',')}</td>
+                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: #059669;">+${formatMoneyUnit(tambahIdrg)}</td>
                     
                     <!-- Pengurangan -->
                     <td style="border: 1px solid #1e293b; padding: 8px;">
@@ -1590,15 +1660,15 @@ document.getElementById("globalSimulationSlide").innerHTML = `
                       </div>
                     </td>
                     <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold;">${formatNumber(kurangKasus)}</td>
-                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: #e11d48;">-${(kurangIdrg / 1000000000).toFixed(2).replace('.', ',')}</td>
+                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: #e11d48;">-${formatMoneyUnit(kurangIdrg)}</td>
                     
                     <!-- Total Pasca -->
-                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; background: #f0fdf4;">${(totalPasca / 1000000000).toFixed(2).replace('.', ',')}</td>
+                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; background: #f0fdf4;">${formatMoneyUnit(totalPasca)}</td>
 
                     <!-- Net -->
                     <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: ${netKasus >= 0 ? '#059669' : '#e11d48'}">${netKasus >= 0 ? '+' : ''}${formatNumber(netKasus)}</td>
                     <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: ${netKasus >= 0 ? '#059669' : '#e11d48'}">${netKasus >= 0 ? '+' : ''}${netKasusPct.toFixed(2).replace('.', ',')} %</td>
-                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: ${selisihVsInacbg >= 0 ? '#059669' : '#e11d48'}">${selisihVsInacbg >= 0 ? '+' : ''}${(selisihVsInacbg / 1000000000).toFixed(1).replace('.', ',')}</td>
+                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: ${selisihVsInacbg >= 0 ? '#059669' : '#e11d48'}">${selisihVsInacbg >= 0 ? '+' : ''}${formatMoneyUnit(Math.abs(selisihVsInacbg))}</td>
                     <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: ${selisihVsInacbg >= 0 ? '#059669' : '#e11d48'}">${selisihVsInacbg >= 0 ? '+' : ''}${pctSelisihVsInacbg.toFixed(2).replace('.', ',')} %</td>
                   </tr>
                 `;
@@ -5543,7 +5613,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
               <th colspan="2" style="background-color: #0369a1; color: white; text-align: center;">Net +/- (Penambahan - Pengurangan)</th>
               <th rowspan="2" style="background-color: #0891b2; color: white;">Sisa Kasus & Pendapatan<br><span style="font-size:10px; font-weight:normal;">(Eksisting - Kurang)</span></th>
               <th rowspan="2" style="background-color: #1e40af; color: white;">PASCA KASUS<br><span style="font-size:10px; font-weight:normal;">(Sisa + Tambah)</span><br>& % Retensi</th>
-              <th rowspan="2" style="background-color: #1e40af; color: white;">PENDAPATAN<br>PASCA RBKP<br>(Rp M)</th>
+              <th rowspan="2" style="background-color: #1e40af; color: white;">PENDAPATAN<br>PASCA RBKP<br>(Rp)</th>
               <th rowspan="2" style="background-color: #0f766e; color: white;">% Kenaikan thd<br>INA-CBG Awal</th>
             </tr>
             <tr>
@@ -6444,7 +6514,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
               <th colspan="2" style="background-color: #22c55e; color: white; padding: 6px; font-size: 12px; text-align: center; border: 1px solid white;">PROYEKSI TAMBAHAN (Low &rarr; High)</th>
               <th colspan="2" style="background-color: #dc2626; color: white; padding: 6px; font-size: 12px; text-align: center; border: 1px solid white;">PROYEKSI PENGURANGAN (Low &rarr; High)</th>
               <th colspan="2" style="background-color: #0ea5e9; color: white; padding: 6px; font-size: 12px; text-align: center; border: 1px solid white;">NET +/- (Low &rarr; High)</th>
-              <th rowspan="2" style="width: 80px; text-align: center; background-color: #16a085; color: white; padding: 6px; font-size: 12px; border: 1px solid white;">PENDAPATAN<br>EKSISTING Dengan iDRG<br>(Rp M)</th>
+              <th rowspan="2" style="width: 80px; text-align: center; background-color: #16a085; color: white; padding: 6px; font-size: 12px; border: 1px solid white;">PENDAPATAN<br>EKSISTING Dengan iDRG<br>(Rp)</th>
               <th rowspan="2" style="width: 90px; text-align: center; background-color: #16a085; color: white; padding: 6px; font-size: 12px; border: 1px solid white;">PENDAPATAN<br>PASCA RBKP<br>(Low &rarr; High)</th>
               <th rowspan="2" style="width: 80px; text-align: center; background-color: #16a085; color: white; padding: 6px; font-size: 12px; border: 1px solid white;">% KENAIKAN<br>PENDAPATAN</th>
               <th rowspan="2" style="width: 80px; text-align: center; background-color: #ea580c; color: white; padding: 6px; font-size: 13px;">Prioritas Strategis</th>
@@ -9482,8 +9552,40 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         potensiRedistribusiIdrg = (sTargetUtama[IDRG] || 0) + (sTargetParipurna[IDRG] || 0);
       }
       
-      keterangan = `Serapan dari ${tambahMode === 'tambah_cross_comp' ? 'Lintas Kompetensi' : (tambahMode === 'tambah_up' ? 'Sisa Regional U/P' : (tambahMode === 'tambah_dm_reg' ? 'Sisa Regional D/M' : 'RS Tinggi D/M'))}; Lepas ${kurangMode === 'kurang_dm' ? 'D/M' : 'U/P'} RS Eksisting`;
-      const modeStr = (tambahMode === 'tambah_cross_comp' ? 'T:CC' : (tambahMode === 'tambah_up' ? 'T:UP' : (tambahMode === 'tambah_dm_reg' ? 'T:DM_REG' : 'T:DM'))) + ' / ' + (kurangMode === 'kurang_dm' ? 'K:DM' : 'K:UP');
+      
+let tambahKet = 'Lintas Kompetensi';
+if (tambahMode === 'tambah_up') tambahKet = 'Sisa Regional U/P';
+else if (tambahMode === 'tambah_dm_reg') tambahKet = 'Sisa Regional D/M';
+else if (tambahMode === 'tambah_mu_reg') tambahKet = 'Sisa Regional M/U';
+else if (tambahMode === 'tambah_mu_higher') tambahKet = 'RS Tinggi M/U';
+else if (tambahMode === 'tambah_d_reg') tambahKet = 'Sisa Regional Dasar';
+else if (tambahMode === 'tambah_d_higher') tambahKet = 'RS Tinggi Dasar';
+else if (tambahMode === 'tambah_dm') tambahKet = 'RS Tinggi D/M';
+
+let kurangKet = 'D/M';
+if (kurangMode === 'kurang_up') kurangKet = 'U/P';
+else if (kurangMode === 'kurang_dp') kurangKet = 'D/P';
+else if (kurangMode === 'kurang_mup') kurangKet = 'M/U/P';
+
+keterangan = `Serapan dari ${tambahKet}; Lepas ${kurangKet} RS Eksisting`;
+
+      
+let tCode = 'T:CC';
+if (tambahMode === 'tambah_up') tCode = 'T:UP';
+else if (tambahMode === 'tambah_dm_reg') tCode = 'T:DM_REG';
+else if (tambahMode === 'tambah_mu_reg') tCode = 'T:MU_REG';
+else if (tambahMode === 'tambah_mu_higher') tCode = 'T:MU_HI';
+else if (tambahMode === 'tambah_d_reg') tCode = 'T:D_REG';
+else if (tambahMode === 'tambah_d_higher') tCode = 'T:D_HI';
+else if (tambahMode === 'tambah_dm') tCode = 'T:DM_HI';
+
+let kCode = 'K:DM';
+if (kurangMode === 'kurang_up') kCode = 'K:UP';
+else if (kurangMode === 'kurang_dp') kCode = 'K:DP';
+else if (kurangMode === 'kurang_mup') kCode = 'K:MUP';
+
+const modeStr = tCode + ' / ' + kCode;
+
 
       csvContent += `${modeStr};"${target.name}";"${service}";${targetDM};${targetUP};${regDM};${regUP};${potensiSerapanKasus};${potensiSerapanIdrg};${potensiRedistribusiKasus};${potensiRedistribusiIdrg};"${keterangan}"\n`;
     });
