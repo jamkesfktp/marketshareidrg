@@ -829,11 +829,14 @@
         }
       } else {
         competitorCount++;
-        const hClass = String(h.class || '').trim().toUpperCase();
-        if (hClass === 'A') compCountP++;
-        else if (hClass === 'B') compCountU++;
-        else if (hClass === 'C') compCountM++;
-        else if (hClass === 'D') compCountD++;
+        // Hitung semua kompetensi layanan (24 layanan) di RS ini
+        data.services.forEach(svc => {
+          const hComp = getCompetency(h, svc);
+          if (hComp === 1) compCountD++;
+          else if (hComp === 2) compCountM++;
+          else if (hComp === 3) compCountU++;
+          else if (hComp === 4) compCountP++;
+        });
       }
     });
     
@@ -883,11 +886,13 @@
           }
         } else {
           competitorCount++;
-          const hClass = String(h.class || "").trim().toUpperCase();
-          if (hClass === 'A') compCountP++;
-          else if (hClass === 'B') compCountU++;
-          else if (hClass === 'C') compCountM++;
-          else if (hClass === 'D') compCountD++;
+          data.services.forEach(svc => {
+            const hComp = getCompetency(h, svc);
+            if (hComp === 1) compCountD++;
+            else if (hComp === 2) compCountM++;
+            else if (hComp === 3) compCountU++;
+            else if (hComp === 4) compCountP++;
+          });
         }
       });
       
@@ -1449,11 +1454,13 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           }
         } else {
           competitorCount++;
-          const hClass = String(h.class || "").trim().toUpperCase();
-          if (hClass === 'A') compCountP++;
-          else if (hClass === 'B') compCountU++;
-          else if (hClass === 'C') compCountM++;
-          else if (hClass === 'D') compCountD++;
+          data.services.forEach(svc => {
+            const hComp = getCompetency(h, svc);
+            if (hComp === 1) compCountD++;
+            else if (hComp === 2) compCountM++;
+            else if (hComp === 3) compCountU++;
+            else if (hComp === 4) compCountP++;
+          });
         }
       });
       
@@ -5752,11 +5759,13 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           }
         } else {
           competitorCount++;
-          const hClass = String(h.class || "").trim().toUpperCase();
-          if (hClass === 'A') compCountP++;
-          else if (hClass === 'B') compCountU++;
-          else if (hClass === 'C') compCountM++;
-          else if (hClass === 'D') compCountD++;
+          data.services.forEach(svc => {
+            const hComp = getCompetency(h, svc);
+            if (hComp === 1) compCountD++;
+            else if (hComp === 2) compCountM++;
+            else if (hComp === 3) compCountU++;
+            else if (hComp === 4) compCountP++;
+          });
         }
       });
       
@@ -6033,11 +6042,13 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           }
         } else {
           competitorCount++;
-          const hClass = String(h.class || "").trim().toUpperCase();
-          if (hClass === 'A') compCountP++;
-          else if (hClass === 'B') compCountU++;
-          else if (hClass === 'C') compCountM++;
-          else if (hClass === 'D') compCountD++;
+          data.services.forEach(svc => {
+            const hComp = getCompetency(h, svc);
+            if (hComp === 1) compCountD++;
+            else if (hComp === 2) compCountM++;
+            else if (hComp === 3) compCountU++;
+            else if (hComp === 4) compCountP++;
+          });
         }
       });
       
@@ -9471,11 +9482,13 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           }
         } else {
           competitorCount++;
-          const hClass = String(h.class || "").trim().toUpperCase();
-          if (hClass === 'A') compCountP++;
-          else if (hClass === 'B') compCountU++;
-          else if (hClass === 'C') compCountM++;
-          else if (hClass === 'D') compCountD++;
+          data.services.forEach(svc => {
+            const hComp = getCompetency(h, svc);
+            if (hComp === 1) compCountD++;
+            else if (hComp === 2) compCountM++;
+            else if (hComp === 3) compCountU++;
+            else if (hComp === 4) compCountP++;
+          });
         }
       });
       
