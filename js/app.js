@@ -1601,7 +1601,16 @@ document.getElementById("globalSimulationSlide").innerHTML = `
 
         <!-- Competitor Breakdown -->
         <div style="width: 100%; margin-bottom: 5px; font-size: 12px; font-weight: 700; color: #0f172a; background: #f8fafc; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; line-height: 1.6;">
-          <div style="color: #be185d;">Jumlah RS : ${competitorCount} &rarr; Kompetensi layanan : Dasar : ${compCountD}, Madya: ${compCountM}, Utama: ${compCountU}, Paripurna: ${compCountP}</div>
+          <div style="color: #be185d; display: flex; flex-direction: column; gap: 4px;">
+            <div style="font-size: 14px; font-weight: 800; color: #0f766e;">
+              Layanan: ${targetServiceSelect === 'ALL' ? 'Lintas Kompetensi Layanan (Semua)' : targetServiceSelect} 
+              ${targetServiceSelect !== 'ALL' ? ` | Kompetensi RS Target: <span style="color:#b91c1c;">${levelNames[getCompetency(targetHospital(), targetServiceSelect)] || 'Tidak Kompeten'}</span>` : ''}
+            </div>
+            <div>
+              Jumlah RS : ${competitorCount} &rarr; Kompetensi layanan : Dasar : ${compCountD}, Madya: ${compCountM}, Utama: ${compCountU}, Paripurna: ${compCountP}
+              <span style="font-size:10px; font-weight:normal; color:#64748b; margin-left:8px;">(Berdasarkan Update Data 13 Agustus 2026)</span>
+            </div>
+          </div>
           <div style="color: #0369a1;">Kasus Regional : ${formatNumber(regTotalD.cases + regTotalM.cases + regTotalU.cases + regTotalP.cases)} kasus &rarr; Dasar : ${formatNumber(regTotalD.cases)} Kasus (${formatMoneyUnit(regTotalD.rp)}), Madya: ${formatNumber(regTotalM.cases)} Kasus (${formatMoneyUnit(regTotalM.rp)}), Utama: ${formatNumber(regTotalU.cases)} Kasus (${formatMoneyUnit(regTotalU.rp)}), Paripurna: ${formatNumber(regTotalP.cases)} Kasus (${formatMoneyUnit(regTotalP.rp)})</div>
         </div>
 
