@@ -808,16 +808,23 @@
     let potensiRedistribusiIdrg = 0;
 
     
+    let competitorCount = 0;
+    let compCountD = 0;
+    let compCountM = 0;
+    let compCountU = 0;
+    let compCountP = 0;
+    let targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
+    
     (function(){
-      const targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
+      targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
       const servicesToSimulate = targetServiceSelect === 'ALL' ? data.services : (data.services.includes(targetServiceSelect) ? [targetServiceSelect] : []);
       
-      // Compute Competitor count for the badge (we only need to do this once per function, but doing it in an IIFE wrapper is safe)
-      let competitorCount = 0;
-      let compCountD = 0;
-      let compCountM = 0;
-      let compCountU = 0;
-      let compCountP = 0;
+      // Compute Competitor count for the badge
+      competitorCount = 0;
+      compCountD = 0;
+      compCountM = 0;
+      compCountU = 0;
+      compCountP = 0;
       
       data.hospitals.forEach(h => {
         if (h.code === targetHospital()?.code) return;
@@ -1320,16 +1327,23 @@
     let idrgDasar = 0, idrgMadya = 0, idrgUtama = 0, idrgParipurna = 0;
 
     
+    let competitorCount = 0;
+    let compCountD = 0;
+    let compCountM = 0;
+    let compCountU = 0;
+    let compCountP = 0;
+    let targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
+    
     (function(){
-      const targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
+      targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
       const servicesToSimulate = targetServiceSelect === 'ALL' ? data.services : (data.services.includes(targetServiceSelect) ? [targetServiceSelect] : []);
       
-      // Compute Competitor count for the badge (we only need to do this once per function, but doing it in an IIFE wrapper is safe)
-      let competitorCount = 0;
-      let compCountD = 0;
-      let compCountM = 0;
-      let compCountU = 0;
-      let compCountP = 0;
+      // Compute Competitor count for the badge
+      competitorCount = 0;
+      compCountD = 0;
+      compCountM = 0;
+      compCountU = 0;
+      compCountP = 0;
       
       data.hospitals.forEach(h => {
         if (h.code === targetHospital()?.code) return;
@@ -5543,16 +5557,23 @@
     let grandMinPascaRp = 0, grandMaxPascaRp = 0;
 
     
+    let competitorCount = 0;
+    let compCountD = 0;
+    let compCountM = 0;
+    let compCountU = 0;
+    let compCountP = 0;
+    let targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
+    
     (function(){
-      const targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
+      targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
       const servicesToSimulate = targetServiceSelect === 'ALL' ? data.services : (data.services.includes(targetServiceSelect) ? [targetServiceSelect] : []);
       
-      // Compute Competitor count for the badge (we only need to do this once per function, but doing it in an IIFE wrapper is safe)
-      let competitorCount = 0;
-      let compCountD = 0;
-      let compCountM = 0;
-      let compCountU = 0;
-      let compCountP = 0;
+      // Compute Competitor count for the badge
+      competitorCount = 0;
+      compCountD = 0;
+      compCountM = 0;
+      compCountU = 0;
+      compCountP = 0;
       
       data.hospitals.forEach(h => {
         if (h.code === targetHospital()?.code) return;
@@ -5796,16 +5817,23 @@
     const rows = [];
     
     
+    let competitorCount = 0;
+    let compCountD = 0;
+    let compCountM = 0;
+    let compCountU = 0;
+    let compCountP = 0;
+    let targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
+    
     (function(){
-      const targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
+      targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
       const servicesToSimulate = targetServiceSelect === 'ALL' ? data.services : (data.services.includes(targetServiceSelect) ? [targetServiceSelect] : []);
       
-      // Compute Competitor count for the badge (we only need to do this once per function, but doing it in an IIFE wrapper is safe)
-      let competitorCount = 0;
-      let compCountD = 0;
-      let compCountM = 0;
-      let compCountU = 0;
-      let compCountP = 0;
+      // Compute Competitor count for the badge
+      competitorCount = 0;
+      compCountD = 0;
+      compCountM = 0;
+      compCountU = 0;
+      compCountP = 0;
       
       data.hospitals.forEach(h => {
         if (h.code === targetHospital()?.code) return;
@@ -9206,16 +9234,23 @@
     let csvContent = "Mode Simulator;Nama RS Target;Layanan;Target Dasar & Madya (Kasus);Target Utama & Paripurna (Kasus);Regional Dasar & Madya (Kasus);Regional Utama & Paripurna (Kasus);Potensi Tambah Kasus (Max);Potensi Tambah iDRG (Max);Potensi Kurang Kasus (Max);Potensi Kurang iDRG (Max);Keterangan\n";
 
     
+    let competitorCount = 0;
+    let compCountD = 0;
+    let compCountM = 0;
+    let compCountU = 0;
+    let compCountP = 0;
+    let targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
+    
     (function(){
-      const targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
+      targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
       const servicesToSimulate = targetServiceSelect === 'ALL' ? data.services : (data.services.includes(targetServiceSelect) ? [targetServiceSelect] : []);
       
-      // Compute Competitor count for the badge (we only need to do this once per function, but doing it in an IIFE wrapper is safe)
-      let competitorCount = 0;
-      let compCountD = 0;
-      let compCountM = 0;
-      let compCountU = 0;
-      let compCountP = 0;
+      // Compute Competitor count for the badge
+      competitorCount = 0;
+      compCountD = 0;
+      compCountM = 0;
+      compCountU = 0;
+      compCountP = 0;
       
       data.hospitals.forEach(h => {
         if (h.code === targetHospital()?.code) return;
