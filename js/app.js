@@ -808,12 +808,34 @@
     let potensiRedistribusiIdrg = 0;
 
     
+    let targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
+    
+    // Hitung competitorCount SEKARANG dari data.hospitals yang sudah difilter
     let competitorCount = 0;
     let compCountD = 0;
     let compCountM = 0;
     let compCountU = 0;
     let compCountP = 0;
-    let targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
+    data.hospitals.forEach(h => {
+      if (h.code === target.code) return;
+      if (targetServiceSelect !== 'ALL') {
+        const hComp = getCompetency(h, targetServiceSelect);
+        if (hComp && hComp > 0) {
+          competitorCount++;
+          if (hComp === 1) compCountD++;
+          if (hComp === 2) compCountM++;
+          if (hComp === 3) compCountU++;
+          if (hComp === 4) compCountP++;
+        }
+      } else {
+        competitorCount++;
+        const hClass = String(h.class || '').trim().toUpperCase();
+        if (hClass === 'A') compCountP++;
+        else if (hClass === 'B') compCountU++;
+        else if (hClass === 'C') compCountM++;
+        else if (hClass === 'D') compCountD++;
+      }
+    });
     
     // Compute Regional Cases for the target service(s)
     const activeServices = targetServiceSelect === 'ALL' ? data.services : (data.services.includes(targetServiceSelect) ? [targetServiceSelect] : []);
@@ -1323,16 +1345,10 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         
         window.globalSimKurangScenarios[idx] = val / 100;
         renderGlobalSimulationSlide();
-    if(typeof renderCompetencySimSlide === "function") renderCompetencySimSlide();
+        if(typeof renderCompetencySimSlide === "function") renderCompetencySimSlide();
       });
     });
-  }
-
-
-
-
-
-
+  }  // end renderGlobalSimulationSlide
 
 
   function renderCompetencySimSlide() {
@@ -1349,7 +1365,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const container = document.getElementById('competencyTableSlide');
     if (!container) return;
 
-    const data = window.marketSimulatorDatasets ? (window.marketSimulatorDatasets[activeDatasetKey] || window.marketSimulatorDatasets['okt_jun']) : window.marketSimulatorData;
+    // Gunakan `data` dari scope luar (sudah difilter oleh filter provinsi/kab)
     if (!data || !data.hospitals) return;
 
     const target = data.hospitals.find((h) => h.code === state.targetCode) || (data.hospitals.length ? data.hospitals[0] : null);
