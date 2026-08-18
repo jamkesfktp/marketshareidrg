@@ -814,11 +814,21 @@
       
       // Compute Competitor count for the badge (we only need to do this once per function, but doing it in an IIFE wrapper is safe)
       let competitorCount = 0;
+      let compCountD = 0;
+      let compCountM = 0;
+      let compCountU = 0;
+      let compCountP = 0;
       if (targetServiceSelect !== 'ALL') {
         data.hospitals.forEach(h => {
           if (h.code === targetHospital()?.code) return;
           const hComp = getCompetency(h, targetServiceSelect);
-          if (hComp && hComp > 0) competitorCount++;
+          if (hComp && hComp > 0) {
+            competitorCount++;
+            if (hComp === 1) compCountD++;
+            if (hComp === 2) compCountM++;
+            if (hComp === 3) compCountU++;
+            if (hComp === 4) compCountP++;
+          }
         });
       } else {
         competitorCount = Math.max(0, data.hospitals.length - 1);
@@ -832,7 +842,7 @@
           compVal.innerHTML = `${competitorCount} RS`;
         } else {
           compBadge.querySelector('div').innerText = 'RS KOMPETITOR';
-          compVal.innerHTML = `${competitorCount} RS`;
+          compVal.innerHTML = `${competitorCount} RS <div style="font-size:10px; color:#64748b; margin-top:5px; font-weight:600; line-height:1.3; background:#f1f5f9; padding:4px; border-radius:4px;">Paripurna ${compCountP}<br>Utama ${compCountU} | Madya ${compCountM}<br>Dasar ${compCountD}</div>`;
         }
       }
       
@@ -1306,11 +1316,21 @@
       
       // Compute Competitor count for the badge (we only need to do this once per function, but doing it in an IIFE wrapper is safe)
       let competitorCount = 0;
+      let compCountD = 0;
+      let compCountM = 0;
+      let compCountU = 0;
+      let compCountP = 0;
       if (targetServiceSelect !== 'ALL') {
         data.hospitals.forEach(h => {
           if (h.code === targetHospital()?.code) return;
           const hComp = getCompetency(h, targetServiceSelect);
-          if (hComp && hComp > 0) competitorCount++;
+          if (hComp && hComp > 0) {
+            competitorCount++;
+            if (hComp === 1) compCountD++;
+            if (hComp === 2) compCountM++;
+            if (hComp === 3) compCountU++;
+            if (hComp === 4) compCountP++;
+          }
         });
       } else {
         competitorCount = Math.max(0, data.hospitals.length - 1);
@@ -1324,7 +1344,7 @@
           compVal.innerHTML = `${competitorCount} RS`;
         } else {
           compBadge.querySelector('div').innerText = 'RS KOMPETITOR';
-          compVal.innerHTML = `${competitorCount} RS`;
+          compVal.innerHTML = `${competitorCount} RS <div style="font-size:10px; color:#64748b; margin-top:5px; font-weight:600; line-height:1.3; background:#f1f5f9; padding:4px; border-radius:4px;">Paripurna ${compCountP}<br>Utama ${compCountU} | Madya ${compCountM}<br>Dasar ${compCountD}</div>`;
         }
       }
       
@@ -5507,11 +5527,21 @@
       
       // Compute Competitor count for the badge (we only need to do this once per function, but doing it in an IIFE wrapper is safe)
       let competitorCount = 0;
+      let compCountD = 0;
+      let compCountM = 0;
+      let compCountU = 0;
+      let compCountP = 0;
       if (targetServiceSelect !== 'ALL') {
         data.hospitals.forEach(h => {
           if (h.code === targetHospital()?.code) return;
           const hComp = getCompetency(h, targetServiceSelect);
-          if (hComp && hComp > 0) competitorCount++;
+          if (hComp && hComp > 0) {
+            competitorCount++;
+            if (hComp === 1) compCountD++;
+            if (hComp === 2) compCountM++;
+            if (hComp === 3) compCountU++;
+            if (hComp === 4) compCountP++;
+          }
         });
       } else {
         competitorCount = Math.max(0, data.hospitals.length - 1);
@@ -5525,7 +5555,7 @@
           compVal.innerHTML = `${competitorCount} RS`;
         } else {
           compBadge.querySelector('div').innerText = 'RS KOMPETITOR';
-          compVal.innerHTML = `${competitorCount} RS`;
+          compVal.innerHTML = `${competitorCount} RS <div style="font-size:10px; color:#64748b; margin-top:5px; font-weight:600; line-height:1.3; background:#f1f5f9; padding:4px; border-radius:4px;">Paripurna ${compCountP}<br>Utama ${compCountU} | Madya ${compCountM}<br>Dasar ${compCountD}</div>`;
         }
       }
       
@@ -5743,11 +5773,21 @@
       
       // Compute Competitor count for the badge (we only need to do this once per function, but doing it in an IIFE wrapper is safe)
       let competitorCount = 0;
+      let compCountD = 0;
+      let compCountM = 0;
+      let compCountU = 0;
+      let compCountP = 0;
       if (targetServiceSelect !== 'ALL') {
         data.hospitals.forEach(h => {
           if (h.code === targetHospital()?.code) return;
           const hComp = getCompetency(h, targetServiceSelect);
-          if (hComp && hComp > 0) competitorCount++;
+          if (hComp && hComp > 0) {
+            competitorCount++;
+            if (hComp === 1) compCountD++;
+            if (hComp === 2) compCountM++;
+            if (hComp === 3) compCountU++;
+            if (hComp === 4) compCountP++;
+          }
         });
       } else {
         competitorCount = Math.max(0, data.hospitals.length - 1);
@@ -5761,7 +5801,7 @@
           compVal.innerHTML = `${competitorCount} RS`;
         } else {
           compBadge.querySelector('div').innerText = 'RS KOMPETITOR';
-          compVal.innerHTML = `${competitorCount} RS`;
+          compVal.innerHTML = `${competitorCount} RS <div style="font-size:10px; color:#64748b; margin-top:5px; font-weight:600; line-height:1.3; background:#f1f5f9; padding:4px; border-radius:4px;">Paripurna ${compCountP}<br>Utama ${compCountU} | Madya ${compCountM}<br>Dasar ${compCountD}</div>`;
         }
       }
       
@@ -8269,6 +8309,12 @@
       if (Array.from(globalSimServiceSelect.options).some(o => o.value === currentVal)) {
         globalSimServiceSelect.value = currentVal;
       }
+      globalSimServiceSelect.addEventListener('change', () => {
+        if(typeof renderGlobalSimulationSlide === "function") renderGlobalSimulationSlide();
+        if(typeof renderCompetencySimSlide === "function") renderCompetencySimSlide();
+        if(typeof renderRecapSlide === "function") renderRecapSlide();
+        if(typeof renderLogicalRecapSlide === "function") renderLogicalRecapSlide();
+      });
     }
 
     const provDropdown = document.getElementById("provDropdown");
@@ -8485,7 +8531,7 @@
       `;
       
       const optionsHtml = groups.map(g => `
-        <div class="city-group" data-search="${escapeHtml(g.prov.toLowerCase())}">
+        <div class="city-group" data-prov="${escapeHtml(g.prov)}" data-search="${escapeHtml(g.prov.toLowerCase())}">
           <div class="city-group-title" style="font-weight:bold; padding: 4px 8px; background: #f1f5f9; font-size: 13px; color: #475569; position: sticky; top: 0; z-index: 2;">${escapeHtml(g.prov)}</div>
           ${g.cities.map(item => `
             <label class="checkbox-label" data-search="${escapeHtml(item.toLowerCase())}">
@@ -9130,11 +9176,21 @@
       
       // Compute Competitor count for the badge (we only need to do this once per function, but doing it in an IIFE wrapper is safe)
       let competitorCount = 0;
+      let compCountD = 0;
+      let compCountM = 0;
+      let compCountU = 0;
+      let compCountP = 0;
       if (targetServiceSelect !== 'ALL') {
         data.hospitals.forEach(h => {
           if (h.code === targetHospital()?.code) return;
           const hComp = getCompetency(h, targetServiceSelect);
-          if (hComp && hComp > 0) competitorCount++;
+          if (hComp && hComp > 0) {
+            competitorCount++;
+            if (hComp === 1) compCountD++;
+            if (hComp === 2) compCountM++;
+            if (hComp === 3) compCountU++;
+            if (hComp === 4) compCountP++;
+          }
         });
       } else {
         competitorCount = Math.max(0, data.hospitals.length - 1);
@@ -9148,7 +9204,7 @@
           compVal.innerHTML = `${competitorCount} RS`;
         } else {
           compBadge.querySelector('div').innerText = 'RS KOMPETITOR';
-          compVal.innerHTML = `${competitorCount} RS`;
+          compVal.innerHTML = `${competitorCount} RS <div style="font-size:10px; color:#64748b; margin-top:5px; font-weight:600; line-height:1.3; background:#f1f5f9; padding:4px; border-radius:4px;">Paripurna ${compCountP}<br>Utama ${compCountU} | Madya ${compCountM}<br>Dasar ${compCountD}</div>`;
         }
       }
       
