@@ -210,7 +210,14 @@
     });
 
     var provInfo = filters.selectedProvinces && filters.selectedProvinces.length ? filters.selectedProvinces.join(", ") : "Semua Provinsi";
-    var cityInfo = filters.selectedCities && filters.selectedCities.length ? filters.selectedCities.join(", ") : "Semua Kab/Kota";
+    var cityInfo = filters.selectedCities && filters.selectedCities.length ? filters.selectedCities.join(", ") : 
+      (filters.selectedProvinces && filters.selectedProvinces.length ? 
+        Array.from(new Set(
+          window.marketSimulatorDatasets[document.getElementById('datasetSelect')?.value || 'okt_jun'].hospitals
+          .filter(h => filters.selectedProvinces.includes(h.province))
+          .map(h => h.city)
+        )).sort().join(", ") 
+      : "Semua Kab/Kota");
     var groupInfo = filters.isMuhammadiyahOnly ? "Khusus RS Muhammadiyah / Aisyiyah" : "Semua Kategori RS";
 
     var infoText = "Wilayah: " + provInfo + " (" + cityInfo + ")  •  " + groupInfo + " (" + hospCount + " RS Terpilih)\n" +

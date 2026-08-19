@@ -1812,15 +1812,14 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     if (selectedProvinces.length > 0) {
       const parts = [];
       for (const p of selectedProvinces) {
-        const pCities = selectedCities.filter(c => {
-          return baseData.hospitals.some(h => h.city === c && h.province === p);
-        });
-        if (pCities.length > 0) {
+          let pCities = selectedCities.filter(c => {
+            return baseData.hospitals.some(h => h.city === c && h.province === p);
+          });
+          if (pCities.length === 0) {
+            pCities = Array.from(new Set(data.hospitals.filter(h => h.province === p).map(h => h.city))).sort();
+          }
           parts.push(`${p} (${pCities.join(', ')})`);
-        } else {
-          parts.push(p);
         }
-      }
       filterText = parts.join(' | ');
     }
 
@@ -1828,9 +1827,12 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const filterSummaryHTML = selectedProvinces.length > 0 ? 
       '<div style="font-size: 13.5px; font-weight: 600; color: #1e293b; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #cbd5e1; max-height: 120px; overflow-y: auto;">' +
       selectedProvinces.map(p => {
-        const pCities = selectedCities.filter(c => baseData.hospitals.some(h => h.city === c && h.province === p));
-        return '<div><span style="color: #0f766e;">' + p + '</span> : <span style="font-weight: 400; color: #475569;">' + (pCities.length > 0 ? pCities.join(', ') : 'Semua Kab/Kota') + '</span></div>';
-      }).join('') +
+          let pCities = selectedCities.filter(c => baseData.hospitals.some(h => h.city === c && h.province === p));
+          if (pCities.length === 0) {
+            pCities = Array.from(new Set(data.hospitals.filter(h => h.province === p).map(h => h.city))).sort();
+          }
+          return '<div><span style="color: #0f766e;">' + p + '</span> : <span style="font-weight: 400; color: #475569;">' + pCities.join(', ') + '</span></div>';
+        }).join('') +
       '</div>' : 
       '<div style="font-size: 13.5px; font-weight: 600; color: #1e293b; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #cbd5e1;">Nasional (Semua Provinsi)</div>';
 
