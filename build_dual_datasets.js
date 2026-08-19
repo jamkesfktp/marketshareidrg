@@ -112,6 +112,9 @@ function loadCompetencyMap() {
             if (cleanSvc.includes('HEPATOBIAR')) cleanSvc = 'PENCERNAAN DAN HEPATOBILIER';
             if (cleanSvc.includes('BURN')) cleanSvc = 'LUKA BAKAR';
             if (cleanSvc === 'GIGI') cleanSvc = 'GIGI DAN MULUT';
+            if (cleanSvc.includes('KULIT')) cleanSvc = 'KULIT & PENYAKIT KELAMIN';
+            if (cleanSvc.includes('SARAF')) cleanSvc = 'SARAF/ NEUROSCIENCE';
+            if (cleanSvc.includes('MUSCULOSKELETAL')) cleanSvc = 'MUSCULOSKELETAL DAN JARINGAN LUNAK';
             if (cleanSvc === 'FORENSIK') cleanSvc = 'FORENSIK DAN MEDIKOLEGAL';
             if (cleanSvc.includes('ENDOKRIN, NUTRISI DAM METABOLIK')) cleanSvc = 'ENDOKRIN, NUTRISI DAN METABOLIK';
             

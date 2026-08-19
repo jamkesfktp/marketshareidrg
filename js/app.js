@@ -362,6 +362,7 @@
   }
 
   function getLevelRules(competency, serviceName = "") {
+    if (competency === 0) competency = 1;
     if (competency === 0 && serviceName.toLowerCase().includes('forensik')) {
       return { tambah: [1], kurang: [2, 3, 4] };
     }
@@ -1823,7 +1824,17 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       filterText = parts.join(' | ');
     }
 
-    document.getElementById("regionalProfileSlideTitle").innerHTML = `Profil & Kasus Regional - ${target.name} <span style="font-size:12px; font-weight:normal; color:#64748b; margin-left:10px;">Filter: ${filterText}</span>`;
+
+    const filterSummaryHTML = selectedProvinces.length > 0 ? 
+      '<div style="font-size: 13.5px; font-weight: 600; color: #1e293b; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #cbd5e1; max-height: 120px; overflow-y: auto;">' +
+      selectedProvinces.map(p => {
+        const pCities = selectedCities.filter(c => baseData.hospitals.some(h => h.city === c && h.province === p));
+        return '<div><span style="color: #0f766e;">' + p + '</span> : <span style="font-weight: 400; color: #475569;">' + (pCities.length > 0 ? pCities.join(', ') : 'Semua Kab/Kota') + '</span></div>';
+      }).join('') +
+      '</div>' : 
+      '<div style="font-size: 13.5px; font-weight: 600; color: #1e293b; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #cbd5e1;">Nasional (Semua Provinsi)</div>';
+
+    document.getElementById("regionalProfileSlideTitle").innerHTML = `Profil & Kasus Regional - ${target.name} `;
     document.getElementById("regionalProfileSlide").innerHTML = `
       <div class="regional-profile-layout" style="display: grid; grid-template-columns: 460px minmax(0, 1fr); gap: 20px; height: 100%; min-height: 0;">
         <!-- Left: Interactive Vector Map Container -->
@@ -1853,6 +1864,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
             <div style="font-size: 26px; font-weight: 900; color: #0d9488; margin: 3px 0 10px; letter-spacing: 0.5px;">
               A: ${classCounts.A} | B: ${classCounts.B} | C: ${classCounts.C} | D: ${classCounts.D}
             </div>
+            ${filterSummaryHTML}
 
             <div style="display: grid; grid-template-columns: 240px 1fr; row-gap: 5px; column-gap: 8px; font-size: 13.5px; font-weight: 700; color: #475569; text-transform: uppercase;">
               <div>TOTAL KASUS REGIONAL</div>
@@ -6449,7 +6461,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
 
     availableServices.forEach((service) => {
       const targetCompetency = getCompetency(target, service);
-      if (targetCompetency === 0) return;
+      
       
       const targetSvc = target.services[service];
       const existingKasus = targetSvc ? targetSvc.total[CASES] || 0 : 0;
@@ -6461,7 +6473,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       const regionalSvc = data.regional.services[service];
       const rules = getLevelRules(targetCompetency, service);
       
-      const competitorsList = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= targetCompetency);
+      const competitorsList = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= Math.max(1, targetCompetency));
       const utamaCompetitors = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= 4).length;
 
       if (!state.serviceScenarios[service] || state.serviceScenarios[service].length === 0) {
