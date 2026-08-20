@@ -7182,8 +7182,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const targetName = target ? `${target.name} (${target.city})` : "Regional / Seluruh RS Terpilih";
 
     const formatM = (val) => {
-      const numericInM = val / 1e6;
-      return decimalFormatter.format(numericInM);
+      const numericInM = val / 1e9;
+      return new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(numericInM);
     };
 
     const formatMWithSign = (val) => {
