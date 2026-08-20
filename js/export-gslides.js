@@ -54,7 +54,11 @@
     var abs = Math.abs(n), sign = n < 0 ? "- " : "";
     var inMilyar = abs / 1e9;
     var formatted;
-    formatted = inMilyar.toLocaleString("id-ID", { maximumFractionDigits: 3 });
+    if (abs >= 1e9) {
+        formatted = inMilyar.toLocaleString("id-ID", { maximumFractionDigits: 2 });
+    } else {
+        formatted = inMilyar.toLocaleString("id-ID", { maximumFractionDigits: 3 });
+    }
     return sign + "Rp " + formatted + " M";
   }
 
@@ -63,7 +67,11 @@
     var abs = Math.abs(n), sign = n < 0 ? "-" : "";
     var inMilyar = abs / 1e9;
     var formatted;
-    formatted = inMilyar.toLocaleString("id-ID", { maximumFractionDigits: 3 });
+    if (abs >= 1e9) {
+        formatted = inMilyar.toLocaleString("id-ID", { maximumFractionDigits: 2 });
+    } else {
+        formatted = inMilyar.toLocaleString("id-ID", { maximumFractionDigits: 3 });
+    }
     return sign + formatted + " M";
   }
 

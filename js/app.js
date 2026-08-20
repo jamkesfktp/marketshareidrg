@@ -217,10 +217,18 @@
     const sign = numeric < 0 ? "-" : "";
     const inMilyar = absolute / 1e9;
     let formatted;
-    formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
+    if (absolute >= 1e9) {
+      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(inMilyar);
+    } else {
+      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
+    }
     return `${sign}${formatted} M`;
   };
-  const formatMatrixMoney = (value) => {const numeric = Number(value) || 0;const absolute = Math.abs(numeric);const sign = numeric < 0 ? "-" : "";const inMilyar = absolute / 1e9;let formatted;formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);return sign + formatted;};
+  const formatMatrixMoney = (value) => {const numeric = Number(value) || 0;const absolute = Math.abs(numeric);const sign = numeric < 0 ? "-" : "";const inMilyar = absolute / 1e9;let formatted;if (absolute >= 1e9) {
+      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(inMilyar);
+    } else {
+      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
+    }return sign + formatted;};
   const formatPercent = (value) => `${decimalFormatter.format((Number(value) || 0) * 100)}%`;
 
   const serviceAliases = {
@@ -1363,7 +1371,11 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const sign = numeric < 0 ? "-" : "";
     const inMilyar = absolute / 1e9;
     let formatted;
-    formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
+    if (absolute >= 1e9) {
+      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(inMilyar);
+    } else {
+      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
+    }
     return `${sign}${formatted} M`;
   };
 
@@ -1754,7 +1766,11 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const sign = numeric < 0 ? "-" : "";
     const inMilyar = absolute / 1e9;
     let formatted;
-    formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
+    if (absolute >= 1e9) {
+      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(inMilyar);
+    } else {
+      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
+    }
     return `${sign}${formatted} M`;
   };
 
@@ -1934,7 +1950,11 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const sign = numeric < 0 ? "-" : "";
     const inMilyar = absolute / 1e9;
     let formatted;
-    formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
+    if (absolute >= 1e9) {
+      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(inMilyar);
+    } else {
+      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
+    }
     return `${sign}${formatted} M`;
   }
 
@@ -1944,7 +1964,11 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const sign = numeric < 0 ? "-" : "";
     const inMilyar = absolute / 1e9;
     let formatted;
-    formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
+    if (absolute >= 1e9) {
+      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(inMilyar);
+    } else {
+      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
+    }
     return `${sign}${formatted}`;
   }
 
@@ -1954,7 +1978,11 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const sign = numeric < 0 ? "-" : "";
     const inMilyar = absolute / 1e9;
     let formatted;
-    formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
+    if (absolute >= 1e9) {
+      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(inMilyar);
+    } else {
+      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
+    }
     return `${sign}${formatted} M`;
   }
 
@@ -1971,7 +1999,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const abs = Math.abs(val);
     const sign = val < 0 ? -1 : 1;
     const inM = abs / 1e9;
-    let factor = 1e3;
+    let factor = (abs >= 1e9) ? 1e2 : 1e3;
     return sign * (Math.round(inM * factor) / factor) * 1e9;
   };
 
@@ -7182,8 +7210,12 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const targetName = target ? `${target.name} (${target.city})` : "Regional / Seluruh RS Terpilih";
 
     const formatM = (val) => {
-      const numericInM = val / 1e9;
-      return new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(numericInM);
+      const absVal = Math.abs(val);
+      const numericInM = absVal / 1e9;
+      const formatted = (absVal >= 1e9) 
+         ? new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(numericInM)
+         : new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(numericInM);
+      return (val < 0 ? "- " : "") + formatted;
     };
 
     const formatMWithSign = (val) => {
