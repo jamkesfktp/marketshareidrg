@@ -217,22 +217,10 @@
     const sign = numeric < 0 ? "-" : "";
     const inMilyar = absolute / 1e9;
     let formatted;
-    if (absolute > 0 && absolute < 1e6) {
-      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(inMilyar);
-    } else if (absolute < 1e8) {
-      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
-    } else {
-      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(inMilyar);
-    }
+    formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
     return `${sign}${formatted} M`;
   };
-  const formatMatrixMoney = (value) => {const numeric = Number(value) || 0;const absolute = Math.abs(numeric);const sign = numeric < 0 ? "-" : "";const inMilyar = absolute / 1e9;let formatted;if (absolute > 0 && absolute < 1e6) {
-      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(inMilyar);
-    } else if (absolute < 1e8) {
-      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
-    } else {
-      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(inMilyar);
-    }return sign + formatted;};
+  const formatMatrixMoney = (value) => {const numeric = Number(value) || 0;const absolute = Math.abs(numeric);const sign = numeric < 0 ? "-" : "";const inMilyar = absolute / 1e9;let formatted;formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);return sign + formatted;};
   const formatPercent = (value) => `${decimalFormatter.format((Number(value) || 0) * 100)}%`;
 
   const serviceAliases = {
@@ -1375,13 +1363,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const sign = numeric < 0 ? "-" : "";
     const inMilyar = absolute / 1e9;
     let formatted;
-    if (absolute > 0 && absolute < 1e6) {
-      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(inMilyar);
-    } else if (absolute < 1e8) {
-      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
-    } else {
-      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(inMilyar);
-    }
+    formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
     return `${sign}${formatted} M`;
   };
 
@@ -1772,13 +1754,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const sign = numeric < 0 ? "-" : "";
     const inMilyar = absolute / 1e9;
     let formatted;
-    if (absolute > 0 && absolute < 1e6) {
-      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(inMilyar);
-    } else if (absolute < 1e8) {
-      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
-    } else {
-      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(inMilyar);
-    }
+    formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
     return `${sign}${formatted} M`;
   };
 
@@ -1958,13 +1934,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const sign = numeric < 0 ? "-" : "";
     const inMilyar = absolute / 1e9;
     let formatted;
-    if (absolute > 0 && absolute < 1e6) {
-      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(inMilyar);
-    } else if (absolute < 1e8) {
-      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
-    } else {
-      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(inMilyar);
-    }
+    formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
     return `${sign}${formatted} M`;
   }
 
@@ -1974,13 +1944,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const sign = numeric < 0 ? "-" : "";
     const inMilyar = absolute / 1e9;
     let formatted;
-    if (absolute > 0 && absolute < 1e6) {
-      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(inMilyar);
-    } else if (absolute < 1e8) {
-      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
-    } else {
-      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(inMilyar);
-    }
+    formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
     return `${sign}${formatted}`;
   }
 
@@ -1990,13 +1954,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const sign = numeric < 0 ? "-" : "";
     const inMilyar = absolute / 1e9;
     let formatted;
-    if (absolute > 0 && absolute < 1e6) {
-      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(inMilyar);
-    } else if (absolute < 1e8) {
-      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
-    } else {
-      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(inMilyar);
-    }
+    formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
     return `${sign}${formatted} M`;
   }
 
@@ -2008,6 +1966,15 @@ document.getElementById("globalSimulationSlide").innerHTML = `
   }
 
   function computeNationalMirroringMetrics(hospitalsList) {
+  const roundM = (val) => {
+    if (typeof val !== "number" || val === 0 || isNaN(val)) return val;
+    const abs = Math.abs(val);
+    const sign = val < 0 ? -1 : 1;
+    const inM = abs / 1e9;
+    let factor = 1e3;
+    return sign * (Math.round(inM * factor) / factor) * 1e9;
+  };
+
     const list = hospitalsList && hospitalsList.length > 0 ? hospitalsList : (data.hospitals || []);
     
     const classCounts = { A: 0, B: 0, C: 0, D: 0 };
@@ -2096,11 +2063,11 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         const riK = Math.round(kTot * rK);
         const rjK = kTot - riK;
 
-        const riIna = inaTot * rIna;
-        const rjIna = inaTot - riIna;
+        const riIna = roundM(inaTot * rIna);
+        const rjIna = roundM(inaTot - riIna);
 
-        const riIdrg = idrgTot * rIdrg;
-        const rjIdrg = idrgTot - riIdrg;
+        const riIdrg = roundM(idrgTot * rIdrg);
+        const rjIdrg = roundM(idrgTot - riIdrg);
 
         result.RI[lvl][cls] = [riK, riIna, riIdrg, riIdrg - riIna, riIna ? (riIdrg - riIna) / riIna : 0];
         result.RJ[lvl][cls] = [rjK, rjIna, rjIdrg, rjIdrg - rjIna, rjIna ? (rjIdrg - rjIna) / rjIna : 0];
@@ -2123,8 +2090,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         let sK = 0, sIna = 0, sIdrg = 0;
         classes.forEach((cls) => {
           sK += result[type][lvl][cls][0];
-          sIna += result[type][lvl][cls][1];
-          sIdrg += result[type][lvl][cls][2];
+          sIna += roundM(result[type][lvl][cls][1]);
+          sIdrg += roundM(result[type][lvl][cls][2]);
         });
         result[type][lvl].Total = [sK, sIna, sIdrg, sIdrg - sIna, sIna ? (sIdrg - sIna) / sIna : 0];
       });
@@ -2132,8 +2099,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       let sTotK = 0, sTotIna = 0, sTotIdrg = 0;
       classes.forEach((cls) => {
         sTotK += result[type].total[cls][0];
-        sTotIna += result[type].total[cls][1];
-        sTotIdrg += result[type].total[cls][2];
+        sTotIna += roundM(result[type].total[cls][1]);
+        sTotIdrg += roundM(result[type].total[cls][2]);
       });
       result[type].total.Total = [sTotK, sTotIna, sTotIdrg, sTotIdrg - sTotIna, sTotIna ? (sTotIdrg - sTotIna) / sTotIna : 0];
     });
@@ -2141,8 +2108,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     let gTotK = 0, gTotIna = 0, gTotIdrg = 0;
     classes.forEach((cls) => {
       gTotK += result.grand[cls][0];
-      gTotIna += result.grand[cls][1];
-      gTotIdrg += result.grand[cls][2];
+      gTotIna += roundM(result.grand[cls][1]);
+      gTotIdrg += roundM(result.grand[cls][2]);
     });
     result.grand.Total = [gTotK, gTotIna, gTotIdrg, gTotIdrg - gTotIna, gTotIna ? (gTotIdrg - gTotIna) / gTotIna : 0];
 
