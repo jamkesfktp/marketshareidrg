@@ -55,9 +55,9 @@
     var inMilyar = abs / 1e9;
     var formatted;
     if (abs >= 1e9) {
-        formatted = inMilyar.toLocaleString("id-ID", { maximumFractionDigits: 2 });
+        formatted = inMilyar.toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     } else {
-        formatted = inMilyar.toLocaleString("id-ID", { maximumFractionDigits: 3 });
+        formatted = inMilyar.toLocaleString("id-ID", { minimumFractionDigits: 3, maximumFractionDigits: 3 });
     }
     return sign + "Rp " + formatted + " M";
   }
@@ -68,9 +68,9 @@
     var inMilyar = abs / 1e9;
     var formatted;
     if (abs >= 1e9) {
-        formatted = inMilyar.toLocaleString("id-ID", { maximumFractionDigits: 2 });
+        formatted = inMilyar.toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     } else {
-        formatted = inMilyar.toLocaleString("id-ID", { maximumFractionDigits: 3 });
+        formatted = inMilyar.toLocaleString("id-ID", { minimumFractionDigits: 3, maximumFractionDigits: 3 });
     }
     return sign + formatted + " M";
   }

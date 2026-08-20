@@ -28,9 +28,9 @@
       const inMilyar = absolute / 1e9;
       let formatted;
       if (absolute >= 1e9) {
-      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(inMilyar);
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(inMilyar);
     } else {
-      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(inMilyar);
     }
       return `${sign}Rp ${formatted} M`;
     },

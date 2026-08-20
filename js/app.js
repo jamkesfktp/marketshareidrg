@@ -218,16 +218,16 @@
     const inMilyar = absolute / 1e9;
     let formatted;
     if (absolute >= 1e9) {
-      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(inMilyar);
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(inMilyar);
     } else {
-      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(inMilyar);
     }
     return `${sign}${formatted} M`;
   };
   const formatMatrixMoney = (value) => {const numeric = Number(value) || 0;const absolute = Math.abs(numeric);const sign = numeric < 0 ? "-" : "";const inMilyar = absolute / 1e9;let formatted;if (absolute >= 1e9) {
-      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(inMilyar);
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(inMilyar);
     } else {
-      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(inMilyar);
     }return sign + formatted;};
   const formatPercent = (value) => `${decimalFormatter.format((Number(value) || 0) * 100)}%`;
 
@@ -1372,9 +1372,9 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const inMilyar = absolute / 1e9;
     let formatted;
     if (absolute >= 1e9) {
-      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(inMilyar);
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(inMilyar);
     } else {
-      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(inMilyar);
     }
     return `${sign}${formatted} M`;
   };
@@ -1767,9 +1767,9 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const inMilyar = absolute / 1e9;
     let formatted;
     if (absolute >= 1e9) {
-      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(inMilyar);
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(inMilyar);
     } else {
-      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(inMilyar);
     }
     return `${sign}${formatted} M`;
   };
@@ -1951,9 +1951,9 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const inMilyar = absolute / 1e9;
     let formatted;
     if (absolute >= 1e9) {
-      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(inMilyar);
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(inMilyar);
     } else {
-      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(inMilyar);
     }
     return `${sign}${formatted} M`;
   }
@@ -1965,9 +1965,9 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const inMilyar = absolute / 1e9;
     let formatted;
     if (absolute >= 1e9) {
-      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(inMilyar);
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(inMilyar);
     } else {
-      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(inMilyar);
     }
     return `${sign}${formatted}`;
   }
@@ -1979,9 +1979,9 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const inMilyar = absolute / 1e9;
     let formatted;
     if (absolute >= 1e9) {
-      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(inMilyar);
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(inMilyar);
     } else {
-      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(inMilyar);
     }
     return `${sign}${formatted} M`;
   }
@@ -7213,8 +7213,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       const absVal = Math.abs(val);
       const numericInM = absVal / 1e9;
       const formatted = (absVal >= 1e9) 
-         ? new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(numericInM)
-         : new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(numericInM);
+         ? new Intl.NumberFormat("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(numericInM)
+         : new Intl.NumberFormat("id-ID", { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(numericInM);
       return (val < 0 ? "- " : "") + formatted;
     };
 
