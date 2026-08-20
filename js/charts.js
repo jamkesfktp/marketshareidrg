@@ -29,10 +29,10 @@
       let formatted;
       if (absolute > 0 && absolute < 1e6) {
       formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(inMilyar);
-    } else if (absolute >= 1e9) {
-      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(inMilyar);
+    } else if (absolute < 1e8) {
+      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 }).format(inMilyar);
     } else {
-      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 4 }).format(inMilyar);
+      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(inMilyar);
     }
       return `${sign}Rp ${formatted} M`;
     },
