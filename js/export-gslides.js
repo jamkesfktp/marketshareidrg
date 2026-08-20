@@ -50,19 +50,29 @@
   }
 
   function money(n) {
-    if (n === null || n === undefined || isNaN(n)) return "Rp 0";
-    var abs = Math.abs(n), sign = n < 0 ? "− " : "";
-    if (abs >= 1e12) return sign + "Rp " + (abs / 1e12).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " T";
-    if (abs >= 1e9)  return sign + "Rp " + (abs / 1e9).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " M";
-    if (abs >= 1e6)  return sign + "Rp " + (abs / 1e6).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " JT";
-    if (abs >= 1e3)  return sign + "Rp " + (abs / 1e3).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " rb";
-    return sign + "Rp " + num(abs, 0);
+    if (n === null || n === undefined || isNaN(n)) return "Rp 0 M";
+    var abs = Math.abs(n), sign = n < 0 ? "- " : "";
+    var inMilyar = abs / 1e9;
+    var formatted;
+    if (abs > 0 && abs < 1e6) {
+        formatted = inMilyar.toLocaleString("id-ID", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+    } else {
+        formatted = inMilyar.toLocaleString("id-ID", { maximumFractionDigits: 4 });
+    }
+    return sign + "Rp " + formatted + " M";
   }
 
   function moneyM(n) {
-    if (n === null || n === undefined || isNaN(n)) return "0,00 M";
-    var abs = Math.abs(n), sign = n < 0 ? "−" : "";
-    return sign + (abs / 1e9).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " M";
+    if (n === null || n === undefined || isNaN(n)) return "0 M";
+    var abs = Math.abs(n), sign = n < 0 ? "-" : "";
+    var inMilyar = abs / 1e9;
+    var formatted;
+    if (abs > 0 && abs < 1e6) {
+        formatted = inMilyar.toLocaleString("id-ID", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+    } else {
+        formatted = inMilyar.toLocaleString("id-ID", { maximumFractionDigits: 4 });
+    }
+    return sign + formatted + " M";
   }
 
   function signed(n) {
