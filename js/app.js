@@ -756,18 +756,7 @@
       window.getSimKurangMode = () => document.getElementById('globalSimKurangSelect')?.value || 'kurang_dm';
     }
     
-    const fmtM = (val) => {
-      const num = val || 0;
-      const absVal = Math.abs(num);
-      const sign = num < 0 ? '-' : '';
-      if (absVal >= 1e12) {
-        return sign + (absVal / 1e12).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " T";
-      }
-      if (absVal >= 1e9) {
-        return sign + (absVal / 1e9).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " M";
-      }
-      return sign + Math.round(absVal).toLocaleString("id-ID");
-    };
+    const fmtM = formatTableMoney;
 
     // Hitung Kondisi Eksisting Dinamis
     const globalSimSelectVal = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
@@ -2205,16 +2194,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       return sign + (v * 100).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "%";
     };
 
-    const fmtM = (val) => {
-      const absVal = Math.abs(val || 0);
-      if (absVal >= 1e12) {
-        return (absVal / 1e12).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " T";
-      }
-      if (absVal >= 1e9) {
-        return (absVal / 1e9).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " M";
-      }
-      return Math.round(absVal).toLocaleString("id-ID");
-    };
+    const fmtM = formatTableMoney;
 
     const renderCells = (groupData) => {
       const [k, ina, idrg, selisih, pct] = groupData || [0,0,0,0,0];
@@ -6735,23 +6715,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       const { baseTambahan, basePengurangan, scnEvals: scnMetrics, chosenIdx: mostLogicalScenarioIndex } = calcResult;
       console.log('[DEBUG Skenario Logis]', service, '-> chosenIdx:', mostLogicalScenarioIndex, '| safeCount:', scnMetrics.filter(s=>s.isSafe).length, '| scnCount:', scnMetrics.length, '| scenarios in state:', (state.serviceScenarios[service]||[]).length);
       
-      const formatMatrixMoneyJT = (val) => {
-        if (val === 0 || isNaN(val)) return "0";
-        const numeric = Number(val) || 0;
-        const sign = numeric < 0 ? "-" : "";
-        const absVal = Math.abs(numeric);
-        if (absVal >= 1e12) {
-          return sign + (absVal / 1e12).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " T";
-        } else if (absVal >= 1e9) {
-          return sign + (absVal / 1e9).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " M";
-        } else if (absVal >= 1e6) {
-          return sign + (absVal / 1e6).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " JT";
-        } else if (absVal >= 1e3) {
-          return sign + (absVal / 1e3).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " rb";
-        } else {
-          return sign + absVal.toLocaleString('id-ID');
-        }
-      };
+      const formatMatrixMoneyJT = formatTableMoney;
       const targetSvcRef = target.services[service];
       const regionalSvcRef = data.regional.services[service];
 
@@ -6918,19 +6882,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           ? `Skenario ${mostLogicalScenarioIndex + 1} memberikan potensi net pendapatan terbaik yang logis`
           : `Belum ada skenario yang aman/logis untuk dipilih.`;
 
-      const formatNetMoneyUnit = (val) => {
-        const absVal = Math.abs(val);
-        if (absVal >= 1e12) {
-          return (absVal / 1e12).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " T";
-        }
-        if (absVal >= 1e9) {
-          return (absVal / 1e9).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " M";
-        }
-        if (absVal >= 1e6) {
-          return (absVal / 1e6).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " JT";
-        }
-        return absVal.toLocaleString('id-ID');
-      };
+      const formatNetMoneyUnit = formatTableMoney;
 
       const highestRevenueNote =
         highestRevenueNet > 0
