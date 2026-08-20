@@ -24,12 +24,15 @@
     compactCases: (value) => value >= 1e6 ? `${decimal.format(value / 1e6)} jt` : `${number.format(value / 1e3)} rb`,
     rupiah: (value) => {
       const absolute = Math.abs(value);
-      let result;
-      if (absolute >= 1e12) result = `Rp${decimal.format(absolute / 1e12)} T`;
-      else if (absolute >= 1e9) result = `Rp${decimal.format(absolute / 1e9)} M`;
-      else if (absolute >= 1e6) result = `Rp${decimal.format(absolute / 1e6)} jt`;
-      else result = `Rp${number.format(absolute)}`;
-      return value < 0 ? `−${result}` : result;
+      const sign = value < 0 ? "-" : "";
+      const inMilyar = absolute / 1e9;
+      let formatted;
+      if (absolute > 0 && absolute < 1e6) {
+        formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(inMilyar);
+      } else {
+        formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 4 }).format(inMilyar);
+      }
+      return `${sign}Rp ${formatted} M`;
     },
   };
 

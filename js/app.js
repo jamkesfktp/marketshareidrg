@@ -214,23 +214,17 @@
   const formatMoney = (value) => {
     const numeric = Number(value) || 0;
     const absolute = Math.abs(numeric);
-    const sign = numeric < 0 ? "−" : "";
-    if (absolute >= 1e12) return `${sign}${compactFormatter.format(absolute / 1e12)} T`;
-    if (absolute >= 1e9) return `${sign}${compactFormatter.format(absolute / 1e9)} M`;
-    if (absolute >= 1e6) return `${sign}${compactFormatter.format(absolute / 1e6)} JT`;
-    if (absolute >= 1e3) return `${sign}${compactFormatter.format(absolute / 1e3)} rb`;
-    return `${sign}${numberFormatter.format(absolute)}`;
+    const sign = numeric < 0 ? "-" : "";
+    const inMilyar = absolute / 1e9;
+    let formatted;
+    if (absolute > 0 && absolute < 1e6) {
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(inMilyar);
+    } else {
+      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 4 }).format(inMilyar);
+    }
+    return `${sign}${formatted} M`;
   };
-  const formatMatrixMoney = (value) => {
-    const numeric = Number(value) || 0;
-    const absolute = Math.abs(numeric);
-    const sign = numeric < 0 ? "−" : "";
-    if (absolute >= 1e12) return `${sign}${compactFormatter.format(absolute / 1e12)} T`;
-    if (absolute >= 1e9) return `${sign}${compactFormatter.format(absolute / 1e9)} M`;
-    if (absolute >= 1e6) return `${sign}${compactFormatter.format(absolute / 1e6)} JT`;
-    if (absolute >= 1e3) return `${sign}${compactFormatter.format(absolute / 1e3)} rb`;
-    return `${sign}${numberFormatter.format(absolute)}`;
-  };
+  const formatMatrixMoney = (value) => {const numeric = Number(value) || 0;const absolute = Math.abs(numeric);const sign = numeric < 0 ? "-" : "";const inMilyar = absolute / 1e9;let formatted;if (absolute > 0 && absolute < 1e6) {formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(inMilyar);} else {formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 4 }).format(inMilyar);}return sign + formatted;};
   const formatPercent = (value) => `${decimalFormatter.format((Number(value) || 0) * 100)}%`;
 
   const serviceAliases = {
@@ -638,7 +632,7 @@
       </div>
       <article class="panel addressable-table-panel">
         <div class="table-wrap addressable-table-wrap"><table class="compact-table addressable-matrix-table"><colgroup><col class="addressable-service-col"><col class="addressable-competency-col"><col class="addressable-capability-col"><col class="addressable-number-col"><col class="addressable-number-col"><col class="addressable-number-col"><col class="addressable-money-col"><col class="addressable-competitor-col"></colgroup><thead><tr><th>Layanan</th><th>Kompetensi target</th><th>Keparahan yang mampu dilayani</th><th class="num">Kasus regional eligible</th><th class="num">Eksisting eligible</th><th class="num">External pool</th><th class="num">iDRG external</th><th class="num">Kompetitor setara</th></tr></thead><tbody>
-          ${result.rows.map((row) => `<tr class="${row.competency ? "" : "is-disabled"}"><td class="service-name">${escapeHtml(formatService(row.service))}</td><td>${levelBadge(row.competency)}</td><td>${capabilityCells(row.competency)}</td><td class="num">${formatNumber(row.eligibleRegional[CASES])}</td><td class="num">${formatNumber(row.eligibleExisting[CASES])}</td><td class="num">${formatNumber(row.external[CASES])}</td><td class="num">${formatMoney(row.external[IDRG])}</td><td class="num">${formatNumber(row.competitors)}</td></tr>`).join("")}
+          ${result.rows.map((row) => `<tr class="${row.competency ? "" : "is-disabled"}"><td class="service-name">${escapeHtml(formatService(row.service))}</td><td>${levelBadge(row.competency)}</td><td>${capabilityCells(row.competency)}</td><td class="num">${formatNumber(row.eligibleRegional[CASES])}</td><td class="num">${formatNumber(row.eligibleExisting[CASES])}</td><td class="num">${formatNumber(row.external[CASES])}</td><td class="num">${formatTableMoney(row.external[IDRG])}</td><td class="num">${formatNumber(row.competitors)}</td></tr>`).join("")}
         </tbody></table></div>
       </article>`;
   }
@@ -1368,14 +1362,18 @@ document.getElementById("globalSimulationSlide").innerHTML = `
 
   function renderCompetencySimSlide() {
     const formatMoneyUnit = (val) => {
-      if (!val || isNaN(val)) return '0,00';
-      const sign = val < 0 ? '-' : '';
-      const absVal = Math.abs(val);
-      if (absVal >= 1e12) return sign + (absVal / 1e12).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' T';
-      if (absVal >= 1e9) return sign + (absVal / 1e9).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' M';
-      if (absVal >= 1e6) return sign + (absVal / 1e6).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' JT';
-      return sign + Math.round(absVal).toLocaleString('id-ID');
-    };
+    const numeric = Number(val) || 0;
+    const absolute = Math.abs(numeric);
+    const sign = numeric < 0 ? "-" : "";
+    const inMilyar = absolute / 1e9;
+    let formatted;
+    if (absolute > 0 && absolute < 1e6) {
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(inMilyar);
+    } else {
+      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 4 }).format(inMilyar);
+    }
+    return `${sign}${formatted} M`;
+  };
 
     const container = document.getElementById('competencyTableSlide');
     if (!container) return;
@@ -1540,10 +1538,10 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     else if (kurangMode === 'kurang_dp') headerPengurangan = 'Pengurangan Kasus Dasar & Paripurna';
     else if (kurangMode === 'kurang_mup') headerPengurangan = 'Pengurangan Kasus Madya, Utama & Paripurna';
     
-    let headerEksisting = 'Pendapatan Eksisting iDRG Kasus Dasar & Madya (Rp)';
-    if (tambahMode === 'tambah_up') headerEksisting = 'Pendapatan Eksisting iDRG Kasus Utama & Paripurna (Rp)';
-    else if (tambahMode === 'tambah_mu_reg' || tambahMode === 'tambah_mu_higher') headerEksisting = 'Pendapatan Eksisting iDRG Kasus Madya & Utama (Rp)';
-    else if (tambahMode === 'tambah_d_reg' || tambahMode === 'tambah_d_higher') headerEksisting = 'Pendapatan Eksisting iDRG Kasus Dasar (Rp)';
+    let headerEksisting = 'Pendapatan Eksisting iDRG Kasus Dasar & Madya (Rp. M)';
+    if (tambahMode === 'tambah_up') headerEksisting = 'Pendapatan Eksisting iDRG Kasus Utama & Paripurna (Rp. M)';
+    else if (tambahMode === 'tambah_mu_reg' || tambahMode === 'tambah_mu_higher') headerEksisting = 'Pendapatan Eksisting iDRG Kasus Madya & Utama (Rp. M)';
+    else if (tambahMode === 'tambah_d_reg' || tambahMode === 'tambah_d_higher') headerEksisting = 'Pendapatan Eksisting iDRG Kasus Dasar (Rp. M)';
 
     let eksistingTambahan = eksistingDM_Idrg;
     if (tambahMode === 'tambah_up') eksistingTambahan = eksistingUP_Idrg;
@@ -1621,22 +1619,22 @@ document.getElementById("globalSimulationSlide").innerHTML = `
             <thead style="background: #38bdf8; color: white;">
               <tr>
                 <th rowspan="2" style="border: 1px solid #1e293b; padding: 8px; background: #0f766e;">Skenario</th>
-                <th rowspan="2" style="border: 1px solid #1e293b; padding: 8px; background: #334155;">Eksisting Kasus & Pendapatan (Rp)<br><span style="font-size:10px;font-weight:normal;">(${headerTambahan.replace('Tambahan Kasus ', '')})</span></th>
+                <th rowspan="2" style="border: 1px solid #1e293b; padding: 8px; background: #334155;">Eksisting Kasus & Pendapatan (Rp. M)<br><span style="font-size:10px;font-weight:normal;">(${headerTambahan.replace('Tambahan Kasus ', '')})</span></th>
                 <th colspan="3" style="border: 1px solid #1e293b; padding: 8px; background: #059669;">${headerTambahan}</th>
                 <th colspan="3" style="border: 1px solid #1e293b; padding: 8px; background: #e11d48;">${headerPengurangan}</th>
-                <th rowspan="2" style="border: 1px solid #1e293b; padding: 8px; background: #047857;">Total Pendapatan Pasca iDRG & RBKP (Rp)</th>
+                <th rowspan="2" style="border: 1px solid #1e293b; padding: 8px; background: #047857;">Total Pendapatan Pasca iDRG & RBKP (Rp. M)</th>
                 <th colspan="4" style="border: 1px solid #1e293b; padding: 8px; background: #0d9488;">Net +/- Pasca iDRG & RBKP (vs INACBG)</th>
               </tr>
               <tr>
                 <th style="border: 1px solid #1e293b; padding: 8px; background: #10b981;">Persentase</th>
                 <th style="border: 1px solid #1e293b; padding: 8px; background: #10b981;">Jumlah Kasus</th>
-                <th style="border: 1px solid #1e293b; padding: 8px; background: #10b981;">Tambahan (Rp)</th>
+                <th style="border: 1px solid #1e293b; padding: 8px; background: #10b981;">Tambahan (Rp. M)</th>
                 <th style="border: 1px solid #1e293b; padding: 8px; background: #f43f5e;">Persentase</th>
                 <th style="border: 1px solid #1e293b; padding: 8px; background: #f43f5e;">Jumlah Kasus</th>
-                <th style="border: 1px solid #1e293b; padding: 8px; background: #f43f5e;">Pengurangan (Rp)</th>
+                <th style="border: 1px solid #1e293b; padding: 8px; background: #f43f5e;">Pengurangan (Rp. M)</th>
                 <th style="border: 1px solid #1e293b; padding: 8px; background: #14b8a6;">+/- Kasus</th>
                 <th style="border: 1px solid #1e293b; padding: 8px; background: #14b8a6;">% thd total kasus</th>
-                <th style="border: 1px solid #1e293b; padding: 8px; background: #14b8a6;">+/- Pendapatan (Rp)</th>
+                <th style="border: 1px solid #1e293b; padding: 8px; background: #14b8a6;">+/- Pendapatan (Rp. M)</th>
                 <th style="border: 1px solid #1e293b; padding: 8px; background: #14b8a6;">% +/- Pendapatan</th>
               </tr>
             </thead>
@@ -1759,21 +1757,18 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const totalActive = data.hospitals.length;
 
     const formatMoneyUnit = (val) => {
-      if (!val || isNaN(val)) return '0,00';
-      const sign = val < 0 ? '-' : '';
-      const absVal = Math.abs(val);
-      if (absVal >= 1e12) {
-        return sign + (absVal / 1e12).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' T';
-      } else if (absVal >= 1e9) {
-        return sign + (absVal / 1e9).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' M';
-      } else if (absVal >= 1e6) {
-        return sign + (absVal / 1e6).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' JT';
-      } else if (absVal >= 1e3) {
-        return sign + (absVal / 1e3).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' rb';
-      } else {
-        return sign + absVal.toLocaleString('id-ID');
-      }
-    };
+    const numeric = Number(val) || 0;
+    const absolute = Math.abs(numeric);
+    const sign = numeric < 0 ? "-" : "";
+    const inMilyar = absolute / 1e9;
+    let formatted;
+    if (absolute > 0 && absolute < 1e6) {
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(inMilyar);
+    } else {
+      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 4 }).format(inMilyar);
+    }
+    return `${sign}${formatted} M`;
+  };
 
     // Hospital classes
     const classCounts = { A: 0, B: 0, C: 0, D: 0 };
@@ -1946,52 +1941,45 @@ document.getElementById("globalSimulationSlide").innerHTML = `
 
   // Alias untuk format uang: T (triliun), M (miliar), 2 desimal
   function formatMoneyUnit(val) {
-    if (!val || isNaN(val)) return "0";
-    const absVal = Math.abs(val);
-    const sign = val < 0 ? "-" : "";
-    if (absVal >= 1e12) {
-      return sign + (absVal / 1e12).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " T";
-    } else if (absVal >= 1e9) {
-      return sign + (absVal / 1e9).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " M";
-    } else if (absVal >= 1e6) {
-      return sign + (absVal / 1e6).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " JT";
+    const numeric = Number(val) || 0;
+    const absolute = Math.abs(numeric);
+    const sign = numeric < 0 ? "-" : "";
+    const inMilyar = absolute / 1e9;
+    let formatted;
+    if (absolute > 0 && absolute < 1e6) {
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(inMilyar);
     } else {
-      return sign + Math.round(absVal).toLocaleString("id-ID");
+      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 4 }).format(inMilyar);
     }
+    return `${sign}${formatted} M`;
   }
 
   function formatTableMoney(val) {
-    if (!val || isNaN(val)) return "0";
-    const absVal = Math.abs(val);
-    const sign = val < 0 ? "-" : "";
-    if (absVal >= 1e12) {
-      return sign + (absVal / 1e12).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " T";
-    } else if (absVal >= 1e9) {
-      return sign + (absVal / 1e9).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " M";
-    } else if (absVal >= 1e6) {
-      return sign + (absVal / 1e6).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " JT";
-    } else if (absVal >= 1e3) {
-      return sign + (absVal / 1e3).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " rb";
+    const numeric = Number(val) || 0;
+    const absolute = Math.abs(numeric);
+    const sign = numeric < 0 ? "-" : "";
+    const inMilyar = absolute / 1e9;
+    let formatted;
+    if (absolute > 0 && absolute < 1e6) {
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(inMilyar);
     } else {
-      return sign + Math.round(absVal).toLocaleString("id-ID");
+      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 4 }).format(inMilyar);
     }
+    return `${sign}${formatted}`;
   }
 
   function formatNetMoneyUnit(val) {
-      if (!val || isNaN(val)) return "0";
-      const sign = val < 0 ? "-" : "+";
-      const absVal = Math.abs(val);
-      if (absVal >= 1e12) {
-        return sign + (absVal / 1e12).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " T";
-      } else if (absVal >= 1e9) {
-        return sign + (absVal / 1e9).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " M";
-      } else if (absVal >= 1e6) {
-        return sign + (absVal / 1e6).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " JT";
-      } else if (absVal >= 1e3) {
-        return sign + (absVal / 1e3).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " rb";
-      } else {
-        return sign + Math.round(absVal).toLocaleString("id-ID");
-      }
+    const numeric = Number(val) || 0;
+    const absolute = Math.abs(numeric);
+    const sign = numeric < 0 ? "-" : "";
+    const inMilyar = absolute / 1e9;
+    let formatted;
+    if (absolute > 0 && absolute < 1e6) {
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(inMilyar);
+    } else {
+      formatted = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 4 }).format(inMilyar);
+    }
+    return `${sign}${formatted} M`;
   }
 
   function formatTablePct(pct) {
@@ -2647,7 +2635,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
                 <th rowspan="2" style="padding: 7px 6px; border: 1px solid #0d9488; vertical-align: middle; width: 85px;">Jenis Layanan</th>
                 <th rowspan="2" style="padding: 7px 6px; border: 1px solid #0d9488; vertical-align: middle; min-width: 135px;">Kategori Spending</th>
                 <th colspan="2" style="padding: 5px 4px; border: 1px solid #0d9488; background: #115e59;">Total Seluruhnya</th>
-                <th colspan="5" style="padding: 5px 4px; border: 1px solid #0d9488; background: #0369a1;">Spending menurut Kelas RS (Rp)</th>
+                <th colspan="5" style="padding: 5px 4px; border: 1px solid #0d9488; background: #0369a1;">Spending menurut Kelas RS (Rp. M)</th>
                 <th colspan="5" style="padding: 5px 4px; border: 1px solid #0d9488; background: #d97706;">Kenaikan / Penurunan iDRG (%)</th>
                 <th rowspan="2" style="padding: 7px 8px; border: 1px solid #0d9488; vertical-align: middle; min-width: 150px;">Keterangan</th>
               </tr>
@@ -4967,8 +4955,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
               <th style="width: 55px; text-align: center;">Kelas</th>
               <th style="width: 95px; text-align: center;">Layanan Kompeten</th>
               <th class="num" style="min-width: 100px;">Kasus Mirroring</th>
-              <th class="num" style="min-width: 120px;">INA-CBG (Rp)</th>
-              <th class="num" style="min-width: 120px;">Potensi iDRG (Rp)</th>
+              <th class="num" style="min-width: 120px;">INA-CBG (Rp. M)</th>
+              <th class="num" style="min-width: 120px;">Potensi iDRG (Rp. M)</th>
               <th class="num" style="min-width: 120px;">Selisih (+/– Rp)</th>
               <th class="num" style="min-width: 65px;">Share</th>
               <th style="width: 95px; text-align: center;">Aksi Target</th>
@@ -5009,8 +4997,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
                     <span style="color: ${competentCount >= 18 ? '#15803d' : competentCount >= 10 ? '#0284c7' : '#d97706'};">${competentCount}</span><span style="color: #94a3b8; font-size: 10.5px;">/24</span>
                   </td>
                   <td class="num" style="font-weight: 800; color: #1e293b;">${formatNumber(hCases)}</td>
-                  <td class="num">${formatMoney(hIna)}</td>
-                  <td class="num" style="font-weight: 800; color: #0284c7;">${formatMoney(hIdrg)}</td>
+                  <td class="num">${formatTableMoney(hIna)}</td>
+                  <td class="num" style="font-weight: 800; color: #0284c7;">${formatTableMoney(hIdrg)}</td>
                   <td class="num ${hDelta >= 0 ? 'delta-positive' : 'delta-negative'}">
                     ${hDelta >= 0 ? '+' : ''}${formatMoney(hDelta)}
                     <div style="font-size: 9.5px; font-weight: 600; opacity: 0.85;">${hDeltaPct >= 0 ? '▲ +' : '▼ '}${formatPercent(hDeltaPct)}</div>
@@ -5048,8 +5036,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
               <th style="width: 35px; text-align: center;">No</th>
               <th style="min-width: 200px;">Kelompok Layanan</th>
               <th class="num" style="min-width: 95px;">Total Kasus Group</th>
-              <th class="num" style="min-width: 115px;">Nilai INA-CBG (Rp)</th>
-              <th class="num" style="min-width: 115px;">Potensi iDRG (Rp)</th>
+              <th class="num" style="min-width: 115px;">Nilai INA-CBG (Rp. M)</th>
+              <th class="num" style="min-width: 115px;">Potensi iDRG (Rp. M)</th>
               <th class="num" style="min-width: 115px;">Selisih (+/– Rp)</th>
               <th class="num" style="min-width: 65px;">Share Group</th>
               <th style="min-width: 170px; text-align: center;">Distribusi Strata RS Muhammadiyah</th>
@@ -5063,8 +5051,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
                   <td style="text-align: center; font-weight: 700; color: #64748b;">${idx + 1}</td>
                   <td style="font-weight: 800; color: #1e293b;">${escapeHtml(formatService(s.service))}</td>
                   <td class="num" style="font-weight: 800; color: #1e293b;">${formatNumber(s.cases)}</td>
-                  <td class="num">${formatMoney(s.ina)}</td>
-                  <td class="num" style="font-weight: 800; color: #0284c7;">${formatMoney(s.idrg)}</td>
+                  <td class="num">${formatTableMoney(s.ina)}</td>
+                  <td class="num" style="font-weight: 800; color: #0284c7;">${formatTableMoney(s.idrg)}</td>
                   <td class="num ${s.delta >= 0 ? 'delta-positive' : 'delta-negative'}">
                     ${s.delta >= 0 ? '+' : ''}${formatMoney(s.delta)}
                     <div style="font-size: 9.5px; font-weight: 600; opacity: 0.85;">${s.deltaPct >= 0 ? '▲ +' : '▼ '}${formatPercent(s.deltaPct)}</div>
@@ -5113,8 +5101,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
               <th style="min-width: 180px;">Provinsi</th>
               <th class="num" style="min-width: 80px;">Jumlah RS</th>
               <th class="num" style="min-width: 100px;">Total Kasus</th>
-              <th class="num" style="min-width: 120px;">INA-CBG (Rp)</th>
-              <th class="num" style="min-width: 120px;">Potensi iDRG (Rp)</th>
+              <th class="num" style="min-width: 120px;">INA-CBG (Rp. M)</th>
+              <th class="num" style="min-width: 120px;">Potensi iDRG (Rp. M)</th>
               <th class="num" style="min-width: 120px;">Selisih (+/– Rp)</th>
               <th class="num" style="min-width: 65px;">Share Group</th>
               <th style="min-width: 200px;">RS Terbesar di Provinsi</th>
@@ -5128,8 +5116,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
                   <td style="font-weight: 800; color: #1e293b;">${escapeHtml(p.province)}</td>
                   <td class="num" style="font-weight: 800; color: #059669;">${p.rsCount} RS</td>
                   <td class="num" style="font-weight: 800; color: #1e293b;">${formatNumber(p.cases)}</td>
-                  <td class="num">${formatMoney(p.ina)}</td>
-                  <td class="num" style="font-weight: 800; color: #0284c7;">${formatMoney(p.idrg)}</td>
+                  <td class="num">${formatTableMoney(p.ina)}</td>
+                  <td class="num" style="font-weight: 800; color: #0284c7;">${formatTableMoney(p.idrg)}</td>
                   <td class="num ${p.delta >= 0 ? 'delta-positive' : 'delta-negative'}">
                     ${p.delta >= 0 ? '+' : ''}${formatMoney(p.delta)}
                     <div style="font-size: 9.5px; font-weight: 600; opacity: 0.85;">${p.deltaPct >= 0 ? '▲ +' : '▼ '}${formatPercent(p.deltaPct)}</div>
@@ -5567,7 +5555,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           <article class="panel simulation-table-panel">
             <div class="panel-heading"><h2>Proyeksi seluruh layanan</h2><span>Klik layanan untuk melihat kompetitor dan override</span></div>
             <div class="table-wrap"><table class="compact-table"><thead><tr><th>Layanan</th><th>Kompetensi</th><th class="num">Eksisting</th><th class="num">Retained</th><th class="num">Captured</th><th class="num">Proyeksi</th><th class="num">Δ kasus</th><th class="num">Proyeksi iDRG</th><th class="num">Δ iDRG</th></tr></thead><tbody>
-              ${result.serviceRows.map((row) => `<tr class="${row.service === state.selectedService ? "is-selected" : ""} ${row.competency ? "" : "is-disabled"}"><td><button class="service-button" data-service="${escapeHtml(row.service)}" type="button">${escapeHtml(formatService(row.service))}</button></td><td>${levelBadge(row.competency)}</td><td class="num">${formatNumber(row.existing[CASES])}</td><td class="num">${formatNumber(row.retained[CASES])}</td><td class="num">${formatNumber(row.captured[CASES])}</td><td class="num">${formatNumber(row.projected[CASES])}</td><td class="num ${deltaClass(row.delta[CASES])}">${formatSignedNumber(row.delta[CASES])}</td><td class="num">${formatMoney(row.projected[IDRG])}</td><td class="num ${deltaClass(row.delta[IDRG])}">${formatMoney(row.delta[IDRG])}</td></tr>`).join("")}
+              ${result.serviceRows.map((row) => `<tr class="${row.service === state.selectedService ? "is-selected" : ""} ${row.competency ? "" : "is-disabled"}"><td><button class="service-button" data-service="${escapeHtml(row.service)}" type="button">${escapeHtml(formatService(row.service))}</button></td><td>${levelBadge(row.competency)}</td><td class="num">${formatNumber(row.existing[CASES])}</td><td class="num">${formatNumber(row.retained[CASES])}</td><td class="num">${formatNumber(row.captured[CASES])}</td><td class="num">${formatNumber(row.projected[CASES])}</td><td class="num ${deltaClass(row.delta[CASES])}">${formatSignedNumber(row.delta[CASES])}</td><td class="num">${formatTableMoney(row.projected[IDRG])}</td><td class="num ${deltaClass(row.delta[IDRG])}">${formatTableMoney(row.delta[IDRG])}</td></tr>`).join("")}
             </tbody></table></div>
           </article>
         </div>
@@ -5627,8 +5615,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           <article class="panel competitor-table-panel">
             <div class="panel-heading"><h2>RS kompetitor setara yang mampu melayani*</h2><span>${competition.rows.length} RS · minimum ${levelNames[competition.minimumCompetency]}</span></div>
             <div class="table-wrap"><table class="compact-table"><thead><tr><th>#</th><th>Rumah sakit</th><th>Kota</th><th>Kompetensi</th><th class="num">Kasus eksisting</th><th class="num">iDRG</th><th class="num">Share regional</th></tr></thead><tbody>
-              ${competition.rows.length ? competition.rows.map((row, index) => `<tr><td>${index + 1}</td><td class="service-name">${escapeHtml(row.hospital.name)}</td><td>${escapeHtml(row.hospital.city)}</td><td>${levelBadge(row.competency)}</td><td class="num">${formatNumber(row.existing[CASES])}</td><td class="num">${formatMoney(row.existing[IDRG])}</td><td class="num">${formatPercent(row.share)}</td></tr>`).join("") : `<tr><td colspan="7"><div class="empty-state"><div><strong>Tidak ada RS kompetitor yang memenuhi kemampuan ini.</strong><span>Pilih layanan atau tingkat keparahan lain.</span></div></div></td></tr>`}
-              ${competition.outsideCapable[CASES] > 0 ? `<tr class="is-disabled"><td>—</td><td class="service-name">Kasus pada RS di luar kelompok kompetitor setara</td><td>Regional</td><td><span class="level-badge level-0">Di luar kriteria</span></td><td class="num">${formatNumber(competition.outsideCapable[CASES])}</td><td class="num">${formatMoney(competition.outsideCapable[IDRG])}</td><td class="num">${formatPercent(competition.regional[CASES] ? competition.outsideCapable[CASES] / competition.regional[CASES] : 0)}</td></tr>` : ""}
+              ${competition.rows.length ? competition.rows.map((row, index) => `<tr><td>${index + 1}</td><td class="service-name">${escapeHtml(row.hospital.name)}</td><td>${escapeHtml(row.hospital.city)}</td><td>${levelBadge(row.competency)}</td><td class="num">${formatNumber(row.existing[CASES])}</td><td class="num">${formatTableMoney(row.existing[IDRG])}</td><td class="num">${formatPercent(row.share)}</td></tr>`).join("") : `<tr><td colspan="7"><div class="empty-state"><div><strong>Tidak ada RS kompetitor yang memenuhi kemampuan ini.</strong><span>Pilih layanan atau tingkat keparahan lain.</span></div></div></td></tr>`}
+              ${competition.outsideCapable[CASES] > 0 ? `<tr class="is-disabled"><td>—</td><td class="service-name">Kasus pada RS di luar kelompok kompetitor setara</td><td>Regional</td><td><span class="level-badge level-0">Di luar kriteria</span></td><td class="num">${formatNumber(competition.outsideCapable[CASES])}</td><td class="num">${formatTableMoney(competition.outsideCapable[IDRG])}</td><td class="num">${formatPercent(competition.regional[CASES] ? competition.outsideCapable[CASES] / competition.regional[CASES] : 0)}</td></tr>` : ""}
             </tbody></table></div>
           </article>
         </div>
@@ -5706,7 +5694,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
               <th colspan="2" style="background-color: #0369a1; color: white; text-align: center;">Net +/- (Penambahan - Pengurangan)</th>
               <th rowspan="2" style="background-color: #0891b2; color: white;">Sisa Kasus & Pendapatan<br><span style="font-size:10px; font-weight:normal;">(Eksisting - Kurang)</span></th>
               <th rowspan="2" style="background-color: #1e40af; color: white;">PASCA KASUS<br><span style="font-size:10px; font-weight:normal;">(Sisa + Tambah)</span><br>& % Retensi</th>
-              <th rowspan="2" style="background-color: #1e40af; color: white;">PENDAPATAN<br>PASCA RBKP<br>(Rp)</th>
+              <th rowspan="2" style="background-color: #1e40af; color: white;">PENDAPATAN<br>PASCA RBKP<br>(Rp. M)</th>
               <th rowspan="2" style="background-color: #0f766e; color: white;">% Kenaikan thd<br>INA-CBG Awal</th>
             </tr>
             <tr>
@@ -6612,7 +6600,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
               <th colspan="2" style="background-color: #22c55e; color: white; padding: 6px; font-size: 12px; text-align: center; border: 1px solid white;">PROYEKSI TAMBAHAN (Low &rarr; High)</th>
               <th colspan="2" style="background-color: #dc2626; color: white; padding: 6px; font-size: 12px; text-align: center; border: 1px solid white;">PROYEKSI PENGURANGAN (Low &rarr; High)</th>
               <th colspan="2" style="background-color: #0ea5e9; color: white; padding: 6px; font-size: 12px; text-align: center; border: 1px solid white;">NET +/- (Low &rarr; High)</th>
-              <th rowspan="2" style="width: 80px; text-align: center; background-color: #16a085; color: white; padding: 6px; font-size: 12px; border: 1px solid white;">PENDAPATAN<br>EKSISTING Dengan iDRG<br>(Rp)</th>
+              <th rowspan="2" style="width: 80px; text-align: center; background-color: #16a085; color: white; padding: 6px; font-size: 12px; border: 1px solid white;">PENDAPATAN<br>EKSISTING Dengan iDRG<br>(Rp. M)</th>
               <th rowspan="2" style="width: 90px; text-align: center; background-color: #16a085; color: white; padding: 6px; font-size: 12px; border: 1px solid white;">PENDAPATAN<br>PASCA RBKP<br>(Low &rarr; High)</th>
               <th rowspan="2" style="width: 80px; text-align: center; background-color: #16a085; color: white; padding: 6px; font-size: 12px; border: 1px solid white;">% KENAIKAN<br>PENDAPATAN</th>
               <th rowspan="2" style="width: 80px; text-align: center; background-color: #ea580c; color: white; padding: 6px; font-size: 13px;">Prioritas Strategis</th>
@@ -7311,9 +7299,9 @@ document.getElementById("globalSimulationSlide").innerHTML = `
               <th style="padding: 15px 18px; font-weight: 700; width: 20%;">Tingkat Kompetensi</th>
               <th style="padding: 15px 18px; font-weight: 700; text-align: right; width: 14%;">Jumlah Kasus</th>
               <th style="padding: 15px 18px; font-weight: 700; text-align: right; width: 12%;">% Kasus RS</th>
-              <th style="padding: 15px 18px; font-weight: 700; text-align: right; width: 14%;">INA-CBG (Rp) (M)</th>
-              <th style="padding: 15px 18px; font-weight: 700; text-align: right; width: 14%;">iDRG (Rp) (M)</th>
-              <th style="padding: 15px 18px; font-weight: 700; text-align: right; width: 13%;">Selisih (Rp) (M)</th>
+              <th style="padding: 15px 18px; font-weight: 700; text-align: right; width: 14%;">INA-CBG (Rp. M)</th>
+              <th style="padding: 15px 18px; font-weight: 700; text-align: right; width: 14%;">iDRG (Rp. M)</th>
+              <th style="padding: 15px 18px; font-weight: 700; text-align: right; width: 13%;">Selisih (Rp. M)</th>
               <th style="padding: 15px 18px; font-weight: 700; text-align: right; width: 13%;">% Selisih</th>
             </tr>
           </thead>
