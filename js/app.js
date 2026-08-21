@@ -98,6 +98,8 @@
   
   let hospitalByCode = new Map();
   let hospitalClassCounts = {};
+  let dataStateVersion = 0;
+  let targetAggregateCache = { codesRef: null, version: -1, value: null };
   
   function updateDataState() {
     hospitalByCode = new Map(data.hospitals.map((hospital) => [hospital.code, hospital]));
@@ -105,6 +107,8 @@
       counts[className] = data.hospitals.filter((hospital) => String(hospital.class || "").trim().toUpperCase() === className).length;
       return counts;
     }, {});
+    dataStateVersion += 1;
+    targetAggregateCache = { codesRef: null, version: -1, value: null };
   }
   updateDataState();
   
@@ -263,6 +267,16 @@
   }
 
   function targetHospital() {
+    const codesRef = state.targetCodes;
+    if (
+      Array.isArray(codesRef) &&
+      codesRef.length > 1 &&
+      targetAggregateCache.codesRef === codesRef &&
+      targetAggregateCache.version === dataStateVersion
+    ) {
+      return targetAggregateCache.value;
+    }
+
     const list = getTargetHospitals();
     if (list.length === 0) return null;
     if (list.length === 1) return list[0];
@@ -332,7 +346,7 @@
     const province = uniqueProvs.size === 1 ? [...uniqueProvs][0] : `${uniqueProvs.size} Provinsi`;
     const className = uniqueClasses.size === 1 ? [...uniqueClasses][0] : "Gabungan";
 
-    return {
+    const aggregate = {
       code: "MULTI",
       name,
       city,
@@ -347,6 +361,8 @@
       targetCount: list.length,
       targetCodes: list.map(h => h.code)
     };
+    targetAggregateCache = { codesRef, version: dataStateVersion, value: aggregate };
+    return aggregate;
   }
 
   const targetService = (service) => targetHospital()?.services?.[service] || null;
@@ -7896,6 +7912,9 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const isSlide8 = typeof options === 'boolean' ? options : (options.isSlide8 || false);
     const isMuhammadiyahMap = typeof options === 'object' && options.isMuhammadiyahMap;
     const targetCodesSet = new Set(state.targetCodes || (state.targetCode ? [state.targetCode] : []));
+    // Avoid creating thousands of pulsing SVG target pins for a bulk
+    // selection. The hospitals remain visible as lightweight regular dots.
+    const useBulkTargetMarkers = targetCodesSet.size > 25;
 
     const gMarkers = document.createElementNS("http://www.w3.org/2000/svg", "g");
     gMarkers.setAttribute("id", "hospitalMarkersLayer");
@@ -7907,7 +7926,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const targetHosps = [];
 
     activeHospitals.forEach(h => {
-      if (targetCodesSet.has(h.code)) {
+      if (!useBulkTargetMarkers && targetCodesSet.has(h.code)) {
         targetHosps.push(h);
       } else {
         otherHospitals.push(h);
@@ -8412,6 +8431,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       const filtered = pool.filter(h => 
         h.name.toLowerCase().includes(term) || h.city.toLowerCase().includes(term) || h.code.toLowerCase().includes(term)
       );
+      const visibleHospitals = filtered.slice(0, 250);
       
       const selectedSet = new Set(state.targetCodes || (state.targetCode ? [state.targetCode] : []));
 
@@ -8425,7 +8445,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           </button>
         </div>
         <div class="search-select-options" style="max-height: 280px; overflow-y: auto;">
-          ${filtered.map(hospital => {
+          ${visibleHospitals.map(hospital => {
             const isChecked = selectedSet.has(hospital.code);
             return `
               <div class="search-select-item ${isChecked ? 'is-active' : ''}" data-code="${escapeHtml(hospital.code)}" style="display: flex; align-items: center; gap: 8px; padding: 6px 10px; cursor: pointer; border-bottom: 1px solid #f1f5f9; ${isChecked ? 'background: #f0fdf4;' : ''}">
@@ -8437,6 +8457,11 @@ document.getElementById("globalSimulationSlide").innerHTML = `
               </div>
             `;
           }).join("")}
+          ${filtered.length > visibleHospitals.length ? `
+            <div style="padding: 8px 10px; background: #fffbeb; color: #92400e; font-size: 10.5px; font-weight: 700; text-align: center;">
+              Menampilkan 250 dari ${filtered.length} RS. Ketik nama/kota untuk mempersempit daftar.
+            </div>
+          ` : ''}
         </div>
       `;
       
@@ -8444,12 +8469,17 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       if (btnTargetAll) {
         btnTargetAll.addEventListener('click', (e) => {
           e.stopPropagation();
-          state.targetCodes = filtered.map(h => h.code);
-          state.targetCode = state.targetCodes[0] || "";
-          state.serviceScenarios = {};
-          updateHospitalInputText();
-          renderAll();
-          window.renderHospitalList(searchTerm);
+          const selectedCodes = filtered.map(h => h.code);
+          btnTargetAll.disabled = true;
+          btnTargetAll.textContent = `Memproses ${selectedCodes.length} RS...`;
+          window.requestAnimationFrame(() => window.setTimeout(() => {
+            state.targetCodes = selectedCodes;
+            state.targetCode = state.targetCodes[0] || "";
+            state.serviceScenarios = {};
+            updateHospitalInputText();
+            renderAll();
+            window.renderHospitalList(searchTerm);
+          }, 0));
         });
       }
 
