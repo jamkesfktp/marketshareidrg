@@ -13,7 +13,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
   <link rel="icon" href="data:,">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Simulator Market Share Regional Rumah Sakit</title>
-  <link rel="stylesheet" href="css/style.css?v=2026081648">
+  <link rel="stylesheet" href="css/style.css?v=202608212130">
 </head>
 <body class="simulator-app">
   <main class="viewport-stage" aria-label="Simulator market share regional rumah sakit">
@@ -40,6 +40,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
             <button id="muhammadiyahGroupNavBtn" type="button" title="Buka Analisis Group RS Muhammadiyah & Aisyiyah" style="margin-left: 8px; background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; border-radius: 8px; padding: 7px 13px; font-size: 11.5px; font-weight: 750; display: flex; align-items: center; gap: 5px; cursor: pointer; box-shadow: 0 2px 4px rgba(5, 150, 105, 0.25); transition: all 0.2s ease;">
               <span>🏥</span> Group Muhammadiyah
             </button>
+            <button id="idrgMapNavBtn" type="button" title="Buka Peta Reklasifikasi INA-CBG ke iDRG" style="margin-left:6px;background:linear-gradient(135deg,#0f766e,#d4c83f);color:white;border:none;border-radius:8px;padding:7px 13px;font-size:11.5px;font-weight:800;display:flex;align-items:center;gap:5px;cursor:pointer;box-shadow:0 2px 4px rgba(15,118,110,.25);"><span>🧭</span> PETA iDRG</button>
             <div class="custom-multi" style="position: relative; display: inline-block;">
               <button id="nationalMirroringNavBtn" type="button" title="Buka Data Mirroring Nasional iDRG (7 Slide)" style="margin-left: 6px; background: linear-gradient(135deg, #0d9488, #0284c7); color: white; border: none; border-radius: 8px; padding: 7px 13px; font-size: 11.5px; font-weight: 750; display: flex; align-items: center; gap: 5px; cursor: pointer; box-shadow: 0 2px 4px rgba(13, 148, 136, 0.25); transition: all 0.2s ease;">
                 <span>📊</span> Data Mirroring Nasional <span style="font-size: 9px; margin-left: 2px;">▼</span>
@@ -164,6 +165,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
             <div id="regionalCasesSlide" class="existing-report-content"></div>
           </section>
 
+          <section class="slide idrg-map-slide" data-slide="6-4" id="idrgMapSlideSection" aria-labelledby="idrgMapSlideTitle" hidden><div id="idrgMapSlide"></div></section>
           <section class="slide existing-detail-slide regional-profile-detail-slide" data-slide="7" aria-labelledby="regionalProfileSlideTitle" hidden>
             <div class="existing-report-title">
               <h1 id="regionalProfileSlideTitle">Profil &amp; Kasus Regional</h1>
@@ -492,7 +494,8 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
   <script src="js/audit-excel.js?v=202608180005"></script>
   <script src="js/global-sim-excel.js?v=202608210836"></script>
   <script src="js/dynamic-market-excel.js?v=202608212015"></script>
-  <script src="js/app.js?v=202608212015"></script>
+  <script src="js/idrg-map-data.js?v=202608212130"></script>
+  <script src="js/app.js?v=202608212200"></script>
 </body>
 </html>
 
