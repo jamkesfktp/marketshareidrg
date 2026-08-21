@@ -2029,14 +2029,14 @@ document.getElementById("globalSimulationSlide").innerHTML = `
   }
 
   function renderIdrgMapSlide() {
-    const root = document.getElementById("idrgMapSlide");
+    const root = document.getElementById("idrgMapWorkspace") || document.getElementById("idrgMapSlide");
     const source = window.idrgMapData;
     if (!root) return;
     if (!source?.services) {
       root.innerHTML = '<div style="padding:30px;color:#b91c1c;font-weight:800;">Bundel PETA iDRG belum tersedia. Jalankan generator data pemetaan.</div>';
       return;
     }
-    window.idrgMapUi ||= { service: Object.keys(source.services)[0], region: "ALL", hospitalClass: "A", rawatClass: "KELAS1", severity: "INPATIENT", search: "", page: 0 };
+    window.idrgMapUi = { service: Object.keys(source.services)[0], region: "ALL", hospitalClass: "ALL", rawatClass: "ALL", severity: "ALL", search: "", page: 0, view: "summary", ...(window.idrgMapUi || {}) };
     const ui = window.idrgMapUi;
     const services = [...new Set([...Object.keys(source.services), "FORENSIK"])].sort();
     if (!services.includes(ui.service)) ui.service = services[0];
@@ -2070,19 +2070,47 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const sevLabels = { 1: "Ringan", 2: "Sedang", 3: "Berat", 0: "Tanpa Severity / Rawat Jalan" };
     const money = (value) => Number(value) > 0 ? `Rp ${Math.round(Number(value)).toLocaleString("id-ID")}` : "Tarif tidak tersedia";
     const inaTariff = (code) => {
-      const rates = source.inaTariffs?.[code]?.rates?.[ui.hospitalClass]?.[ui.rawatClass];
-      return rates?.[ui.hospitalClass === "RS KHUSUS" ? "ALL" : ui.region] || 0;
+      const codeRates = source.inaTariffs?.[code]?.rates || {};
+      const values = [];
+      (ui.hospitalClass === "ALL" ? Object.keys(codeRates) : [ui.hospitalClass]).forEach((hospitalClass) => {
+        const classRates = codeRates[hospitalClass] || {};
+        (ui.rawatClass === "ALL" ? Object.keys(classRates) : [ui.rawatClass]).forEach((rawatClass) => {
+          const rates = classRates[rawatClass] || {};
+          if (hospitalClass === "RS KHUSUS") {
+            if (Number(rates.ALL) > 0) values.push(Number(rates.ALL));
+          } else if (ui.region === "ALL") {
+            Object.entries(rates).forEach(([key, value]) => { if (/^R[1-5]$/.test(key) && Number(value) > 0) values.push(Number(value)); });
+          } else if (Number(rates[ui.region]) > 0) values.push(Number(rates[ui.region]));
+        });
+      });
+      return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
     };
     const totalCases = rows.reduce((sum, row) => sum + row.cases, 0);
+    const filterControls = `<label>KELOMPOK LAYANAN<select id="idrgMapService">${services.map((s) => `<option ${s === ui.service ? "selected" : ""}>${escapeHtml(s)}</option>`).join("")}</select></label><label>TARIF INA-CBG<select id="idrgMapRegion"><option value="ALL" ${ui.region === "ALL" ? "selected" : ""}>Rata-rata ALL Regional</option>${[1,2,3,4,5].map((n) => `<option value="R${n}" ${ui.region === `R${n}` ? "selected" : ""}>Regional ${n}</option>`).join("")}</select></label><label>KELAS RS<select id="idrgMapHospitalClass"><option value="ALL" ${ui.hospitalClass === "ALL" ? "selected" : ""}>ALL Kelas RS</option>${["A","B","C","D","RS KHUSUS"].map((v) => `<option value="${v}" ${ui.hospitalClass === v ? "selected" : ""}>${v === "RS KHUSUS" ? "RS Khusus" : `Kelas ${v}`}</option>`).join("")}</select></label><label>KELAS RAWAT<select id="idrgMapRawatClass"><option value="ALL" ${ui.rawatClass === "ALL" ? "selected" : ""}>ALL Kelas Rawat</option><option value="KELAS0" ${ui.rawatClass === "KELAS0" ? "selected" : ""}>Rawat Jalan</option>${[1,2,3].map((n) => `<option value="KELAS${n}" ${ui.rawatClass === `KELAS${n}` ? "selected" : ""}>Kelas Rawat ${n}</option>`).join("")}</select></label>`;
+    if (ui.view !== "map") {
+      const topIna = groups.slice(0, 10);
+      const idrgSummary = new Map();
+      rows.forEach((row) => { const item = idrgSummary.get(row.idrg) || { code: row.idrg, description: row.idrgDescription, cases: 0 }; item.cases += row.cases; idrgSummary.set(row.idrg, item); });
+      const topIdrg = [...idrgSummary.values()].sort((a, b) => b.cases - a.cases).slice(0, 10);
+      root.innerHTML = `<div class="idrg-workspace-shell"><header class="idrg-workspace-header"><div><span class="idrg-workspace-kicker">MENU KHUSUS</span><h1>Analisis Layanan &amp; Peta iDRG</h1><p>Pilih kelompok layanan dan parameter tarif, tinjau rincian kasus teratas, lalu buka peta reklasifikasi.</p></div><button id="idrgWorkspaceClose" class="idrg-close-btn" type="button" aria-label="Tutup">×</button></header><section class="idrg-summary-filters">${filterControls}</section><section class="idrg-summary-kpis"><article><span>Total relasi</span><strong>${formatNumber(rows.length)}</strong></article><article><span>Total kasus</span><strong>${formatNumber(totalCases)}</strong></article><article><span>Kode INA-CBG</span><strong>${formatNumber(groups.length)}</strong></article><article><span>Kode iDRG</span><strong>${formatNumber(idrgSummary.size)}</strong></article></section><main class="idrg-summary-content"><section><div class="idrg-list-heading"><div><small>VERSI INA-CBG</small><h2>Top kasus layanan</h2></div><span>${escapeHtml(ui.service)}</span></div><div class="idrg-ranking-list">${topIna.map((item, index) => `<article><b>${index + 1}</b><div><strong>${escapeHtml(item.ina)}</strong><p>${escapeHtml(item.description)}</p></div><em>${formatNumber(item.cases)} kasus</em></article>`).join("")}</div></section><section><div class="idrg-list-heading idrg-heading-gold"><div><small>VERSI iDRG</small><h2>Top kasus hasil reklasifikasi</h2></div><span>${escapeHtml(ui.service)}</span></div><div class="idrg-ranking-list">${topIdrg.map((item, index) => `<article><b>${index + 1}</b><div><strong>${escapeHtml(item.code)}</strong><p>${escapeHtml(source.idrgTariffs?.[item.code]?.description || item.description)}</p></div><em>${formatNumber(item.cases)} kasus</em></article>`).join("")}</div></section></main><footer class="idrg-summary-footer"><span>Menampilkan 10 kasus terbesar sesuai filter kelompok layanan.</span><button id="idrgOpenMap" type="button">Buka Peta iDRG untuk ${escapeHtml(ui.service)} →</button></footer></div>`;
+      const rerenderSummary = () => renderIdrgMapSlide();
+      root.querySelector("#idrgMapService")?.addEventListener("change", (e) => { ui.service = e.target.value; ui.page = 0; rerenderSummary(); });
+      root.querySelector("#idrgMapRegion")?.addEventListener("change", (e) => { ui.region = e.target.value; rerenderSummary(); });
+      root.querySelector("#idrgMapHospitalClass")?.addEventListener("change", (e) => { ui.hospitalClass = e.target.value; rerenderSummary(); });
+      root.querySelector("#idrgMapRawatClass")?.addEventListener("change", (e) => { ui.rawatClass = e.target.value; rerenderSummary(); });
+      root.querySelector("#idrgOpenMap")?.addEventListener("click", () => { ui.view = "map"; ui.page = 0; rerenderSummary(); });
+      root.querySelector("#idrgWorkspaceClose")?.addEventListener("click", () => { root.remove(); document.body.classList.remove("idrg-workspace-open"); });
+      return;
+    }
     root.innerHTML = `
       <div style="height:100%;display:flex;flex-direction:column;background:#fff;overflow:hidden;">
         <div style="padding:12px 20px;border-top:5px solid #111;background:#fff;display:flex;align-items:center;justify-content:space-between;gap:15px;">
-          <div><h1 id="idrgMapSlideTitle" style="margin:0;font-size:27px;color:#55b5ae;font-weight:900;">PETA REKLASIFIKASI <span style="color:#d4c83f;">INA-CBG → iDRG</span></h1><div style="font-size:11px;color:#64748b;margin-top:2px;">Pemetaan kode, severity, volume kasus, dan perbandingan tarif resmi</div></div>
+          <div style="display:flex;align-items:center;gap:12px;"><button id="idrgMapBack" type="button">← Ringkasan</button><div><h1 id="idrgMapSlideTitle" style="margin:0;font-size:27px;color:#55b5ae;font-weight:900;">PETA REKLASIFIKASI <span style="color:#d4c83f;">INA-CBG → iDRG</span></h1><div style="font-size:11px;color:#64748b;margin-top:2px;">Pemetaan kode, severity, volume kasus, dan perbandingan tarif resmi</div></div></div>
           <div style="display:flex;gap:7px;align-items:end;flex-wrap:wrap;justify-content:flex-end;">
             <label style="font-size:9px;font-weight:900;color:#475569;">24 KELOMPOK LAYANAN<br><select id="idrgMapService" style="width:245px;padding:6px;border:1px solid #94a3b8;border-radius:6px;font-weight:750;">${services.map((s) => `<option ${s === ui.service ? "selected" : ""}>${escapeHtml(s)}</option>`).join("")}</select></label>
             <label style="font-size:9px;font-weight:900;color:#475569;">TARIF INA-CBG<br><select id="idrgMapRegion" style="padding:6px;border:1px solid #94a3b8;border-radius:6px;font-weight:750;"><option value="ALL" ${ui.region === "ALL" ? "selected" : ""}>Rata-rata ALL Regional</option>${[1,2,3,4,5].map((n) => `<option value="R${n}" ${ui.region === `R${n}` ? "selected" : ""}>Regional ${n}</option>`).join("")}</select></label>
-            <label style="font-size:9px;font-weight:900;color:#475569;">KELAS RS<br><select id="idrgMapHospitalClass" style="padding:6px;border:1px solid #94a3b8;border-radius:6px;font-weight:750;">${["A","B","C","D","RS KHUSUS"].map((v) => `<option value="${v}" ${ui.hospitalClass === v ? "selected" : ""}>${v === "RS KHUSUS" ? "RS Khusus" : `Kelas ${v}`}</option>`).join("")}</select></label>
-            <label style="font-size:9px;font-weight:900;color:#475569;">KELAS RAWAT<br><select id="idrgMapRawatClass" style="padding:6px;border:1px solid #94a3b8;border-radius:6px;font-weight:750;"><option value="KELAS0" ${ui.rawatClass === "KELAS0" ? "selected" : ""}>Rawat Jalan</option>${[1,2,3].map((n) => `<option value="KELAS${n}" ${ui.rawatClass === `KELAS${n}` ? "selected" : ""}>Kelas Rawat ${n}</option>`).join("")}</select></label>
+            <label style="font-size:9px;font-weight:900;color:#475569;">KELAS RS<br><select id="idrgMapHospitalClass" style="padding:6px;border:1px solid #94a3b8;border-radius:6px;font-weight:750;"><option value="ALL" ${ui.hospitalClass === "ALL" ? "selected" : ""}>ALL Kelas RS</option>${["A","B","C","D","RS KHUSUS"].map((v) => `<option value="${v}" ${ui.hospitalClass === v ? "selected" : ""}>${v === "RS KHUSUS" ? "RS Khusus" : `Kelas ${v}`}</option>`).join("")}</select></label>
+            <label style="font-size:9px;font-weight:900;color:#475569;">KELAS RAWAT<br><select id="idrgMapRawatClass" style="padding:6px;border:1px solid #94a3b8;border-radius:6px;font-weight:750;"><option value="ALL" ${ui.rawatClass === "ALL" ? "selected" : ""}>ALL Kelas Rawat</option><option value="KELAS0" ${ui.rawatClass === "KELAS0" ? "selected" : ""}>Rawat Jalan</option>${[1,2,3].map((n) => `<option value="KELAS${n}" ${ui.rawatClass === `KELAS${n}` ? "selected" : ""}>Kelas Rawat ${n}</option>`).join("")}</select></label>
             <label style="font-size:9px;font-weight:900;color:#475569;">SEVERITY<br><select id="idrgMapSeverity" style="padding:6px;border:1px solid #94a3b8;border-radius:6px;font-weight:750;"><option value="INPATIENT" ${ui.severity === "INPATIENT" ? "selected" : ""}>Rawat Inap Severity I–III</option><option value="ALL" ${ui.severity === "ALL" ? "selected" : ""}>Semua termasuk Rawat Jalan</option><option value="0" ${ui.severity === "0" ? "selected" : ""}>Tanpa Severity / Rawat Jalan</option>${[1,2,3].map((n) => `<option value="${n}" ${ui.severity === String(n) ? "selected" : ""}>${sevLabels[n]}</option>`).join("")}</select></label>
             <label style="font-size:9px;font-weight:900;color:#475569;">CARI KODE / DESKRIPSI<br><input id="idrgMapSearch" value="${escapeHtml(ui.search)}" placeholder="Cari INA-CBG atau iDRG" style="width:190px;padding:6px;border:1px solid #94a3b8;border-radius:6px;"></label>
             <button id="idrgMapExcel" type="button" style="padding:7px 11px;background:#f0fdf4;border:1px solid #16a34a;color:#166534;border-radius:6px;font-size:10px;font-weight:900;white-space:nowrap;">📥 Download Excel</button>
@@ -2097,6 +2125,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         <div style="padding:7px 20px 10px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #e2e8f0;"><div style="font-size:10px;color:#64748b;">Semua tujuan iDRG pada keluarga INA-CBG aktif ditampilkan. Tarif mengikuti kelas RS, kelas rawat, dan regional terpilih. Ketebalan panah mengikuti volume kasus.</div><div style="display:flex;align-items:center;gap:7px;"><button id="idrgMapPrev" ${ui.page === 0 ? "disabled" : ""}>← Sebelumnya</button><b style="font-size:11px;">${ui.page + 1} / ${maxPage + 1}</b><button id="idrgMapNext" ${ui.page >= maxPage ? "disabled" : ""}>Berikutnya →</button></div></div>
       </div>`;
     const rerender = () => renderIdrgMapSlide();
+    root.querySelector("#idrgMapBack")?.addEventListener("click", () => { ui.view = "summary"; rerender(); });
     root.querySelector("#idrgMapService")?.addEventListener("change", (e) => { ui.service = e.target.value; ui.page = 0; rerender(); });
     root.querySelector("#idrgMapRegion")?.addEventListener("change", (e) => { ui.region = e.target.value; rerender(); });
     root.querySelector("#idrgMapHospitalClass")?.addEventListener("change", (e) => { ui.hospitalClass = e.target.value; rerender(); });
@@ -9766,9 +9795,18 @@ document.getElementById("globalSimulationSlide").innerHTML = `
   };
 
   window.showIdrgMapSlide = function() {
-    const slides = [...document.querySelectorAll(".slide")];
-    const targetIndex = slides.findIndex((slide) => slide.id === "idrgMapSlideSection");
-    if (targetIndex >= 0) { renderIdrgMapSlide(); showSlide(targetIndex); }
+    let workspace = document.getElementById("idrgMapWorkspace");
+    if (!workspace) {
+      workspace = document.createElement("section");
+      workspace.id = "idrgMapWorkspace";
+      workspace.className = "idrg-workspace idrg-map-slide";
+      workspace.setAttribute("aria-label", "Analisis dan Peta iDRG");
+      document.body.appendChild(workspace);
+    }
+    document.body.classList.add("idrg-workspace-open");
+    window.idrgMapUi ||= {};
+    window.idrgMapUi.view = "summary";
+    renderIdrgMapSlide();
   };
 
   window.exportActiveNationalSlideToPptx = async function(button) {
