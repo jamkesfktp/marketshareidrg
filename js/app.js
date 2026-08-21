@@ -1758,6 +1758,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
   function renderDynamicMarketShareSlide() {
     const container = document.getElementById("dynamicMarketShareSlide");
     if (!container) return;
+    container.classList.add("dynamic-market-readable");
 
     const selectedTargets = getTargetHospitals();
     const target = selectedTargets[0] || null;
@@ -1916,14 +1917,14 @@ document.getElementById("globalSimulationSlide").innerHTML = `
 
       <div style="border:1px solid #cbd5e1;border-radius:8px;overflow:hidden;margin-bottom:8px;">
         <div style="padding:5px 9px;background:#334155;color:#fff;font-size:10.5px;font-weight:900;">DRIVER PASAR DINAMIS PER TINGKAT KOMPETENSI</div>
-        <table style="width:100%;border-collapse:collapse;font-size:10px;text-align:center;">
+        <table class="dynamic-driver-table" style="width:100%;border-collapse:collapse;font-size:10px;text-align:center;">
           <thead><tr style="background:#e2e8f0;color:#334155;"><th style="padding:4px;">Level</th><th>Arah</th><th>Kasus Regional</th><th>Kasus Target</th><th>Pool Sumber Kasus</th><th>Nominal iDRG Pool</th><th>RS Sumber Eligible</th><th>Share / Aturan</th></tr></thead>
           <tbody>${levelData.map((item) => `<tr style="border-top:1px solid #e2e8f0;background:${item.direction === "tambah" ? "#f0fdf4" : item.direction === "kurang" ? "#fff1f2" : "#fff"};"><td style="padding:4px;font-weight:900;">${levelNames[item.level]}</td><td style="font-weight:900;color:${item.direction === "tambah" ? "#15803d" : item.direction === "kurang" ? "#be123c" : "#64748b"};">${item.direction === "tambah" ? "↑ TAMBAH" : item.direction === "kurang" ? "↓ KURANG" : "—"}</td><td>${formatNumber(item.regionalCases)}</td><td>${formatNumber(item.targetCases)}</td><td style="font-weight:800;">${formatNumber(item.direction === "tambah" ? item.externalCases : item.targetCases)}</td><td style="font-weight:800;color:${item.direction === "tambah" ? "#047857" : "#be123c"};">${formatTableMoney(item.direction === "tambah" ? item.externalIdrg : item.targetIdrg)}</td><td>${item.competitors}</td><td style="font-weight:900;color:${item.direction === "kurang" ? "#be123c" : "#0f172a"};">${item.direction === "kurang" ? `${configuredLossPct.toFixed(1).replace(".", ",")}% (default 100%)` : item.direction === "tambah" ? `${item.naturalShare.toFixed(1).replace(".", ",")}% natural` : "—"}</td></tr>`).join("")}</tbody>
         </table>
       </div>
 
       <div style="overflow-x:auto;">
-        <table style="width:100%;border-collapse:collapse;border:1px solid #1e293b;text-align:center;font-size:11px;">
+        <table class="dynamic-scenario-table" style="width:100%;border-collapse:collapse;border:1px solid #1e293b;text-align:center;font-size:11px;">
           <thead style="background:#38bdf8;color:white;">
             <tr>
               <th rowspan="2" style="border:1px solid #1e293b;padding:7px;background:#0f766e;">Skenario</th>

@@ -13,7 +13,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
   <link rel="icon" href="data:,">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Simulator Market Share Regional Rumah Sakit</title>
-  <link rel="stylesheet" href="css/style.css?v=202608220230">
+  <link rel="stylesheet" href="css/style.css?v=202608220400">
 </head>
 <body class="simulator-app">
   <main class="viewport-stage" aria-label="Simulator market share regional rumah sakit">
@@ -231,14 +231,14 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
           <section class="slide existing-detail-slide dynamic-market-share-slide" data-slide="6-3" id="dynamicMarketShareSlideSection" aria-labelledby="dynamicMarketShareSlideTitle" hidden>
             <div class="existing-report-title" style="background: linear-gradient(135deg, #7c3aed, #2563eb); display: flex; justify-content: space-between; align-items: center; position: relative;">
               <div>
-                <h1 id="dynamicMarketShareSlideTitle" style="color: white; font-size: 22px; font-weight: 700; margin: 0; letter-spacing: 0.5px;">Simulasi Market Share Dinamis</h1>
+                <h1 id="dynamicMarketShareSlideTitle" style="color: white; font-size: 30px; font-weight: 700; margin: 0; letter-spacing: 0.5px;">Simulasi Market Share Dinamis</h1>
                 <p style="color: rgba(255,255,255,0.82); font-size: 13px; margin: 2px 0 0;">Natural share berdasarkan kompetensi, kasus regional, dan jumlah RS kompetitor eligible</p>
               </div>
               <div class="existing-period-badge" style="background-color: #e74c3c; color: white; border-radius: 99px; padding: 5px 14px; text-align: center; font-size: 12px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
                 Model Dinamis<br><span style="font-weight: 400;">Auto + penyesuaian manual</span>
               </div>
             </div>
-            <div id="dynamicMarketShareSlide" class="existing-report-content" style="display: block; padding: 12px 20px; height: calc(100% - 65px); overflow-y: auto; background-color: #ffffff;"></div>
+            <div id="dynamicMarketShareSlide" class="existing-report-content" style="display: block; padding: 18px 26px; height: calc(100% - 65px); overflow: auto; background-color: #ffffff;"></div>
           </section>
 
           <!-- Slide 10: Jumlah Data Masuk menurut Jenis Rawat -->
@@ -495,7 +495,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
   <script src="js/global-sim-excel.js?v=202608210836"></script>
   <script src="js/dynamic-market-excel.js?v=202608212015"></script>
   <script src="js/idrg-map-data.js?v=202608220300"></script>
-  <script src="js/app.js?v=202608220300"></script>
+  <script src="js/app.js?v=202608220400"></script>
 </body>
 </html>
 

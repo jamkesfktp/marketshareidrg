@@ -185,6 +185,30 @@ body.idrg-workspace-open { overflow: hidden; }
 .idrg-summary-footer { padding: 12px 34px; display: flex; justify-content: space-between; align-items: center; background: white; border-top: 1px solid #d6e2df; color: #64748b; font-size: 11px; }
 .idrg-summary-footer button { padding: 10px 18px !important; border: 0 !important; background: linear-gradient(135deg,#14776f,#c5b936) !important; color: white !important; font-size: 12px !important; box-shadow: 0 3px 8px rgba(23,105,99,.22); }
 
+/* Dynamic market simulation is intentionally roomy. Wide tables scroll instead of shrinking. */
+.dynamic-market-share-slide .existing-report-title { min-height: 72px; padding-block: 16px !important; }
+#dynamicMarketShareSlide.dynamic-market-readable { font-size: 14px; scrollbar-gutter: stable; }
+#dynamicMarketShareSlide .dynamic-driver-table { min-width: 1550px; font-size: 14px !important; line-height: 1.35; }
+#dynamicMarketShareSlide .dynamic-scenario-table { min-width: 2450px; font-size: 15px !important; line-height: 1.4; }
+#dynamicMarketShareSlide .dynamic-driver-table th,
+#dynamicMarketShareSlide .dynamic-driver-table td { padding: 9px 12px !important; }
+#dynamicMarketShareSlide .dynamic-scenario-table th,
+#dynamicMarketShareSlide .dynamic-scenario-table td { padding: 11px 13px !important; }
+#dynamicMarketShareSlide .dynamic-driver-table th,
+#dynamicMarketShareSlide .dynamic-driver-table td,
+#dynamicMarketShareSlide .dynamic-scenario-table th,
+#dynamicMarketShareSlide .dynamic-scenario-table td { font-size: inherit !important; }
+#dynamicMarketShareSlide .dynamic-scenario-table td div,
+#dynamicMarketShareSlide .dynamic-scenario-table td label,
+#dynamicMarketShareSlide .dynamic-scenario-table td span { font-size: 12px !important; line-height: 1.45 !important; }
+#dynamicMarketShareSlide .dynamic-market-pct,
+#dynamicMarketShareSlide #dynamicMarketLossPctInput { width: 74px !important; min-height: 38px; padding: 7px !important; font-size: 16px !important; }
+#dynamicMarketShareSlide > div:not(:has(table)) div,
+#dynamicMarketShareSlide > div:not(:has(table)) span,
+#dynamicMarketShareSlide > div:not(:has(table)) label { font-size: 13px !important; line-height: 1.4; }
+#dynamicMarketShareSlide select,
+#dynamicMarketShareSlide button { min-height: 38px; padding: 8px 12px !important; font-size: 13px !important; }
+
 .slide {
   position: absolute;
   inset: 0;
