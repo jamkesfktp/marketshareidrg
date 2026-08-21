@@ -1881,26 +1881,46 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         <div style="padding:8px 10px;border:1px solid #ddd6fe;border-radius:8px;background:#f5f3ff;"><div style="font-size:10px;color:#6d28d9;font-weight:800;">ATURAN KOMPETENSI</div><strong style="font-size:12px;color:#4c1d95;">Tambah ${rules.tambah.map((level) => shortLevelNames[level]).join("+") || "—"} · Kurang ${rules.kurang.map((level) => shortLevelNames[level]).join("+") || "—"}</strong></div>
       </div>
 
-      <div style="display:grid;grid-template-columns:41% 59%;gap:9px;align-items:start;">
-        <div style="border:1px solid #cbd5e1;border-radius:8px;overflow:hidden;">
-          <div style="padding:6px 9px;background:#334155;color:#fff;font-size:11px;font-weight:900;">DRIVER PASAR PER TINGKAT KOMPETENSI</div>
-          <table style="width:100%;border-collapse:collapse;font-size:10.5px;text-align:right;">
-            <thead><tr style="background:#e2e8f0;color:#334155;"><th style="padding:5px;text-align:left;">Level</th><th>Regional</th><th>Target</th><th>Pool</th><th>Kompetitor</th><th style="padding-right:6px;">Natural Share</th></tr></thead>
-            <tbody>${levelData.map((item) => `<tr style="border-top:1px solid #e2e8f0;background:${item.direction === "tambah" ? "#f0fdf4" : item.direction === "kurang" ? "#fff1f2" : "#fff"};"><td style="padding:5px;text-align:left;font-weight:900;color:${item.direction === "tambah" ? "#15803d" : item.direction === "kurang" ? "#be123c" : "#475569"};">${levelNames[item.level]} ${item.direction === "tambah" ? "↑" : item.direction === "kurang" ? "↓" : ""}</td><td>${formatNumber(item.regionalCases)}</td><td>${formatNumber(item.targetCases)}</td><td>${formatNumber(item.direction === "tambah" ? item.externalCases : item.targetCases)}</td><td>${item.competitors}</td><td style="padding-right:6px;font-weight:900;">${item.naturalShare.toFixed(1).replace(".", ",")}%</td></tr>`).join("")}</tbody>
-          </table>
-          <div style="padding:6px 8px;background:#f8fafc;color:#64748b;font-size:9.5px;line-height:1.35;">Natural share = 100 ÷ (kompetitor eligible + RS target). Pool tambah = regional dikurangi kasus target.</div>
-        </div>
+      <div style="border:1px solid #cbd5e1;border-radius:8px;overflow:hidden;margin-bottom:8px;">
+        <div style="padding:5px 9px;background:#334155;color:#fff;font-size:10.5px;font-weight:900;">DRIVER PASAR DINAMIS PER TINGKAT KOMPETENSI</div>
+        <table style="width:100%;border-collapse:collapse;font-size:10px;text-align:center;">
+          <thead><tr style="background:#e2e8f0;color:#334155;"><th style="padding:4px;">Level</th><th>Arah</th><th>Kasus Regional</th><th>Kasus Target</th><th>Pool Simulasi</th><th>RS Kompetitor Eligible</th><th>Natural Share</th></tr></thead>
+          <tbody>${levelData.map((item) => `<tr style="border-top:1px solid #e2e8f0;background:${item.direction === "tambah" ? "#f0fdf4" : item.direction === "kurang" ? "#fff1f2" : "#fff"};"><td style="padding:4px;font-weight:900;">${levelNames[item.level]}</td><td style="font-weight:900;color:${item.direction === "tambah" ? "#15803d" : item.direction === "kurang" ? "#be123c" : "#64748b"};">${item.direction === "tambah" ? "↑ TAMBAH" : item.direction === "kurang" ? "↓ KURANG" : "—"}</td><td>${formatNumber(item.regionalCases)}</td><td>${formatNumber(item.targetCases)}</td><td>${formatNumber(item.direction === "tambah" ? item.externalCases : item.targetCases)}</td><td>${item.competitors}</td><td style="font-weight:900;">${item.naturalShare.toFixed(1).replace(".", ",")}%</td></tr>`).join("")}</tbody>
+        </table>
+      </div>
 
-        <div style="border:1px solid #cbd5e1;border-radius:8px;overflow:hidden;">
-          <div style="padding:6px 9px;background:#0f766e;color:#fff;font-size:11px;font-weight:900;">HASIL SKENARIO DINAMIS — PERSENTASE DAPAT DIEDIT</div>
-          <div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:10.5px;text-align:right;">
-            <thead><tr style="background:#ccfbf1;color:#134e4a;"><th style="padding:5px;text-align:left;">Skenario</th><th>% Tambah</th><th>% Kurang</th><th>+ Kasus</th><th>− Kasus</th><th>Kasus Pasca</th><th>iDRG Pasca</th><th style="padding-right:6px;">Δ vs INA</th></tr></thead>
-            <tbody>${scenarioResults.map((result) => {
-              const deltaIna = result.projectedIdrg - baselineIna;
-              return `<tr style="border-top:1px solid #dbe4e8;background:${result.scenarioIndex === 2 ? "#ecfeff" : "#fff"};"><td style="padding:5px;text-align:left;font-weight:900;color:#0f766e;white-space:nowrap;">${result.definition.name}<div style="font-size:9px;color:#64748b;font-weight:600;">${result.definition.factor.toFixed(2).replace(".", ",")}× natural</div></td><td style="padding:4px;min-width:95px;color:#15803d;font-weight:700;">${pctInputLines(result.scenarioIndex, "tambah")}</td><td style="padding:4px;min-width:95px;color:#be123c;font-weight:700;">${pctInputLines(result.scenarioIndex, "kurang")}</td><td style="font-weight:800;color:#15803d;">+${formatNumber(Math.round(result.addCases))}</td><td style="font-weight:800;color:#be123c;">−${formatNumber(Math.round(result.lossCases))}</td><td style="font-weight:900;">${formatNumber(Math.round(result.projectedCases))}</td><td style="font-weight:900;color:#0369a1;">${formatTableMoney(result.projectedIdrg)}</td><td style="padding-right:6px;font-weight:900;color:${deltaIna >= 0 ? "#15803d" : "#be123c"};">${deltaIna >= 0 ? "+" : ""}${formatTableMoney(deltaIna)}</td></tr>`;
-            }).join("")}</tbody>
-          </table></div>
-        </div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;border:1px solid #1e293b;text-align:center;font-size:11px;">
+          <thead style="background:#38bdf8;color:white;">
+            <tr>
+              <th rowspan="2" style="border:1px solid #1e293b;padding:7px;background:#0f766e;">Skenario</th>
+              <th rowspan="2" style="border:1px solid #1e293b;padding:7px;background:#334155;">Eksisting Kasus &amp; Pendapatan<br><span style="font-size:9px;font-weight:normal;">RS Target</span></th>
+              <th colspan="3" style="border:1px solid #1e293b;padding:7px;background:#059669;">Tambahan Kasus Sesuai Kompetensi</th>
+              <th colspan="3" style="border:1px solid #1e293b;padding:7px;background:#e11d48;">Pengurangan Kasus di Luar Kompetensi</th>
+              <th rowspan="2" style="border:1px solid #1e293b;padding:7px;background:#047857;">Total Pendapatan Pasca iDRG &amp; RBKP</th>
+              <th colspan="4" style="border:1px solid #1e293b;padding:7px;background:#0d9488;">Net +/- Pasca iDRG &amp; RBKP (vs INA-CBG)</th>
+            </tr>
+            <tr>
+              <th style="border:1px solid #1e293b;padding:6px;background:#10b981;">Persentase Dinamis</th><th style="border:1px solid #1e293b;padding:6px;background:#10b981;">Jumlah Kasus</th><th style="border:1px solid #1e293b;padding:6px;background:#10b981;">Tambahan</th>
+              <th style="border:1px solid #1e293b;padding:6px;background:#f43f5e;">Persentase Dinamis</th><th style="border:1px solid #1e293b;padding:6px;background:#f43f5e;">Jumlah Kasus</th><th style="border:1px solid #1e293b;padding:6px;background:#f43f5e;">Pengurangan</th>
+              <th style="border:1px solid #1e293b;padding:6px;background:#14b8a6;">+/- Kasus</th><th style="border:1px solid #1e293b;padding:6px;background:#14b8a6;">% thd Total Kasus</th><th style="border:1px solid #1e293b;padding:6px;background:#14b8a6;">+/- Pendapatan</th><th style="border:1px solid #1e293b;padding:6px;background:#14b8a6;">% +/- Pendapatan</th>
+            </tr>
+          </thead>
+          <tbody>${scenarioResults.map((result) => {
+            const deltaCases = result.projectedCases - baselineCases;
+            const deltaCasesPct = baselineCases > 0 ? deltaCases / baselineCases * 100 : 0;
+            const deltaIna = result.projectedIdrg - baselineIna;
+            const deltaInaPct = baselineIna > 0 ? deltaIna / baselineIna * 100 : 0;
+            return `<tr style="background:${result.scenarioIndex === 2 ? "#ecfeff" : "#fff"};">
+              <td style="border:1px solid #1e293b;padding:6px;font-weight:900;white-space:nowrap;">Skenario ${result.scenarioIndex + 1}<div style="font-size:9px;color:#64748b;">${result.definition.name}<br>${result.definition.factor.toFixed(2).replace(".", ",")}× natural</div></td>
+              ${result.scenarioIndex === 0 ? `<td rowspan="${scenarioResults.length}" style="border:1px solid #1e293b;padding:7px;background:#f8fafc;"><div style="font-size:10px;color:#475569;">Total Kasus</div><div style="font-size:15px;font-weight:900;color:#0f172a;">${formatNumber(baselineCases)}</div><div style="margin-top:5px;font-size:10px;color:#475569;">INA-CBG</div><div style="font-weight:900;color:#c2410c;">${formatTableMoney(baselineIna)}</div><div style="margin-top:5px;font-size:10px;color:#475569;">iDRG</div><div style="font-weight:900;color:#0369a1;">${formatTableMoney(baselineIdrg)}</div></td>` : ""}
+              <td style="border:1px solid #1e293b;padding:5px;min-width:105px;color:#15803d;font-weight:700;">${pctInputLines(result.scenarioIndex, "tambah")}</td><td style="border:1px solid #1e293b;padding:6px;font-weight:900;">${formatNumber(Math.round(result.addCases))}</td><td style="border:1px solid #1e293b;padding:6px;font-weight:900;color:#059669;">+${formatTableMoney(result.addIdrg)}</td>
+              <td style="border:1px solid #1e293b;padding:5px;min-width:105px;color:#be123c;font-weight:700;">${pctInputLines(result.scenarioIndex, "kurang")}</td><td style="border:1px solid #1e293b;padding:6px;font-weight:900;">${formatNumber(Math.round(result.lossCases))}</td><td style="border:1px solid #1e293b;padding:6px;font-weight:900;color:#e11d48;">−${formatTableMoney(result.lossIdrg)}</td>
+              <td style="border:1px solid #1e293b;padding:6px;font-weight:900;background:#f0fdf4;">${formatTableMoney(result.projectedIdrg)}</td>
+              <td style="border:1px solid #1e293b;padding:6px;font-weight:900;color:${deltaCases >= 0 ? "#059669" : "#e11d48"};">${deltaCases >= 0 ? "+" : ""}${formatNumber(Math.round(deltaCases))}</td><td style="border:1px solid #1e293b;padding:6px;font-weight:900;color:${deltaCases >= 0 ? "#059669" : "#e11d48"};">${deltaCases >= 0 ? "+" : ""}${deltaCasesPct.toFixed(2).replace(".", ",")}%</td><td style="border:1px solid #1e293b;padding:6px;font-weight:900;color:${deltaIna >= 0 ? "#059669" : "#e11d48"};">${deltaIna >= 0 ? "+" : ""}${formatTableMoney(deltaIna)}</td><td style="border:1px solid #1e293b;padding:6px;font-weight:900;color:${deltaIna >= 0 ? "#059669" : "#e11d48"};">${deltaIna >= 0 ? "+" : ""}${deltaInaPct.toFixed(2).replace(".", ",")}%</td>
+            </tr>`;
+          }).join("")}</tbody>
+        </table>
       </div>
       <div style="margin-top:7px;padding:6px 9px;border-radius:7px;background:#eff6ff;color:#1e40af;font-size:10px;font-weight:650;">Mode otomatis membuat lima skenario dari natural share masing-masing level. Perubahan manual disimpan khusus untuk kombinasi periode, RS target, dan layanan yang sedang dipilih.</div>`;
 
