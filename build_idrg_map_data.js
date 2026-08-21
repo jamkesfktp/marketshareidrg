@@ -37,7 +37,7 @@ const idrgRows = XLSX.utils.sheet_to_json(XLSX.readFile(IDRG).Sheets.Sheet1, { d
 const idrgTariffs = {};
 for (const row of idrgRows) {
   const code = clean(row.DRG);
-  if (code) idrgTariffs[code] = { description: clean(row["Deskripsi DRG"]), tariff: idrgTariffNumber(row["Tarif iDRG"]), ptd: clean(row.PTD), mdc: clean(row.MDC), dc: clean(row.DC) };
+  if (code) idrgTariffs[code] = { description: clean(row["Deskripsi DRG"]), tariff: idrgTariffNumber(row["Tarif iDRG"]) };
 }
 
 const inaWorkbook = XLSX.readFile(INA);
@@ -62,7 +62,7 @@ for (const row of inaRows) {
 const inaTariffs = {};
 for (const [key, val] of inaAgg) {
   const [code, hospitalClass, rawatClass, reg] = key.split("|");
-  inaTariffs[code] ||= { description: val.description, rates: {} };
+  inaTariffs[code] ||= { rates: {} };
   inaTariffs[code].rates[hospitalClass] ||= {};
   inaTariffs[code].rates[hospitalClass][rawatClass] ||= {};
   inaTariffs[code].rates[hospitalClass][rawatClass][reg] = Math.round(val.sum / val.n);
@@ -99,12 +99,13 @@ for (const row of specialRows) {
 }
 for (const [key, val] of specialAgg) {
   const [code, rawatClass] = key.split("|");
-  inaTariffs[code] ||= { description: val.description, rates: {} };
+  inaTariffs[code] ||= { rates: {} };
   inaTariffs[code].rates["RS KHUSUS"] ||= {};
   inaTariffs[code].rates["RS KHUSUS"][rawatClass] = { ALL: Math.round(val.sum / val.n) };
 }
 
 const relations = new Map();
+const scatterRelations = new Map();
 const input = readline.createInterface({ input: fs.createReadStream(CLAIMS, { encoding: "utf8" }), crlfDelay: Infinity });
 let headers = null; let rows = 0;
 input.on("line", (line) => {
@@ -123,6 +124,11 @@ input.on("line", (line) => {
   const rawatClass = /^KELAS[0-3]$/.test(rawatValue) ? rawatValue : /^[0-3]$/.test(rawatValue) ? `KELAS${rawatValue}` : rawatValue;
   const segmentKey = `${ownership}|${hospitalClass}|${rawatClass}|${region}`;
   prev.segments.set(segmentKey, (prev.segments.get(segmentKey) || 0) + cases);
+  const scatterKey = `${service}|${idrg}|${segmentKey}`;
+  const scatter = scatterRelations.get(scatterKey) || { description: clean(row[23]), metrics: [0, 0, 0, 0, 0, 0, 0, 0] };
+  const financials = [cases, number(row[29]), number(row[42]), number(row[41]), number(row[40]), number(row[39]), number(row[50]), number(row[37])];
+  financials.forEach((value, index) => { scatter.metrics[index] += value; });
+  scatterRelations.set(scatterKey, scatter);
   relations.set(key, prev);
   if (rows % 1000000 === 0) console.log(`Processed ${rows.toLocaleString()} rows`);
 });
@@ -132,8 +138,14 @@ input.on("close", () => {
     rel.segments = [...rel.segments].map(([key, cases]) => [...key.split("|"), cases]);
     services[rel.service] ||= []; services[rel.service].push(rel);
   }
+  const scatterServices = {};
+  for (const [key, value] of scatterRelations) {
+    const [service, idrg, ownership, hospitalClass, rawatClass, region] = key.split("|");
+    scatterServices[service] ||= [];
+    scatterServices[service].push([idrg, value.description, ownership, hospitalClass, rawatClass, region, ...value.metrics.map((metric) => Math.round(metric))]);
+  }
   for (const rows of Object.values(services)) rows.sort((a, b) => b.cases - a.cases);
-  const payload = { meta: { generatedAt: new Date().toISOString(), sourceRows: rows, idrgTariffSource: IDRG, inaTariffSource: INA }, services, inaTariffs, idrgTariffs };
+  const payload = { meta: { generatedAt: new Date().toISOString(), sourceRows: rows }, services, scatterServices, inaTariffs, idrgTariffs };
   fs.writeFileSync(OUTPUT, `window.idrgMapData=${JSON.stringify(payload)};`);
   console.log(`Wrote ${OUTPUT}: ${Object.keys(services).length} services, ${relations.size} relations`);
 });
