@@ -43,12 +43,21 @@ for (const row of idrgRows) {
 const inaWorkbook = XLSX.readFile(INA);
 const inaRows = XLSX.utils.sheet_to_json(inaWorkbook.Sheets["TARIF CBGS 2022"], { range: 4, defval: "" });
 const inaAgg = new Map();
+const inaOwnershipAgg = new Map();
 for (const row of inaRows) {
   const code = clean(row.KODE_INACBG); const reg = clean(row.REGIONAL).toUpperCase().replace("REG", "R");
   const hospitalClass = clean(row["KELAS RS"]).toUpperCase(); const rawatClass = clean(row.KELAS_RAWAT).toUpperCase().replace(/\s+/g, "");
   if (!code || !/^[A-D]$/.test(hospitalClass) || !/^KELAS[0-3]$/.test(rawatClass) || !/^R[1-5]$/.test(reg)) continue;
   const key = `${code}|${hospitalClass}|${rawatClass}|${reg}`; const prev = inaAgg.get(key) || { sum: 0, n: 0, description: clean(row.DESKRIPSI) };
-  prev.sum += number(row[" TARIF FINAL "] ?? row["TARIF FINAL"] ?? row["FINAL TARIF "]); prev.n++; inaAgg.set(key, prev);
+  const tariff = number(row[" TARIF FINAL "] ?? row["TARIF FINAL"] ?? row["FINAL TARIF "]);
+  prev.sum += tariff; prev.n++; inaAgg.set(key, prev);
+  const ownershipCode = clean(row.KEPEMILIKAN).toUpperCase();
+  const ownership = ownershipCode === "P" || ownershipCode.includes("PEMERINTAH") ? "PEMERINTAH" : ownershipCode === "S" || ownershipCode.includes("SWASTA") ? "SWASTA" : "";
+  if (ownership) {
+    const ownershipKey = `${code}|${hospitalClass}|${rawatClass}|${ownership}|${reg}`;
+    const ownershipPrev = inaOwnershipAgg.get(ownershipKey) || { sum: 0, n: 0 };
+    ownershipPrev.sum += tariff; ownershipPrev.n++; inaOwnershipAgg.set(ownershipKey, ownershipPrev);
+  }
 }
 const inaTariffs = {};
 for (const [key, val] of inaAgg) {
@@ -57,6 +66,20 @@ for (const [key, val] of inaAgg) {
   inaTariffs[code].rates[hospitalClass] ||= {};
   inaTariffs[code].rates[hospitalClass][rawatClass] ||= {};
   inaTariffs[code].rates[hospitalClass][rawatClass][reg] = Math.round(val.sum / val.n);
+}
+for (const [key, val] of inaOwnershipAgg) {
+  const [code, hospitalClass, rawatClass, ownership, reg] = key.split("|");
+  inaTariffs[code].ownershipRates ||= {};
+  inaTariffs[code].ownershipRates[hospitalClass] ||= {};
+  inaTariffs[code].ownershipRates[hospitalClass][rawatClass] ||= {};
+  inaTariffs[code].ownershipRates[hospitalClass][rawatClass][ownership] ||= {};
+  inaTariffs[code].ownershipRates[hospitalClass][rawatClass][ownership][reg] = Math.round(val.sum / val.n);
+}
+for (const item of Object.values(inaTariffs)) {
+  for (const byRawat of Object.values(item.ownershipRates || {})) for (const byOwnership of Object.values(byRawat)) for (const regions of Object.values(byOwnership)) {
+    const vals = [1, 2, 3, 4, 5].map((n) => regions[`R${n}`]).filter(Number.isFinite);
+    regions.ALL = vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : 0;
+  }
 }
 for (const item of Object.values(inaTariffs)) {
   for (const byRawat of Object.values(item.rates)) for (const regions of Object.values(byRawat)) {
