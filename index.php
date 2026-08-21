@@ -487,6 +487,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
   </aside>
   <script src="js/data.js?v=202608180005"></script>
   <script src="js/xlsx.bundle.js"></script>
+  <script src="js/chart.umd.min.js?v=202608220900"></script>
   <script src="js/dom-to-pptx.bundle.js"></script>
   <script src="js/pptxgen.bundle.js"></script>
   <script src="js/scenarios-core.js?v=202608180005"></script>
@@ -495,7 +496,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
   <script src="js/global-sim-excel.js?v=202608210836"></script>
   <script src="js/dynamic-market-excel.js?v=202608212015"></script>
   <script src="js/idrg-map-data.js?v=202608220300"></script>
-  <script src="js/app.js?v=202608220800"></script>
+  <script src="js/app.js?v=202608220900"></script>
 </body>
 </html>
 

@@ -2038,7 +2038,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       root.className = "tariff-scatter-workspace";
       document.body.appendChild(root);
     }
-    if (!source?.services || !window.Chart) { root.innerHTML = '<div class="scatter-empty">Data atau modul chart belum tersedia.</div>'; return; }
+    if (!source?.services) { root.innerHTML = '<div class="scatter-empty">Data pemetaan iDRG belum tersedia. Muat ulang halaman untuk mengambil bundel data terbaru.</div>'; return; }
+    if (!window.Chart) { root.innerHTML = '<div class="scatter-empty">Modul Chart.js belum termuat. Muat ulang halaman tanpa cache (Ctrl+F5).</div>'; return; }
     window.tariffScatterUi = { service: "ALL", region: "ALL", hospitalClass: "ALL", rawatClass: "ALL", ownership: "ALL", threshold: 6, ...(window.tariffScatterUi || {}) };
     const ui = window.tariffScatterUi;
     const services = Object.keys(source.services).sort();
