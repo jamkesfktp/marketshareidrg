@@ -2036,31 +2036,38 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       root.innerHTML = '<div style="padding:30px;color:#b91c1c;font-weight:800;">Bundel PETA iDRG belum tersedia. Jalankan generator data pemetaan.</div>';
       return;
     }
-    window.idrgMapUi ||= { service: Object.keys(source.services)[0], region: "ALL", severity: "ALL", search: "", page: 0 };
+    window.idrgMapUi ||= { service: Object.keys(source.services)[0], region: "ALL", severity: "INPATIENT", search: "", page: 0 };
     const ui = window.idrgMapUi;
     const services = [...new Set([...Object.keys(source.services), "FORENSIK"])].sort();
     if (!services.includes(ui.service)) ui.service = services[0];
     const query = ui.search.trim().toLowerCase();
-    let rows = (source.services[ui.service] || []).filter((row) => (ui.severity === "ALL" || String(row.severity) === ui.severity) && (!query || `${row.ina} ${row.inaDescription} ${row.idrg} ${row.idrgDescription}`.toLowerCase().includes(query)));
+    let rows = (source.services[ui.service] || []).filter((row) => (ui.severity === "ALL" || (ui.severity === "INPATIENT" ? row.severity > 0 : String(row.severity) === ui.severity)) && (!query || `${row.ina} ${row.inaDescription} ${row.idrg} ${row.idrgDescription}`.toLowerCase().includes(query)));
     const grouped = new Map();
     rows.forEach((row) => {
-      const key = `${row.ina}|${row.severity}`;
+      const key = row.ina;
       const item = grouped.get(key) || { ina: row.ina, description: row.inaDescription, severity: row.severity, cases: 0, links: [] };
       item.cases += row.cases; item.links.push(row); grouped.set(key, item);
     });
     const groups = [...grouped.values()].sort((a, b) => b.cases - a.cases);
-    const pageSize = 3; const maxPage = Math.max(0, Math.ceil(groups.length / pageSize) - 1);
+    const familiesMap = new Map();
+    groups.forEach((group) => {
+      const familyCode = group.ina.replace(/-(?:I|II|III)$/i, "");
+      const family = familiesMap.get(familyCode) || { code: familyCode, cases: 0, items: [] };
+      family.cases += group.cases; family.items.push(group); familiesMap.set(familyCode, family);
+    });
+    const families = [...familiesMap.values()].sort((a, b) => b.cases - a.cases);
+    const maxPage = Math.max(0, families.length - 1);
     ui.page = Math.min(ui.page, maxPage);
-    const shown = groups.slice(ui.page * pageSize, ui.page * pageSize + pageSize);
+    const shown = (families[ui.page]?.items || []).sort((a, b) => a.severity - b.severity);
     const targetMap = new Map();
     shown.forEach((group) => group.links.forEach((link) => {
       const item = targetMap.get(link.idrg) || { code: link.idrg, description: link.idrgDescription, cases: 0 };
       item.cases += link.cases; targetMap.set(link.idrg, item);
     }));
-    const targets = [...targetMap.values()].sort((a, b) => b.cases - a.cases).slice(0, 5);
+    const targets = [...targetMap.values()].sort((a, b) => b.cases - a.cases).slice(0, 4);
     const visibleCodes = new Set(targets.map((item) => item.code));
-    const sevColors = { 1: "#317a7e", 2: "#55ad9e", 3: "#51aec0", 4: "#7560a8", 0: "#64748b" };
-    const sevLabels = { 1: "Ringan", 2: "Sedang", 3: "Berat", 4: "Paripurna", 0: "Tanpa Severity" };
+    const sevColors = { 1: "#317a7e", 2: "#55ad9e", 3: "#51aec0", 0: "#64748b" };
+    const sevLabels = { 1: "Ringan", 2: "Sedang", 3: "Berat", 0: "Tanpa Severity / Rawat Jalan" };
     const money = (value) => `Rp ${Math.round(Number(value) || 0).toLocaleString("id-ID")}`;
     const inaTariff = (code) => source.inaTariffs?.[code]?.regions?.[ui.region] || 0;
     const totalCases = rows.reduce((sum, row) => sum + row.cases, 0);
@@ -2071,13 +2078,13 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           <div style="display:flex;gap:7px;align-items:end;flex-wrap:wrap;justify-content:flex-end;">
             <label style="font-size:9px;font-weight:900;color:#475569;">24 KELOMPOK LAYANAN<br><select id="idrgMapService" style="width:245px;padding:6px;border:1px solid #94a3b8;border-radius:6px;font-weight:750;">${services.map((s) => `<option ${s === ui.service ? "selected" : ""}>${escapeHtml(s)}</option>`).join("")}</select></label>
             <label style="font-size:9px;font-weight:900;color:#475569;">TARIF INA-CBG<br><select id="idrgMapRegion" style="padding:6px;border:1px solid #94a3b8;border-radius:6px;font-weight:750;"><option value="ALL" ${ui.region === "ALL" ? "selected" : ""}>Rata-rata ALL Regional</option>${[1,2,3,4,5].map((n) => `<option value="R${n}" ${ui.region === `R${n}` ? "selected" : ""}>Regional ${n}</option>`).join("")}</select></label>
-            <label style="font-size:9px;font-weight:900;color:#475569;">SEVERITY<br><select id="idrgMapSeverity" style="padding:6px;border:1px solid #94a3b8;border-radius:6px;font-weight:750;"><option value="ALL">Semua</option>${[1,2,3,4].map((n) => `<option value="${n}" ${ui.severity === String(n) ? "selected" : ""}>${sevLabels[n]}</option>`).join("")}</select></label>
+            <label style="font-size:9px;font-weight:900;color:#475569;">SEVERITY<br><select id="idrgMapSeverity" style="padding:6px;border:1px solid #94a3b8;border-radius:6px;font-weight:750;"><option value="INPATIENT" ${ui.severity === "INPATIENT" ? "selected" : ""}>Rawat Inap Severity I–III</option><option value="ALL" ${ui.severity === "ALL" ? "selected" : ""}>Semua termasuk Rawat Jalan</option><option value="0" ${ui.severity === "0" ? "selected" : ""}>Tanpa Severity / Rawat Jalan</option>${[1,2,3].map((n) => `<option value="${n}" ${ui.severity === String(n) ? "selected" : ""}>${sevLabels[n]}</option>`).join("")}</select></label>
             <label style="font-size:9px;font-weight:900;color:#475569;">CARI KODE / DESKRIPSI<br><input id="idrgMapSearch" value="${escapeHtml(ui.search)}" placeholder="Cari INA-CBG atau iDRG" style="width:190px;padding:6px;border:1px solid #94a3b8;border-radius:6px;"></label>
             <button id="idrgMapExcel" type="button" style="padding:7px 11px;background:#f0fdf4;border:1px solid #16a34a;color:#166534;border-radius:6px;font-size:10px;font-weight:900;white-space:nowrap;">📥 Download Excel</button>
           </div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:7px 20px;background:#f8fafc;border-block:1px solid #e2e8f0;"><div><small style="color:#64748b;font-weight:800;">RELASI DITEMUKAN</small><b style="display:block;font-size:17px;">${formatNumber(rows.length)}</b></div><div><small style="color:#64748b;font-weight:800;">KODE INA-CBG</small><b style="display:block;font-size:17px;color:#317a7e;">${formatNumber(groups.length)}</b></div><div><small style="color:#64748b;font-weight:800;">KODE iDRG</small><b style="display:block;font-size:17px;color:#c7b92b;">${formatNumber(new Set(rows.map((r) => r.idrg)).size)}</b></div><div><small style="color:#64748b;font-weight:800;">JUMLAH KASUS</small><b style="display:block;font-size:17px;color:#b91c1c;">${formatNumber(totalCases)}</b></div></div>
-        <div id="idrgMapCanvas" style="position:relative;flex:1;min-height:0;padding:12px 20px 8px;display:grid;grid-template-columns:minmax(0,46%) minmax(0,8%) minmax(0,46%);gap:0;overflow:auto;">
+        <div id="idrgMapCanvas" style="position:relative;flex:1;min-height:0;padding:12px 20px 8px;display:grid;grid-template-columns:minmax(0,44%) minmax(70px,12%) minmax(0,44%);gap:0;overflow:hidden;">
           <div style="position:relative;z-index:2;"><div style="font-size:23px;font-weight:900;color:#2f6f75;margin-bottom:8px;">INA-CBG <span style="font-size:12px;color:#b42318;">(${ui.region === "ALL" ? "Rata-rata Regional 1–5" : `Tarif ${ui.region.replace('R','Regional ')}`})</span></div><div style="display:flex;flex-direction:column;gap:10px;">${shown.map((group) => `<div class="idrg-source-card" data-key="${escapeHtml(`${group.ina}|${group.severity}`)}" style="display:grid;grid-template-columns:105px minmax(0,1fr) 125px;align-items:stretch;background:#ddd;border:3px solid #aaa;border-radius:5px;overflow:hidden;min-height:88px;"><div style="display:flex;align-items:center;justify-content:center;background:${sevColors[group.severity]};color:white;font-size:22px;font-weight:900;">${escapeHtml(group.ina)}</div><div style="padding:10px 12px;background:${sevColors[group.severity]};color:#fff;border-left:5px solid #aaa;font-size:16px;font-weight:850;line-height:1.25;">${escapeHtml(group.description)}<div style="font-size:10px;margin-top:5px;opacity:.9;">${sevLabels[group.severity]} · ${formatNumber(group.cases)} kasus</div></div><div style="display:flex;align-items:center;justify-content:center;color:#b42318;font-size:16px;font-weight:900;">${money(inaTariff(group.ina))}</div></div>`).join("") || '<div style="padding:30px;color:#64748b;">Tidak ada pemetaan sesuai filter.</div>'}</div></div>
           <svg id="idrgMapArrows" style="position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;"></svg><div></div>
           <div style="position:relative;z-index:2;"><div style="font-size:23px;font-weight:900;color:#d68436;margin-bottom:8px;">iDRG <span style="font-size:12px;color:#b42318;">(Master Tarif +AF)</span></div><div style="display:flex;flex-direction:column;gap:10px;padding-top:48px;">${targets.map((item, index) => { const ref = source.idrgTariffs?.[item.code] || {}; const bg = index % 2 ? '#d7cb42' : '#317a7e'; return `<div class="idrg-target-card" data-code="${escapeHtml(item.code)}" style="display:grid;grid-template-columns:110px minmax(0,1fr) 135px;align-items:stretch;background:#fbf9c8;border:3px solid #999;border-radius:5px;overflow:hidden;min-height:88px;"><div style="display:flex;align-items:center;justify-content:center;background:${bg};color:#fff;font-size:22px;font-weight:900;">${escapeHtml(item.code)}</div><div style="padding:10px 12px;background:${bg};color:#fff;border-left:5px solid #aaa;font-size:16px;font-weight:850;line-height:1.25;">${escapeHtml(ref.description || item.description)}<div style="font-size:10px;margin-top:5px;opacity:.9;">${formatNumber(item.cases)} kasus terpetakan</div></div><div style="display:flex;align-items:center;justify-content:center;color:#b42318;font-size:16px;font-weight:900;">${money(ref.tariff)}</div></div>`; }).join("")}</div></div>
@@ -2100,7 +2107,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         const regionLabel = ui.region === "ALL" ? "Rata-rata Regional 1–5" : ui.region.replace("R", "Regional ");
         const guideRows = [
           ["KERTAS KERJA PETA iDRG"], [], ["Parameter", "Nilai"], ["Kelompok layanan", ui.service], ["Tarif INA-CBG", regionLabel],
-          ["Severity", ui.severity === "ALL" ? "Semua" : sevLabels[Number(ui.severity)]], ["Pencarian", ui.search || "Semua kode/deskripsi"],
+          ["Severity", ui.severity === "ALL" ? "Semua termasuk Rawat Jalan" : ui.severity === "INPATIENT" ? "Rawat Inap Severity I–III" : sevLabels[Number(ui.severity)]], ["Pencarian", ui.search || "Semua kode/deskripsi"],
           ["Sumber tarif iDRG", "Tarif iDRG_+AF.xlsx"], ["Sumber tarif INA-CBG", "Draft Tarif 2023 Final 10012023 (2).xlsx - sheet TARIF CBGS 2022"],
           ["Definisi ALL Regional", "Rata-rata tarif Regional 1 sampai Regional 5 untuk kode INA-CBG yang sama."],
           ["Catatan", "Tarif INA-CBG merupakan rata-rata seluruh kelas RS, kepemilikan, dan kelas rawat pada regional terpilih."],
@@ -2126,6 +2133,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     });
     root.querySelector("#idrgMapPrev")?.addEventListener("click", () => { ui.page--; rerender(); });
     root.querySelector("#idrgMapNext")?.addEventListener("click", () => { ui.page++; rerender(); });
+    const idrgTargetStack = root.querySelector(".idrg-target-card")?.parentElement;
+    if (idrgTargetStack) idrgTargetStack.style.paddingTop = "0";
     requestAnimationFrame(() => {
       const canvas = root.querySelector("#idrgMapCanvas"); const svg = root.querySelector("#idrgMapArrows"); if (!canvas || !svg) return;
       const box = canvas.getBoundingClientRect(); let lines = '<defs><marker id="idrgArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#2f786e"/></marker></defs>';

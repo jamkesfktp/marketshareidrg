@@ -21,12 +21,15 @@ function csv(line) {
 
 const clean = (v) => String(v ?? "").trim();
 const number = (v) => Number(String(v ?? 0).replace(/,/g, "")) || 0;
-const severity = (v) => {
-  const s = clean(v).toUpperCase();
-  if (s.includes("DASAR") || s === "1") return 1;
-  if (s.includes("MADYA") || s === "2") return 2;
-  if (s.includes("UTAMA") || s === "3") return 3;
-  if (s.includes("PARIPURNA") || s === "4") return 4;
+const idrgTariffNumber = (v) => {
+  if (typeof v === "number") return v > 0 && v < 100000 ? Math.round(v * 1000) : Math.round(v);
+  return number(v);
+};
+const severityFromInaCode = (v) => {
+  const suffix = clean(v).toUpperCase().split("-").pop();
+  if (suffix === "I") return 1;
+  if (suffix === "II") return 2;
+  if (suffix === "III") return 3;
   return 0;
 };
 
@@ -34,7 +37,7 @@ const idrgRows = XLSX.utils.sheet_to_json(XLSX.readFile(IDRG).Sheets.Sheet1, { d
 const idrgTariffs = {};
 for (const row of idrgRows) {
   const code = clean(row.DRG);
-  if (code) idrgTariffs[code] = { description: clean(row["Deskripsi DRG"]), tariff: number(row["Tarif iDRG"]), ptd: clean(row.PTD), mdc: clean(row.MDC), dc: clean(row.DC) };
+  if (code) idrgTariffs[code] = { description: clean(row["Deskripsi DRG"]), tariff: idrgTariffNumber(row["Tarif iDRG"]), ptd: clean(row.PTD), mdc: clean(row.MDC), dc: clean(row.DC) };
 }
 
 const inaSheet = XLSX.readFile(INA).Sheets["TARIF CBGS 2022"];
@@ -44,7 +47,7 @@ for (const row of inaRows) {
   const code = clean(row.KODE_INACBG); const reg = clean(row.REGIONAL).toUpperCase().replace("REG", "R");
   if (!code || !/^R[1-5]$/.test(reg)) continue;
   const key = `${code}|${reg}`; const prev = inaAgg.get(key) || { sum: 0, n: 0, description: clean(row.DESKRIPSI) };
-  prev.sum += number(row["TARIF FINAL"]); prev.n++; inaAgg.set(key, prev);
+  prev.sum += number(row[" TARIF FINAL "] ?? row["TARIF FINAL"] ?? row["FINAL TARIF "]); prev.n++; inaAgg.set(key, prev);
 }
 const inaTariffs = {};
 for (const [key, val] of inaAgg) {
@@ -65,8 +68,8 @@ input.on("line", (line) => {
   const row = csv(line); rows++;
   const service = clean(row[14]).toUpperCase(); const ina = clean(row[18]); const idrg = clean(row[22]);
   if (!service || !ina || !idrg) return;
-  const sev = severity(row[17]); const cases = number(row[28]);
-  const key = `${service}|${ina}|${idrg}|${sev}`;
+  const sev = severityFromInaCode(ina); const cases = number(row[28]);
+  const key = `${service}|${ina}|${idrg}`;
   const prev = relations.get(key) || { service, ina, inaDescription: clean(row[19]), idrg, idrgDescription: clean(row[23]), severity: sev, cases: 0 };
   prev.cases += cases; relations.set(key, prev);
   if (rows % 1000000 === 0) console.log(`Processed ${rows.toLocaleString()} rows`);
