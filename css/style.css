@@ -148,6 +148,10 @@ input[type="number"] { outline-offset: 3px; }
 .target-meta span { color: var(--muted); font-size: 14px; }
 
 .slide-stack { position: relative; overflow: hidden; }
+.idrg-map-slide { padding: 0 !important; background: #fff; }
+.idrg-map-slide #idrgMapSlide { width: 100%; height: 100%; }
+.idrg-map-slide button { padding: 5px 9px; border: 1px solid #94a3b8; border-radius: 6px; background: #fff; color: #334155; font-size: 10px; font-weight: 800; cursor: pointer; }
+.idrg-map-slide button:disabled { opacity: .45; cursor: default; }
 
 .slide {
   position: absolute;
