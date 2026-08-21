@@ -9194,8 +9194,15 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       groups.get(category).push({ index, title });
     });
     const icons = { "Analisis RS": "▦", "Simulasi & Proyeksi": "◇", "Nasional iDRG": "◎", "Jejaring RS": "⌂" };
-    nav.innerHTML = `<div class="enterprise-nav-head"><div class="enterprise-nav-product"><span class="enterprise-nav-logo">BI</span><div><strong>Market Share</strong><small>Decision Intelligence</small></div></div><button id="enterpriseNavToggle" type="button" aria-label="Collapse menu" title="Collapse menu">‹</button></div><div class="enterprise-nav-scroll"><div class="enterprise-nav-section-label">MENU UTAMA</div><nav class="enterprise-shortcuts"><button type="button" data-slide-index="0" title="Overview"><i>⌂</i><span>Overview</span></button><button type="button" data-action="dynamic" title="Simulasi Dinamis"><i>⚡</i><span>Simulasi Dinamis</span></button><button type="button" data-action="idrg" title="PETA iDRG"><i>⌘</i><span>PETA iDRG</span></button><button type="button" data-action="filters" title="Filter & Parameter"><i>⚙</i><span>Filter & Parameter</span></button></nav><div class="enterprise-nav-section-label">WORKSPACE LAPORAN</div><div class="enterprise-nav-groups">${[...groups].map(([name, items], groupIndex) => `<details ${groupIndex < 2 ? "open" : ""}><summary><i>${icons[name] || "•"}</i><span>${name}</span><b>${items.length}</b></summary><div>${items.map((item) => `<button type="button" data-slide-index="${item.index}" title="${escapeHtml(item.title)}"><i>${item.index + 1}</i><span>${escapeHtml(item.title)}</span></button>`).join("")}</div></details>`).join("")}</div></div><footer><span class="enterprise-status-dot"></span><div><strong>Data Mirroring</strong><small>Okt 2025 – Jun 2026</small></div></footer>`;
+    nav.innerHTML = `<div class="enterprise-nav-head"><div class="enterprise-nav-product"><span class="enterprise-nav-logo"><img src="img/logo-kemenkes.png" alt="Logo Kemenkes"></span><div><strong>Market Share Kemenkes</strong><small>Decision Intelligence</small></div></div><button id="enterpriseNavToggle" type="button" aria-label="Collapse menu" title="Collapse menu">‹</button></div><div class="enterprise-nav-scroll"><div class="enterprise-nav-section-label">MENU UTAMA</div><nav class="enterprise-shortcuts"><button type="button" data-slide-index="0" title="Overview"><i>⌂</i><span>Overview</span></button><button type="button" data-action="dynamic" title="Simulasi Dinamis"><i>⚡</i><span>Simulasi Dinamis</span></button><button type="button" data-action="idrg" title="PETA iDRG"><i>⌘</i><span>PETA iDRG</span></button><button type="button" data-action="filters" title="Filter & Parameter"><i>⚙</i><span>Filter & Parameter</span></button></nav><div class="enterprise-nav-section-label">FILTER &amp; WORKSPACE</div><div class="enterprise-nav-groups"><details id="enterpriseFilters"><summary><i>⚙</i><span>Filter &amp; Parameter</span><b>+</b></summary><div id="enterpriseFilterHost" class="enterprise-filter-host"></div></details>${[...groups].map(([name, items], groupIndex) => `<details ${groupIndex < 2 ? "open" : ""}><summary><i>${icons[name] || "•"}</i><span>${name}</span><b>${items.length}</b></summary><div class="enterprise-report-links">${items.map((item) => `<button type="button" data-slide-index="${item.index}" title="${escapeHtml(item.title)}"><i>${item.index + 1}</i><span>${escapeHtml(item.title)}</span></button>`).join("")}</div></details>`).join("")}</div></div><footer><span class="enterprise-status-dot"></span><div><strong>Kementerian Kesehatan RI</strong><small>Data Mirroring iDRG</small></div></footer>`;
     document.body.appendChild(nav);
+    const filterContent = document.querySelector(".sidebar-content");
+    const filterHost = nav.querySelector("#enterpriseFilterHost");
+    if (filterContent && filterHost) {
+      filterContent.classList.add("enterprise-filter-content");
+      filterHost.appendChild(filterContent);
+      document.querySelector(".sidebar-panel")?.classList.add("is-integrated");
+    }
     const savedCollapsed = localStorage.getItem("enterpriseNavCollapsed") === "true";
     document.body.classList.toggle("enterprise-nav-collapsed", savedCollapsed);
     const toggle = nav.querySelector("#enterpriseNavToggle");
@@ -9208,7 +9215,15 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     }));
     nav.querySelector('[data-action="dynamic"]')?.addEventListener("click", () => document.getElementById("btnOpenDynamicMarket")?.click());
     nav.querySelector('[data-action="idrg"]')?.addEventListener("click", () => document.getElementById("idrgMapNavBtn")?.click());
-    nav.querySelector('[data-action="filters"]')?.addEventListener("click", () => document.getElementById("sidebarOpenBtn")?.click());
+    nav.querySelector('[data-action="filters"]')?.addEventListener("click", () => {
+      document.body.classList.remove("enterprise-nav-collapsed");
+      localStorage.setItem("enterpriseNavCollapsed", "false");
+      syncToggle();
+      const filters = nav.querySelector("#enterpriseFilters");
+      filters.open = !filters.open;
+      if (filters.open) filters.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      window.dispatchEvent(new Event("resize"));
+    });
     const syncActive = () => {
       const activeIndex = slides.findIndex((slide) => slide.classList.contains("is-active") && !slide.hidden);
       nav.querySelectorAll("[data-slide-index]").forEach((button) => button.classList.toggle("is-active", Number(button.dataset.slideIndex) === activeIndex));
