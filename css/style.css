@@ -209,6 +209,64 @@ body.idrg-workspace-open { overflow: hidden; }
 #dynamicMarketShareSlide select,
 #dynamicMarketShareSlide button { min-height: 38px; padding: 8px 12px !important; font-size: 13px !important; }
 
+/* Enterprise BI navigation */
+.enterprise-nav { position: fixed; inset: 0 auto 0 0; z-index: 9000; width: 280px; display: grid; grid-template-rows: 76px minmax(0,1fr) 66px; color: #dbeafe; background: linear-gradient(180deg,#102f36 0%,#123f44 48%,#102c33 100%); border-right: 1px solid rgba(255,255,255,.12); box-shadow: 10px 0 30px rgba(15,45,51,.18); transition: width .22s ease; }
+.enterprise-nav-head { padding: 14px 13px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,.1); }
+.enterprise-nav-product { min-width: 0; display: flex; align-items: center; gap: 11px; overflow: hidden; }
+.enterprise-nav-logo { flex: 0 0 40px; height: 40px; display: grid; place-items: center; border-radius: 10px; color: #10353a; background: linear-gradient(145deg,#f4e85d,#8ed8c9); font-size: 15px; font-weight: 900; box-shadow: 0 4px 12px rgba(0,0,0,.18); }
+.enterprise-nav-product div { min-width: 150px; }
+.enterprise-nav-product strong,.enterprise-nav-product small { display: block; white-space: nowrap; }
+.enterprise-nav-product strong { color: white; font-size: 15px; }
+.enterprise-nav-product small { margin-top: 2px; color: #8db7b8; font-size: 10px; letter-spacing: .04em; }
+#enterpriseNavToggle { flex: 0 0 30px; width: 30px; height: 30px; padding: 0; border: 1px solid rgba(255,255,255,.15); border-radius: 7px; color: white; background: rgba(255,255,255,.08); font-size: 22px; cursor: pointer; }
+#enterpriseNavToggle:hover { background: rgba(255,255,255,.16); }
+.enterprise-nav-scroll { min-height: 0; padding: 12px 10px 18px; overflow: auto; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.2) transparent; }
+.enterprise-nav-section-label { padding: 8px 10px 6px; color: #6fa4a8; font-size: 9px; font-weight: 900; letter-spacing: .14em; white-space: nowrap; }
+.enterprise-shortcuts { display: grid; gap: 4px; margin-bottom: 12px; }
+.enterprise-shortcuts button,.enterprise-nav-groups details > div button { width: 100%; min-height: 42px; padding: 7px 9px; display: grid; grid-template-columns: 32px minmax(0,1fr); gap: 8px; align-items: center; border: 0; border-radius: 8px; color: #c8dfe0; background: transparent; text-align: left; cursor: pointer; }
+.enterprise-shortcuts button i { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 7px; color: #dff6f2; background: rgba(139,213,200,.12); font-size: 15px; font-style: normal; }
+.enterprise-shortcuts button span,.enterprise-nav-groups button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 750; }
+.enterprise-shortcuts button:hover,.enterprise-nav-groups details > div button:hover { color: white; background: rgba(255,255,255,.08); }
+.enterprise-shortcuts button.is-active,.enterprise-nav-groups button.is-active { color: white; background: linear-gradient(90deg,rgba(40,161,149,.38),rgba(40,161,149,.12)); box-shadow: inset 3px 0 #e5da45; }
+.enterprise-nav-groups { display: grid; gap: 5px; }
+.enterprise-nav-groups details { border-radius: 8px; overflow: hidden; }
+.enterprise-nav-groups summary { min-height: 42px; padding: 7px 9px; display: grid; grid-template-columns: 32px minmax(0,1fr) max-content; gap: 8px; align-items: center; color: #e0eeee; border-radius: 8px; cursor: pointer; list-style: none; }
+.enterprise-nav-groups summary::-webkit-details-marker { display: none; }
+.enterprise-nav-groups summary:hover { background: rgba(255,255,255,.07); }
+.enterprise-nav-groups summary i { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 7px; color: #9fd2ce; background: rgba(255,255,255,.07); font-size: 15px; font-style: normal; }
+.enterprise-nav-groups summary span { white-space: nowrap; font-size: 11.5px; font-weight: 850; }
+.enterprise-nav-groups summary b { min-width: 22px; padding: 3px 6px; border-radius: 99px; color: #9ec1c2; background: rgba(255,255,255,.08); font-size: 9px; text-align: center; }
+.enterprise-nav-groups details[open] summary { color: white; background: rgba(255,255,255,.06); }
+.enterprise-nav-groups details > div { padding: 3px 0 5px 15px; display: grid; gap: 2px; }
+.enterprise-nav-groups details > div button { min-height: 36px; grid-template-columns: 27px minmax(0,1fr); padding-block: 5px; }
+.enterprise-nav-groups details > div button i { color: #739fa1; font-size: 9px; font-style: normal; text-align: center; }
+.enterprise-nav footer { padding: 12px 16px; display: flex; align-items: center; gap: 10px; border-top: 1px solid rgba(255,255,255,.1); overflow: hidden; }
+.enterprise-nav footer div { min-width: 160px; }
+.enterprise-nav footer strong,.enterprise-nav footer small { display: block; white-space: nowrap; }
+.enterprise-nav footer strong { color: #d8eeee; font-size: 11px; }.enterprise-nav footer small { margin-top: 2px; color: #789fa1; font-size: 9px; }
+.enterprise-status-dot { flex: 0 0 9px; width: 9px; height: 9px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 0 4px rgba(74,222,128,.12); }
+.viewport-stage { margin-left: 280px; transition: margin-left .22s ease; }
+body.enterprise-nav-collapsed .enterprise-nav { width: 72px; }
+body.enterprise-nav-collapsed .viewport-stage { margin-left: 72px; }
+body.enterprise-nav-collapsed .enterprise-nav-product div,
+body.enterprise-nav-collapsed .enterprise-nav-section-label,
+body.enterprise-nav-collapsed .enterprise-shortcuts button span,
+body.enterprise-nav-collapsed .enterprise-nav-groups summary span,
+body.enterprise-nav-collapsed .enterprise-nav-groups summary b,
+body.enterprise-nav-collapsed .enterprise-nav-groups details > div,
+body.enterprise-nav-collapsed .enterprise-nav footer div { display: none; }
+body.enterprise-nav-collapsed .enterprise-nav-head { padding-inline: 9px; flex-direction: column; gap: 5px; }
+body.enterprise-nav-collapsed .enterprise-nav-product { overflow: visible; }
+body.enterprise-nav-collapsed .enterprise-nav-logo { flex-basis: 34px; width: 34px; height: 34px; }
+body.enterprise-nav-collapsed #enterpriseNavToggle { position: absolute; top: 54px; width: 24px; height: 24px; font-size: 17px; background: #1f5558; }
+body.enterprise-nav-collapsed .enterprise-nav-scroll { padding-inline: 10px; padding-top: 20px; }
+body.enterprise-nav-collapsed .enterprise-shortcuts button { grid-template-columns: 32px; justify-content: center; padding-inline: 9px; }
+body.enterprise-nav-collapsed .enterprise-nav-groups summary { grid-template-columns: 32px; justify-content: center; padding-inline: 9px; }
+body.enterprise-nav-collapsed .enterprise-nav footer { justify-content: center; padding-inline: 0; }
+.global-toolbar #muhammadiyahGroupNavBtn,.global-toolbar #idrgMapNavBtn,.global-toolbar #nationalMirroringNavBtn { display: none !important; }
+.global-toolbar #nationalMirroringNavBtn + .multi-select-dropdown { display: none !important; }
+@media (max-width: 900px) { .enterprise-nav { width: 72px; }.viewport-stage { margin-left: 72px; }.enterprise-nav-product div,.enterprise-nav-section-label,.enterprise-shortcuts button span,.enterprise-nav-groups summary span,.enterprise-nav-groups summary b,.enterprise-nav-groups details > div,.enterprise-nav footer div { display:none; } }
+
 .slide {
   position: absolute;
   inset: 0;

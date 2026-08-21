@@ -9172,6 +9172,52 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     container.querySelectorAll(".slide-dot").forEach((button) => button.addEventListener("click", () => showSlide(Number(button.dataset.index))));
   }
 
+  function initEnterpriseNavigation() {
+    if (document.getElementById("enterpriseNav")) return;
+    const slides = [...document.querySelectorAll(".slide")];
+    const nav = document.createElement("aside");
+    nav.id = "enterpriseNav";
+    nav.className = "enterprise-nav";
+    const titleFor = (slide, index) => slide.querySelector("h1")?.textContent?.trim() || `Laporan ${index + 1}`;
+    const categoryFor = (slide, title) => {
+      if (slide.classList.contains("national-rawat-type-slide") || slide.className.includes("national-") || slide.classList.contains("icd-competency-slide")) return "Nasional iDRG";
+      if (slide.className.includes("muhammadiyah")) return "Jejaring RS";
+      if (/simulasi|skenario|rekap|capture|drill-down|dampak/i.test(title)) return "Simulasi & Proyeksi";
+      return "Analisis RS";
+    };
+    const groups = new Map();
+    slides.forEach((slide, index) => {
+      if (slide.id === "idrgMapSlideSection") return;
+      const title = titleFor(slide, index);
+      const category = categoryFor(slide, title);
+      if (!groups.has(category)) groups.set(category, []);
+      groups.get(category).push({ index, title });
+    });
+    const icons = { "Analisis RS": "▦", "Simulasi & Proyeksi": "◇", "Nasional iDRG": "◎", "Jejaring RS": "⌂" };
+    nav.innerHTML = `<div class="enterprise-nav-head"><div class="enterprise-nav-product"><span class="enterprise-nav-logo">BI</span><div><strong>Market Share</strong><small>Decision Intelligence</small></div></div><button id="enterpriseNavToggle" type="button" aria-label="Collapse menu" title="Collapse menu">‹</button></div><div class="enterprise-nav-scroll"><div class="enterprise-nav-section-label">MENU UTAMA</div><nav class="enterprise-shortcuts"><button type="button" data-slide-index="0" title="Overview"><i>⌂</i><span>Overview</span></button><button type="button" data-action="dynamic" title="Simulasi Dinamis"><i>⚡</i><span>Simulasi Dinamis</span></button><button type="button" data-action="idrg" title="PETA iDRG"><i>⌘</i><span>PETA iDRG</span></button><button type="button" data-action="filters" title="Filter & Parameter"><i>⚙</i><span>Filter & Parameter</span></button></nav><div class="enterprise-nav-section-label">WORKSPACE LAPORAN</div><div class="enterprise-nav-groups">${[...groups].map(([name, items], groupIndex) => `<details ${groupIndex < 2 ? "open" : ""}><summary><i>${icons[name] || "•"}</i><span>${name}</span><b>${items.length}</b></summary><div>${items.map((item) => `<button type="button" data-slide-index="${item.index}" title="${escapeHtml(item.title)}"><i>${item.index + 1}</i><span>${escapeHtml(item.title)}</span></button>`).join("")}</div></details>`).join("")}</div></div><footer><span class="enterprise-status-dot"></span><div><strong>Data Mirroring</strong><small>Okt 2025 – Jun 2026</small></div></footer>`;
+    document.body.appendChild(nav);
+    const savedCollapsed = localStorage.getItem("enterpriseNavCollapsed") === "true";
+    document.body.classList.toggle("enterprise-nav-collapsed", savedCollapsed);
+    const toggle = nav.querySelector("#enterpriseNavToggle");
+    const syncToggle = () => { const collapsed = document.body.classList.contains("enterprise-nav-collapsed"); toggle.textContent = collapsed ? "›" : "‹"; toggle.title = collapsed ? "Buka menu" : "Tutup menu"; };
+    syncToggle();
+    toggle.addEventListener("click", () => { document.body.classList.toggle("enterprise-nav-collapsed"); localStorage.setItem("enterpriseNavCollapsed", document.body.classList.contains("enterprise-nav-collapsed")); syncToggle(); window.dispatchEvent(new Event("resize")); });
+    nav.querySelectorAll("[data-slide-index]").forEach((button) => button.addEventListener("click", () => {
+      const index = Number(button.dataset.slideIndex);
+      document.querySelector(`.slide-dot[data-index="${index}"]`)?.click();
+    }));
+    nav.querySelector('[data-action="dynamic"]')?.addEventListener("click", () => document.getElementById("btnOpenDynamicMarket")?.click());
+    nav.querySelector('[data-action="idrg"]')?.addEventListener("click", () => document.getElementById("idrgMapNavBtn")?.click());
+    nav.querySelector('[data-action="filters"]')?.addEventListener("click", () => document.getElementById("sidebarOpenBtn")?.click());
+    const syncActive = () => {
+      const activeIndex = slides.findIndex((slide) => slide.classList.contains("is-active") && !slide.hidden);
+      nav.querySelectorAll("[data-slide-index]").forEach((button) => button.classList.toggle("is-active", Number(button.dataset.slideIndex) === activeIndex));
+    };
+    const activeObserver = new MutationObserver(syncActive);
+    slides.forEach((slide) => activeObserver.observe(slide, { attributes: true, attributeFilter: ["class", "hidden"] }));
+    syncActive();
+  }
+
   function resizeDeck() {
     const scaler = document.getElementById("deckScaler");
     const shell = scaler?.querySelector(".deck-shell");
@@ -10081,6 +10127,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
   populateFilters();
   populateHospitalSelector();
   populateSlideDots();
+  initEnterpriseNavigation();
   document.getElementById("previousSlide").addEventListener("click", () => showSlide(state.activeSlide - 1));
   document.getElementById("nextSlide").addEventListener("click", () => showSlide(state.activeSlide + 1));
   document.getElementById("btnOpenDynamicMarket")?.addEventListener("click", () => window.showDynamicMarketShareSlide());
