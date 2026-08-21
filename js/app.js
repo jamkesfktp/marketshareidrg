@@ -1795,15 +1795,25 @@ document.getElementById("globalSimulationSlide").innerHTML = `
 
     const rules = getLevelRules(targetComp, service);
     const targetCodes = new Set(selectedTargets.map((hospital) => hospital.code));
-    const higherSourceHospitals = data.hospitals.filter((hospital) =>
-      !targetCodes.has(hospital.code) && getCompetency(hospital, service) > targetComp
-    );
+    const sourceRelationLabel = targetComp === 1
+      ? "RS Kompetensi Lebih Tinggi"
+      : targetComp === 4
+        ? "RS Kompetensi Lebih Rendah"
+        : "RS Kompetensi Lebih Rendah & Lebih Tinggi";
+    const additionSourceHospitals = data.hospitals.filter((hospital) => {
+      if (targetCodes.has(hospital.code)) return false;
+      const sourceComp = getCompetency(hospital, service);
+      if (sourceComp <= 0) return false;
+      if (targetComp === 1) return sourceComp > targetComp;
+      if (targetComp === 4) return sourceComp < targetComp;
+      return sourceComp !== targetComp;
+    });
     const levelData = severityRanks.map((level) => {
       const regionalMetric = severityMetric(regionalSrv, level);
       const targetMetric = severityMetric(targetSrv, level);
       const direction = rules.tambah.includes(level) ? "tambah" : (rules.kurang.includes(level) ? "kurang" : "netral");
       const sourceHospitals = direction === "tambah"
-        ? higherSourceHospitals
+        ? additionSourceHospitals
         : data.hospitals.filter((hospital) => !targetCodes.has(hospital.code) && getCompetency(hospital, service) >= level);
       const sourceMetric = sourceHospitals.reduce((total, hospital) => {
         const metric = severityMetric(hospital.services?.[service], level);
@@ -1907,8 +1917,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       <div style="border:1px solid #cbd5e1;border-radius:8px;overflow:hidden;margin-bottom:8px;">
         <div style="padding:5px 9px;background:#334155;color:#fff;font-size:10.5px;font-weight:900;">DRIVER PASAR DINAMIS PER TINGKAT KOMPETENSI</div>
         <table style="width:100%;border-collapse:collapse;font-size:10px;text-align:center;">
-          <thead><tr style="background:#e2e8f0;color:#334155;"><th style="padding:4px;">Level</th><th>Arah</th><th>Kasus Regional</th><th>Kasus Target</th><th>Pool Simulasi</th><th>RS Kompetitor Eligible</th><th>Share / Aturan</th></tr></thead>
-          <tbody>${levelData.map((item) => `<tr style="border-top:1px solid #e2e8f0;background:${item.direction === "tambah" ? "#f0fdf4" : item.direction === "kurang" ? "#fff1f2" : "#fff"};"><td style="padding:4px;font-weight:900;">${levelNames[item.level]}</td><td style="font-weight:900;color:${item.direction === "tambah" ? "#15803d" : item.direction === "kurang" ? "#be123c" : "#64748b"};">${item.direction === "tambah" ? "↑ TAMBAH" : item.direction === "kurang" ? "↓ KURANG" : "—"}</td><td>${formatNumber(item.regionalCases)}</td><td>${formatNumber(item.targetCases)}</td><td>${formatNumber(item.direction === "tambah" ? item.externalCases : item.targetCases)}</td><td>${item.competitors}</td><td style="font-weight:900;color:${item.direction === "kurang" ? "#be123c" : "#0f172a"};">${item.direction === "kurang" ? `${configuredLossPct.toFixed(1).replace(".", ",")}% (default 100%)` : item.direction === "tambah" ? `${item.naturalShare.toFixed(1).replace(".", ",")}% natural` : "—"}</td></tr>`).join("")}</tbody>
+          <thead><tr style="background:#e2e8f0;color:#334155;"><th style="padding:4px;">Level</th><th>Arah</th><th>Kasus Regional</th><th>Kasus Target</th><th>Pool Sumber Kasus</th><th>Nominal iDRG Pool</th><th>RS Sumber Eligible</th><th>Share / Aturan</th></tr></thead>
+          <tbody>${levelData.map((item) => `<tr style="border-top:1px solid #e2e8f0;background:${item.direction === "tambah" ? "#f0fdf4" : item.direction === "kurang" ? "#fff1f2" : "#fff"};"><td style="padding:4px;font-weight:900;">${levelNames[item.level]}</td><td style="font-weight:900;color:${item.direction === "tambah" ? "#15803d" : item.direction === "kurang" ? "#be123c" : "#64748b"};">${item.direction === "tambah" ? "↑ TAMBAH" : item.direction === "kurang" ? "↓ KURANG" : "—"}</td><td>${formatNumber(item.regionalCases)}</td><td>${formatNumber(item.targetCases)}</td><td style="font-weight:800;">${formatNumber(item.direction === "tambah" ? item.externalCases : item.targetCases)}</td><td style="font-weight:800;color:${item.direction === "tambah" ? "#047857" : "#be123c"};">${formatTableMoney(item.direction === "tambah" ? item.externalIdrg : item.targetIdrg)}</td><td>${item.competitors}</td><td style="font-weight:900;color:${item.direction === "kurang" ? "#be123c" : "#0f172a"};">${item.direction === "kurang" ? `${configuredLossPct.toFixed(1).replace(".", ",")}% (default 100%)` : item.direction === "tambah" ? `${item.naturalShare.toFixed(1).replace(".", ",")}% natural` : "—"}</td></tr>`).join("")}</tbody>
         </table>
       </div>
 
@@ -1918,7 +1928,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
             <tr>
               <th rowspan="2" style="border:1px solid #1e293b;padding:7px;background:#0f766e;">Skenario</th>
               <th rowspan="2" style="border:1px solid #1e293b;padding:7px;background:#334155;">Eksisting Sesuai Kompetensi Target ${levelNames[targetComp]}<br><span style="font-size:9px;font-weight:normal;">${competencyLevelLabel}</span></th>
-              <th colspan="3" style="border:1px solid #1e293b;padding:7px;background:#059669;">Tambahan Kasus ${competencyLevelLabel} dari RS Kompetensi Lebih Tinggi</th>
+              <th colspan="3" style="border:1px solid #1e293b;padding:7px;background:#059669;">Tambahan Kasus ${competencyLevelLabel} dari ${sourceRelationLabel}</th>
               <th colspan="3" style="border:1px solid #1e293b;padding:7px;background:#e11d48;">Pengurangan Kasus ${lossLevelLabel} di Luar Kompetensi Target</th>
               <th rowspan="2" style="border:1px solid #1e293b;padding:7px;background:#047857;">Total Pendapatan Pasca iDRG &amp; RBKP</th>
               <th colspan="4" style="border:1px solid #1e293b;padding:7px;background:#0d9488;">Net +/- Pasca iDRG &amp; RBKP (vs INA-CBG)</th>
@@ -1945,7 +1955,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           }).join("")}</tbody>
         </table>
       </div>
-      <div style="margin-top:7px;padding:6px 9px;border-radius:7px;background:#eff6ff;color:#1e40af;font-size:10px;font-weight:650;">Persentase tambahan dibentuk dari natural share RS berkompetensi lebih tinggi dan dapat diedit. Pengurangan kasus di luar kompetensi menggunakan satu parameter untuk seluruh skenario: default 100%, namun dapat diubah untuk analisis sensitivitas.</div>`;
+      <div style="margin-top:7px;padding:6px 9px;border-radius:7px;background:#eff6ff;color:#1e40af;font-size:10px;font-weight:650;">Persentase tambahan dibentuk dari natural share ${sourceRelationLabel.toLowerCase()} dan dapat diedit. Pengurangan kasus di luar kompetensi menggunakan satu parameter untuk seluruh skenario: default 100%, namun dapat diubah untuk analisis sensitivitas.</div>`;
 
     container.querySelector("#dynamicMarketServiceSelect")?.addEventListener("change", (event) => {
       window.dynamicMarketService = event.target.value;
@@ -1981,7 +1991,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           baselineIdrg,
           datasetLabel: DATASET_PERIODS[activeDatasetKey]?.label || activeDatasetKey,
           tariffLabel: TARIFF_SCENARIOS[state.activeTariffScenario]?.label || state.activeTariffScenario,
-          filterDescription: filters
+          filterDescription: filters,
+          sourceRelationLabel
         });
         button.textContent = "✓ Terunduh";
       } catch (error) {
@@ -2064,6 +2075,12 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       { name: "Paripurna", cases: kParipurna, pct: totalCases ? (kParipurna / totalCases) * 100 : 0 },
       { name: "Lainnya", cases: kLainnya, pct: totalCases ? (kLainnya / totalCases) * 100 : 0 }
     ];
+    const dominantSeverity = severityRows.filter((row) => row.name !== "Lainnya").sort((a, b) => b.cases - a.cases)[0] || severityRows[0];
+    const topHospital = topHospitals[0] || null;
+    const topFiveCases = topHospitals.reduce((sum, hospital) => sum + (hospital.total?.[CASES] || 0), 0);
+    const topFiveShare = totalCases > 0 ? topFiveCases / totalCases * 100 : 0;
+    const idrgGap = totalIdrg - totalIna;
+    const idrgGapPct = totalIna > 0 ? idrgGap / totalIna * 100 : 0;
 
     
     const getChecked = (dropdown) => Array.from(dropdown?.querySelectorAll("input:checked") || []).map(i => i.value);
@@ -2088,23 +2105,24 @@ document.getElementById("globalSimulationSlide").innerHTML = `
 
 
     const filterSummaryHTML = selectedProvinces.length > 0 ? 
-      '<div style="font-size: 13.5px; font-weight: 600; color: #1e293b; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #cbd5e1; max-height: 120px; overflow-y: auto;">' +
+      '<div style="font-size: 11px; font-weight: 650; color: #334155; max-height: 48px; overflow-y: auto; line-height: 1.35;">' +
       selectedProvinces.map(p => {
           let pCities = selectedCities.filter(c => baseData.hospitals.some(h => h.city === c && h.province === p));
           if (pCities.length === 0) {
             pCities = Array.from(new Set(data.hospitals.filter(h => h.province === p).map(h => h.city))).sort();
           }
-          return '<div><span style="color: #0f766e;">' + p + '</span> : <span style="font-weight: 400; color: #475569;">' + pCities.join(', ') + '</span></div>';
+          return '<div><span style="color: #0f766e; font-weight:800;">' + p + '</span> · <span style="font-weight: 500; color: #64748b;">' + pCities.join(', ') + '</span></div>';
         }).join('') +
       '</div>' : 
-      '<div style="font-size: 13.5px; font-weight: 600; color: #1e293b; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #cbd5e1;">Nasional (Semua Provinsi)</div>';
+      '<div style="font-size: 11px; font-weight: 700; color: #475569;">Nasional · Semua Provinsi dan Kabupaten/Kota</div>';
 
     document.getElementById("regionalProfileSlideTitle").innerHTML = `Profil & Kasus Regional - ${target.name} `;
     document.getElementById("regionalProfileSlide").innerHTML = `
-      <div class="regional-profile-layout" style="display: grid; grid-template-columns: 460px minmax(0, 1fr); gap: 20px; height: 100%; min-height: 0;">
+      <div class="regional-profile-layout" style="display:grid;grid-template-columns:minmax(360px,42%) minmax(0,1fr);gap:16px;height:100%;min-height:0;">
         <!-- Left: Interactive Vector Map Container -->
-        <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 16px; padding: 10px; box-shadow: 0 4px 14px rgba(0,0,0,0.04); display: flex; flex-direction: column; height: 100%; min-height: 0;">
-          <div id="junwatuMapContainer" class="regional-map-crop" role="img" aria-label="Peta Vektor Indonesia" style="flex: 1 1 auto; height: 100%; min-height: 380px; position:relative; border-radius:12px; overflow:hidden; border:1px solid #e2e8f0; background: #ffffff; display:flex; align-items:center; justify-content:center;">
+        <div style="background:linear-gradient(180deg,#f8fffe 0%,#ffffff 100%);border:1px solid #b9ddd2;border-radius:14px;padding:9px;box-shadow:0 8px 24px rgba(15,118,110,.09);display:flex;flex-direction:column;height:100%;min-height:0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:3px 5px 9px;gap:8px;"><div><div style="font-size:11px;font-weight:900;color:#0f766e;letter-spacing:.08em;">SEBARAN RUMAH SAKIT</div><div style="font-size:10px;color:#64748b;margin-top:2px;">Wilayah sesuai filter aktif</div></div><span style="padding:4px 8px;border-radius:999px;background:#ccfbf1;color:#0f766e;font-size:10px;font-weight:900;white-space:nowrap;">${formatNumber(totalActive)} RS</span></div>
+          <div id="junwatuMapContainer" class="regional-map-crop" role="img" aria-label="Peta Vektor Indonesia" style="flex:1 1 auto;height:100%;min-height:380px;position:relative;border-radius:10px;overflow:hidden;border:1px solid #dbeafe;background:#f8fafc;display:flex;align-items:center;justify-content:center;">
             <div id="junwatuLoader" style="color:#0284c7; font-size: 14px; font-weight:600; display:flex; gap:8px; align-items:center;">
               <div style="width:20px;height:20px;border:2px solid #0284c7;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;"></div>
               Memuat Peta Regional...
@@ -2113,36 +2131,25 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         </div>
 
         <!-- Right: Summary and Tables -->
-        <div class="regional-profile-main" style="display: flex; flex-direction: column; gap: 14px; height: 100%; min-height: 0;">
+        <div class="regional-profile-main" style="display:flex;flex-direction:column;gap:10px;height:100%;min-height:0;">
           <!-- Top KPI Card -->
-          <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 16px; padding: 16px 22px; position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
-            <div style="position: absolute; right: 20px; top: 16px; opacity: 0.85;">
-              <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#0f766e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"/>
-              </svg>
+          <div style="background:#fff;border:1px solid #dbe3ea;border-radius:14px;padding:12px 14px;box-shadow:0 5px 16px rgba(15,23,42,.05);">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:9px;">
+              <div><div style="font-size:11px;font-weight:900;color:#64748b;letter-spacing:.08em;">PROFIL REGIONAL AKTIF</div><div style="font-size:10px;color:#94a3b8;margin-top:2px;">Ringkasan wilayah dan fasilitas kesehatan</div></div>
+              <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;">
+                ${['A','B','C','D'].map((cls, i) => `<span style="min-width:48px;padding:5px 7px;border-radius:7px;background:${['#eff6ff','#f0fdf4','#fff7ed','#fdf4ff'][i]};border:1px solid ${['#bfdbfe','#bbf7d0','#fed7aa','#f5d0fe'][i]};color:${['#1d4ed8','#15803d','#c2410c','#a21caf'][i]};font-size:10px;font-weight:900;text-align:center;">${cls} · ${classCounts[cls]}</span>`).join('')}
+              </div>
             </div>
-            
-            <div style="font-size: 15px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;">
-              Sebaran RS AKTIF: <span style="color: #dc2626; font-size: 22px; font-weight: 900;">${formatNumber(totalActive)}</span>
+            <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;">
+              <div style="padding:8px 9px;border-radius:9px;background:#f0fdfa;border-left:4px solid #0d9488;"><div style="font-size:9px;color:#64748b;font-weight:800;">TOTAL KASUS</div><div style="font-size:18px;color:#0f172a;font-weight:900;margin-top:2px;">${formatNumber(totalCases)}</div><div style="font-size:9px;color:#94a3b8;">kasus regional</div></div>
+              <div style="padding:8px 9px;border-radius:9px;background:#fff7ed;border-left:4px solid #f97316;"><div style="font-size:9px;color:#64748b;font-weight:800;">PENDAPATAN INA-CBG</div><div style="font-size:18px;color:#c2410c;font-weight:900;margin-top:2px;">${formatMoneyUnit(totalIna)}</div><div style="font-size:9px;color:#94a3b8;">nilai eksisting</div></div>
+              <div style="padding:8px 9px;border-radius:9px;background:#eff6ff;border-left:4px solid #0284c7;"><div style="font-size:9px;color:#64748b;font-weight:800;">POTENSI iDRG</div><div style="font-size:18px;color:#0369a1;font-weight:900;margin-top:2px;">${formatMoneyUnit(totalIdrg)}</div><div style="font-size:9px;color:#94a3b8;">hasil mirroring</div></div>
             </div>
-
-            <div style="font-size: 26px; font-weight: 900; color: #0d9488; margin: 3px 0 10px; letter-spacing: 0.5px;">
-              A: ${classCounts.A} | B: ${classCounts.B} | C: ${classCounts.C} | D: ${classCounts.D}
-            </div>
-            ${filterSummaryHTML}
-
-            <div style="display: grid; grid-template-columns: 240px 1fr; row-gap: 5px; column-gap: 8px; font-size: 13.5px; font-weight: 700; color: #475569; text-transform: uppercase;">
-              <div>TOTAL KASUS REGIONAL</div>
-              <div style="color: #0f172a; font-weight: 800;">: ${formatNumber(totalCases)} Kasus</div>
-              <div>PENDAPATAN INA-CBG REGIONAL</div>
-              <div style="color: #0f172a; font-weight: 800;">: Rp ${formatMoneyUnit(totalIna)}</div>
-              <div>POTENSI iDRG REGIONAL</div>
-              <div style="color: #0f172a; font-weight: 800;">: Rp ${formatMoneyUnit(totalIdrg)}</div>
-            </div>
+            <div style="margin-top:8px;padding:6px 8px;border-radius:7px;background:#f8fafc;border:1px solid #e2e8f0;display:flex;gap:7px;align-items:flex-start;"><span style="font-size:12px;">📍</span><div style="min-width:0;">${filterSummaryHTML}</div></div>
           </div>
 
           <!-- Bottom Tables Row -->
-          <div style="display: grid; grid-template-columns: 38% 1fr; gap: 14px; flex: 1 1 auto; min-height: 0;">
+          <div style="display:grid;grid-template-columns:minmax(245px,40%) minmax(0,1fr);gap:10px;flex:1 1 auto;min-height:0;">
             <!-- Left Table: Tingkat Keparahan -->
             <div style="border-radius: 12px; overflow: hidden; border: 1px solid #cbd5e1; background: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
               <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13.5px;">
@@ -2193,6 +2200,14 @@ document.getElementById("globalSimulationSlide").innerHTML = `
                 </tbody>
               </table>
             </div>
+          </div>
+
+          <!-- Dynamic Regional Insights -->
+          <div style="display:grid;grid-template-columns:112px repeat(3,minmax(0,1fr));border:1px solid #bae6e8;border-radius:10px;overflow:hidden;background:#f0fdfa;box-shadow:0 2px 7px rgba(15,118,110,.05);flex:0 0 auto;">
+            <div style="padding:9px 10px;background:#0f766e;color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;"><span style="font-size:19px;">💡</span><strong style="font-size:10px;letter-spacing:.08em;margin-top:2px;">INSIGHT REGIONAL</strong></div>
+            <div style="padding:8px 10px;border-right:1px solid #ccfbf1;"><div style="font-size:9px;font-weight:900;color:#0f766e;margin-bottom:3px;">KOMPOSISI KASUS</div><div style="font-size:10.5px;color:#475569;line-height:1.3;">Kasus <b style="color:#0f172a;">${dominantSeverity.name}</b> paling dominan: <b>${formatNumber(dominantSeverity.cases)}</b> (${dominantSeverity.pct.toFixed(2).replace('.', ',')}%).</div></div>
+            <div style="padding:8px 10px;border-right:1px solid #ccfbf1;"><div style="font-size:9px;font-weight:900;color:#0f766e;margin-bottom:3px;">KONSENTRASI PASAR</div><div style="font-size:10.5px;color:#475569;line-height:1.3;">Top 5 RS menguasai <b style="color:#0f172a;">${topFiveShare.toFixed(2).replace('.', ',')}%</b> kasus${topHospital ? `; tertinggi ${escapeHtml(topHospital.name)} (${formatNumber(topHospital.total[CASES])})` : ''}.</div></div>
+            <div style="padding:8px 10px;"><div style="font-size:9px;font-weight:900;color:#0f766e;margin-bottom:3px;">PELUANG PENDAPATAN</div><div style="font-size:10.5px;color:#475569;line-height:1.3;">iDRG ${idrgGap >= 0 ? 'memberi potensi kenaikan' : 'lebih rendah'} <b style="color:${idrgGap >= 0 ? '#15803d' : '#b91c1c'};">${idrgGap >= 0 ? '+' : '−'}Rp ${formatMoneyUnit(Math.abs(idrgGap))}</b> (${idrgGap >= 0 ? '+' : '−'}${Math.abs(idrgGapPct).toFixed(2).replace('.', ',')}%).</div></div>
           </div>
         </div>
       </div>
@@ -6894,6 +6909,123 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     `;
   }
 
+  function buildPerServiceDynamicTable(target, service, targetComp) {
+    const selectedTargets = getTargetHospitals();
+    const targetCodes = new Set(selectedTargets.map((hospital) => hospital.code));
+    targetCodes.add(target.code);
+    const rules = getLevelRules(targetComp, service);
+    const targetSrv = target.services?.[service] || { total: createZeroMetric(), severity: {} };
+    const regionalSrv = data.regional?.services?.[service] || { total: createZeroMetric(), severity: {} };
+    const sourceRelationLabel = targetComp === 1
+      ? "RS Kompetensi Lebih Tinggi"
+      : targetComp === 4
+        ? "RS Kompetensi Lebih Rendah"
+        : "RS Kompetensi Lebih Rendah & Lebih Tinggi";
+    const additionSourceHospitals = data.hospitals.filter((hospital) => {
+      if (targetCodes.has(hospital.code)) return false;
+      const sourceComp = getCompetency(hospital, service);
+      if (sourceComp <= 0) return false;
+      if (targetComp === 1) return sourceComp > targetComp;
+      if (targetComp === 4) return sourceComp < targetComp;
+      return sourceComp !== targetComp;
+    });
+    const levelData = severityRanks.map((level) => {
+      const targetMetric = severityMetric(targetSrv, level);
+      const regionalMetric = severityMetric(regionalSrv, level);
+      const direction = rules.tambah.includes(level) ? "tambah" : (rules.kurang.includes(level) ? "kurang" : "netral");
+      const sourceMetric = additionSourceHospitals.reduce((total, hospital) => {
+        const metric = severityMetric(hospital.services?.[service], level);
+        total[CASES] += metric[CASES] || 0;
+        total[IDRG] += metric[IDRG] || 0;
+        return total;
+      }, createZeroMetric());
+      const competitors = direction === "tambah" ? additionSourceHospitals.length : 0;
+      return {
+        level,
+        direction,
+        naturalShare: competitors > 0 ? 100 / (competitors + 1) : 0,
+        targetCases: targetMetric[CASES] || 0,
+        targetIna: targetMetric[INA] || 0,
+        targetIdrg: targetMetric[IDRG] || 0,
+        regionalCases: regionalMetric[CASES] || 0,
+        externalCases: direction === "tambah" ? sourceMetric[CASES] || 0 : 0,
+        externalIdrg: direction === "tambah" ? sourceMetric[IDRG] || 0 : 0
+      };
+    });
+    const baselineCases = levelData.reduce((sum, item) => sum + item.targetCases, 0);
+    const baselineIna = levelData.reduce((sum, item) => sum + item.targetIna, 0);
+    const baselineIdrg = levelData.reduce((sum, item) => sum + item.targetIdrg, 0);
+    const competencyExisting = levelData.filter((item) => rules.tambah.includes(item.level));
+    const competencyExistingCases = competencyExisting.reduce((sum, item) => sum + item.targetCases, 0);
+    const competencyExistingIna = competencyExisting.reduce((sum, item) => sum + item.targetIna, 0);
+    const competencyExistingIdrg = competencyExisting.reduce((sum, item) => sum + item.targetIdrg, 0);
+    const competencyLevelLabel = competencyExisting.map((item) => levelNames[item.level]).join(" & ") || levelNames[targetComp];
+    const lossLevelLabel = rules.kurang.map((level) => levelNames[level]).join(" & ") || "Di Luar Kompetensi";
+    const scenarioDefs = [
+      { name: "Konservatif", factor: 0.50 }, { name: "Moderat", factor: 0.75 },
+      { name: "Proporsional", factor: 1.00 }, { name: "Ekspansif", factor: 1.50 },
+      { name: "Maksimum Rasional", factor: 2.00 }
+    ];
+    const overrideKey = `${activeDatasetKey}|${target.code}|${service}`;
+    window.dynamicMarketOverrides = window.dynamicMarketOverrides || {};
+    window.dynamicMarketLossPct = window.dynamicMarketLossPct || {};
+    const overrides = window.dynamicMarketOverrides[overrideKey] || {};
+    const configuredLossPct = Number.isFinite(window.dynamicMarketLossPct[overrideKey]) ? window.dynamicMarketLossPct[overrideKey] : 100;
+    const additionPoolCases = levelData.filter((item) => item.direction === "tambah").reduce((sum, item) => sum + item.externalCases, 0);
+    const additionPoolIdrg = levelData.filter((item) => item.direction === "tambah").reduce((sum, item) => sum + item.externalIdrg, 0);
+    const pctFor = (scenarioIndex, item) => {
+      const manual = overrides[scenarioIndex]?.[`tambah_${item.level}`];
+      return Number.isFinite(manual) ? manual : Math.min(100, item.naturalShare * scenarioDefs[scenarioIndex].factor);
+    };
+    const results = scenarioDefs.map((definition, scenarioIndex) => {
+      let addCases = 0, addIdrg = 0, lossCases = 0, lossIdrg = 0;
+      levelData.forEach((item) => {
+        if (item.direction === "tambah") {
+          const pct = pctFor(scenarioIndex, item) / 100;
+          addCases += item.externalCases * pct;
+          addIdrg += item.externalIdrg * pct;
+        } else if (item.direction === "kurang") {
+          lossCases += item.targetCases * configuredLossPct / 100;
+          lossIdrg += item.targetIdrg * configuredLossPct / 100;
+        }
+      });
+      return {
+        definition, scenarioIndex, addCases, addIdrg, lossCases, lossIdrg,
+        projectedCases: Math.max(0, baselineCases + addCases - lossCases),
+        projectedIdrg: Math.max(0, baselineIdrg + addIdrg - lossIdrg)
+      };
+    });
+    const addInputs = (scenarioIndex) => levelData.filter((item) => item.direction === "tambah").map((item) =>
+      `<label style="display:flex;align-items:center;justify-content:space-between;gap:3px;white-space:nowrap;"><span>${shortLevelNames[item.level]}</span><span><input class="per-service-dynamic-add" data-service="${escapeHtml(service)}" data-scenario="${scenarioIndex}" data-level="${item.level}" type="number" min="0" max="100" step="0.1" value="${pctFor(scenarioIndex, item).toFixed(1)}" style="width:48px;padding:2px;text-align:right;border:1px solid #86efac;border-radius:4px;color:#15803d;font-weight:800;">%</span></label>`
+    ).join("") || '<span style="color:#94a3b8;">—</span>';
+
+    return `<div style="margin:2px 0 5px;padding:5px 8px;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:6px;font-size:10px;color:#5b21b6;font-weight:750;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;"><span>Sumber tambahan: ${sourceRelationLabel} · natural share dapat diedit</span><span style="color:#047857;">Pool tersedia: <b>${formatNumber(additionPoolCases)} kasus</b> · <b>${formatTableMoney(additionPoolIdrg)}</b> iDRG</span><span style="color:#be123c;">Pengurangan luar kompetensi: default 100%</span></div>
+      <div style="overflow-x:auto;width:100%;"><table style="width:100%;border-collapse:collapse;border:1px solid #1e293b;text-align:center;font-size:10px;">
+        <thead><tr>
+          <th rowspan="2" style="border:1px solid #fff;padding:5px;background:#0f766e;color:#fff;">SKENARIO</th>
+          <th rowspan="2" style="border:1px solid #fff;padding:5px;background:#334155;color:#fff;">EKSISTING SESUAI KOMPETENSI TARGET ${levelNames[targetComp].toUpperCase()}<br><span style="font-size:8px;font-weight:500;">${competencyLevelLabel}</span></th>
+          <th colspan="3" style="border:1px solid #fff;padding:5px;background:#059669;color:#fff;">TAMBAHAN ${competencyLevelLabel.toUpperCase()} DARI ${sourceRelationLabel.toUpperCase()}</th>
+          <th colspan="3" style="border:1px solid #fff;padding:5px;background:#e11d48;color:#fff;">PENGURANGAN ${lossLevelLabel.toUpperCase()}</th>
+          <th rowspan="2" style="border:1px solid #fff;padding:5px;background:#047857;color:#fff;">TOTAL PENDAPATAN PASCA iDRG</th>
+          <th colspan="4" style="border:1px solid #fff;padding:5px;background:#0d9488;color:#fff;">NET +/- PASCA iDRG (VS INA-CBG)</th>
+        </tr><tr>
+          <th style="background:#10b981;color:#fff;padding:4px;">% Dinamis</th><th style="background:#10b981;color:#fff;padding:4px;">Kasus</th><th style="background:#10b981;color:#fff;padding:4px;">Pendapatan</th>
+          <th style="background:#f43f5e;color:#fff;padding:4px;">% Dinamis</th><th style="background:#f43f5e;color:#fff;padding:4px;">Kasus</th><th style="background:#f43f5e;color:#fff;padding:4px;">Pendapatan</th>
+          <th style="background:#14b8a6;color:#fff;padding:4px;">Kasus</th><th style="background:#14b8a6;color:#fff;padding:4px;">% Kasus</th><th style="background:#14b8a6;color:#fff;padding:4px;">Pendapatan</th><th style="background:#14b8a6;color:#fff;padding:4px;">% Pendapatan</th>
+        </tr></thead><tbody>${results.map((result) => {
+          const deltaCases = result.projectedCases - baselineCases;
+          const deltaCasesPct = baselineCases > 0 ? deltaCases / baselineCases * 100 : 0;
+          const deltaIncome = result.projectedIdrg - baselineIna;
+          const deltaIncomePct = baselineIna > 0 ? deltaIncome / baselineIna * 100 : 0;
+          const cell = 'border:1px solid #cbd5e1;padding:4px;';
+          return `<tr style="background:${result.scenarioIndex === 2 ? '#ecfeff' : '#fff'};"><td style="${cell}font-weight:900;white-space:nowrap;">Skenario ${result.scenarioIndex + 1}<div style="font-size:8px;color:#64748b;">${result.definition.name} · ${result.definition.factor.toFixed(2).replace('.', ',')}×</div></td>
+            ${result.scenarioIndex === 0 ? `<td rowspan="${results.length}" style="${cell}background:#f8fafc;min-width:135px;"><b>${formatNumber(competencyExistingCases)} kasus</b><div style="font-size:9px;color:#c2410c;">INA ${formatTableMoney(competencyExistingIna)}</div><div style="font-size:9px;color:#0369a1;">iDRG ${formatTableMoney(competencyExistingIdrg)}</div></td>` : ''}
+            <td style="${cell}min-width:92px;color:#15803d;font-weight:700;">${addInputs(result.scenarioIndex)}</td><td style="${cell}font-weight:800;">${formatNumber(Math.round(result.addCases))}</td><td style="${cell}font-weight:800;color:#059669;">+${formatTableMoney(result.addIdrg)}</td>
+            ${result.scenarioIndex === 0 ? `<td rowspan="${results.length}" style="${cell}background:#fff1f2;color:#be123c;font-weight:900;min-width:82px;"><input class="per-service-dynamic-loss" data-service="${escapeHtml(service)}" type="number" min="0" max="100" step="0.1" value="${configuredLossPct}" style="width:52px;padding:3px;text-align:right;border:1.5px solid #e11d48;border-radius:4px;color:#be123c;font-weight:900;">%<div style="font-size:8px;margin-top:3px;">DEFAULT 100%</div></td>` : ''}<td style="${cell}font-weight:800;">${formatNumber(Math.round(result.lossCases))}</td><td style="${cell}font-weight:800;color:#e11d48;">−${formatTableMoney(result.lossIdrg)}</td>
+            <td style="${cell}font-weight:900;background:#f0fdf4;">${formatTableMoney(result.projectedIdrg)}</td><td style="${cell}font-weight:800;color:${deltaCases >= 0 ? '#059669' : '#e11d48'};">${deltaCases >= 0 ? '+' : ''}${formatNumber(Math.round(deltaCases))}</td><td style="${cell}font-weight:800;color:${deltaCases >= 0 ? '#059669' : '#e11d48'};">${deltaCases >= 0 ? '+' : ''}${deltaCasesPct.toFixed(2).replace('.', ',')}%</td><td style="${cell}font-weight:800;color:${deltaIncome >= 0 ? '#059669' : '#e11d48'};">${deltaIncome >= 0 ? '+' : ''}${formatTableMoney(deltaIncome)}</td><td style="${cell}font-weight:800;color:${deltaIncome >= 0 ? '#059669' : '#e11d48'};">${deltaIncome >= 0 ? '+' : ''}${deltaIncomePct.toFixed(2).replace('.', ',')}%</td></tr>`;
+        }).join('')}</tbody></table></div>`;
+  }
+
   function renderDynamicServiceSlides() {
     const target = targetHospital();
     if (!target) return;
@@ -7286,7 +7418,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
             </div>
 
             <!-- TABLE -->
-            ${(() => {
+            ${buildPerServiceDynamicTable(target, service, targetCompetency)}
+            ${false ? (() => {
               const compCountByLevel = { 1: 0, 2: 0, 3: 0, 4: 0 };
               data.hospitals.filter(h => h.code !== target.code).forEach(h => {
                 const comp = getCompetency(h, service);
@@ -7343,7 +7476,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
                   </table>
                 </div>
               `;
-            })()}
+            })() : ""}
 
             <!-- INSIGHTS -->
             <div style="margin-top: 16px;">
@@ -7400,6 +7533,30 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         } else {
           state.serviceScenarios[srv][idx][field] = val;
         }
+        renderAll();
+      });
+    });
+    container.querySelectorAll('.per-service-dynamic-add').forEach((input) => {
+      input.addEventListener('change', (event) => {
+        const srv = event.target.dataset.service;
+        const scenarioIndex = Number(event.target.dataset.scenario);
+        const level = Number(event.target.dataset.level);
+        const value = Math.max(0, Math.min(100, parseFloat(event.target.value) || 0));
+        const key = `${activeDatasetKey}|${target.code}|${srv}`;
+        window.dynamicMarketOverrides = window.dynamicMarketOverrides || {};
+        window.dynamicMarketOverrides[key] = window.dynamicMarketOverrides[key] || {};
+        window.dynamicMarketOverrides[key][scenarioIndex] = window.dynamicMarketOverrides[key][scenarioIndex] || {};
+        window.dynamicMarketOverrides[key][scenarioIndex][`tambah_${level}`] = value;
+        renderAll();
+      });
+    });
+    container.querySelectorAll('.per-service-dynamic-loss').forEach((input) => {
+      input.addEventListener('change', (event) => {
+        const srv = event.target.dataset.service;
+        const value = Math.max(0, Math.min(100, parseFloat(event.target.value) || 0));
+        const key = `${activeDatasetKey}|${target.code}|${srv}`;
+        window.dynamicMarketLossPct = window.dynamicMarketLossPct || {};
+        window.dynamicMarketLossPct[key] = value;
         renderAll();
       });
     });

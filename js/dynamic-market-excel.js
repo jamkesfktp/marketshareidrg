@@ -52,7 +52,7 @@
 
   function exportWorkbook(context) {
     const { XLSX, target, service, targetComp, levelNames, levelData, scenarioDefs, scenarioResults, pctFor,
-      baselineCases, baselineIna, baselineIdrg, datasetLabel, tariffLabel, filterDescription } = context;
+      baselineCases, baselineIna, baselineIdrg, datasetLabel, tariffLabel, filterDescription, sourceRelationLabel } = context;
     if (!XLSX?.utils) throw new Error("Library XLSX belum tersedia.");
 
     const wb = XLSX.utils.book_new();
@@ -61,7 +61,7 @@
       Subject: `Market share dinamis layanan ${service}`,
       Author: "Kementerian Kesehatan RI",
       Company: "Kementerian Kesehatan RI",
-      Comments: "Kasus tambah hanya bersumber dari RS dengan kompetensi layanan lebih tinggi. Pengurangan di luar kompetensi default 100% dan dapat diuji sensitivitasnya.",
+      Comments: `Sumber kasus tambah mengikuti kompetensi target: ${sourceRelationLabel}. Pengurangan di luar kompetensi default 100% dan dapat diuji sensitivitasnya.`,
       CreatedDate: new Date()
     };
 
@@ -79,9 +79,10 @@
       ["Kompetensi target", levelNames[targetComp] || targetComp], ["Dataset", datasetLabel],
       ["Skenario tarif", tariffLabel], ["Filter regional", filterDescription], ["Tanggal ekspor", new Date().toLocaleString("id-ID")],
       [], ["Ketentuan audit", "Penjelasan"],
-      ["Sumber kasus tambah", "Hanya kasus pada RS yang kompetensi layanannya lebih tinggi daripada kompetensi RS target."],
+      ["Sumber kasus tambah", sourceRelationLabel],
+      ["Matriks sumber", "Dasar: RS lebih tinggi; Madya/Utama: RS lebih rendah dan lebih tinggi (tidak termasuk kompetensi sama); Paripurna: RS lebih rendah."],
       ["Kasus pengurang", "Satu parameter untuk seluruh skenario; default 100% dari kasus eksisting di luar kompetensi dan dapat diedit untuk sensitivitas."],
-      ["Natural share", "100 / (jumlah RS sumber berkompetensi lebih tinggi + 1 RS target)."],
+      ["Natural share", "100 / (jumlah RS sumber eligible sesuai hubungan kompetensi + 1 RS target)."],
       ["Area input", "Kolom Persentase Simulasi pada sheet 03_Parameter dapat diedit untuk audit sensitivitas."],
       [], ["Urutan penelusuran", "01_Eksisting → 02_Driver_Pasar → 03_Parameter → 04_Hasil → 05_Rekonsiliasi"]
     ];
@@ -104,8 +105,8 @@
 
     const driverRows = [
       ["DRIVER PASAR DAN SUMBER KASUS", "", "", "", "", "", "", "", "", ""],
-      ["Kasus tambah hanya dijumlahkan dari RS dengan kompetensi layanan lebih tinggi.", "", "", "", "", "", "", "", "", ""],
-      ["Level", "Arah", "Kasus Regional", "Kasus Target", "Target INA", "Target iDRG", "Pool Kasus", "Pool iDRG", "RS Sumber/Eligible", "Natural Share"],
+      [`Sumber kasus tambah untuk target ${levelNames[targetComp]}: ${sourceRelationLabel}.`, "", "", "", "", "", "", "", "", ""],
+      ["Level", "Arah", "Kasus Regional", "Kasus Target", "Target INA", "Target iDRG", "Pool Sumber Kasus Tambahan", "Nominal iDRG Pool Sumber", "RS Sumber/Eligible", "Natural Share"],
       ...levelData.map((item) => [levelNames[item.level], item.direction.toUpperCase(), item.regionalCases, item.targetCases, item.targetIna, item.targetIdrg,
         item.direction === "tambah" ? item.externalCases : item.targetCases,
         item.direction === "tambah" ? item.externalIdrg : item.targetIdrg,
