@@ -37,7 +37,7 @@ const idrgRows = XLSX.utils.sheet_to_json(XLSX.readFile(IDRG).Sheets.Sheet1, { d
 const idrgTariffs = {};
 for (const row of idrgRows) {
   const code = clean(row.DRG);
-  if (code) idrgTariffs[code] = { description: clean(row["Deskripsi DRG"]), tariff: idrgTariffNumber(row["Tarif iDRG"]) };
+  if (code) idrgTariffs[code] = { description: clean(row["Deskripsi DRG"]), tariff: idrgTariffNumber(row["Tarif iDRG"]), ptd: number(row.PTD) };
 }
 
 const inaWorkbook = XLSX.readFile(INA);
