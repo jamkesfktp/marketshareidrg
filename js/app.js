@@ -1831,6 +1831,12 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const baselineCases = levelData.reduce((sum, item) => sum + item.targetCases, 0);
     const baselineIna = levelData.reduce((sum, item) => sum + item.targetIna, 0);
     const baselineIdrg = levelData.reduce((sum, item) => sum + item.targetIdrg, 0);
+    const competencyExisting = levelData.filter((item) => rules.tambah.includes(item.level));
+    const competencyExistingCases = competencyExisting.reduce((sum, item) => sum + item.targetCases, 0);
+    const competencyExistingIna = competencyExisting.reduce((sum, item) => sum + item.targetIna, 0);
+    const competencyExistingIdrg = competencyExisting.reduce((sum, item) => sum + item.targetIdrg, 0);
+    const competencyLevelLabel = competencyExisting.map((item) => levelNames[item.level]).join(" & ") || levelNames[targetComp];
+    const lossLevelLabel = rules.kurang.map((level) => levelNames[level]).join(" & ") || "Di Luar Kompetensi";
     const scenarioDefs = [
       { name: "Konservatif", factor: 0.50 },
       { name: "Moderat", factor: 0.75 },
@@ -1871,14 +1877,6 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       .filter((item) => item.direction === direction)
       .map((item) => `<label style="display:flex;align-items:center;justify-content:space-between;gap:4px;white-space:nowrap;"><span>${shortLevelNames[item.level]}</span><span><input class="dynamic-market-pct" data-scenario="${scenarioIndex}" data-direction="${direction}" data-level="${item.level}" type="number" min="0" max="100" step="0.1" value="${pctFor(scenarioIndex, item).toFixed(1)}" style="width:52px;padding:3px;text-align:right;border:1px solid #cbd5e1;border-radius:4px;font-weight:800;">%</span></label>`)
       .join("") || '<span style="color:#94a3b8;">—</span>';
-    const existingCompositionHtml = levelData.map((item) => `
-      <div style="display:grid;grid-template-columns:48px 1fr;gap:3px 6px;padding:4px 0;border-top:1px solid #e2e8f0;text-align:left;">
-        <strong style="grid-row:1/4;color:#0f766e;align-self:center;">${shortLevelNames[item.level]} · ${levelNames[item.level]}</strong>
-        <span>Kasus: <b>${formatNumber(item.targetCases)}</b></span>
-        <span>INA-CBG: <b style="color:#c2410c;">${formatTableMoney(item.targetIna)}</b></span>
-        <span>iDRG: <b style="color:#0369a1;">${formatTableMoney(item.targetIdrg)}</b></span>
-      </div>`).join("");
-
     container.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px;padding:8px 10px;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:9px;">
         <div style="display:flex;align-items:center;gap:9px;min-width:0;">
@@ -1902,6 +1900,10 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         <div style="padding:8px 10px;border:1px solid #ddd6fe;border-radius:8px;background:#f5f3ff;"><div style="font-size:10px;color:#6d28d9;font-weight:800;">ATURAN KOMPETENSI</div><strong style="font-size:12px;color:#4c1d95;">Tambah ${rules.tambah.map((level) => shortLevelNames[level]).join("+") || "—"} · Kurang ${rules.kurang.map((level) => shortLevelNames[level]).join("+") || "—"}</strong></div>
       </div>
 
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:9px;">
+        ${levelData.map((item) => `<div style="padding:6px 8px;border:1px solid ${item.level === targetComp ? "#7c3aed" : "#cbd5e1"};border-radius:7px;background:${item.level === targetComp ? "#f5f3ff" : "#fff"};"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;"><strong style="font-size:10.5px;color:${item.level === targetComp ? "#6d28d9" : "#334155"};">${levelNames[item.level]}</strong><span style="font-size:9px;color:#64748b;">Komposisi Eksisting</span></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;font-size:9.5px;"><span>Kasus<br><b>${formatNumber(item.targetCases)}</b></span><span>INA-CBG<br><b style="color:#c2410c;">${formatTableMoney(item.targetIna)}</b></span><span>iDRG<br><b style="color:#0369a1;">${formatTableMoney(item.targetIdrg)}</b></span></div></div>`).join("")}
+      </div>
+
       <div style="border:1px solid #cbd5e1;border-radius:8px;overflow:hidden;margin-bottom:8px;">
         <div style="padding:5px 9px;background:#334155;color:#fff;font-size:10.5px;font-weight:900;">DRIVER PASAR DINAMIS PER TINGKAT KOMPETENSI</div>
         <table style="width:100%;border-collapse:collapse;font-size:10px;text-align:center;">
@@ -1915,9 +1917,9 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           <thead style="background:#38bdf8;color:white;">
             <tr>
               <th rowspan="2" style="border:1px solid #1e293b;padding:7px;background:#0f766e;">Skenario</th>
-              <th rowspan="2" style="border:1px solid #1e293b;padding:7px;background:#334155;">Eksisting Kasus &amp; Pendapatan<br><span style="font-size:9px;font-weight:normal;">RS Target</span></th>
-              <th colspan="3" style="border:1px solid #1e293b;padding:7px;background:#059669;">Tambahan Kasus Sesuai Kompetensi</th>
-              <th colspan="3" style="border:1px solid #1e293b;padding:7px;background:#e11d48;">Pengurangan Kasus di Luar Kompetensi</th>
+              <th rowspan="2" style="border:1px solid #1e293b;padding:7px;background:#334155;">Eksisting Sesuai Kompetensi Target ${levelNames[targetComp]}<br><span style="font-size:9px;font-weight:normal;">${competencyLevelLabel}</span></th>
+              <th colspan="3" style="border:1px solid #1e293b;padding:7px;background:#059669;">Tambahan Kasus ${competencyLevelLabel} dari RS Kompetensi Lebih Tinggi</th>
+              <th colspan="3" style="border:1px solid #1e293b;padding:7px;background:#e11d48;">Pengurangan Kasus ${lossLevelLabel} di Luar Kompetensi Target</th>
               <th rowspan="2" style="border:1px solid #1e293b;padding:7px;background:#047857;">Total Pendapatan Pasca iDRG &amp; RBKP</th>
               <th colspan="4" style="border:1px solid #1e293b;padding:7px;background:#0d9488;">Net +/- Pasca iDRG &amp; RBKP (vs INA-CBG)</th>
             </tr>
@@ -1934,7 +1936,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
             const deltaInaPct = baselineIna > 0 ? deltaIna / baselineIna * 100 : 0;
             return `<tr style="background:${result.scenarioIndex === 2 ? "#ecfeff" : "#fff"};">
               <td style="border:1px solid #1e293b;padding:6px;font-weight:900;white-space:nowrap;">Skenario ${result.scenarioIndex + 1}<div style="font-size:9px;color:#64748b;">${result.definition.name}<br>${result.definition.factor.toFixed(2).replace(".", ",")}× natural</div></td>
-              ${result.scenarioIndex === 0 ? `<td rowspan="${scenarioResults.length}" style="border:1px solid #1e293b;padding:7px;background:#f8fafc;min-width:190px;"><div style="font-size:10px;color:#475569;">TOTAL EKSISTING</div><div style="font-size:15px;font-weight:900;color:#0f172a;">${formatNumber(baselineCases)} kasus</div><div style="font-size:10px;font-weight:800;color:#c2410c;">INA ${formatTableMoney(baselineIna)}</div><div style="font-size:10px;font-weight:800;color:#0369a1;margin-bottom:4px;">iDRG ${formatTableMoney(baselineIdrg)}</div>${existingCompositionHtml}</td>` : ""}
+              ${result.scenarioIndex === 0 ? `<td rowspan="${scenarioResults.length}" style="border:1px solid #1e293b;padding:7px;background:#f8fafc;min-width:175px;"><div style="font-size:10px;color:#475569;">EKSISTING ${competencyLevelLabel.toUpperCase()}</div><div style="font-size:16px;font-weight:900;color:#0f172a;margin:3px 0;">${formatNumber(competencyExistingCases)} kasus</div><div style="font-size:10px;font-weight:800;color:#c2410c;">INA ${formatTableMoney(competencyExistingIna)}</div><div style="font-size:10px;font-weight:800;color:#0369a1;">iDRG ${formatTableMoney(competencyExistingIdrg)}</div></td>` : ""}
               <td style="border:1px solid #1e293b;padding:5px;min-width:105px;color:#15803d;font-weight:700;">${pctInputLines(result.scenarioIndex, "tambah")}</td><td style="border:1px solid #1e293b;padding:6px;font-weight:900;">${formatNumber(Math.round(result.addCases))}</td><td style="border:1px solid #1e293b;padding:6px;font-weight:900;color:#059669;">+${formatTableMoney(result.addIdrg)}</td>
               ${result.scenarioIndex === 0 ? `<td rowspan="${scenarioResults.length}" style="border:1px solid #1e293b;padding:7px;min-width:105px;background:#fff1f2;color:#be123c;font-weight:900;vertical-align:middle;"><div style="display:flex;justify-content:center;align-items:center;gap:3px;"><input id="dynamicMarketLossPctInput" type="number" min="0" max="100" step="0.1" value="${configuredLossPct}" style="width:58px;padding:4px;text-align:right;border:1.5px solid #e11d48;border-radius:5px;color:#be123c;font-size:16px;font-weight:900;background:#fff;"><span style="font-size:16px;">%</span></div><div style="font-size:9px;line-height:1.35;margin-top:4px;">DEFAULT 100%<br>REDISTRIBUSI DI LUAR KOMPETENSI</div><div style="font-size:9px;color:#64748b;margin-top:5px;">${rules.kurang.map((level) => shortLevelNames[level]).join(" + ") || "—"}</div></td>` : ""}<td style="border:1px solid #1e293b;padding:6px;font-weight:900;">${formatNumber(Math.round(result.lossCases))}</td><td style="border:1px solid #1e293b;padding:6px;font-weight:900;color:#e11d48;">−${formatTableMoney(result.lossIdrg)}</td>
               <td style="border:1px solid #1e293b;padding:6px;font-weight:900;background:#f0fdf4;">${formatTableMoney(result.projectedIdrg)}</td>
