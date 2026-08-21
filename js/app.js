@@ -2425,8 +2425,12 @@ document.getElementById("globalSimulationSlide").innerHTML = `
             </button>
           `).join('')}
         </div>
-        <div style="font-size: 11px; font-weight: 800; color: #0f766e; background: #ccfbf1; padding: 2px 8px; border-radius: 6px; border: 1px solid #99f6e4;">
-          Slide ${activeIndex + 1} / 7
+        <div class="national-export-actions" data-export-ui="true" style="display: flex; align-items: center; gap: 5px; flex-shrink: 0; margin-left: 8px;">
+          <span style="font-size: 11px; font-weight: 800; color: #0f766e; background: #ccfbf1; padding: 3px 8px; border-radius: 6px; border: 1px solid #99f6e4; white-space: nowrap;">
+            Slide ${activeIndex + 1} / 7
+          </span>
+          <button type="button" onclick="window.copyActiveNationalSlideImage(this)" title="Salin slide aktif sebagai gambar PNG" style="border: 1px solid #7dd3fc; background: #e0f2fe; color: #0369a1; cursor: pointer; padding: 4px 9px; border-radius: 6px; font-size: 10.5px; font-weight: 800; white-space: nowrap;">📋 Copy Image</button>
+          <button type="button" onclick="window.exportActiveNationalSlideToPptx(this)" title="Ekspor slide aktif dengan DOM-to-PPTX" style="border: 1px solid #c4b5fd; background: #ede9fe; color: #5b21b6; cursor: pointer; padding: 4px 9px; border-radius: 6px; font-size: 10.5px; font-weight: 800; white-space: nowrap;">⬡ DOM → PPTX</button>
         </div>
       </div>
     `;
@@ -9063,6 +9067,190 @@ document.getElementById("globalSimulationSlide").innerHTML = `
   const waitForExportLayout = () => new Promise((resolve) => {
     window.requestAnimationFrame(() => window.requestAnimationFrame(resolve));
   });
+
+  const NATIONAL_SLIDE_SELECTORS = [
+    ".national-rawat-type-slide",
+    ".national-spending-class-slide",
+    ".national-rawat-inap-slide",
+    ".national-severity-slide",
+    ".national-rawat-jalan-slide",
+    ".national-q5440-slide",
+    ".icd-competency-slide"
+  ];
+
+  function getActiveNationalSlide() {
+    return NATIONAL_SLIDE_SELECTORS
+      .map((selector) => document.querySelector(selector))
+      .find((slide) => slide && !slide.hidden) || null;
+  }
+
+  function prepareNationalSlideClone(sourceSlide) {
+    const clone = sourceSlide.cloneNode(true);
+    clone.hidden = false;
+    clone.classList.remove("is-active");
+    clone.querySelectorAll('[data-export-ui="true"]').forEach((element) => element.remove());
+    freezeExportControls(sourceSlide, clone);
+    removeDuplicateExportIds(clone);
+    clone.style.position = "relative";
+    clone.style.inset = "auto";
+    clone.style.display = "block";
+    clone.style.width = "1920px";
+    clone.style.height = "1080px";
+    clone.style.transform = "none";
+    clone.style.overflow = "hidden";
+    return clone;
+  }
+
+  function getNationalSlideFileBase(sourceSlide) {
+    const heading = sourceSlide.querySelector("h1")?.textContent?.trim() || "simulasi-nasional";
+    return heading
+      .toLocaleLowerCase("id-ID")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "simulasi-nasional";
+  }
+
+  function collectExportCss() {
+    return [...document.styleSheets].map((sheet) => {
+      try {
+        return [...sheet.cssRules]
+          .filter((rule) => rule.type !== CSSRule.IMPORT_RULE)
+          .map((rule) => rule.cssText)
+          .join("\n");
+      } catch (_) {
+        return "";
+      }
+    }).join("\n");
+  }
+
+  async function embedCloneImages(root) {
+    await Promise.all([...root.querySelectorAll("img")].map(async (image) => {
+      const source = image.getAttribute("src");
+      if (!source || source.startsWith("data:")) return;
+      try {
+        const response = await fetch(new URL(source, window.location.href));
+        const blob = await response.blob();
+        const dataUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+        image.setAttribute("src", dataUrl);
+      } catch (_) {
+        image.remove();
+      }
+    }));
+  }
+
+  async function nationalSlideToPngBlob(sourceSlide) {
+    const width = 1920;
+    const height = 1080;
+    const clone = prepareNationalSlideClone(sourceSlide);
+    clone.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
+    await embedCloneImages(clone);
+
+    const style = document.createElement("style");
+    style.textContent = collectExportCss();
+    clone.prepend(style);
+
+    const serialized = new XMLSerializer().serializeToString(clone);
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><foreignObject width="100%" height="100%">${serialized}</foreignObject></svg>`;
+    const svgUrl = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
+
+    try {
+      const renderedImage = await new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = () => reject(new Error("Slide tidak dapat dirender menjadi gambar."));
+        image.src = svgUrl;
+      });
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext("2d");
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, width, height);
+      context.drawImage(renderedImage, 0, 0, width, height);
+      return await new Promise((resolve, reject) => {
+        canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("PNG gagal dibuat.")), "image/png", 1);
+      });
+    } finally {
+      URL.revokeObjectURL(svgUrl);
+    }
+  }
+
+  window.copyActiveNationalSlideImage = async function(button) {
+    const sourceSlide = getActiveNationalSlide();
+    if (!sourceSlide) return;
+    const originalLabel = button?.textContent || "📋 Copy Image";
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Membuat PNG…";
+    }
+    try {
+      if (document.fonts?.ready) await document.fonts.ready;
+      const pngBlob = await nationalSlideToPngBlob(sourceSlide);
+      if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
+        throw new Error("Clipboard gambar memerlukan HTTPS atau localhost.");
+      }
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": pngBlob })]);
+      if (button) button.textContent = "✓ Tersalin";
+    } catch (error) {
+      console.error("Copy national slide image failed", error);
+      if (button) button.textContent = "Copy gagal";
+      window.alert(`Gagal menyalin gambar: ${error.message}`);
+    } finally {
+      window.setTimeout(() => {
+        if (button) {
+          button.disabled = false;
+          button.textContent = originalLabel;
+        }
+      }, 1800);
+    }
+  };
+
+  window.exportActiveNationalSlideToPptx = async function(button) {
+    const sourceSlide = getActiveNationalSlide();
+    if (!sourceSlide) return;
+    const originalLabel = button?.textContent || "⬡ DOM → PPTX";
+    const exportStage = document.createElement("div");
+    exportStage.style.cssText = "position:absolute;left:-100000px;top:0;width:1920px;height:1080px;background:#fff;";
+    const page = document.createElement("section");
+    page.style.cssText = "position:relative;width:1920px;height:1080px;overflow:hidden;background:#fff;";
+    page.dataset.pptxNotes = "Simulasi Nasional / Data Mirroring iDRG";
+    page.appendChild(prepareNationalSlideClone(sourceSlide));
+    exportStage.appendChild(page);
+    document.body.appendChild(exportStage);
+
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Membuat PPTX…";
+    }
+    try {
+      if (!window.domToPptx?.exportToPptx) throw new Error("Library DOM-to-PPTX tidak tersedia.");
+      if (document.fonts?.ready) await document.fonts.ready;
+      await waitForExportLayout();
+      const exportDate = new Date().toISOString().slice(0, 10);
+      await window.domToPptx.exportToPptx(page, {
+        fileName: `${getNationalSlideFileBase(sourceSlide)}-${exportDate}.pptx`,
+        autoEmbedFonts: false,
+        svgAsVector: true
+      });
+      if (button) button.textContent = "✓ Terunduh";
+    } catch (error) {
+      console.error("National slide DOM-to-PPTX export failed", error);
+      if (button) button.textContent = "Ekspor gagal";
+      window.alert(`Ekspor PPTX gagal: ${error.message}`);
+    } finally {
+      exportStage.remove();
+      window.setTimeout(() => {
+        if (button) {
+          button.disabled = false;
+          button.textContent = originalLabel;
+        }
+      }, 1800);
+    }
+  };
 
   async function exportDashboardToPptx() {
     const button = document.getElementById("exportPptx");
