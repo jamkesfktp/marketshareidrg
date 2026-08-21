@@ -1371,9 +1371,6 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const container = document.getElementById('competencyTableSlide');
     if (!container) return;
 
-    // Gunakan `data` dari scope luar (sudah difilter oleh filter provinsi/kab)
-    if (!data || !data.hospitals) return;
-
     const target = data.hospitals.find((h) => h.code === state.targetCode) || (data.hospitals.length ? data.hospitals[0] : null);
     if (!target) {
       container.innerHTML = '<div style="padding: 20px;">Target RS tidak ditemukan.</div>';
@@ -8553,13 +8550,29 @@ document.getElementById("globalSimulationSlide").innerHTML = `
   }
 
   function resizeDeck() {
-    const scale = Math.min((window.innerWidth - 20) / 1920, (window.innerHeight - 20) / 1080);
     const scaler = document.getElementById("deckScaler");
+    const shell = scaler?.querySelector(".deck-shell");
+    const stage = document.querySelector(".viewport-stage");
+    if (!scaler || !shell || !stage) return;
+
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
+    const stageRect = stage.getBoundingClientRect();
+    const availableWidth = Math.max((stage.clientWidth || stageRect.width || window.innerWidth) - (isMobile ? 16 : 20), 1);
+    const availableHeight = Math.max(window.innerHeight - 20, 1);
+
+    // A minimum mobile scale keeps text and controls usable by touch. The
+    // resulting 16:9 workspace can be panned horizontally when necessary.
+    const fitScale = isMobile
+      ? availableWidth / 1920
+      : Math.min(availableWidth / 1920, availableHeight / 1080);
+    const scale = isMobile ? Math.max(fitScale, 0.55) : fitScale;
     const width = 1920 * scale;
     const height = 1080 * scale;
-    scaler.style.transform = `scale(${scale})`;
-    scaler.style.left = `${Math.max((window.innerWidth - width) / 2, 0)}px`;
-    scaler.style.top = `${Math.max((window.innerHeight - height) / 2, 0)}px`;
+    scaler.style.width = `${width}px`;
+    scaler.style.height = `${height}px`;
+    scaler.style.left = isMobile ? "0px" : `${Math.max((availableWidth - width) / 2, 0)}px`;
+    scaler.style.top = isMobile ? "0px" : `${Math.max((availableHeight - height) / 2, 0)}px`;
+    shell.style.transform = `scale(${scale})`;
   }
 
   let isFiltersInitialized = false;
@@ -9430,233 +9443,73 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     });
   }
 
-  document.getElementById("btnDownloadGlobalSim")?.addEventListener("click", () => {
+﻿  document.getElementById("btnDownloadGlobalSim")?.addEventListener("click", () => {
     const target = data.hospitals.find((h) => h.code === state.targetCode) || (data.hospitals.length ? data.hospitals[0] : null);
     if (!target) return alert("Target RS tidak ditemukan.");
 
-    const tambahMode = document.getElementById('globalSimTambahSelect') ? document.getElementById('globalSimTambahSelect').value : 'tambah_up';
-    const kurangMode = document.getElementById('globalSimKurangSelect') ? document.getElementById('globalSimKurangSelect').value : 'kurang_dm';
-    
-    // Header
-    let csvContent = "Mode Simulator;Nama RS Target;Layanan;Target Dasar & Madya (Kasus);Target Utama & Paripurna (Kasus);Regional Dasar & Madya (Kasus);Regional Utama & Paripurna (Kasus);Potensi Tambah Kasus (Max);Potensi Tambah iDRG (Max);Potensi Kurang Kasus (Max);Potensi Kurang iDRG (Max);Keterangan\n";
+    if (typeof window.GlobalSimExcel === "undefined") {
+      return alert("Library GlobalSimExcel belum tersedia. Pastikan global-sim-excel.js sudah dimuat.");
+    }
+    if (typeof window.XLSX === "undefined") {
+      return alert("Library XLSX belum tersedia.");
+    }
 
-    
-    let competitorCount = 0;
-    let compCountD = 0;
-    let compCountM = 0;
-    let compCountU = 0;
-    let compCountP = 0;
-    let targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
-    
-    // Compute Regional Cases for the target service(s)
-    const activeServices = targetServiceSelect === 'ALL' ? data.services : (data.services.includes(targetServiceSelect) ? [targetServiceSelect] : []);
-    const regTotalD = {cases: 0, rp: 0};
-    const regTotalM = {cases: 0, rp: 0};
-    const regTotalU = {cases: 0, rp: 0};
-    const regTotalP = {cases: 0, rp: 0};
-    
-    activeServices.forEach(svc => {
-      const s = data.regional?.services?.[svc];
-      if (!s) return;
-      const sD = severityMetric(s, 1);
-      const sM = severityMetric(s, 2);
-      const sU = severityMetric(s, 3);
-      const sP = severityMetric(s, 4);
-      
-      regTotalD.cases += sD[CASES] || 0; regTotalD.rp += sD[IDRG] || 0;
-      regTotalM.cases += sM[CASES] || 0; regTotalM.rp += sM[IDRG] || 0;
-      regTotalU.cases += sU[CASES] || 0; regTotalU.rp += sU[IDRG] || 0;
-      regTotalP.cases += sP[CASES] || 0; regTotalP.rp += sP[IDRG] || 0;
-    });
+    const tambahMode = document.getElementById('globalSimTambahSelect')?.value || 'tambah_cross_comp';
+    const kurangMode = document.getElementById('globalSimKurangSelect')?.value || 'kurang_dm';
 
-    (function(){
-      targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
-      const servicesToSimulate = targetServiceSelect === 'ALL' ? data.services : (data.services.includes(targetServiceSelect) ? [targetServiceSelect] : []);
-      
-      // Compute Competitor count for the badge
-      competitorCount = 0;
-      compCountD = 0;
-      compCountM = 0;
-      compCountU = 0;
-      compCountP = 0;
-      
-      data.hospitals.forEach(h => {
-        if (h.code === targetHospital()?.code) return;
-        
-        if (targetServiceSelect !== 'ALL') {
-          const hComp = getCompetency(h, targetServiceSelect);
-          if (hComp && hComp > 0) {
-            competitorCount++;
-            if (hComp === 1) compCountD++;
-            if (hComp === 2) compCountM++;
-            if (hComp === 3) compCountU++;
-            if (hComp === 4) compCountP++;
-          }
-        } else {
-          competitorCount++;
-          data.services.forEach(svc => {
-            const hComp = getCompetency(h, svc);
-            if (hComp === 1) compCountD++;
-            else if (hComp === 2) compCountM++;
-            else if (hComp === 3) compCountU++;
-            else if (hComp === 4) compCountP++;
-          });
-        }
+    const regionalHospitals = data.hospitals.filter(h => h.code !== target.code && Object.keys(h.services || {}).length > 0);
+    const totalCompetitors = regionalHospitals.length;
+
+    let simScenarios = window.globalSimScenarios;
+    if (!simScenarios) {
+      const naturalShare = totalCompetitors > 0 ? (1 / (totalCompetitors + 1)) : 0.5;
+      simScenarios = [1.0, naturalShare, naturalShare / 2];
+    }
+    let simKurangScenarios = window.globalSimKurangScenarios;
+    if (!simKurangScenarios) { simKurangScenarios = [1.0, 1.0, 1.0]; }
+
+    const tariffKey = state.activeTariffScenario || "1370_full";
+    const TARIFF_LABELS = {
+      "1370_full": "iDRG 1370 - AF + AFreg + AFkep (Default)",
+      "1370_afreg": "iDRG 1370 - AF + AFreg",
+      "1370_af": "iDRG 1370 - AF Saja",
+      "1370_noaf": "iDRG 1370 - Tanpa AF (Base)",
+      "1370_juknis": "iDRG 1370 - Juknis Top-Up",
+      "1363_full": "iDRG 1363 - AF + AFreg + AFkep",
+    };
+    const tariffLabel = TARIFF_LABELS[tariffKey] || tariffKey;
+
+    const datasetKey = (typeof activeDatasetKey !== "undefined" ? activeDatasetKey : "okt_jun");
+    const DATASET_LABELS = { "okt_jun": "Okt 2025 - Jun 2026 (8 Bulan)", "jan_des": "Jan - Des (1 Tahun Penuh)" };
+    const datasetLabel = DATASET_LABELS[datasetKey] || datasetKey;
+
+    let filterDesc = "Tidak ada filter (Semua RS regional)";
+    const provSel = Array.from(document.querySelectorAll("#provDropdown input:checked")).map(el => el.value);
+    const citySel = Array.from(document.querySelectorAll("#cityDropdown input:checked")).map(el => el.value);
+    const muhFilter = document.getElementById("muhammadiyahFilterToggle")?.checked;
+    const excludeLevel0 = document.getElementById("excludeUnmappedToggle")?.checked;
+    const parts = [];
+    if (provSel.length > 0) parts.push("Prov: " + provSel.slice(0,3).join(", ") + (provSel.length > 3 ? " +" + (provSel.length-3) : ""));
+    if (citySel.length > 0) parts.push("Kab/Kota: " + citySel.slice(0,3).join(", ") + (citySel.length > 3 ? " +" + (citySel.length-3) : ""));
+    if (muhFilter) parts.push("RS Jejaring Muhammadiyah");
+    if (excludeLevel0) parts.push("Kecualikan Level 0");
+    if (parts.length > 0) filterDesc = parts.join("; ");
+
+    try {
+      window.GlobalSimExcel.exportGlobalSimWorkbook({
+        XLSX: window.XLSX,
+        data, target, CASES, INA, IDRG,
+        severityMetric, getCompetency, formatService,
+        tambahMode, kurangMode,
+        globalSimScenarios: simScenarios,
+        globalSimKurangScenarios: simKurangScenarios,
+        totalCompetitors, tariffLabel, datasetLabel, filterDesc,
       });
-      
-      const compBadge = document.getElementById('globalSimCompetitorBadge');
-      const compVal = document.getElementById('globalSimCompetitorValue');
-      if (compBadge && compVal) {
-        if (targetServiceSelect === 'ALL') {
-          compBadge.querySelector('div').innerText = 'KOMPETENSI LAYANAN';
-          compVal.innerHTML = `${competitorCount}`;
-        } else {
-          compBadge.querySelector('div').innerText = 'KOMPETENSI LAYANAN';
-          compVal.innerHTML = `${competitorCount}`;
-        }
-      }
-      
-      return servicesToSimulate;
-    })().forEach(service => {
-      const srvReg = regionalService(service);
-      const srvTarget = target.services[service];
-      if (!srvReg || !srvTarget) return;
-
-      const sTargetDasar = severityMetric(srvTarget, 1);
-      const sTargetMadya = severityMetric(srvTarget, 2);
-      const sTargetUtama = severityMetric(srvTarget, 3);
-      const sTargetParipurna = severityMetric(srvTarget, 4);
-      
-      const sRegDasar = severityMetric(srvReg, 1);
-      const sRegMadya = severityMetric(srvReg, 2);
-      const sRegUtama = severityMetric(srvReg, 3);
-      const sRegParipurna = severityMetric(srvReg, 4);
-
-      const targetDM = (sTargetDasar[CASES] || 0) + (sTargetMadya[CASES] || 0);
-      const targetUP = (sTargetUtama[CASES] || 0) + (sTargetParipurna[CASES] || 0);
-      
-      const regDM = (sRegDasar[CASES] || 0) + (sRegMadya[CASES] || 0);
-      const regUP = (sRegUtama[CASES] || 0) + (sRegParipurna[CASES] || 0);
-
-      let potensiSerapanKasus = 0;
-      let potensiSerapanIdrg = 0;
-      let potensiRedistribusiKasus = 0;
-      let potensiRedistribusiIdrg = 0;
-      let keterangan = "";
-
-      if (tambahMode === 'tambah_cross_comp') {
-        data.hospitals.forEach(h => {
-          if (h.code === target.code) return;
-          const hCompetency = getCompetency(h, service);
-          if (!hCompetency || hCompetency === 0) return;
-
-          const hSrv = h.services[service];
-          if (hSrv) {
-            const hDasar = severityMetric(hSrv, 1);
-            const hMadya = severityMetric(hSrv, 2);
-            const hUtama = severityMetric(hSrv, 3);
-            const hParipurna = severityMetric(hSrv, 4);
-
-            if (hCompetency !== 1) {
-              potensiSerapanKasus += (hDasar[CASES] || 0);
-              potensiSerapanIdrg += (hDasar[IDRG] || 0);
-            }
-            if (hCompetency !== 2) {
-              potensiSerapanKasus += (hMadya[CASES] || 0);
-              potensiSerapanIdrg += (hMadya[IDRG] || 0);
-            }
-            if (hCompetency !== 3) {
-              potensiSerapanKasus += (hUtama[CASES] || 0);
-              potensiSerapanIdrg += (hUtama[IDRG] || 0);
-            }
-            if (hCompetency !== 4) {
-              potensiSerapanKasus += (hParipurna[CASES] || 0);
-              potensiSerapanIdrg += (hParipurna[IDRG] || 0);
-            }
-          }
-        });
-      } else if (tambahMode === 'tambah_up') {
-        const sisaRegUtamaKasus = Math.max(0, (sRegUtama[CASES] || 0) - (sTargetUtama[CASES] || 0));
-        const sisaRegUtamaIdrg = Math.max(0, (sRegUtama[IDRG] || 0) - (sTargetUtama[IDRG] || 0));
-        const sisaRegParipurnaKasus = Math.max(0, (sRegParipurna[CASES] || 0) - (sTargetParipurna[CASES] || 0));
-        const sisaRegParipurnaIdrg = Math.max(0, (sRegParipurna[IDRG] || 0) - (sTargetParipurna[IDRG] || 0));
-        
-        potensiSerapanKasus = (sisaRegUtamaKasus + sisaRegParipurnaKasus);
-        potensiSerapanIdrg = (sisaRegUtamaIdrg + sisaRegParipurnaIdrg);
-      } else {
-        data.hospitals.forEach(h => {
-          if (h.code === target.code) return;
-          const hCompetency = getCompetency(h, service);
-          const tCompetency = getCompetency(target, service);
-          
-          if (hCompetency > tCompetency) {
-            const hSrv = h.services[service];
-            if (hSrv) {
-              const hDasar = severityMetric(hSrv, 1);
-              const hMadya = severityMetric(hSrv, 2);
-              potensiSerapanKasus += (hDasar[CASES] || 0) + (hMadya[CASES] || 0);
-              potensiSerapanIdrg += (hDasar[IDRG] || 0) + (hMadya[IDRG] || 0);
-            }
-          }
-        });
-      }
-
-      if (kurangMode === 'kurang_dm') {
-        potensiRedistribusiKasus = targetDM;
-        potensiRedistribusiIdrg = (sTargetDasar[IDRG] || 0) + (sTargetMadya[IDRG] || 0);
-      } else {
-        potensiRedistribusiKasus = targetUP;
-        potensiRedistribusiIdrg = (sTargetUtama[IDRG] || 0) + (sTargetParipurna[IDRG] || 0);
-      }
-      
-      
-let tambahKet = 'Lintas Kompetensi';
-if (tambahMode === 'tambah_up') tambahKet = 'Sisa Regional U/P';
-else if (tambahMode === 'tambah_dm_reg') tambahKet = 'Sisa Regional D/M';
-else if (tambahMode === 'tambah_mu_reg') tambahKet = 'Sisa Regional M/U';
-else if (tambahMode === 'tambah_mu_higher') tambahKet = 'RS Tinggi M/U';
-else if (tambahMode === 'tambah_d_reg') tambahKet = 'Sisa Regional Dasar';
-else if (tambahMode === 'tambah_d_higher') tambahKet = 'RS Tinggi Dasar';
-else if (tambahMode === 'tambah_dm') tambahKet = 'RS Tinggi D/M';
-
-let kurangKet = 'D/M';
-if (kurangMode === 'kurang_up') kurangKet = 'U/P';
-else if (kurangMode === 'kurang_dp') kurangKet = 'D/P';
-else if (kurangMode === 'kurang_mup') kurangKet = 'M/U/P';
-
-keterangan = `Serapan dari ${tambahKet}; Lepas ${kurangKet} RS Eksisting`;
-
-      
-let tCode = 'T:CC';
-if (tambahMode === 'tambah_up') tCode = 'T:UP';
-else if (tambahMode === 'tambah_dm_reg') tCode = 'T:DM_REG';
-else if (tambahMode === 'tambah_mu_reg') tCode = 'T:MU_REG';
-else if (tambahMode === 'tambah_mu_higher') tCode = 'T:MU_HI';
-else if (tambahMode === 'tambah_d_reg') tCode = 'T:D_REG';
-else if (tambahMode === 'tambah_d_higher') tCode = 'T:D_HI';
-else if (tambahMode === 'tambah_dm') tCode = 'T:DM_HI';
-
-let kCode = 'K:DM';
-if (kurangMode === 'kurang_up') kCode = 'K:UP';
-else if (kurangMode === 'kurang_dp') kCode = 'K:DP';
-else if (kurangMode === 'kurang_mup') kCode = 'K:MUP';
-
-const modeStr = tCode + ' / ' + kCode;
-
-
-      csvContent += `${modeStr};"${target.name}";"${service}";${targetDM};${targetUP};${regDM};${regUP};${potensiSerapanKasus};${potensiSerapanIdrg};${potensiRedistribusiKasus};${potensiRedistribusiIdrg};"${keterangan}"\n`;
-    });
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Audit_Simulasi_Global_${target.name}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    } catch (err) {
+      console.error("[GlobalSimExcel] Error:", err);
+      alert("Gagal mengekspor kertas kerja: " + (err.message || err));
+    }
   });
-
   renderAll();
 })();
 
@@ -9665,15 +9518,36 @@ const modeStr = tCode + ' / ' + kCode;
   const openBtn = document.getElementById('sidebarOpenBtn');
 
   if (sidebarPanel && toggleBtn && openBtn) {
+    const syncSidebarForViewport = () => {
+      const isMobile = window.matchMedia('(max-width: 768px)').matches;
+      if (isMobile) {
+        sidebarPanel.classList.remove('is-open');
+        sidebarPanel.style.display = 'flex';
+        openBtn.style.display = 'block';
+      } else {
+        sidebarPanel.classList.remove('is-open');
+        sidebarPanel.style.display = 'flex';
+        openBtn.style.display = 'none';
+      }
+      window.requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
+    };
+
     toggleBtn.addEventListener('click', () => {
-      sidebarPanel.style.display = 'none';
+      sidebarPanel.classList.remove('is-open');
+      if (!window.matchMedia('(max-width: 768px)').matches) sidebarPanel.style.display = 'none';
       openBtn.style.display = 'block';
+      window.requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
     });
 
     openBtn.addEventListener('click', () => {
       sidebarPanel.style.display = 'flex';
+      sidebarPanel.classList.add('is-open');
       openBtn.style.display = 'none';
+      window.requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
     });
+
+    window.matchMedia('(max-width: 768px)').addEventListener('change', syncSidebarForViewport);
+    syncSidebarForViewport();
   }
 
 
