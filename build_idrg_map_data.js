@@ -39,6 +39,18 @@ for (const row of idrgRows) {
   const code = clean(row.DRG);
   if (code) idrgTariffs[code] = { description: clean(row["Deskripsi DRG"]), tariff: idrgTariffNumber(row["Tarif iDRG"]), ptd: number(row.PTD) };
 }
+const ptdOverrides = {
+  "3101119": 1,
+  "3102119": 1,
+  "3103119": 1,
+  "3104119": 1,
+  "3106119": 1,
+  "3108119": 1
+};
+for (const [code, ptd] of Object.entries(ptdOverrides)) {
+  idrgTariffs[code] ||= { description: "", tariff: 0 };
+  idrgTariffs[code].ptd = ptd;
+}
 
 const inaWorkbook = XLSX.readFile(INA);
 const inaRows = XLSX.utils.sheet_to_json(inaWorkbook.Sheets["TARIF CBGS 2022"], { range: 4, defval: "" });
