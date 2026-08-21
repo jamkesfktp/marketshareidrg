@@ -226,6 +226,19 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
             <div id="competencyTableSlide" class="existing-report-content" style="display: block; padding: 16px 24px; height: calc(100% - 65px); overflow-y: auto; background-color: #ffffff;"></div>
           </section>
 
+          <section class="slide existing-detail-slide dynamic-market-share-slide" data-slide="6-3" id="dynamicMarketShareSlideSection" aria-labelledby="dynamicMarketShareSlideTitle" hidden>
+            <div class="existing-report-title" style="background: linear-gradient(135deg, #7c3aed, #2563eb); display: flex; justify-content: space-between; align-items: center; position: relative;">
+              <div>
+                <h1 id="dynamicMarketShareSlideTitle" style="color: white; font-size: 22px; font-weight: 700; margin: 0; letter-spacing: 0.5px;">Simulasi Market Share Dinamis</h1>
+                <p style="color: rgba(255,255,255,0.82); font-size: 13px; margin: 2px 0 0;">Natural share berdasarkan kompetensi, kasus regional, dan jumlah RS kompetitor eligible</p>
+              </div>
+              <div class="existing-period-badge" style="background-color: #e74c3c; color: white; border-radius: 99px; padding: 5px 14px; text-align: center; font-size: 12px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                Model Dinamis<br><span style="font-weight: 400;">Auto + penyesuaian manual</span>
+              </div>
+            </div>
+            <div id="dynamicMarketShareSlide" class="existing-report-content" style="display: block; padding: 12px 20px; height: calc(100% - 65px); overflow-y: auto; background-color: #ffffff;"></div>
+          </section>
+
           <!-- Slide 10: Jumlah Data Masuk menurut Jenis Rawat -->
           <section class="slide existing-detail-slide national-rawat-type-slide" data-slide="10" id="nationalRawatTypeSlideSection" aria-labelledby="nationalRawatTypeSlideTitle" hidden>
             <div class="existing-report-title" style="background-color: #16a085; border-bottom: 6px solid #f1c40f; padding: 10px 24px; display: flex; justify-content: space-between; align-items: center; position: relative;">
@@ -432,6 +445,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
             <option value="kurang_up">Lepas Utama & Paripurna (dari Eksisting RS Target)</option>
           </select>
         </div>
+        <button id="btnOpenDynamicMarket" type="button" style="width: 100%; margin-top: 9px; border: 0; border-radius: 7px; padding: 8px 10px; background: linear-gradient(135deg,#7c3aed,#2563eb); color: #fff; font-size: 11px; font-weight: 800; cursor: pointer; box-shadow: 0 2px 5px rgba(79,70,229,.25);">⚡ Buka Simulasi Dinamis</button>
       </div>
 
       <div class="target-picker filter-picker custom-multi">
@@ -476,7 +490,9 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
   <script src="js/scenarios-core.js?v=202608180005"></script>
   <script src="js/export-gslides.js?v=202608180005"></script>
   <script src="js/audit-excel.js?v=202608180005"></script>
-  <script src="js/app.js?v=202608180005"></script>
+  <script src="js/global-sim-excel.js?v=202608210836"></script>
+  <script src="js/dynamic-market-excel.js?v=202608211700"></script>
+  <script src="js/app.js?v=202608211700"></script>
 </body>
 </html>
 
