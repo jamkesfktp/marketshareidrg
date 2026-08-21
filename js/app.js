@@ -9443,7 +9443,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     });
   }
 
-﻿  document.getElementById("btnDownloadGlobalSim")?.addEventListener("click", () => {
+  document.getElementById("btnDownloadGlobalSim")?.addEventListener("click", () => {
     const target = data.hospitals.find((h) => h.code === state.targetCode) || (data.hospitals.length ? data.hospitals[0] : null);
     if (!target) return alert("Target RS tidak ditemukan.");
 
