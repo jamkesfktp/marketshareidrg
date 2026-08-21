@@ -40,24 +40,45 @@ for (const row of idrgRows) {
   if (code) idrgTariffs[code] = { description: clean(row["Deskripsi DRG"]), tariff: idrgTariffNumber(row["Tarif iDRG"]), ptd: clean(row.PTD), mdc: clean(row.MDC), dc: clean(row.DC) };
 }
 
-const inaSheet = XLSX.readFile(INA).Sheets["TARIF CBGS 2022"];
-const inaRows = XLSX.utils.sheet_to_json(inaSheet, { range: 4, defval: "" });
+const inaWorkbook = XLSX.readFile(INA);
+const inaRows = XLSX.utils.sheet_to_json(inaWorkbook.Sheets["TARIF CBGS 2022"], { range: 4, defval: "" });
 const inaAgg = new Map();
 for (const row of inaRows) {
   const code = clean(row.KODE_INACBG); const reg = clean(row.REGIONAL).toUpperCase().replace("REG", "R");
-  if (!code || !/^R[1-5]$/.test(reg)) continue;
-  const key = `${code}|${reg}`; const prev = inaAgg.get(key) || { sum: 0, n: 0, description: clean(row.DESKRIPSI) };
+  const hospitalClass = clean(row["KELAS RS"]).toUpperCase(); const rawatClass = clean(row.KELAS_RAWAT).toUpperCase().replace(/\s+/g, "");
+  if (!code || !/^[A-D]$/.test(hospitalClass) || !/^KELAS[0-3]$/.test(rawatClass) || !/^R[1-5]$/.test(reg)) continue;
+  const key = `${code}|${hospitalClass}|${rawatClass}|${reg}`; const prev = inaAgg.get(key) || { sum: 0, n: 0, description: clean(row.DESKRIPSI) };
   prev.sum += number(row[" TARIF FINAL "] ?? row["TARIF FINAL"] ?? row["FINAL TARIF "]); prev.n++; inaAgg.set(key, prev);
 }
 const inaTariffs = {};
 for (const [key, val] of inaAgg) {
-  const [code, reg] = key.split("|");
-  inaTariffs[code] ||= { description: val.description, regions: {} };
-  inaTariffs[code].regions[reg] = Math.round(val.sum / val.n);
+  const [code, hospitalClass, rawatClass, reg] = key.split("|");
+  inaTariffs[code] ||= { description: val.description, rates: {} };
+  inaTariffs[code].rates[hospitalClass] ||= {};
+  inaTariffs[code].rates[hospitalClass][rawatClass] ||= {};
+  inaTariffs[code].rates[hospitalClass][rawatClass][reg] = Math.round(val.sum / val.n);
 }
 for (const item of Object.values(inaTariffs)) {
-  const vals = Object.values(item.regions);
-  item.regions.ALL = vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : 0;
+  for (const byRawat of Object.values(item.rates)) for (const regions of Object.values(byRawat)) {
+    const vals = [1, 2, 3, 4, 5].map((n) => regions[`R${n}`]).filter(Number.isFinite);
+    regions.ALL = vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : 0;
+  }
+}
+const specialRows = XLSX.utils.sheet_to_json(inaWorkbook.Sheets["RS KHUSUS"], { range: 4, defval: "" });
+const specialAgg = new Map();
+for (const row of specialRows) {
+  const code = clean(row.KODE_INACBG); const rawatClass = clean(row.KELAS_RAWAT).toUpperCase().replace(/\s+/g, "");
+  if (!code || !/^KELAS[0-3]$/.test(rawatClass)) continue;
+  const key = `${code}|${rawatClass}`; const prev = specialAgg.get(key) || { sum: 0, n: 0, description: clean(row.DESKRIPSI) };
+  const tariffKey = Object.keys(row).find((name) => name.trim() === "FINAL TARIF");
+  const tariff = number(tariffKey ? row[tariffKey] : 0); if (!tariff) continue;
+  prev.sum += tariff; prev.n++; specialAgg.set(key, prev);
+}
+for (const [key, val] of specialAgg) {
+  const [code, rawatClass] = key.split("|");
+  inaTariffs[code] ||= { description: val.description, rates: {} };
+  inaTariffs[code].rates["RS KHUSUS"] ||= {};
+  inaTariffs[code].rates["RS KHUSUS"][rawatClass] = { ALL: Math.round(val.sum / val.n) };
 }
 
 const relations = new Map();
