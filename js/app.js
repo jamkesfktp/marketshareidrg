@@ -2041,7 +2041,18 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const services = [...new Set([...Object.keys(source.services), "FORENSIK"])].sort();
     if (!services.includes(ui.service)) ui.service = services[0];
     const query = ui.search.trim().toLowerCase();
-    let rows = (source.services[ui.service] || []).filter((row) => (ui.severity === "ALL" || (ui.severity === "INPATIENT" ? row.severity > 0 : String(row.severity) === ui.severity)) && (!query || `${row.ina} ${row.inaDescription} ${row.idrg} ${row.idrgDescription}`.toLowerCase().includes(query)));
+    const filteredCases = (row) => {
+      if (!Array.isArray(row.segments)) return row.cases || 0;
+      return row.segments.reduce((sum, segment) => {
+        const [ownership, hospitalClass, rawatClass, region, cases] = segment;
+        if (ui.ownership !== "ALL" && ownership !== ui.ownership) return sum;
+        if (ui.hospitalClass !== "ALL" && hospitalClass !== ui.hospitalClass) return sum;
+        if (ui.rawatClass !== "ALL" && rawatClass !== ui.rawatClass) return sum;
+        if (ui.region !== "ALL" && region !== ui.region) return sum;
+        return sum + (Number(cases) || 0);
+      }, 0);
+    };
+    let rows = (source.services[ui.service] || []).map((row) => ({ ...row, cases: filteredCases(row) })).filter((row) => row.cases > 0 && (ui.severity === "ALL" || (ui.severity === "INPATIENT" ? row.severity > 0 : String(row.severity) === ui.severity)) && (!query || `${row.ina} ${row.inaDescription} ${row.idrg} ${row.idrgDescription}`.toLowerCase().includes(query)));
     const grouped = new Map();
     rows.forEach((row) => {
       const key = row.ina;

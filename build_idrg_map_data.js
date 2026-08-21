@@ -114,13 +114,24 @@ input.on("line", (line) => {
   if (!service || !ina || !idrg) return;
   const sev = severityFromInaCode(ina); const cases = number(row[28]);
   const key = `${service}|${ina}|${idrg}`;
-  const prev = relations.get(key) || { service, ina, inaDescription: clean(row[19]), idrg, idrgDescription: clean(row[23]), severity: sev, cases: 0 };
-  prev.cases += cases; relations.set(key, prev);
+  const prev = relations.get(key) || { service, ina, inaDescription: clean(row[19]), idrg, idrgDescription: clean(row[23]), severity: sev, cases: 0, segments: new Map() };
+  prev.cases += cases;
+  const ownership = clean(row[7]).toUpperCase() === "P" ? "PEMERINTAH" : clean(row[7]).toUpperCase() === "S" ? "SWASTA" : "LAINNYA";
+  const hospitalClass = clean(row[8]).toUpperCase();
+  const region = clean(row[9]).toUpperCase().replace("REG", "R");
+  const rawatValue = clean(row[13]).toUpperCase().replace(/\s+/g, "");
+  const rawatClass = /^KELAS[0-3]$/.test(rawatValue) ? rawatValue : /^[0-3]$/.test(rawatValue) ? `KELAS${rawatValue}` : rawatValue;
+  const segmentKey = `${ownership}|${hospitalClass}|${rawatClass}|${region}`;
+  prev.segments.set(segmentKey, (prev.segments.get(segmentKey) || 0) + cases);
+  relations.set(key, prev);
   if (rows % 1000000 === 0) console.log(`Processed ${rows.toLocaleString()} rows`);
 });
 input.on("close", () => {
   const services = {};
-  for (const rel of relations.values()) { services[rel.service] ||= []; services[rel.service].push(rel); }
+  for (const rel of relations.values()) {
+    rel.segments = [...rel.segments].map(([key, cases]) => [...key.split("|"), cases]);
+    services[rel.service] ||= []; services[rel.service].push(rel);
+  }
   for (const rows of Object.values(services)) rows.sort((a, b) => b.cases - a.cases);
   const payload = { meta: { generatedAt: new Date().toISOString(), sourceRows: rows, idrgTariffSource: IDRG, inaTariffSource: INA }, services, inaTariffs, idrgTariffs };
   fs.writeFileSync(OUTPUT, `window.idrgMapData=${JSON.stringify(payload)};`);
