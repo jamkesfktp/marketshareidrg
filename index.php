@@ -13,7 +13,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
   <link rel="icon" href="data:,">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Simulator Market Share Regional Rumah Sakit</title>
-  <link rel="stylesheet" href="css/style.css?v=202608220600">
+  <link rel="stylesheet" href="css/style.css?v=202608220800">
 </head>
 <body class="simulator-app">
   <main class="viewport-stage" aria-label="Simulator market share regional rumah sakit">
@@ -495,7 +495,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
   <script src="js/global-sim-excel.js?v=202608210836"></script>
   <script src="js/dynamic-market-excel.js?v=202608212015"></script>
   <script src="js/idrg-map-data.js?v=202608220300"></script>
-  <script src="js/app.js?v=202608220600"></script>
+  <script src="js/app.js?v=202608220800"></script>
 </body>
 </html>
 
