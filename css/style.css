@@ -58,12 +58,12 @@ input[type="number"] { outline-offset: 3px; }
   position: relative;
   width: 1920px;
   height: 1080px;
-  transform-origin: top left;
 }
 
 .deck-shell {
   width: 1920px;
   height: 1080px;
+  transform-origin: top left;
   overflow: hidden;
   display: grid;
   grid-template-rows: 96px 1fr 68px;
@@ -852,6 +852,83 @@ tr.is-disabled td { color: #9aa4b2; background: #fafbfc; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+}
+
+/*
+ * Responsive application shell.
+ * The report itself intentionally keeps its 16:9 presentation canvas so PPT
+ * export stays pixel-identical. On small screens the canvas becomes a
+ * scrollable, touch-usable workspace instead of being shrunk to unreadable
+ * thumbnail size.
+ */
+@media (max-width: 768px) {
+  html,
+  body { min-height: 100%; }
+
+  body.simulator-app {
+    display: block;
+    min-height: 100dvh;
+    overflow: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .viewport-stage {
+    display: block;
+    width: 100%;
+    height: auto;
+    min-height: 100dvh;
+    overflow: auto;
+    padding: 8px;
+    place-items: initial;
+  }
+
+  .deck-scaler {
+    margin: 0;
+  }
+
+  .global-toolbar {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+
+  .slide {
+    padding-left: 38px;
+    padding-right: 38px;
+  }
+
+  .sidebar-panel {
+    position: fixed;
+    inset: 0 0 0 auto;
+    width: min(88vw, 360px);
+    height: 100dvh;
+    z-index: 10000;
+    transform: translateX(105%);
+    visibility: hidden;
+    transition: transform .2s ease, visibility .2s ease;
+    box-shadow: -12px 0 32px rgba(15, 23, 42, .22);
+  }
+
+  .sidebar-panel.is-open {
+    display: flex !important;
+    transform: translateX(0);
+    visibility: visible;
+  }
+
+  #sidebarOpenBtn {
+    position: fixed !important;
+    right: 12px !important;
+    top: max(12px, env(safe-area-inset-top)) !important;
+    z-index: 9999 !important;
+    min-height: 44px;
+    padding: 10px 14px !important;
+  }
+
+  .sidebar-panel button,
+  .sidebar-panel select,
+  .sidebar-panel input {
+    min-height: 44px;
+  }
 }
 
 .custom-multi .multi-select-container {

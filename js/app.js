@@ -8570,8 +8570,10 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const height = 1080 * scale;
     scaler.style.width = `${width}px`;
     scaler.style.height = `${height}px`;
-    scaler.style.left = isMobile ? "0px" : `${Math.max((availableWidth - width) / 2, 0)}px`;
-    scaler.style.top = isMobile ? "0px" : `${Math.max((availableHeight - height) / 2, 0)}px`;
+    // Desktop centering is already handled by .viewport-stage's grid. Adding
+    // positional offsets here would center the canvas a second time.
+    scaler.style.left = "0px";
+    scaler.style.top = "0px";
     shell.style.transform = `scale(${scale})`;
   }
 
