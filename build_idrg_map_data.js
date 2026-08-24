@@ -1,9 +1,12 @@
 const fs = require("fs");
+const path = require("path");
 const readline = require("readline");
 const XLSX = require("xlsx");
 
 const CLAIMS = "C:\\Backup Riki\\Drive D\\Analsisi Uji Coba\\spending_okt_jun_v3_gabungan.csv";
-const IDRG = "C:\\Backup Riki\\Drive D\\Analsisi Uji Coba\\V5_20260715_Tarif iDRG dengan Adjustment Factor - Final_Resume_Adjusted Tarif iDRG.csv";
+const IDRG_CODES = path.join(__dirname, "data", "idrg-codes-1363.tsv");
+const IDRG_TARIFFS = path.join(__dirname, "data", "idrg-tariffs-1363.txt");
+const IDRG_META = "C:\\Backup Riki\\Drive D\\Analsisi Uji Coba\\V5_20260715_Tarif iDRG dengan Adjustment Factor - Final_Resume_Adjusted Tarif iDRG.csv";
 const INA = "C:\\Users\\PUSBIKES-KEMKES\\Documents\\10. 20230110_Draft Tarif 2023 Final 10012023 (2).xlsx";
 const OUTPUT = "js/idrg-map-data.js";
 
@@ -29,16 +32,22 @@ const severityFromInaCode = (v) => {
   return 0;
 };
 
-const idrgLines = fs.readFileSync(IDRG, "utf8").split(/\r?\n/).filter((line) => line.trim());
-const idrgHeaders = csv(idrgLines[1]);
-const idrgRows = idrgLines.slice(2).map((line) => {
+const idrgMetaLines = fs.readFileSync(IDRG_META, "utf8").split(/\r?\n/).filter((line) => line.trim());
+const idrgMetaHeaders = csv(idrgMetaLines[1]);
+const idrgMetaRows = idrgMetaLines.slice(2).map((line) => {
   const values = csv(line);
-  return Object.fromEntries(idrgHeaders.map((header, index) => [header, values[index] ?? ""]));
+  return Object.fromEntries(idrgMetaHeaders.map((header, index) => [header, values[index] ?? ""]));
 });
+const idrgMeta = new Map(idrgMetaRows.map((row) => [clean(row.DRG), row]));
+const idrgCodeLines = fs.readFileSync(IDRG_CODES, "utf8").split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+const idrgTariffLines = fs.readFileSync(IDRG_TARIFFS, "utf8").split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+if (idrgCodeLines.length !== idrgTariffLines.length) throw new Error(`Master iDRG tidak sejajar: ${idrgCodeLines.length} kode, ${idrgTariffLines.length} tarif`);
 const idrgTariffs = {};
-for (const row of idrgRows) {
-  const code = clean(row.DRG);
-  if (code) idrgTariffs[code] = { description: clean(row["Deskripsi DRG"]), tariff: Math.round(number(row["Adjusted Tarif iDRG"])), ptd: number(row.PTD) };
+for (let index = 0; index < idrgCodeLines.length; index++) {
+  const [code, ...descriptionParts] = idrgCodeLines[index].split("\t");
+  if (!code || idrgTariffs[code]) throw new Error(`Kode iDRG kosong atau duplikat pada baris ${index + 1}: ${code}`);
+  const meta = idrgMeta.get(code) || {};
+  idrgTariffs[code] = { description: clean(descriptionParts.join("\t")) || clean(meta["Deskripsi DRG"]), tariff: Math.round(number(idrgTariffLines[index])), ptd: number(meta.PTD) };
 }
 const ptdOverrides = {
   "3101119": 1,
