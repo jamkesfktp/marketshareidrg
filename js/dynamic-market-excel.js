@@ -104,18 +104,23 @@
     styleRange(XLSX, existing, "C4:E8", { align: "right", numFmt: '"Rp" #,##0' });
 
     const driverRows = [
-      ["DRIVER PASAR DAN SUMBER KASUS", "", "", "", "", "", "", "", "", ""],
-      [`Sumber kasus tambah untuk target ${levelNames[targetComp]}: ${sourceRelationLabel}.`, "", "", "", "", "", "", "", "", ""],
-      ["Level", "Arah", "Kasus Regional", "Kasus Target", "Target INA", "Target iDRG", "Pool Sumber Kasus Tambahan", "Nominal iDRG Pool Sumber", "RS Sumber/Eligible", "Natural Share"],
+      ["DRIVER PASAR DAN SUMBER KASUS", "", "", "", "", "", "", "", "", "", "", "", ""],
+      [`Sumber kasus tambah untuk target ${levelNames[targetComp]}: ${sourceRelationLabel}.`, "", "", "", "", "", "", "", "", "", "", "", ""],
+      ["Level", "Arah", "Kasus Regional", "Kasus Target", "Target INA", "Target iDRG", "Pool Sumber Kasus Tambahan", "Nominal INA-CBG Pool", "Nominal iDRG Pool", "Selisih iDRG - INA", "% Selisih", "RS Sumber/Eligible", "Natural Share"],
       ...levelData.map((item) => [levelNames[item.level], item.direction.toUpperCase(), item.regionalCases, item.targetCases, item.targetIna, item.targetIdrg,
         item.direction === "tambah" ? item.externalCases : item.targetCases,
-        item.direction === "tambah" ? item.externalIdrg : item.targetIdrg,
+        item.poolIna, item.poolIdrg, item.tariffDelta, item.tariffDeltaPct / 100,
         item.competitors, item.direction === "kurang" ? pctFor(0, item) / 100 : item.direction === "tambah" ? item.naturalShare / 100 : 0])
     ];
-    const driver = append(driverRows, "02_Driver_Pasar", "DRIVER PASAR DAN SUMBER KASUS", "J", [15, 14, 18, 18, 20, 20, 18, 20, 20, 18], 3);
-    styleRange(XLSX, driver, "A4:J7", { fill: COLORS.white });
-    styleRange(XLSX, driver, "C4:I7", { align: "right", numFmt: "#,##0" });
-    styleRange(XLSX, driver, "J4:J7", { align: "right", numFmt: "0.00%" });
+    const driver = append(driverRows, "02_Driver_Pasar", "DRIVER PASAR DAN SUMBER KASUS", "M", [15, 14, 18, 18, 20, 20, 18, 20, 20, 22, 16, 20, 18], 3);
+    styleRange(XLSX, driver, "A4:M7", { fill: COLORS.white });
+    styleRange(XLSX, driver, "C4:D7", { align: "right", numFmt: "#,##0" });
+    styleRange(XLSX, driver, "E4:F7", { align: "right", numFmt: '"Rp" #,##0' });
+    styleRange(XLSX, driver, "G4:G7", { align: "right", numFmt: "#,##0" });
+    styleRange(XLSX, driver, "H4:J7", { align: "right", numFmt: '"Rp" #,##0' });
+    styleRange(XLSX, driver, "K4:K7", { align: "right", numFmt: "0.00%" });
+    styleRange(XLSX, driver, "L4:L7", { align: "right", numFmt: "#,##0" });
+    styleRange(XLSX, driver, "M4:M7", { align: "right", numFmt: "0.00%" });
 
     const parameterRows = [["PARAMETER SKENARIO DINAMIS", "", "", "", "", "", "", "", "", "", ""], [],
       ["No Skenario", "Nama", "Faktor Natural", "Level", "Arah", "Natural Share", "Persentase Simulasi", "Pool Kasus", "Pool iDRG", "Kasus Dampak", "iDRG Dampak"]];
@@ -127,7 +132,7 @@
         const poolCases = item.direction === "tambah" ? item.externalCases : item.direction === "kurang" ? item.targetCases : 0;
         const poolIdrg = item.direction === "tambah" ? item.externalIdrg : item.direction === "kurang" ? item.targetIdrg : 0;
         parameterRows.push([scenarioIndex + 1, scenario.name, scenario.factor, levelNames[item.level], item.direction.toUpperCase(),
-          formulaCell(`${quote("02_Driver_Pasar")}!J${driverRow}`, item.direction === "kurang" ? 1 : item.naturalShare / 100, "0.00%"),
+          formulaCell(`${quote("02_Driver_Pasar")}!M${driverRow}`, item.direction === "kurang" ? 1 : item.naturalShare / 100, "0.00%"),
           { t: "n", v: pct, z: "0.00%" },
           formulaCell(`${quote("02_Driver_Pasar")}!G${driverRow}`, poolCases, "#,##0"),
           formulaCell(`${quote("02_Driver_Pasar")}!H${driverRow}`, poolIdrg, '"Rp" #,##0'),
