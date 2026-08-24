@@ -2273,8 +2273,17 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       const canvas = root.querySelector("#idrgMapCanvas"); const svg = root.querySelector("#idrgMapArrows"); if (!canvas || !svg) return;
       const width = Math.max(canvas.clientWidth, canvas.scrollWidth), height = Math.max(canvas.clientHeight, canvas.scrollHeight);
       svg.setAttribute("width", width); svg.setAttribute("height", height); svg.setAttribute("viewBox", `0 0 ${width} ${height}`); svg.style.width = `${width}px`; svg.style.height = `${height}px`;
-      const box = canvas.getBoundingClientRect(); let lines = '<defs><marker id="idrgArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#2f786e"/></marker></defs>';
-      shown.forEach((group) => { const from = root.querySelector(`[data-key="${CSS.escape(`${group.ina}|${group.severity}`)}"]`)?.getBoundingClientRect(); if (!from) return; group.links.filter((l) => visibleCodes.has(l.idrg)).forEach((link) => { const to = root.querySelector(`[data-code="${CSS.escape(link.idrg)}"]`)?.getBoundingClientRect(); if (!to) return; const x1=from.right-box.left+canvas.scrollLeft,y1=from.top+from.height/2-box.top+canvas.scrollTop,x2=to.left-box.left+canvas.scrollLeft,y2=to.top+to.height/2-box.top+canvas.scrollTop,w=Math.max(2,Math.min(8,2+Math.log10(link.cases+1))); lines += `<path d="M${x1},${y1} C${x1+70},${y1} ${x2-70},${y2} ${x2},${y2}" fill="none" stroke="#2f786e" stroke-width="${w}" opacity=".82" marker-end="url(#idrgArrow)"/>`; }); }); svg.innerHTML = lines;
+      const localBox = (element) => {
+        let left = 0, top = 0, node = element;
+        while (node && node !== canvas) {
+          left += node.offsetLeft || 0;
+          top += node.offsetTop || 0;
+          node = node.offsetParent;
+        }
+        return { left, top, width: element.offsetWidth, height: element.offsetHeight };
+      };
+      let lines = '<defs><marker id="idrgArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#2f786e"/></marker></defs>';
+      shown.forEach((group) => { const fromElement = root.querySelector(`[data-key="${CSS.escape(`${group.ina}|${group.severity}`)}"]`); if (!fromElement) return; const from = localBox(fromElement); group.links.filter((l) => visibleCodes.has(l.idrg)).forEach((link) => { const toElement = root.querySelector(`[data-code="${CSS.escape(link.idrg)}"]`); if (!toElement) return; const to = localBox(toElement); const x1=from.left+from.width,y1=from.top+from.height/2,x2=to.left-4,y2=to.top+to.height/2,curve=Math.max(70,(x2-x1)*.38),w=Math.max(2,Math.min(8,2+Math.log10(link.cases+1))); lines += `<path d="M${x1},${y1} C${x1+curve},${y1} ${x2-curve},${y2} ${x2},${y2}" fill="none" stroke="#2f786e" stroke-width="${w}" opacity=".82" marker-end="url(#idrgArrow)"/>`; }); }); svg.innerHTML = lines;
     }));
   }
 
