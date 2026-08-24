@@ -504,7 +504,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
   <script src="js/global-sim-excel.js?v=202608210836"></script>
   <script src="js/dynamic-market-excel.js?v=202608242300"></script>
   <script src="js/idrg-map-data.js?v=202608241500"></script>
-  <script src="js/app.js?v=202608242300"></script>
+  <script src="js/app.js?v=202608242400"></script>
 </body>
 </html>
 
