@@ -1814,7 +1814,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       const targetMetric = severityMetric(targetSrv, level);
       const direction = rules.tambah.includes(level) ? "tambah" : (rules.kurang.includes(level) ? "kurang" : "netral");
       const sourceHospitals = direction === "tambah"
-        ? additionSourceHospitals
+        ? additionSourceHospitals.filter((hospital) => (severityMetric(hospital.services?.[service], level)[CASES] || 0) > 0)
         : data.hospitals.filter((hospital) => !targetCodes.has(hospital.code) && getCompetency(hospital, service) >= level);
       const sourceMetric = sourceHospitals.reduce((total, hospital) => {
         const metric = severityMetric(hospital.services?.[service], level);
@@ -7159,7 +7159,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       const regionalMetric = severityMetric(regionalSrv, level);
       const direction = rules.tambah.includes(level) ? "tambah" : (rules.kurang.includes(level) ? "kurang" : "netral");
       const sourceHospitals = direction === "tambah"
-        ? additionSourceHospitals
+        ? additionSourceHospitals.filter((hospital) => (severityMetric(hospital.services?.[service], level)[CASES] || 0) > 0)
         : data.hospitals.filter((hospital) => hospital.code !== target.code && getCompetency(hospital, service) >= level);
       const sourceMetric = sourceHospitals.reduce((total, hospital) => {
         const metric = severityMetric(hospital.services?.[service], level);

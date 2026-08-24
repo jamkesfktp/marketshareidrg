@@ -80,7 +80,7 @@
       ["Skenario tarif", tariffLabel], ["Filter regional", filterDescription], ["Tanggal ekspor", new Date().toLocaleString("id-ID")],
       [], ["Ketentuan audit", "Penjelasan"],
       ["Sumber kasus tambah", sourceRelationLabel],
-      ["Matriks sumber", "Dasar: RS lebih tinggi; Madya/Utama: RS lebih rendah dan lebih tinggi (tidak termasuk kompetensi sama); Paripurna: RS lebih rendah. Kasus setiap level diambil dari komposisi aktual seluruh RS sumber tersebut."],
+      ["Matriks sumber", "Dasar: RS lebih tinggi; Madya/Utama: RS lebih rendah dan lebih tinggi (tidak termasuk kompetensi sama); Paripurna: RS lebih rendah. RS eligible per level hanya mencakup RS sumber yang memiliki kasus aktual pada level tersebut."],
       ["Kasus pengurang", "Menggunakan natural share per level berdasarkan jumlah RS sumber eligible dan dapat diedit untuk sensitivitas."],
       ["Natural share", "100 / (jumlah RS sumber eligible sesuai hubungan kompetensi + 1 RS target)."],
       ["Area input", "Kolom Persentase Simulasi pada sheet 03_Parameter dapat diedit untuk audit sensitivitas."],
