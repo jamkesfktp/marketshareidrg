@@ -1809,6 +1809,16 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       if (targetComp === 4) return sourceComp < targetComp;
       return sourceComp !== targetComp;
     });
+    const competitorHospitals = data.hospitals
+      .filter((hospital) => !targetCodes.has(hospital.code) && getCompetency(hospital, service) > 0)
+      .sort((a, b) => String(a.name || "").localeCompare(String(b.name || ""), "id"));
+    const competitorGroups = Object.fromEntries(severityRanks.map((level) => [level, competitorHospitals.filter((hospital) => getCompetency(hospital, service) === level)]));
+    const competitorColors = { 1: ["#0f766e", "#f0fdfa"], 2: ["#a16207", "#fefce8"], 3: ["#c2410c", "#fff7ed"], 4: ["#7e22ce", "#faf5ff"] };
+    const competitorListHtml = severityRanks.map((level) => {
+      const [color, background] = competitorColors[level];
+      const hospitals = competitorGroups[level];
+      return `<section style="min-width:0;border:1px solid #e2e8f0;border-radius:7px;overflow:hidden;background:#fff;"><header style="padding:5px 7px;background:${background};color:${color};font-size:10px;font-weight:900;">${levelNames[level]} · ${formatNumber(hospitals.length)} RS</header><div style="max-height:150px;overflow:auto;padding:4px 7px;">${hospitals.length ? hospitals.map((hospital, index) => `<div style="padding:3px 0;border-bottom:1px solid #f1f5f9;font-size:9px;line-height:1.25;color:#334155;"><b>${index + 1}. ${escapeHtml(hospital.name)}</b><br><span style="color:#64748b;">${escapeHtml(hospital.city || "—")} · ${escapeHtml(hospital.code || "—")}</span></div>`).join("") : '<span style="font-size:9px;color:#94a3b8;">Tidak ada RS</span>'}</div></section>`;
+    }).join("");
     const levelData = severityRanks.map((level) => {
       const regionalMetric = severityMetric(regionalSrv, level);
       const targetMetric = severityMetric(targetSrv, level);
@@ -1908,6 +1918,21 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           <button id="dynamicMarketResetBtn" type="button" style="border:1px solid #c4b5fd;background:#fff;color:#6d28d9;border-radius:6px;padding:5px 9px;font-size:10.5px;font-weight:800;cursor:pointer;white-space:nowrap;">↻ Hitung Ulang Otomatis</button>
         </div>
       </div>
+
+      <details style="margin-bottom:9px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;overflow:hidden;">
+        <summary style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 10px;cursor:pointer;background:#f8fafc;list-style:none;">
+          <span style="font-size:10.5px;font-weight:900;color:#334155;">RS KOMPETITOR REGIONAL · ${escapeHtml(formatService(service))}</span>
+          <span style="display:flex;align-items:center;gap:6px;font-size:9.5px;font-weight:850;">
+            <b style="padding:3px 7px;border-radius:999px;background:#e0f2fe;color:#0369a1;">${formatNumber(competitorHospitals.length)} RS unik</b>
+            ${severityRanks.map((level) => `<b style="padding:3px 6px;border-radius:999px;background:${competitorColors[level][1]};color:${competitorColors[level][0]};">${shortLevelNames[level]} ${formatNumber(competitorGroups[level].length)}</b>`).join("")}
+            <span style="color:#64748b;">Buka daftar ▾</span>
+          </span>
+        </summary>
+        <div style="padding:7px 9px;border-top:1px solid #e2e8f0;">
+          <div style="margin-bottom:6px;font-size:9px;color:#64748b;">RS target tidak dihitung sebagai kompetitor. Daftar mengikuti filter regional aktif dan kompetensi pada layanan terpilih.</div>
+          <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;">${competitorListHtml}</div>
+        </div>
+      </details>
 
       <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;margin-bottom:9px;">
         <div style="padding:7px 9px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;"><div style="font-size:9.5px;color:#64748b;font-weight:800;">KASUS EKSISTING</div><strong style="font-size:16px;color:#0f172a;">${formatNumber(baselineCases)}</strong></div>
