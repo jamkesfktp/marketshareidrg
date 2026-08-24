@@ -13,9 +13,17 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
   <link rel="icon" href="data:,">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Simulator Market Share Regional Rumah Sakit</title>
-  <link rel="stylesheet" href="css/style.css?v=202608221100">
+  <link rel="stylesheet" href="css/style.css?v=202608241900">
 </head>
-<body class="simulator-app">
+<body class="simulator-app app-booting">
+  <div id="appBootScreen" class="app-boot-screen" role="status" aria-live="polite" aria-label="Menyiapkan aplikasi">
+    <div class="app-boot-card">
+      <img src="img/logo-kemenkes.png" alt="Kementerian Kesehatan RI">
+      <strong>Menyiapkan Simulator Market Share</strong>
+      <p>Memuat data dan menyiapkan seluruh analisis…</p>
+      <div class="app-boot-progress" aria-hidden="true"></div>
+    </div>
+  </div>
   <main class="viewport-stage" aria-label="Simulator market share regional rumah sakit">
     <button id="sidebarOpenBtn" style="display: none; position: absolute; right: 20px; top: 20px; z-index: 100; background: white; border: 1px solid #cbd5e1; padding: 8px 12px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; font-weight: 600; font-size: 13px; color: #1e293b;">
       <span style="margin-right: 6px;">⚙️</span> Buka Pengaturan
@@ -496,7 +504,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
   <script src="js/global-sim-excel.js?v=202608210836"></script>
   <script src="js/dynamic-market-excel.js?v=202608241600"></script>
   <script src="js/idrg-map-data.js?v=202608241500"></script>
-  <script src="js/app.js?v=202608241800"></script>
+  <script src="js/app.js?v=202608241900"></script>
 </body>
 </html>
 
