@@ -2216,7 +2216,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         const guideRows = [
           ["KERTAS KERJA PETA iDRG"], [], ["Parameter", "Nilai"], ["Kelompok layanan", ui.service], ["Tarif INA-CBG", regionLabel], ["Cakupan Kelas RS", ui.hospitalClass === "WITH_SPECIAL" ? "Dengan RS Khusus" : "Tanpa RS Khusus (A–D)"], ["Kelas Rawat", ui.rawatClass], ["Kepemilikan", ui.ownership],
           ["Severity", ui.severity === "ALL" ? "Semua termasuk Rawat Jalan" : ui.severity === "INPATIENT" ? "Rawat Inap Severity I–III" : sevLabels[Number(ui.severity)]], ["Pencarian", ui.search || "Semua kode/deskripsi"],
-          ["Sumber tarif iDRG", "Tarif iDRG_+AF.xlsx"], ["Sumber tarif INA-CBG", "Draft Tarif 2023 Final 10012023 (2).xlsx - sheet TARIF CBGS 2022"],
+          ["Sumber tarif iDRG", "V5 20260715 Tarif iDRG dengan Adjustment Factor - kolom Adjusted Tarif iDRG"], ["Sumber tarif INA-CBG", "Draft Tarif 2023 Final 10012023 (2).xlsx - sheet TARIF CBGS 2022"],
           ["Definisi ALL Regional", "Rata-rata tarif Regional 1 sampai Regional 5 untuk kode INA-CBG yang sama."],
           ["Catatan", "Tarif INA-CBG mengikuti regional, kelas RS, kelas rawat, dan kepemilikan terpilih. Pilihan ALL menggunakan rata-rata tarif yang tersedia."],
           ["Tanggal ekspor", new Date().toLocaleString("id-ID")]

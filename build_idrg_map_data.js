@@ -3,7 +3,7 @@ const readline = require("readline");
 const XLSX = require("xlsx");
 
 const CLAIMS = "C:\\Backup Riki\\Drive D\\Analsisi Uji Coba\\spending_okt_jun_v3_gabungan.csv";
-const IDRG = "C:\\Users\\PUSBIKES-KEMKES\\Documents\\Tarif iDRG_+AF.xlsx";
+const IDRG = "C:\\Backup Riki\\Drive D\\Analsisi Uji Coba\\V5_20260715_Tarif iDRG dengan Adjustment Factor - Final_Resume_Adjusted Tarif iDRG.csv";
 const INA = "C:\\Users\\PUSBIKES-KEMKES\\Documents\\10. 20230110_Draft Tarif 2023 Final 10012023 (2).xlsx";
 const OUTPUT = "js/idrg-map-data.js";
 
@@ -21,10 +21,6 @@ function csv(line) {
 
 const clean = (v) => String(v ?? "").trim();
 const number = (v) => Number(String(v ?? 0).replace(/,/g, "")) || 0;
-const idrgTariffNumber = (v) => {
-  if (typeof v === "number") return v > 0 && v < 100000 ? Math.round(v * 1000) : Math.round(v);
-  return number(v);
-};
 const severityFromInaCode = (v) => {
   const suffix = clean(v).toUpperCase().split("-").pop();
   if (suffix === "I") return 1;
@@ -33,11 +29,16 @@ const severityFromInaCode = (v) => {
   return 0;
 };
 
-const idrgRows = XLSX.utils.sheet_to_json(XLSX.readFile(IDRG).Sheets.Sheet1, { defval: "" });
+const idrgLines = fs.readFileSync(IDRG, "utf8").split(/\r?\n/).filter((line) => line.trim());
+const idrgHeaders = csv(idrgLines[1]);
+const idrgRows = idrgLines.slice(2).map((line) => {
+  const values = csv(line);
+  return Object.fromEntries(idrgHeaders.map((header, index) => [header, values[index] ?? ""]));
+});
 const idrgTariffs = {};
 for (const row of idrgRows) {
   const code = clean(row.DRG);
-  if (code) idrgTariffs[code] = { description: clean(row["Deskripsi DRG"]), tariff: idrgTariffNumber(row["Tarif iDRG"]), ptd: number(row.PTD) };
+  if (code) idrgTariffs[code] = { description: clean(row["Deskripsi DRG"]), tariff: Math.round(number(row["Adjusted Tarif iDRG"])), ptd: number(row.PTD) };
 }
 const ptdOverrides = {
   "3101119": 1,
