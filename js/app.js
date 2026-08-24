@@ -410,8 +410,8 @@
         ? data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= lvl).length
         : 0;
       // Jika ada kompetitor: market share alami = 100/(kompetitor+1)
-      // Jika tidak ada kompetitor: ambil 50% (konservatif default)
-      baselinePct[lvl] = lvlComp > 0 ? parseFloat((100 / (lvlComp + 1)).toFixed(1)) : 50;
+      // Jika tidak ada kompetitor, RS target menjadi satu-satunya penyedia eligible.
+      baselinePct[lvl] = lvlComp > 0 ? parseFloat((100 / (lvlComp + 1)).toFixed(1)) : 100;
     });
     
     return Array(6).fill().map((_, i) => {
@@ -1069,7 +1069,7 @@
     // Inisialisasi default skenario jika belum ada
     if (typeof window.globalSimScenarios === 'undefined' || window.globalSimScenarios === null) {
       // Default: Market share alami = 1 / (N_kompetitor + 1)
-      const naturalShare = totalCompetitors > 0 ? (1 / (totalCompetitors + 1)) : 0.5;
+      const naturalShare = totalCompetitors > 0 ? (1 / (totalCompetitors + 1)) : 1;
       
       window.globalSimScenarios = [
         1.0,           // Skenario 1: Optimistik — serap 100% potensi
@@ -1824,7 +1824,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         return total;
       }, createZeroMetric());
       const competitors = sourceHospitals.length;
-      const naturalShare = competitors > 0 ? 100 / (competitors + 1) : 0;
+      const naturalShare = competitors > 0 ? 100 / (competitors + 1) : (direction === "tambah" ? 100 : 0);
       const poolIna = direction === "tambah" ? sourceMetric[INA] || 0 : targetMetric[INA] || 0;
       const poolIdrg = direction === "tambah" ? sourceMetric[IDRG] || 0 : targetMetric[IDRG] || 0;
       return {
@@ -7181,7 +7181,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       return {
         level,
         direction,
-        naturalShare: competitors > 0 ? 100 / (competitors + 1) : 0,
+        naturalShare: competitors > 0 ? 100 / (competitors + 1) : (direction === "tambah" ? 100 : 0),
         targetCases: targetMetric[CASES] || 0,
         targetIna: targetMetric[INA] || 0,
         targetIdrg: targetMetric[IDRG] || 0,
@@ -10440,7 +10440,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
 
     let simScenarios = window.globalSimScenarios;
     if (!simScenarios) {
-      const naturalShare = totalCompetitors > 0 ? (1 / (totalCompetitors + 1)) : 0.5;
+      const naturalShare = totalCompetitors > 0 ? (1 / (totalCompetitors + 1)) : 1;
       simScenarios = [1.0, naturalShare, naturalShare / 2];
     }
     let simKurangScenarios = window.globalSimKurangScenarios;
