@@ -1814,16 +1814,19 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       const targetMetric = severityMetric(targetSrv, level);
       const direction = rules.tambah.includes(level) ? "tambah" : (rules.kurang.includes(level) ? "kurang" : "netral");
       const sourceHospitals = direction === "tambah"
-        ? additionSourceHospitals
+        ? additionSourceHospitals.filter((hospital) => getCompetency(hospital, service) >= level)
         : data.hospitals.filter((hospital) => !targetCodes.has(hospital.code) && getCompetency(hospital, service) >= level);
       const sourceMetric = sourceHospitals.reduce((total, hospital) => {
         const metric = severityMetric(hospital.services?.[service], level);
         total[CASES] += metric[CASES] || 0;
+        total[INA] += metric[INA] || 0;
         total[IDRG] += metric[IDRG] || 0;
         return total;
       }, createZeroMetric());
       const competitors = sourceHospitals.length;
       const naturalShare = competitors > 0 ? 100 / (competitors + 1) : 0;
+      const poolIna = direction === "tambah" ? sourceMetric[INA] || 0 : targetMetric[INA] || 0;
+      const poolIdrg = direction === "tambah" ? sourceMetric[IDRG] || 0 : targetMetric[IDRG] || 0;
       return {
         level,
         direction,
@@ -1835,7 +1838,12 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         targetIna: targetMetric[INA] || 0,
         targetIdrg: targetMetric[IDRG] || 0,
         externalCases: direction === "tambah" ? sourceMetric[CASES] : Math.max(0, (regionalMetric[CASES] || 0) - (targetMetric[CASES] || 0)),
-        externalIdrg: direction === "tambah" ? sourceMetric[IDRG] : Math.max(0, (regionalMetric[IDRG] || 0) - (targetMetric[IDRG] || 0))
+        externalIna: direction === "tambah" ? sourceMetric[INA] || 0 : 0,
+        externalIdrg: direction === "tambah" ? sourceMetric[IDRG] : Math.max(0, (regionalMetric[IDRG] || 0) - (targetMetric[IDRG] || 0)),
+        poolIna,
+        poolIdrg,
+        tariffDelta: poolIdrg - poolIna,
+        tariffDeltaPct: poolIna > 0 ? (poolIdrg - poolIna) / poolIna * 100 : 0
       };
     });
 
@@ -1918,8 +1926,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       <div style="border:1px solid #cbd5e1;border-radius:8px;overflow:hidden;margin-bottom:8px;">
         <div style="padding:5px 9px;background:#334155;color:#fff;font-size:10.5px;font-weight:900;">DRIVER PASAR DINAMIS PER TINGKAT KOMPETENSI</div>
         <table class="dynamic-driver-table" style="width:100%;border-collapse:collapse;font-size:10px;text-align:center;">
-          <thead><tr style="background:#e2e8f0;color:#334155;"><th style="padding:4px;">Level</th><th>Arah</th><th>Kasus Regional</th><th>Kasus Target</th><th>Pool Sumber Kasus</th><th>Nominal iDRG Pool</th><th>RS Sumber Eligible</th><th>Share / Aturan</th></tr></thead>
-          <tbody>${levelData.map((item) => `<tr style="border-top:1px solid #e2e8f0;background:${item.direction === "tambah" ? "#f0fdf4" : item.direction === "kurang" ? "#fff1f2" : "#fff"};"><td style="padding:4px;font-weight:900;">${levelNames[item.level]}</td><td style="font-weight:900;color:${item.direction === "tambah" ? "#15803d" : item.direction === "kurang" ? "#be123c" : "#64748b"};">${item.direction === "tambah" ? "↑ TAMBAH" : item.direction === "kurang" ? "↓ KURANG" : "—"}</td><td>${formatNumber(item.regionalCases)}</td><td>${formatNumber(item.targetCases)}</td><td style="font-weight:800;">${formatNumber(item.direction === "tambah" ? item.externalCases : item.targetCases)}</td><td style="font-weight:800;color:${item.direction === "tambah" ? "#047857" : "#be123c"};">${formatTableMoney(item.direction === "tambah" ? item.externalIdrg : item.targetIdrg)}</td><td>${item.competitors}</td><td style="font-weight:900;color:${item.direction === "kurang" ? "#be123c" : "#0f172a"};">${item.direction === "kurang" ? `${configuredLossPct.toFixed(1).replace(".", ",")}% (default 100%)` : item.direction === "tambah" ? `${item.naturalShare.toFixed(1).replace(".", ",")}% natural` : "—"}</td></tr>`).join("")}</tbody>
+          <thead><tr style="background:#e2e8f0;color:#334155;"><th style="padding:4px;">Level</th><th>Arah</th><th>Kasus Regional</th><th>Kasus Target</th><th>Pool Sumber Kasus</th><th>Nominal INA-CBG Pool</th><th>Nominal iDRG Pool</th><th>Selisih iDRG − INA</th><th>% Selisih</th><th>RS Sumber Eligible</th><th>Share / Aturan</th></tr></thead>
+          <tbody>${levelData.map((item) => `<tr style="border-top:1px solid #e2e8f0;background:${item.direction === "tambah" ? "#f0fdf4" : item.direction === "kurang" ? "#fff1f2" : "#fff"};"><td style="padding:4px;font-weight:900;">${levelNames[item.level]}</td><td style="font-weight:900;color:${item.direction === "tambah" ? "#15803d" : item.direction === "kurang" ? "#be123c" : "#64748b"};">${item.direction === "tambah" ? "↑ TAMBAH" : item.direction === "kurang" ? "↓ KURANG" : "—"}</td><td>${formatNumber(item.regionalCases)}</td><td>${formatNumber(item.targetCases)}</td><td style="font-weight:800;">${formatNumber(item.direction === "tambah" ? item.externalCases : item.targetCases)}</td><td style="font-weight:800;color:#c2410c;">${formatTableMoney(item.poolIna)}</td><td style="font-weight:800;color:${item.direction === "tambah" ? "#047857" : "#be123c"};">${formatTableMoney(item.poolIdrg)}</td><td style="font-weight:800;color:${item.tariffDelta >= 0 ? "#047857" : "#be123c"};">${item.tariffDelta >= 0 ? "+" : ""}${formatTableMoney(item.tariffDelta)}</td><td style="font-weight:800;color:${item.tariffDelta >= 0 ? "#047857" : "#be123c"};">${item.tariffDelta >= 0 ? "+" : ""}${item.tariffDeltaPct.toFixed(2).replace(".", ",")}%</td><td>${item.competitors}</td><td style="font-weight:900;color:${item.direction === "kurang" ? "#be123c" : "#0f172a"};">${item.direction === "kurang" ? `${configuredLossPct.toFixed(1).replace(".", ",")}% (default 100%)` : item.direction === "tambah" ? `${item.naturalShare.toFixed(1).replace(".", ",")}% natural` : "—"}</td></tr>`).join("")}</tbody>
         </table>
       </div>
 
@@ -7157,13 +7165,19 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       const targetMetric = severityMetric(targetSrv, level);
       const regionalMetric = severityMetric(regionalSrv, level);
       const direction = rules.tambah.includes(level) ? "tambah" : (rules.kurang.includes(level) ? "kurang" : "netral");
-      const sourceMetric = additionSourceHospitals.reduce((total, hospital) => {
+      const sourceHospitals = direction === "tambah"
+        ? additionSourceHospitals.filter((hospital) => getCompetency(hospital, service) >= level)
+        : [];
+      const sourceMetric = sourceHospitals.reduce((total, hospital) => {
         const metric = severityMetric(hospital.services?.[service], level);
         total[CASES] += metric[CASES] || 0;
+        total[INA] += metric[INA] || 0;
         total[IDRG] += metric[IDRG] || 0;
         return total;
       }, createZeroMetric());
-      const competitors = direction === "tambah" ? additionSourceHospitals.length : 0;
+      const competitors = sourceHospitals.length;
+      const poolIna = direction === "tambah" ? sourceMetric[INA] || 0 : targetMetric[INA] || 0;
+      const poolIdrg = direction === "tambah" ? sourceMetric[IDRG] || 0 : targetMetric[IDRG] || 0;
       return {
         level,
         direction,
@@ -7173,7 +7187,12 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         targetIdrg: targetMetric[IDRG] || 0,
         regionalCases: regionalMetric[CASES] || 0,
         externalCases: direction === "tambah" ? sourceMetric[CASES] || 0 : 0,
-        externalIdrg: direction === "tambah" ? sourceMetric[IDRG] || 0 : 0
+        externalIna: direction === "tambah" ? sourceMetric[INA] || 0 : 0,
+        externalIdrg: direction === "tambah" ? sourceMetric[IDRG] || 0 : 0,
+        poolIna,
+        poolIdrg,
+        tariffDelta: poolIdrg - poolIna,
+        tariffDeltaPct: poolIna > 0 ? (poolIdrg - poolIna) / poolIna * 100 : 0
       };
     });
     const baselineCases = levelData.reduce((sum, item) => sum + item.targetCases, 0);
