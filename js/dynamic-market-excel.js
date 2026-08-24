@@ -82,7 +82,7 @@
       ["Sumber kasus tambah", sourceRelationLabel],
       ["Matriks sumber", "Dasar: RS lebih tinggi; Madya/Utama: RS lebih rendah dan lebih tinggi (tidak termasuk kompetensi sama); Paripurna: RS lebih rendah. RS eligible per level hanya mencakup RS sumber yang memiliki kasus aktual pada level tersebut."],
       ["Kasus pengurang", "Menggunakan natural share per level berdasarkan jumlah RS sumber eligible dan dapat diedit untuk sensitivitas."],
-      ["Natural share", "100 / (jumlah RS sumber eligible sesuai hubungan kompetensi + 1 RS target)."],
+      ["Natural share", "100 / (jumlah RS kompetitor pada level kompetensi yang sama + 1 RS target). Pool kasus tetap mengikuti hubungan kompetensi sumber."],
       ["Area input", "Kolom Persentase Simulasi pada sheet 03_Parameter dapat diedit untuk audit sensitivitas."],
       [], ["Urutan penelusuran", "01_Eksisting → 02_Driver_Pasar → 03_Parameter → 04_Hasil → 05_Rekonsiliasi"]
     ];
@@ -106,7 +106,7 @@
     const driverRows = [
       ["DRIVER PASAR DAN SUMBER KASUS", "", "", "", "", "", "", "", "", "", "", "", ""],
       [`Sumber kasus tambah untuk target ${levelNames[targetComp]}: ${sourceRelationLabel}.`, "", "", "", "", "", "", "", "", "", "", "", ""],
-      ["Level", "Arah", "Kasus Regional", "Kasus Target", "Target INA", "Target iDRG", "Pool Sumber Kasus Tambahan", "Nominal INA-CBG Pool", "Nominal iDRG Pool", "Selisih iDRG - INA", "% Selisih", "RS Sumber/Eligible", "Natural Share"],
+      ["Level", "Arah", "Kasus Regional", "Kasus Target", "Target INA", "Target iDRG", "Pool Sumber Kasus Tambahan", "Nominal INA-CBG Pool", "Nominal iDRG Pool", "Selisih iDRG - INA", "% Selisih", "RS Kompetitor Level", "Natural Share"],
       ...levelData.map((item) => [levelNames[item.level], item.direction.toUpperCase(), item.regionalCases, item.targetCases, item.targetIna, item.targetIdrg,
         item.direction === "tambah" ? item.externalCases : item.targetCases,
         item.poolIna, item.poolIdrg, item.tariffDelta, item.tariffDeltaPct / 100,
