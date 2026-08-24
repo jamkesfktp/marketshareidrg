@@ -1,0 +1,1363 @@
+1001119	Liver Transplant
+1002119	Heart-Lung Transplant
+1003119	Bone Marrow Transplant
+1011110	Trach w Mech Vent Support 96+ Hr w LOS 21+ days w/ No CC
+1011111	Trach w Mech Vent Support 96+ Hr w LOS 21+ days w/ Mild CC
+1011112	Trach w Mech Vent Support 96+ Hr w LOS 21+ days w/ Moderate CC
+1011210	Mech Vent Support 96+ Hr w LOS 21+ days w/ No CC
+1011211	Mech Vent Support 96+ Hr w LOS 21+ days w/ Mild CC
+1011212	Mech Vent Support 96+ Hr w LOS 21+ days w/ Moderate CC
+1012110	Trach w Mech Vent Support 96+ Hr w/ No CC
+1012111	Trach w Mech Vent Support 96+ Hr w/ Mild CC
+1012112	Trach w Mech Vent Support 96+ Hr w/ Moderate CC
+1012210	Mech Vent Support 96+ Hr w/ No CC
+1012211	Mech Vent Support 96+ Hr w/ Mild CC
+1102110	Complex Craniotomy Proc. w/ No CC
+1102111	Complex Craniotomy Proc. w/ Mild CC
+1102112	Complex Craniotomy Proc. w/ Moderate CC
+1103119	Endovascular Proc. for Neurologic Diseases
+1104110	Complex Spinal Proc. w/ No CC
+1104111	Complex Spinal Proc. w/ Mild CC
+1104112	Complex Spinal Proc. w/ Moderate CC
+1105110	Simple Craniotomy Proc. w/ No CC
+1105111	Simple Craniotomy Proc. w/ Mild CC
+1105112	Simple Craniotomy Proc. w/ Moderate CC
+1106110	Ventricular System Proc. w/ No CC
+1106111	Ventricular System Proc. w/ Mild CC
+1106112	Ventricular System Proc. w/ Moderate CC
+1107110	Intracranial Proc. w/ No CC
+1107111	Intracranial Proc. w/ Mild CC
+1108119	Complex Peripheral Nervous Proc.
+1109119	Simple Spinal Proc.
+1110119	Extracranial Vascular Proc.
+1112110	Simple Peripheral Nerve Proc. w/ No CC
+1112111	Simple Peripheral Nerve Proc. w/ Mild CC
+1161110	Nervous System Infections w/ No CC
+1161111	Nervous System Infections w/ Mild CC
+1161112	Nervous System Infections w/ Moderate CC
+1162110	Nervous System Neoplasms w/ No CC
+1162111	Nervous System Neoplasms w/ Mild CC
+1162112	Nervous System Neoplasms w/ Moderate CC
+1163119	Systemic Atrophy
+1164110	Multiple Sclerosis & Other Nervous Diseases w/ No CC
+1164111	Multiple Sclerosis & Other Nervous Diseases w/ Mild CC
+1165110	Extrapyramidal & Movement Disorders w/ No CC
+1165111	Extrapyramidal & Movement Disorders w/ Mild CC
+1166119	Neurobehaviour & Other Neurodegenerative Diseases
+1167110	Epilepsy & Convulsion Attack w/ No CC
+1167111	Epilepsy & Convulsion Attack w/ Mild CC
+1167112	Epilepsy & Convulsion Attack w/ Moderate CC
+1168119	Nerves, Radix & Plexus Disorders
+1169210	Myoneural Junction & Muscle Diseases w/ No CC
+1169211	Myoneural Junction & Muscle Diseases w/ Mild CC
+1170110	Cerebral Palsy & Other Paralytic Syndrome w/ No CC
+1170111	Cerebral Palsy & Other Paralytic Syndrome w/ Mild CC
+1171110	Congenital Nervous System Disorders w/ No CC
+1171111	Congenital Nervous System Disorders w/ Mild CC
+1172110	Hemorrhagic Stroke w/ No CC
+1172111	Hemorrhagic Stroke w/ Mild CC
+1172112	Hemorrhagic Stroke w/ Moderate CC
+1173110	Subarachnoid Hemorrhage w/ No CC
+1173111	Subarachnoid Hemorrhage w/ Mild CC
+1174119	Ischemic Stroke w Thrombolytic
+1174210	Ischemic Stroke w/ No CC
+1174211	Ischemic Stroke w/ Mild CC
+1174212	Ischemic Stroke w/ Moderate CC
+1175119	Transient Ischemic Attack & Other Neurovascular Disorders
+1176110	Head Trauma w/ No CC
+1176111	Head Trauma w/ Mild CC
+1177110	Medula Spinalis, Spine & Peripheral Nervous Trauma w/ No CC
+1177111	Medula Spinalis, Spine & Peripheral Nervous Trauma w/ Mild CC
+1178119	Headache
+1179110	Delirium & Coma w/ No CC
+1179111	Delirium & Coma w/ Mild CC
+1179112	Delirium & Coma w/ Moderate CC
+1179113	Delirium & Coma w/ Severe CC
+1180110	Other Nervous System Disorders w/ No CC
+1180111	Other Nervous System Disorders w/ Mild CC
+1180112	Other Nervous System Disorders w/ Moderate CC
+1201110	Retinal Procedures w/ No CC
+1201111	Retinal Procedures w/ Mild CC
+1202119	Major Corneal, Scleral & Conjunctival Procedures
+1203119	Glaucoma Procedures
+1204110	Lens Procedures w/ No CC
+1204111	Lens Procedures w/ Mild CC
+1205110	Eyelid and Lacrymal Proc. w/ No CC
+1205111	Eyelid and Lacrymal Proc. w/ Mild CC
+1207110	Enucleations & Orbital Procedures w/ No CC
+1207111	Enucleations & Orbital Procedures w/ Mild CC
+1208119	Strabismus Procedures
+1209110	Minor Corneal, Scleral & Conjunctival Procedures w/ No CC
+1209111	Minor Corneal, Scleral & Conjunctival Procedures w/ Mild CC
+1210119	Other Eye Procedures
+1241119	Non Surgical Eye Procedures
+1261119	Acute Eye Infections or Inflammation
+1262119	Neurological & Vascular Disorders of Eye
+1263119	Hyphema & Medically Managed Trauma
+1264119	Glaucoma Disorders
+1265119	Choroid, Vitreus & Retinal Disorders
+1266119	Lens & Corneal Disorders
+1268119	Eyelid & Conjunctival Disorders
+1269119	Eye Neoplasms
+1270119	Other Disorders of the Eye
+1301119	Laryngectomy Proc.
+1302110	Major Head & Neck Proc. w/ No CC
+1302111	Major Head & Neck Proc. w/ Mild CC
+1303119	Major Nose & Sinus Proc.
+1304110	Maxillo-Facial Proc. w/ No CC
+1304111	Maxillo-Facial Proc. w/ Mild CC
+1305119	Middle & Inner Ear Proc.
+1307119	Rhinosinusitis & Nasal Polyp Complex Proc.
+1307210	Rhinosinusitis & Nasal Polyp Proc. w/ No CC
+1307211	Rhinosinusitis & Nasal Polyp Proc. w/ Mild CC
+1308110	Pharyngeal & Laryngeal Proc. w/ No CC
+1308111	Pharyngeal & Laryngeal Proc. w/ Mild CC
+1308112	Pharyngeal & Laryngeal Proc. w/ Moderate CC
+1309110	Tracheostomy Proc. w/ No CC
+1309111	Tracheostomy Proc. w/ Mild CC
+1310119	Cleft Lip & Palate Repair Proc.
+1311119	Rhinoplasty Proc.
+1312119	Tonsil and Adenoid Procedures
+1313119	Minor Nose & Sinus Proc.
+1314119	Myringotomy w/ Ear Insertion & Other Ear Proc.
+1316119	Oral Surgery Proc.
+1317119	Misc. ENT & Mouth Proc.
+1318119	Minor Head & Neck Proc.
+1361110	ENT Malignant Neoplasms w/ No CC
+1361111	ENT Malignant Neoplasms w/ Mild CC
+1361112	ENT Malignant Neoplasms w/ Moderate CC
+1362119	ENT Trauma & Deformity
+1363119	OM & URI
+1364110	Epiglottitis & Cellulitis of Face-Neck w/ No CC
+1364111	Epiglottitis & Cellulitis of Face-Neck w/ Mild CC
+1365110	ENT Benign Neoplasms w/ No CC
+1365111	ENT Benign Neoplasms w/ Mild CC
+1367119	Epistaxis
+1368110	Hard Tissue in Oral Cavity w/ No CC
+1368111	Hard Tissue in Oral Cavity w/ Mild CC
+1369119	Other ENT-Mouth Diagnosis
+1370119	Disequilibrium
+1371110	Soft Tissue in Oral Cavity w/ No CC
+1371111	Soft Tissue in Oral Cavity w/ Mild CC
+1402110	Major Thorax Procedures w/ No CC
+1402111	Major Thorax Procedures w/ Mild CC
+1403119	Major Chest Procedures
+1404110	Moderate Thorax Procedures w/ No CC
+1404111	Moderate Thorax Procedures w/ Mild CC
+1405110	Moderate Chest Procedures w/ No CC
+1405111	Moderate Chest Procedures w/ Mild CC
+1406110	Minor Thorax Procedures w/ No CC
+1406111	Minor Thorax Procedures w/ Mild CC
+1406112	Minor Thorax Procedures w/ Moderate CC
+1407110	Minor Chest Procedures w/ No CC
+1407111	Minor Chest Procedures w/ Mild CC
+1407112	Minor Chest Procedures w/ Moderate CC
+1408110	Airway Procedures w/ No CC
+1408111	Airway Procedures w/ Mild CC
+1408112	Airway Procedures w/ Moderate CC
+1409110	Pulmonary Physiology Procedures w/ No CC
+1409111	Pulmonary Physiology Procedures w/ Mild CC
+1410110	Non Invasive Ventilation and Oxygen Procedures w/ No CC
+1410111	Non Invasive Ventilation and Oxygen Procedures w/ Mild CC
+1410112	Non Invasive Ventilation and Oxygen Procedures w/ Moderate CC
+1412119	Other Respiratory System OR Procedures
+1413119	Ventilator Support
+1461110	Major Chest Trauma w/ No CC
+1461111	Major Chest Trauma w/ Mild CC
+1462110	Pulmonary Edema dan Respiratory Distress w/ No CC
+1462111	Pulmonary Edema dan Respiratory Distress w/ Mild CC
+1463119	Respiratory Drug Resistance TB
+1463219	Respiratory Drug Resistance
+1464110	Respiratory System Neoplasms w/ No CC
+1464111	Respiratory System Neoplasms w/ Mild CC
+1464112	Respiratory System Neoplasms w/ Moderate CC
+1465110	Pneumothorax w/ No CC
+1465111	Pneumothorax w/ Mild CC
+1466110	Pleural Effusion w/ No CC
+1466111	Pleural Effusion w/ Mild CC
+1467110	Respiratory Tuberculosis w/ No CC
+1467111	Respiratory Tuberculosis w/ Mild CC
+1467112	Respiratory Tuberculosis w/ Moderate CC
+1468110	Respiratory Infections and Inflammation w/ No CC
+1468111	Respiratory Infections and Inflammation w/ Mild CC
+1468112	Respiratory Infections and Inflammation w/ Moderate CC
+1469110	Chronic Obstructive Pulmonary Disease (COPD) w/ No CC
+1469111	Chronic Obstructive Pulmonary Disease (COPD) w/ Mild CC
+1470110	Bronchitis and Asthma w/ No CC
+1470111	Bronchitis and Asthma w/ Mild CC
+1471110	Cystic Lung Diseases w/ No CC
+1471111	Cystic Lung Diseases w/ Mild CC
+1471112	Cystic Lung Diseases w/ Moderate CC
+1472110	Interstitial Lung Disease w/ No CC
+1472111	Interstitial Lung Disease w/ Mild CC
+1473119	Sleep Related Breathing Disorders
+1474110	Respiratory Signs and Symptoms & Other Respiratory Diseases w/ No CC
+1474111	Respiratory Signs and Symptoms & Other Respiratory Diseases w/ Mild CC
+1501110	Acute MI w PTCA w (+Stent) w/ No CC
+1501111	Acute MI w PTCA w (+Stent) w/ Mild CC
+1501112	Acute MI w PTCA w (+Stent) w/ Moderate CC
+1501219	Acute MI w PTCA
+1502110	Acute MI w Cath w/ No CC
+1502111	Acute MI w Cath w/ Mild CC
+1503119	Thoracoabdominal Procedures Combination
+1504119	Multiple Valve Procedures w Cath
+1504219	Multiple Valve Procedures
+1505119	Valve Replacement & Open Valvuloplasty w Cath
+1505219	Valve Replacement & Open Valvuloplasty
+1506110	Complex Cardiothoracic Procedures w/ No CC
+1506111	Complex Cardiothoracic Procedures w/ Mild CC
+1507119	Coronary Bypass w PTCA
+1507219	Coronary Bypass w Cath
+1507310	Coronary Bypass w/ No CC
+1507311	Coronary Bypass w/ Mild CC
+1508110	Complex Cardiovascular Procedures w/ No CC
+1508111	Complex Cardiovascular Procedures w/ Mild CC
+1508112	Complex Cardiovascular Procedures w/ Moderate CC
+1509110	Major Cardiothoracic Procedures w/ No CC
+1509111	Major Cardiothoracic Procedures w/ Mild CC
+1510119	Other Cardiothoracic Procedures
+1511119	Cardioverter Procedures
+1512110	Major Cardiovascular Procedures w/ No CC
+1512111	Major Cardiovascular Procedures w/ Mild CC
+1513119	Other Cardiovascular Procedures
+1514119	Permanent Pacemaker Insertion
+1515119	Major Cardiac Electrophysiologic Proc.
+1516319	PTCA (+Stent)
+1516410	PTCA w/ No CC
+1516411	PTCA w/ Mild CC
+1517119	PTA (+Stent)
+1517219	PTA
+1518119	Permanent Pacemaker Revision
+1519119	Permanent Pacemaker Replacement
+1520119	Minor Cardiac Electrophysiologic Proc.
+1521119	Major Cardiac Diagnostic Procedures
+1522110	Other Vascular Procedures w/ No CC
+1522111	Other Vascular Procedures w/ Mild CC
+1522112	Other Vascular Procedures w/ Moderate CC
+1523119	Vein Procedures
+1524110	Major Amputation w/ No CC
+1524111	Major Amputation w/ Mild CC
+1524112	Major Amputation w/ Moderate CC
+1525119	Cardiac Angiography
+1526110	Other Circulatory Procedures w/ No CC
+1526111	Other Circulatory Procedures w/ Mild CC
+1526112	Other Circulatory Procedures w/ Moderate CC
+1527210	Gangrene w Wound Debridement w/ No CC
+1527211	Gangrene w Wound Debridement w/ Mild CC
+1527310	Other Circulatory Wound Debridement w/ No CC
+1527311	Other Circulatory Wound Debridement w/ Mild CC
+1528110	Minor Amputation w/ No CC
+1528111	Minor Amputation w/ Mild CC
+1561110	Acute MI w Thrombolitic Injection w/ No CC
+1561111	Acute MI w Thrombolitic Injection w/ Mild CC
+1561112	Acute MI w Thrombolitic Injection w/ Moderate CC
+1561210	Acute MI w/ No CC
+1561211	Acute MI w/ Mild CC
+1562119	Infective Endocarditive
+1563110	Heart Failure w/ No CC
+1563111	Heart Failure w/ Mild CC
+1563112	Heart Failure w/ Moderate CC
+1564110	Venous Thrombosis w/ No CC
+1564111	Venous Thrombosis w/ Mild CC
+1565119	Skin Ulcer for Circulatory Disorders
+1566110	Peripheral Vascular w/ No CC
+1566111	Peripheral Vascular w/ Mild CC
+1566112	Peripheral Vascular w/ Moderate CC
+1567119	Coronary Atherosclerosis
+1568110	Hypertension w/ No CC
+1568111	Hypertension w/ Mild CC
+1569110	Congenital Heart Diseases w/ No CC
+1569111	Congenital Heart Diseases w/ Mild CC
+1569112	Congenital Heart Diseases w/ Moderate CC
+1570110	Valvular Disorders w/ No CC
+1570111	Valvular Disorders w/ Mild CC
+1571110	Major Arrhythmia and Cardiac Arrest w/ No CC
+1571111	Major Arrhythmia and Cardiac Arrest w/ Mild CC
+1571112	Major Arrhythmia and Cardiac Arrest w/ Moderate CC
+1572110	Non-Major Arrhythmia and Conduction Disorders w/ No CC
+1572111	Non-Major Arrhythmia and Conduction Disorders w/ Mild CC
+1573110	Unstable Angina w/ No CC
+1573111	Unstable Angina w/ Mild CC
+1574119	Syncope and Collapse
+1575119	Chest Pain
+1576110	Other Circulatory System Diagnosis w/ No CC
+1576111	Other Circulatory System Diagnosis w/ Mild CC
+1576112	Other Circulatory System Diagnosis w/ Moderate CC
+1601419	Laparoscopic for Gastrointestinal Tract Proc.
+1602219	Stomach, Eso & Duodenum Resection Open Proc. w Malignancy
+1602410	Stomach, Eso & Duodenum Resection Open Proc. w/ No CC
+1602411	Stomach, Eso & Duodenum Resection Open Proc. w/ Mild CC
+1603119	Other Stomach, Eso & Duodenum Proc. w Malignancy
+1603210	Other Stomach, Eso & Duodenum Proc. w/ No CC
+1603211	Other Stomach, Eso & Duodenum Proc. w/ Mild CC
+1604110	Rectal Resection Proc. w/ No CC
+1604111	Rectal Resection Proc. w/ Mild CC
+1604112	Rectal Resection Proc. w/ Moderate CC
+1606210	Major Small & Large Bowel Open Proc. w/ No CC
+1606211	Major Small & Large Bowel Open Proc. w/ Mild CC
+1606212	Major Small & Large Bowel Open Proc. w/ Moderate CC
+1607110	Other Digestive System OR Proc. w/ No CC
+1607111	Other Digestive System OR Proc. w/ Mild CC
+1607112	Other Digestive System OR Proc. w/ Moderate CC
+1607113	Other Digestive System OR Proc. w/ Severe CC
+1608110	Other Gastroscopy w/ No CC
+1608111	Other Gastroscopy w/ Mild CC
+1609110	Minor Small & Large Bowel Proc. w/ No CC
+1609111	Minor Small & Large Bowel Proc. w/ Mild CC
+1610110	Peritoneal Adhesiolysis Proc. w/ No CC
+1610111	Peritoneal Adhesiolysis Proc. w/ Mild CC
+1610112	Peritoneal Adhesiolysis Proc. w/ Moderate CC
+1610113	Peritoneal Adhesiolysis Proc. w/ Severe CC
+1612110	Appendectomy Procedures w Complicating PDx w/ No CC
+1612111	Appendectomy Procedures w Complicating PDx w/ Mild CC
+1612210	Appendectomy Procedures w/ No CC
+1612211	Appendectomy Procedures w/ Mild CC
+1612212	Appendectomy Procedures w/ Moderate CC
+1613110	Hernia Procedures w/ No CC
+1613111	Hernia Procedures w/ Mild CC
+1616119	Complex Therapeutic Colonoscopy Proc.
+1617110	Colonoscopy Proc. w/ No CC
+1617111	Colonoscopy Proc. w/ Mild CC
+1618110	Major Anal and Stomal Procedures w/ No CC
+1618111	Major Anal and Stomal Procedures w/ Mild CC
+1618210	Minor Anal and Stomal Procedures w/ No CC
+1618211	Minor Anal and Stomal Procedures w/ Mild CC
+1618212	Minor Anal and Stomal Procedures w/ Moderate CC
+1618213	Minor Anal and Stomal Procedures w/ Severe CC
+1620119	Other Esophageal Procedures
+1661110	Digestive System Neoplasms w/ No CC
+1661111	Digestive System Neoplasms w/ Mild CC
+1661112	Digestive System Neoplasms w/ Moderate CC
+1662110	Gastrointestinal Hemorrhage w/ No CC
+1662111	Gastrointestinal Hemorrhage w/ Mild CC
+1662112	Gastrointestinal Hemorrhage w/ Moderate CC
+1663110	Complicated Peptic Ulcer w/ No CC
+1663111	Complicated Peptic Ulcer w/ Mild CC
+1663112	Complicated Peptic Ulcer w/ Moderate CC
+1664119	Uncomplicated Peptic Ulcer
+1665110	Inflammatory Bowel Diseases w/ No CC
+1665111	Inflammatory Bowel Diseases w/ Mild CC
+1666110	Gastrointestinal Obstruction w/ No CC
+1666111	Gastrointestinal Obstruction w/ Mild CC
+1666112	Gastrointestinal Obstruction w/ Moderate CC
+1667119	Gastroenteritis Disorders
+1668110	Misc. Digestive Disorders w/ No CC
+1668111	Misc. Digestive Disorders w/ Mild CC
+1668112	Misc. Digestive Disorders w/ Moderate CC
+1669119	Digestive System Disorders
+1670119	Abdominal Pain or Mesenteric Adenitis
+1671110	Intestinal Helminthiasis w/ No CC
+1671111	Intestinal Helminthiasis w/ Mild CC
+1672110	Esophagitis, Gastritis & Dyspepsia w/ No CC
+1672111	Esophagitis, Gastritis & Dyspepsia w/ Mild CC
+1701410	Pancreas, Liver Resection & Shunt Proc. w/ No CC
+1701411	Pancreas, Liver Resection & Shunt Proc. w/ Mild CC
+1702110	Biliary Tract Proc. w Malignancy w/ No CC
+1702111	Biliary Tract Proc. w Malignancy w/ Mild CC
+1702210	Biliary Tract Proc. w/ No CC
+1702211	Biliary Tract Proc. w/ Mild CC
+1703119	Pancreas & Liver Proc. except Resection w Malignancy
+1703210	Pancreas & Liver Proc. except Resection w/ No CC
+1703211	Pancreas & Liver Proc. except Resection w/ Mild CC
+1704210	Laparoscopic Cholecystectomy Proc. w/ No CC
+1704211	Laparoscopic Cholecystectomy Proc. w/ Mild CC
+1704212	Laparoscopic Cholecystectomy Proc. w/ Moderate CC
+1705119	Cholecystectomy Proc. w CDE Proc.
+1705210	Cholecystectomy Proc. w/ No CC
+1705211	Cholecystectomy Proc. w/ Mild CC
+1706119	Hepatobiliary Diagnostic Proc.
+1707110	Other Hepatobiliary & Pancreas Proc. w/ No CC
+1707111	Other Hepatobiliary & Pancreas Proc. w/ Mild CC
+1708110	ERCP w Therapeutic Procedures w/ No CC
+1708111	ERCP w Therapeutic Procedures w/ Mild CC
+1709110	ERCP Procedures w/ No CC
+1709111	ERCP Procedures w/ Mild CC
+1761110	Cirrhosis & Alcoholic Hepatitis w/ No CC
+1761111	Cirrhosis & Alcoholic Hepatitis w/ Mild CC
+1761112	Cirrhosis & Alcoholic Hepatitis w/ Moderate CC
+1762110	Malignancy of Hepatobiliary of Pancreas w/ No CC
+1762111	Malignancy of Hepatobiliary of Pancreas w/ Mild CC
+1762112	Malignancy of Hepatobiliary of Pancreas w/ Moderate CC
+1763110	Pancreas Disorders except malignancy w/ No CC
+1763111	Pancreas Disorders except malignancy w/ Mild CC
+1763112	Pancreas Disorders except malignancy w/ Moderate CC
+1764110	Liver Disorders except Malignancy, Cirrhosis, Hepatitis Alcoholic w/ No CC
+1764111	Liver Disorders except Malignancy, Cirrhosis, Hepatitis Alcoholic w/ Mild CC
+1765110	Biliary Tract Disorders w/ No CC
+1765111	Biliary Tract Disorders w/ Mild CC
+1803110	Bilateral or Multiple Major Joint or Lower Extremity Proc. w/ No CC
+1803111	Bilateral or Multiple Major Joint or Lower Extremity Proc. w/ Mild CC
+1805119	Long Spinal Fusion Proc.
+1806110	Spinal Fusion Proc. w/ No CC
+1806111	Spinal Fusion Proc. w/ Mild CC
+1807119	Hip Revision Proc.
+1808119	Knee Revision Proc.
+1811119	Other Major Joint Replacement & Limb Reattachment of Lower/Upper Extremities Proc.
+1812119	Reattachment of Finger Proc.
+1813110	Knee Replacement Proc. w/ No CC
+1813111	Knee Replacement Proc. w/ Mild CC
+1814110	Hip Replacement Proc. w/ No CC
+1814111	Hip Replacement Proc. w/ Mild CC
+1816119	Arthroscopy w/ Complex Proc.
+1816219	Arthroscopy Proc.
+1817110	Hip & Femur Proc. except Replacement Proc. (Age Above 18) w/ No CC
+1817111	Hip & Femur Proc. except Replacement Proc. (Age Above 18) w/ Mild CC
+1817112	Hip & Femur Proc. except Replacement Proc. (Age Above 18) w/ Moderate CC
+1817210	Hip & Femur Proc. except Replacement Proc. w/ No CC
+1817211	Hip & Femur Proc. except Replacement Proc. w/ Mild CC
+1818119	Knee Proc. except Replacement Proc.
+1819110	Back & Neck Proc. except Spinal Fusion Proc. w/ No CC
+1819111	Back & Neck Proc. except Spinal Fusion Proc. w/ Mild CC
+1820110	Humerus, Tibia, Fibula, Ankle Proc. (Age Above 18) w/ No CC
+1820111	Humerus, Tibia, Fibula, Ankle Proc. (Age Above 18) w/ Mild CC
+1820210	Humerus, Tibia, Fibula, Ankle Proc. w/ No CC
+1820211	Humerus, Tibia, Fibula, Ankle Proc. w/ Mild CC
+1821110	Shoulder, Elbow & Forearm Proc. w/ No CC
+1821111	Shoulder, Elbow & Forearm Proc. w/ Mild CC
+1822110	Wrist & Hand Proc. w/ No CC
+1822111	Wrist & Hand Proc. w/ Mild CC
+1823110	Foot Procedures w/ No CC
+1823111	Foot Procedures w/ Mild CC
+1824119	Malignancy of Soft Tissue Proc.
+1824210	Soft Tissue & Other Musculoskeletal Proc. w/ No CC
+1824211	Soft Tissue & Other Musculoskeletal Proc. w/ Mild CC
+1825110	Maxillofacial Fracture Proc. w/ No CC
+1825111	Maxillofacial Fracture Proc. w/ Mild CC
+1826110	Amputation for Musculoskeletal & Connective Tissue Disorders Proc. w/ No CC
+1826111	Amputation for Musculoskeletal & Connective Tissue Disorders Proc. w/ Mild CC
+1827110	Biopsy of Musculoskeletal & Connective Tissue Disorders Proc. w/ No CC
+1827111	Biopsy of Musculoskeletal & Connective Tissue Disorders Proc. w/ Mild CC
+1828119	Skin Graft except Hand Proc. for MS&CT w Debridement
+1828210	Skin Graft except Hand Proc. for MS&CT w/ No CC
+1828211	Skin Graft except Hand Proc. for MS&CT w/ Mild CC
+1829110	Other Musculoskeletal System & Connective Tissue OR Proc. w/ No CC
+1829111	Other Musculoskeletal System & Connective Tissue OR Proc. w/ Mild CC
+1830110	Wound Debridement for MS&CT w/ No CC
+1830111	Wound Debridement for MS&CT w/ Mild CC
+1831110	Soft Tissue Proc. w/ No CC
+1831111	Soft Tissue Proc. w/ Mild CC
+1832110	Hip & Femur Local Excision & Removal of Internal Fixation Devices Proc. w/ No CC
+1832111	Hip & Femur Local Excision & Removal of Internal Fixation Devices Proc. w/ Mild CC
+1833110	Other Local Excision & Removal of Internal Fixation Devices Proc. w/ No CC
+1833111	Other Local Excision & Removal of Internal Fixation Devices Proc. w/ Mild CC
+1861110	Fracture of Femur w/ No CC
+1861111	Fracture of Femur w/ Mild CC
+1861112	Fracture of Femur w/ Moderate CC
+1863110	Sprain, Dislocation and Fracture of Hip, Pelvis & Thigh w/ No CC
+1863111	Sprain, Dislocation and Fracture of Hip, Pelvis & Thigh w/ Mild CC
+1864110	Osteomyelitis w/ No CC
+1864111	Osteomyelitis w/ Mild CC
+1865610	Pathological Fracture & Malignancy w/ No CC
+1865611	Pathological Fracture & Malignancy w/ Mild CC
+1866119	Connective Tissue
+1867110	Septic Arthritis w/ No CC
+1867111	Septic Arthritis w/ Mild CC
+1868110	Medical Back Problems w/ No CC
+1868111	Medical Back Problems w/ Mild CC
+1869110	Bone Diseases & Specific Arthropathies w/ No CC
+1869111	Bone Diseases & Specific Arthropathies w/ Mild CC
+1870119	Non Specific Arthropathies
+1871119	Signs & Symptoms for MS&CT Disorders
+1872110	Tendonitis, Myositis & Bursitis w/ No CC
+1872111	Tendonitis, Myositis & Bursitis w/ Mild CC
+1872112	Tendonitis, Myositis & Bursitis w/ Moderate CC
+1873110	Aftercare for MS&CT w/ No CC
+1873111	Aftercare for MS&CT w/ Mild CC
+1874110	Fracture, Sprain, Strain & Dislocation of Forearm, Hand & Foot w/ No CC
+1874111	Fracture, Sprain, Strain & Dislocation of Forearm, Hand & Foot w/ Mild CC
+1875110	Fracture, Sprain, Strain & Dislocation of Upper Arm & Lower Leg w/ No CC
+1875111	Fracture, Sprain, Strain & Dislocation of Upper Arm & Lower Leg w/ Mild CC
+1875112	Fracture, Sprain, Strain & Dislocation of Upper Arm & Lower Leg w/ Moderate CC
+1876110	Other Musculoskeletal & Connective Tissue Diagnoses w/ No CC
+1876111	Other Musculoskeletal & Connective Tissue Diagnoses w/ Mild CC
+1877110	Major Connective Tissue w/ No CC
+1877111	Major Connective Tissue w/ Mild CC
+1877112	Major Connective Tissue w/ Moderate CC
+1878119	Joint Pathology
+1879110	Soft Tissue Malignancy w/ No CC
+1879111	Soft Tissue Malignancy w/ Mild CC
+1879112	Soft Tissue Malignancy w/ Moderate CC
+1902110	Microsurgery Proc. w/ No CC
+1902111	Microsurgery Proc. w/ Mild CC
+1904110	Distant Flap and Pedicle Graft Plastic Proc. w/ No CC
+1904111	Distant Flap and Pedicle Graft Plastic Proc. w/ Mild CC
+1905119	Skin Graft Proc.
+1906119	Breast Conserving Surgery Proc.
+1907110	Total Mastectomy Proc. w/ No CC
+1907111	Total Mastectomy Proc. w/ Mild CC
+1908110	Plastic Proc. w/ No CC
+1908111	Plastic Proc. w/ Mild CC
+1909110	Biopsy & Local Excision of Breast Proc. w/ No CC
+1909111	Biopsy & Local Excision of Breast Proc. w/ Mild CC
+1910110	Excisional Surgery & Repair, Flaps & Grafts, Nail Surgery w/ No CC
+1910111	Excisional Surgery & Repair, Flaps & Grafts, Nail Surgery w/ Mild CC
+1913110	Wound Care Proc. w/ No CC
+1913111	Wound Care Proc. w/ Mild CC
+1915110	Skin, Subcutaneous Tissue & Breast Proc. w/ No CC
+1915111	Skin, Subcutaneous Tissue & Breast Proc. w/ Mild CC
+1915112	Skin, Subcutaneous Tissue & Breast Proc. w/ Moderate CC
+1961110	Skin Ulcer w/ No CC
+1961111	Skin Ulcer w/ Mild CC
+1962610	Skin Malignancy w/ No CC
+1962611	Skin Malignancy w/ Mild CC
+1963110	Dermatology Emergency & Skin Bullous Disorders w/ No CC
+1963111	Dermatology Emergency & Skin Bullous Disorders w/ Mild CC
+1964110	Papulosquamous Disorders w/ No CC
+1964111	Papulosquamous Disorders w/ Mild CC
+1965110	Cellulitis w/ No CC
+1965111	Cellulitis w/ Mild CC
+1965112	Cellulitis w/ Moderate CC
+1966110	Skin Manifestation of Systemic Diseases w/ No CC
+1966111	Skin Manifestation of Systemic Diseases w/ Mild CC
+1967110	Dermatitis, Urticaria & Erythema w/ No CC
+1967111	Dermatitis, Urticaria & Erythema w/ Mild CC
+1968110	Skin & Mucosa Infections & Parasitic Infestations w/ No CC
+1968111	Skin & Mucosa Infections & Parasitic Infestations w/ Mild CC
+1969119	Benign Skin Neoplasms & Vascular Lesions
+1970119	Disorders of Skin Appendages
+1971119	Other Skin Diseases
+1972610	Breast Malignancy w/ No CC
+1972611	Breast Malignancy w/ Mild CC
+1973110	Non-Malignant Breast Disorders w/ No CC
+1973111	Non-Malignant Breast Disorders w/ Mild CC
+1974110	Trauma w/ No CC
+1974111	Trauma w/ Mild CC
+2001119	Pituitary and Thymus Proc.
+2002119	Obesity Proc.
+2003119	Adrenal Proc.
+2005110	Neck Disection Proc. w/ No CC
+2005111	Neck Disection Proc. w/ Mild CC
+2007110	Thyroid and Parathyroid Proc. w/ No CC
+2007111	Thyroid and Parathyroid Proc. w/ Mild CC
+2008110	Other Endocrine, Nutritional & Metabolic OR Proc. w/ No CC
+2008111	Other Endocrine, Nutritional & Metabolic OR Proc. w/ Mild CC
+2009110	Thyroglosus Proc. w/ No CC
+2009111	Thyroglosus Proc. w/ Mild CC
+2061110	Diabetes with Complicated PDx w/ No CC
+2061111	Diabetes with Complicated PDx w/ Mild CC
+2063110	Nutritional and Misc. Metabolic Disorders w/ No CC
+2063111	Nutritional and Misc. Metabolic Disorders w/ Mild CC
+2064619	Endocrine Neoplasms
+2065110	Metabolic Disorders w/ No CC
+2065111	Metabolic Disorders w/ Mild CC
+2065112	Metabolic Disorders w/ Moderate CC
+2066110	Endocrine Disorders w/ No CC
+2066111	Endocrine Disorders w/ Mild CC
+2066112	Endocrine Disorders w/ Moderate CC
+2067119	Diabetes without Complicated PDx
+2101119	Kidney Transplant Proc.
+2102119	Kidney Donor Proc.
+2104110	Kidney, Ureter and Bladder - Major Proc. w/ Neoplasms w/ No CC
+2104111	Kidney, Ureter and Bladder - Major Proc. w/ Neoplasms w/ Mild CC
+2104112	Kidney, Ureter and Bladder - Major Proc. w/ Neoplasms w/ Moderate CC
+2104219	Kidney, Ureter and Bladder - Major Proc.
+2105119	Kidney, Ureter and Bladder - Moderate Proc. w/ Neoplasms
+2105210	Kidney, Ureter and Bladder - Moderate Proc. w/ No CC
+2105211	Kidney, Ureter and Bladder - Moderate Proc. w/ Mild CC
+2106119	Operative Insertion of Peritoneal Catheter for Dialysis
+2107119	Transurethral Prostatectomy
+2108110	Other Kidney and Urinary Tract OR Proc. w/ Neoplasms w/ No CC
+2108111	Other Kidney and Urinary Tract OR Proc. w/ Neoplasms w/ Mild CC
+2108112	Other Kidney and Urinary Tract OR Proc. w/ Neoplasms w/ Moderate CC
+2108210	Kidney, Ureter and Bladder - Minor Proc. w/ No CC
+2108211	Kidney, Ureter and Bladder - Minor Proc. w/ Mild CC
+2109110	Transurethral Proc. except Prostatectomy w/ No CC
+2109111	Transurethral Proc. except Prostatectomy w/ Mild CC
+2110119	Ureteroscopy Proc. w/ ESWL
+2110210	Ureteroscopy Proc. w/ No CC
+2110211	Ureteroscopy Proc. w/ Mild CC
+2111119	Cystourethroscopy Proc. w/ ESWL
+2111210	Cystourethroscopy Proc. w/ No CC
+2111211	Cystourethroscopy Proc. w/ Mild CC
+2112119	Urethral Proc.
+2113119	Other Bladder Proc.
+2161110	Chronic Renal Failure w/ No CC
+2161111	Chronic Renal Failure w/ Mild CC
+2162110	Acute Renal Failure w/ No CC
+2162111	Acute Renal Failure w/ Mild CC
+2162112	Acute Renal Failure w/ Moderate CC
+2164610	Kidney & Urinary Tract Neoplasms w/ No CC
+2164611	Kidney & Urinary Tract Neoplasms w/ Mild CC
+2164612	Kidney & Urinary Tract Neoplasms w/ Moderate CC
+2165110	Kidney & Urinary Tract Infections w/ No CC
+2165111	Kidney & Urinary Tract Infections w/ Mild CC
+2166110	Urinary Stone/Obstruction w/ ESWL w/ No CC
+2166111	Urinary Stone/Obstruction w/ ESWL w/ Mild CC
+2166219	Urinary Stone/Obstruction
+2167119	Major Kidney Diagnosis
+2168110	Incontinentia Urine w/ No CC
+2168111	Incontinentia Urine w/ Mild CC
+2169119	Kidney & Urinary Tract Signs & Symptoms
+2170110	Other Kidney & Urinary Tract Diagnosis w/ No CC
+2170111	Other Kidney & Urinary Tract Diagnosis w/ Mild CC
+2171110	Urethral Stricture w/ No CC
+2171111	Urethral Stricture w/ Mild CC
+2201119	Radical Prostatectomy Proc. w Laparascopy
+2201219	Radical Prostatectomy Proc.
+2203119	Male Reproductive Minimal Invasive Proc. w Neoplasms
+2203219	Male Reproductive Minimal Invasive Proc.
+2204210	Transurethral Prostatectomy Proc. w/ No CC
+2204211	Transurethral Prostatectomy Proc. w/ Mild CC
+2205110	Scrotal, Inguinal, and Testis Minimal Invasive Proc. w/ No CC
+2205111	Scrotal, Inguinal, and Testis Minimal Invasive Proc. w/ Mild CC
+2206110	Open Prostatectomy Proc. w/ No CC
+2206111	Open Prostatectomy Proc. w/ Mild CC
+2207119	Major Penis Proc.
+2208119	Male Reproductive Open Proc. w Neoplasms
+2208210	Male Reproductive Open Proc. w/ No CC
+2208211	Male Reproductive Open Proc. w/ Mild CC
+2209110	Scrotal, Inguinal, and Testis Open Proc. w/ No CC
+2209111	Scrotal, Inguinal, and Testis Open Proc. w/ Mild CC
+2210119	Urethrocystoscopy Proc.
+2211119	Male Reproductive Proc.
+2212110	Minor Penis Proc. w/ No CC
+2212111	Minor Penis Proc. w/ Mild CC
+2261110	Malignancy of Male Reproductive System w/ No CC
+2261111	Malignancy of Male Reproductive System w/ Mild CC
+2263110	Benign Prostatic Hypertrophy w/ No CC
+2263111	Benign Prostatic Hypertrophy w/ Mild CC
+2265110	Inflammation of Male Reproductive System w/ No CC
+2265111	Inflammation of Male Reproductive System w/ Mild CC
+2267119	Other Male Reproductive System Diagnosis
+2301119	Pelvic Evisceration Proc.
+2302119	Laparoscopic Radical Hysterectomy Proc.
+2303110	Radical Hysterectomy and Radical Vulvectomy Proc. w/ No CC
+2303111	Radical Hysterectomy and Radical Vulvectomy Proc. w/ Mild CC
+2303112	Radical Hysterectomy and Radical Vulvectomy Proc. w/ Moderate CC
+2304119	Lap. Uterine & Adnexa Proc. w Ovarian/Adnexal Neoplasms
+2304219	Lap. Uterine & Adnexa Proc. w Non Ovarian/Adnexal Neoplasms
+2304410	Lap. Uterine & Adnexa Proc. w/ No CC
+2304411	Lap. Uterine & Adnexa Proc. w/ Mild CC
+2305110	Uterine & Adnexa Proc. w Ovarian/Adnexal Neoplasms w/ No CC
+2305111	Uterine & Adnexa Proc. w Ovarian/Adnexal Neoplasms w/ Mild CC
+2305112	Uterine & Adnexa Proc. w Ovarian/Adnexal Neoplasms w/ Moderate CC
+2305210	Uterine & Adnexa Proc. w Non Ovarian/Adnexal Neoplasms w/ No CC
+2305211	Uterine & Adnexa Proc. w Non Ovarian/Adnexal Neoplasms w/ Mild CC
+2305212	Uterine & Adnexa Proc. w Non Ovarian/Adnexal Neoplasms w/ Moderate CC
+2305410	Uterine & Adnexa Proc. w/ No CC
+2305411	Uterine & Adnexa Proc. w/ Mild CC
+2305412	Uterine & Adnexa Proc. w/ Moderate CC
+2306110	Other Female Reproductive System OR Proc. w/ No CC
+2306111	Other Female Reproductive System OR Proc. w/ Mild CC
+2306112	Other Female Reproductive System OR Proc. w/ Moderate CC
+2308110	Reconstructive Procedures for Female Reproductive System w/ No CC
+2308111	Reconstructive Procedures for Female Reproductive System w/ Mild CC
+2309119	Endoscopic and Incisional Tubal Interruption Proc.
+2310110	Vagina, Cervix & Vulva Proc. w/ No CC
+2310111	Vagina, Cervix & Vulva Proc. w/ Mild CC
+2310112	Vagina, Cervix & Vulva Proc. w/ Moderate CC
+2312110	Dilatation & Curretage Proc. w/ No CC
+2312111	Dilatation & Curretage Proc. w/ Mild CC
+2312112	Dilatation & Curretage Proc. w/ Moderate CC
+2361110	Non Ovarian/Adnexal Neoplasms w/ No CC
+2361111	Non Ovarian/Adnexal Neoplasms w/ Mild CC
+2361112	Non Ovarian/Adnexal Neoplasms w/ Moderate CC
+2362110	Ovarian/Adnexal Neoplasms w/ No CC
+2362111	Ovarian/Adnexal Neoplasms w/ Mild CC
+2362112	Ovarian/Adnexal Neoplasms w/ Moderate CC
+2363119	Other Neoplasms of Female Reproductive System
+2364110	Female Pelvic Infections w/ No CC
+2364111	Female Pelvic Infections w/ Mild CC
+2365110	Lower Genitourinary Tract Infections w/ No CC
+2365111	Lower Genitourinary Tract Infections w/ Mild CC
+2366110	Menstrual and Other Female Reproductive System Disorders w/ No CC
+2366111	Menstrual and Other Female Reproductive System Disorders w/ Mild CC
+2401110	Complicating OR Proc. for Cesarean Section w/ No CC
+2401111	Complicating OR Proc. for Cesarean Section w/ Mild CC
+2401112	Complicating OR Proc. for Cesarean Section w/ Moderate CC
+2401210	Cesarean Section w/ No CC
+2401211	Cesarean Section w/ Mild CC
+2401212	Cesarean Section w/ Moderate CC
+2401310	Cesarean Section w/ Sterilization w/ No CC
+2401311	Cesarean Section w/ Sterilization w/ Mild CC
+2401312	Cesarean Section w/ Sterilization w/ Moderate CC
+2401313	Cesarean Section w/ Sterilization w/ Severe CC
+2402110	Complicating OR Proc. for Obstetry w/ No CC
+2402111	Complicating OR Proc. for Obstetry w/ Mild CC
+2402112	Complicating OR Proc. for Obstetry w/ Moderate CC
+2403110	Delivery w/ Sterilization w/ No CC
+2403111	Delivery w/ Sterilization w/ Mild CC
+2403112	Delivery w/ Sterilization w/ Moderate CC
+2404110	Non OR Proc. for Vaginal Delivery w/ No CC
+2404111	Non OR Proc. for Vaginal Delivery w/ Mild CC
+2405119	Obstetrics w/ Minor Procedures
+2406119	Endoscopic Fetal Surgery
+2407119	Other Proc. for Fetal
+2408110	Post Partum/Post Abortion w/ Complicating OR Proc. for Obstetry w/ No CC
+2408111	Post Partum/Post Abortion w/ Complicating OR Proc. for Obstetry w/ Mild CC
+2409119	Post Partum/Post Abortion w/ Sterilization
+2410110	Post Partum/Post Abortion w/ Proc. w/ No CC
+2410111	Post Partum/Post Abortion w/ Proc. w/ Mild CC
+2410112	Post Partum/Post Abortion w/ Proc. w/ Moderate CC
+2410113	Post Partum/Post Abortion w/ Proc. w/ Severe CC
+2411119	Ectopic Pregnancy w/ OR Proc.
+2411219	Ectopic Pregnancy w/ OR Proc. w/ Shock
+2412119	Ectopic Pregnancy w/ Laparoscopic OR Proc.
+2414119	Abdominal Histerectomy/Histerotomy for Abortion
+2415119	Dilatation & Curettage, Aspiration Curettage for Uncomplicated Abortion
+2416119	Dilatation & Curettage, Aspiration Curettage for Complicated Abortion
+2417119	Dilatation & Curettage, Aspiration Curettage for Molar Pregnancy
+2418119	Pregnancy & Antenatal OR Proc.
+2419219	OR Proc. Level 4 or 5 or 6 w/ Delivery
+2419319	OR Proc. Level 3 w/ Delivery
+2419419	OR Proc. Level 2 w/ Delivery
+2419519	OR Proc. Level 1 w/ Delivery
+2420119	OR Proc. Level 5 or 6 w/ Pregnancy & Antenatal
+2420219	OR Proc. Level 4 w/ Pregnancy & Antenatal
+2420319	OR Proc. Level 3 w/ Pregnancy & Antenatal
+2420419	OR Proc. Level 2 w/ Pregnancy & Antenatal
+2420519	OR Proc. Level 1 w/ Pregnancy & Antenatal
+2421219	OR Proc. Level 4 or 5 or 6 w/ Post Partum/Post Abortion
+2421319	OR Proc. Level 3 w/ Post Partum/Post Abortion
+2421419	OR Proc. Level 1 or 2 w/ Post Partum/Post Abortion
+2461110	Labour & Delivery Proc. w/ No CC
+2461111	Labour & Delivery Proc. w/ Mild CC
+2461112	Labour & Delivery Proc. w/ Moderate CC
+2462110	Pregnancy & Antenatal w/ No CC
+2462111	Pregnancy & Antenatal w/ Mild CC
+2462112	Pregnancy & Antenatal w/ Moderate CC
+2463110	Post Partum/Post Abortion w/ No CC
+2463111	Post Partum/Post Abortion w/ Mild CC
+2465119	Ectopic Pregnancy
+2465219	Ectopic Pregnancy w/ Shock
+2466119	Threatened Abortion
+2468119	Uncomplicated Abortion
+2469119	Complicated Abortion
+2470119	Molar Pregnancy
+2471119	False Labour
+2501119	Newborn Died or Transfered w/ LOS<5d w/ Significant Proc.
+2502119	Newborn Died or Transfered w/ LOS<5d w/ Major Proc.
+2503119	Newborn Died or Transfered w/ LOS<5d w/ Minor Proc.
+2505119	Newborn Died w/ LOS<5d
+2506119	Newborn Transfered w/ LOS<5d
+2507119	Newborn w/ Cardiothoracic Proc.
+2508119	Newborn w/ Adm.Wt. >2499 gm w/ Significant Proc.
+2509119	Newborn w/ Adm.Wt. >2499 gm w/ Major Proc.
+2510110	Newborn w/ Adm.Wt. >2499 gm w/ Minor Proc. w/ No CC
+2510111	Newborn w/ Adm.Wt. >2499 gm w/ Minor Proc. w/ Mild CC
+2510112	Newborn w/ Adm.Wt. >2499 gm w/ Minor Proc. w/ Moderate CC
+2512119	Newborn w/ Adm.Wt. >2499 gm
+2513119	Newborn w/ Adm.Wt. 2000 - 2499 gm w/ Significant Proc.
+2514119	Newborn w/ Adm.Wt. 2000 - 2499 gm w/ Major Proc.
+2515110	Newborn w/ Adm.Wt. 2000 - 2499 gm w/ Minor Proc. w/ No CC
+2515111	Newborn w/ Adm.Wt. 2000 - 2499 gm w/ Minor Proc. w/ Mild CC
+2517119	Newborn w/ Adm.Wt. 2000 - 2499 gm
+2518119	Newborn w/ Adm.Wt. 1500 - 1999 gm w/ Significant Proc.
+2519110	Newborn w/ Adm.Wt. 1500 - 1999 gm w/ Major Proc. w/ No CC
+2519111	Newborn w/ Adm.Wt. 1500 - 1999 gm w/ Major Proc. w/ Mild CC
+2519112	Newborn w/ Adm.Wt. 1500 - 1999 gm w/ Major Proc. w/ Moderate CC
+2520110	Newborn w/ Adm.Wt. 1500 - 1999 gm w/ Minor Proc. w/ No CC
+2520111	Newborn w/ Adm.Wt. 1500 - 1999 gm w/ Minor Proc. w/ Mild CC
+2520112	Newborn w/ Adm.Wt. 1500 - 1999 gm w/ Minor Proc. w/ Moderate CC
+2522119	Newborn w/ Adm.Wt. 1500 - 1999 gm
+2523110	Newborn w/ Adm.Wt. 1000 - 1499 gm w/ Significant Proc. w/ No CC
+2523111	Newborn w/ Adm.Wt. 1000 - 1499 gm w/ Significant Proc. w/ Mild CC
+2524110	Newborn w/ Adm.Wt. 1000 - 1499 gm w/ Major Proc. w/ No CC
+2524111	Newborn w/ Adm.Wt. 1000 - 1499 gm w/ Major Proc. w/ Mild CC
+2525110	Newborn w/ Adm.Wt. 1000 - 1499 gm w/ Minor Proc. w/ No CC
+2525111	Newborn w/ Adm.Wt. 1000 - 1499 gm w/ Minor Proc. w/ Mild CC
+2525112	Newborn w/ Adm.Wt. 1000 - 1499 gm w/ Minor Proc. w/ Moderate CC
+2527119	Newborn w/ Adm.Wt. 1000 - 1499 gm
+2528110	Newborn w/ Adm.Wt. <1000 gm w/ Significant Proc. w/ No CC
+2528111	Newborn w/ Adm.Wt. <1000 gm w/ Significant Proc. w/ Mild CC
+2529119	Newborn w/ Adm.Wt. <1000 gm w/ Major Proc.
+2530110	Newborn w/ Adm.Wt. <1000 gm w/ Minor Proc. w/ No CC
+2530111	Newborn w/ Adm.Wt. <1000 gm w/ Minor Proc. w/ Mild CC
+2530112	Newborn w/ Adm.Wt. <1000 gm w/ Minor Proc. w/ Moderate CC
+2530113	Newborn w/ Adm.Wt. <1000 gm w/ Minor Proc. w/ Severe CC
+2532110	Newborn w/ Adm.Wt. <1000 gm w/ No CC
+2532111	Newborn w/ Adm.Wt. <1000 gm w/ Mild CC
+2532112	Newborn w/ Adm.Wt. <1000 gm w/ Moderate CC
+2532113	Newborn w/ Adm.Wt. <1000 gm w/ Severe CC
+2601119	Splenectomy
+2602110	Major OR Procedures for Blood and Blood Forming Organs w/ No CC
+2602111	Major OR Procedures for Blood and Blood Forming Organs w/ Mild CC
+2603110	Minor OR Procedures for Blood and Blood Forming Organs w/ No CC
+2603111	Minor OR Procedures for Blood and Blood Forming Organs w/ Mild CC
+2603112	Minor OR Procedures for Blood and Blood Forming Organs w/ Moderate CC
+2661110	Red Blood Cell Disorders w/ Blood Transfusion w/ No CC
+2661111	Red Blood Cell Disorders w/ Blood Transfusion w/ Mild CC
+2661219	Red Blood Cell Disorders
+2662110	Coagulation Disorders w/ Coagulation Factor Transfusion w/ No CC
+2662111	Coagulation Disorders w/ Coagulation Factor Transfusion w/ Mild CC
+2662210	Coagulation Disorders w/ Blood Transfusion w/ No CC
+2662211	Coagulation Disorders w/ Blood Transfusion w/ Mild CC
+2662212	Coagulation Disorders w/ Blood Transfusion w/ Moderate CC
+2662310	Coagulation Disorders w/ No CC
+2662311	Coagulation Disorders w/ Mild CC
+2663110	Reticuloendothelial and Immunity Disorders w/ Blood Transfusion w/ No CC
+2663111	Reticuloendothelial and Immunity Disorders w/ Blood Transfusion w/ Mild CC
+2663210	Reticuloendothelial and Immunity Disorders w/ No CC
+2663211	Reticuloendothelial and Immunity Disorders w/ Mild CC
+2701119	Myeloproliferatif Major OR Proc.
+2702110	Myeloproliferatif Other OR Proc. w/ No CC
+2702111	Myeloproliferatif Other OR Proc. w/ Mild CC
+2707110	Lymphoma Non Hodgkin w/ Major OR Proc. w/ No CC
+2707111	Lymphoma Non Hodgkin w/ Major OR Proc. w/ Mild CC
+2708110	Lymphoma Non Hodgkin w/ Other OR Proc. w/ No CC
+2708111	Lymphoma Non Hodgkin w/ Other OR Proc. w/ Mild CC
+2711110	Other Neoplastic Disorders w/ Major OR Proc. w/ No CC
+2711111	Other Neoplastic Disorders w/ Major OR Proc. w/ Mild CC
+2711112	Other Neoplastic Disorders w/ Major OR Proc. w/ Moderate CC
+2712119	Other Neoplastic Disorders w/ Other OR Proc.
+2766110	Acute Leukemia w/ No CC
+2766111	Acute Leukemia w/ Mild CC
+2772119	Non Acute Leukemia
+2778119	Lymphoma Hodgkin
+2784110	Lymphoma Non Hodgkin w/ No CC
+2784111	Lymphoma Non Hodgkin w/ Mild CC
+2790110	Plasma Cell Dyscrasia w/ No CC
+2790111	Plasma Cell Dyscrasia w/ Mild CC
+2796119	Other Neoplastic Disorders
+2801119	OR. Proc. Level 6 for Infectious & Parasitic Diseases
+2802119	OR. Proc. Level 5 for Infectious & Parasitic Diseases
+2803119	OR. Proc. Level 4 for Infectious & Parasitic Diseases
+2804119	OR. Proc. Level 3 for Infectious & Parasitic Diseases
+2805119	OR. Proc. Level 2 for Infectious & Parasitic Diseases
+2806119	OR. Proc. Level 1 for Infectious & Parasitic Diseases
+2861110	Septicemia, Adult w/ No CC
+2861111	Septicemia, Adult w/ Mild CC
+2861112	Septicemia, Adult w/ Moderate CC
+2861113	Septicemia, Adult w/ Severe CC
+2861210	Septicemia, Child w/ No CC
+2861211	Septicemia, Child w/ Mild CC
+2862110	Post-op and Post-traumatic Infections, Elderly w/ No CC
+2862111	Post-op and Post-traumatic Infections, Elderly w/ Mild CC
+2862210	Post-op and Post-traumatic Infections, Not Elderly w/ No CC
+2862211	Post-op and Post-traumatic Infections, Not Elderly w/ Mild CC
+2863119	Malaria, Adult
+2863219	Malaria, Child
+2864110	Dengue with Shock, Adult w/ No CC
+2864111	Dengue with Shock, Adult w/ Mild CC
+2864210	Dengue with Shock, Child w/ No CC
+2864211	Dengue with Shock, Child w/ Mild CC
+2864319	Dengue, Adult
+2864419	Dengue, Child
+2865119	Fever of Unknown Origin, Adult
+2865219	Fever of Unknown Origin, Child
+2866110	Viral Illness except Dengue, Adult w/ No CC
+2866111	Viral Illness except Dengue, Adult w/ Mild CC
+2866219	Viral Illness except Dengue, Child
+2867110	Fungal Diseases, Adult w/ No CC
+2867111	Fungal Diseases, Adult w/ Mild CC
+2867219	Fungal Diseases, Child
+2868119	Other Infectious & Parasitic Diseases, Adult
+2868219	Other Infectious & Parasitic Diseases, Child
+2870110	Leptospirosis w/ No CC
+2870111	Leptospirosis w/ Mild CC
+2871110	HIV, Adult w/ No CC
+2871111	HIV, Adult w/ Mild CC
+2871210	HIV, Child w/ No CC
+2871211	HIV, Child w/ Mild CC
+2872110	Mycobacteriosis, Adult w/ No CC
+2872111	Mycobacteriosis, Adult w/ Mild CC
+2872210	Mycobacteriosis, Child w/ No CC
+2872211	Mycobacteriosis, Child w/ Mild CC
+2873110	COVID-19, Confirmed w/ No CC
+2873111	COVID-19, Confirmed w/ Mild CC
+2873112	COVID-19, Confirmed w/ Moderate CC
+2874110	COVID-19, Suspected w/ No CC
+2874111	COVID-19, Suspected w/ Mild CC
+2875119	Leprosy, Adult - Chronic
+2875219	Leprosy, Adult - Sub Acute
+2875319	Leprosy, Adult
+2876119	Leprosy, Child - Chronic
+2876219	Leprosy, Child - Sub Acute
+2876319	Leprosy, Child
+2961110	Dementia and Other Organic Disorders - Chronic w/ No CC
+2961111	Dementia and Other Organic Disorders - Chronic w/ Mild CC
+2961112	Dementia and Other Organic Disorders - Chronic w/ Moderate CC
+2961210	Dementia and Other Organic Disorders - Sub Acute w/ No CC
+2961211	Dementia and Other Organic Disorders - Sub Acute w/ Mild CC
+2961212	Dementia and Other Organic Disorders - Sub Acute w/ Moderate CC
+2961310	Dementia and Other Organic Disorders w/ No CC
+2961311	Dementia and Other Organic Disorders w/ Mild CC
+2961312	Dementia and Other Organic Disorders w/ Moderate CC
+2962119	Substance Abuse and Addiction Disorders - Chronic
+2962219	Substance Abuse and Addiction Disorders - Sub Acute
+2962319	Substance Abuse and Addiction Disorders
+2963110	Schizophrenia and Schizoaffective Disorders w/ ECT - Chronic w/ No CC
+2963111	Schizophrenia and Schizoaffective Disorders w/ ECT - Chronic w/ Mild CC
+2963112	Schizophrenia and Schizoaffective Disorders w/ ECT - Chronic w/ Moderate CC
+2963210	Schizophrenia and Schizoaffective Disorders w/ ECT - Sub Acute w/ No CC
+2963211	Schizophrenia and Schizoaffective Disorders w/ ECT - Sub Acute w/ Mild CC
+2963212	Schizophrenia and Schizoaffective Disorders w/ ECT - Sub Acute w/ Moderate CC
+2963310	Schizophrenia and Schizoaffective Disorders w/ ECT w/ No CC
+2963311	Schizophrenia and Schizoaffective Disorders w/ ECT w/ Mild CC
+2963312	Schizophrenia and Schizoaffective Disorders w/ ECT w/ Moderate CC
+2963410	Schizophrenia and Schizoaffective Disorders - Chronic w/ No CC
+2963411	Schizophrenia and Schizoaffective Disorders - Chronic w/ Mild CC
+2963412	Schizophrenia and Schizoaffective Disorders - Chronic w/ Moderate CC
+2963510	Schizophrenia and Schizoaffective Disorders - Sub Acute w/ No CC
+2963511	Schizophrenia and Schizoaffective Disorders - Sub Acute w/ Mild CC
+2963512	Schizophrenia and Schizoaffective Disorders - Sub Acute w/ Moderate CC
+2963610	Schizophrenia and Schizoaffective Disorders w/ No CC
+2963611	Schizophrenia and Schizoaffective Disorders w/ Mild CC
+2963612	Schizophrenia and Schizoaffective Disorders w/ Moderate CC
+2964110	Mood and Bipolar Disorders w/ ECT - Chronic w/ No CC
+2964111	Mood and Bipolar Disorders w/ ECT - Chronic w/ Mild CC
+2964112	Mood and Bipolar Disorders w/ ECT - Chronic w/ Moderate CC
+2964210	Mood and Bipolar Disorders w/ ECT - Sub Acute w/ No CC
+2964211	Mood and Bipolar Disorders w/ ECT - Sub Acute w/ Mild CC
+2964212	Mood and Bipolar Disorders w/ ECT - Sub Acute w/ Moderate CC
+2964310	Mood and Bipolar Disorders w/ ECT w/ No CC
+2964311	Mood and Bipolar Disorders w/ ECT w/ Mild CC
+2964312	Mood and Bipolar Disorders w/ ECT w/ Moderate CC
+2964410	Mood and Bipolar Disorders - Chronic w/ No CC
+2964411	Mood and Bipolar Disorders - Chronic w/ Mild CC
+2964412	Mood and Bipolar Disorders - Chronic w/ Moderate CC
+2964510	Mood and Bipolar Disorders - Sub Acute w/ No CC
+2964511	Mood and Bipolar Disorders - Sub Acute w/ Mild CC
+2964512	Mood and Bipolar Disorders - Sub Acute w/ Moderate CC
+2964610	Mood and Bipolar Disorders w/ No CC
+2964611	Mood and Bipolar Disorders w/ Mild CC
+2964612	Mood and Bipolar Disorders w/ Moderate CC
+2965410	Anxiety Disorders and Other Neurosis - Chronic w/ No CC
+2965411	Anxiety Disorders and Other Neurosis - Chronic w/ Mild CC
+2965510	Anxiety Disorders and Other Neurosis - Sub Acute w/ No CC
+2965511	Anxiety Disorders and Other Neurosis - Sub Acute w/ Mild CC
+2965610	Anxiety Disorders and Other Neurosis w/ No CC
+2965611	Anxiety Disorders and Other Neurosis w/ Mild CC
+2966119	Somatoform Disorders - Chronic
+2966219	Somatoform Disorders - Sub Acute
+2966319	Somatoform Disorders
+2967119	Eating Disorders - Chronic
+2967219	Eating Disorders - Sub Acute
+2967319	Eating Disorders
+2970110	Other Mental Disorders - Chronic w/ No CC
+2970111	Other Mental Disorders - Chronic w/ Mild CC
+2970210	Other Mental Disorders - Sub Acute w/ No CC
+2970211	Other Mental Disorders - Sub Acute w/ Mild CC
+2970310	Other Mental Disorders w/ No CC
+2970311	Other Mental Disorders w/ Mild CC
+2973110	Mental Retardation - Chronic w/ No CC
+2973111	Mental Retardation - Chronic w/ Mild CC
+2973210	Mental Retardation - Sub Acute w/ No CC
+2973211	Mental Retardation - Sub Acute w/ Mild CC
+2973310	Mental Retardation w/ No CC
+2973311	Mental Retardation w/ Mild CC
+2974110	Childhood and Adolescent Disorders - Chronic w/ No CC
+2974111	Childhood and Adolescent Disorders - Chronic w/ Mild CC
+2974112	Childhood and Adolescent Disorders - Chronic w/ Moderate CC
+2974210	Childhood and Adolescent Disorders - Sub Acute w/ No CC
+2974211	Childhood and Adolescent Disorders - Sub Acute w/ Mild CC
+2974212	Childhood and Adolescent Disorders - Sub Acute w/ Moderate CC
+2974310	Childhood and Adolescent Disorders w/ No CC
+2974311	Childhood and Adolescent Disorders w/ Mild CC
+2974312	Childhood and Adolescent Disorders w/ Moderate CC
+3062110	Signs, Symptoms & Other Abnormal Findings w/ No CC
+3062111	Signs, Symptoms & Other Abnormal Findings w/ Mild CC
+3063119	Aftercare
+3064110	Other Factors Influencing Health Status, in the Elderly w/ No CC
+3064111	Other Factors Influencing Health Status, in the Elderly w/ Mild CC
+3064210	Other Factors Influencing Health Status, Not in the Elderly w/ No CC
+3064211	Other Factors Influencing Health Status, Not in the Elderly w/ Mild CC
+3064212	Other Factors Influencing Health Status, Not in the Elderly w/ Moderate CC
+3105119	Multiple Significant Trauma w/ Spinal Proc.
+3109119	Multiple Significant Trauma w/ Other OR Proc.
+3161119	Multiple Significant Trauma Diagnosis
+3201119	Electrical Injury w/ Proc.
+3202119	Extensive Burns w/ Skin Graft
+3203110	Full Thickness Burns w/ Skin Graft or Inhalation Injury w/ No CC
+3203111	Full Thickness Burns w/ Skin Graft or Inhalation Injury w/ Mild CC
+3204110	Full Thickness Burns w/ Debridement w/ No CC
+3204111	Full Thickness Burns w/ Debridement w/ Mild CC
+3261119	Electrical Injury
+3262110	Extensive Burns w/ No CC
+3262111	Extensive Burns w/ Mild CC
+3263110	Full Thickness Burns w/ No CC
+3263111	Full Thickness Burns w/ Mild CC
+3264110	Non Extensive Burns w/ No CC
+3264111	Non Extensive Burns w/ Mild CC
+3302110	Skin Grafts for Injuries w/ No CC
+3302111	Skin Grafts for Injuries w/ Mild CC
+3303110	Other OR Procedures for Injuries w/ No CC
+3303111	Other OR Procedures for Injuries w/ Mild CC
+3304119	Hand Procedures for Injuries
+3305110	Wound Debridements for Injuries w/ No CC
+3305111	Wound Debridements for Injuries w/ Mild CC
+3361110	Traumatic Injuries Age >18 w/ No CC
+3361111	Traumatic Injuries Age >18 w/ Mild CC
+3361210	Traumatic Injuries Age 0-18 w/ No CC
+3361211	Traumatic Injuries Age 0-18 w/ Mild CC
+3362110	Allergic Reactions Age >18 w/ No CC
+3362111	Allergic Reactions Age >18 w/ Mild CC
+3362219	Allergic Reactions Age 0-18
+3363110	Poisonings & Toxic Effects of Drugs Age >18 w/ No CC
+3363111	Poisonings & Toxic Effects of Drugs Age >18 w/ Mild CC
+3363219	Poisonings & Toxic Effects of Drugs Age 0-18
+3364110	Complications of Treatment w/ No CC
+3364111	Complications of Treatment w/ Mild CC
+3364112	Complications of Treatment w/ Moderate CC
+3365110	Other Injuries, Poisonings & Toxic Effects Diagnosis w/ No CC
+3365111	Other Injuries, Poisonings & Toxic Effects Diagnosis w/ Mild CC
+3442119	Nuclear Medicine
+3446119	CT Simulation + TPS
+3447110	Blood Transfusion for Neoplasms w/ No CC
+3447111	Blood Transfusion for Neoplasms w/ Mild CC
+3447112	Blood Transfusion for Neoplasms w/ Moderate CC
+3447113	Blood Transfusion for Neoplasms w/ Severe CC
+3462119	Radiotherapy & Chemotherapy
+3462210	Chemotherapy w/ No CC
+3462211	Chemotherapy w/ Mild CC
+3462212	Chemotherapy w/ Moderate CC
+3462310	Radiotherapy w/ No CC
+3462311	Radiotherapy w/ Mild CC
+1103120	Extracranial Vessel Proc.
+1104120	Release of Carpal/Tarsal Tunnel
+1105220	Other Nervous System Minor Proc.
+1106120	Nervous System Other Diagnostic Proc.
+1109120	Other Nervous System Major Proc.
+1110120	Peripheral Nerve Injection Proc.
+1148120	Nervous System Neoplasms
+1148220	Nervous System Neoplasms - Follow Up
+1149120	Electroencephalography (EEG)
+1150120	Nervous System Disorder w/ Multi-specialty Consultations
+1150220	Nervous System Disorder w/ Multi-specialty Consultations - Pre Op
+1160120	Chronic Nervous System Disorders
+1160220	Chronic Nervous System Disorders - Follow Up
+1161120	Acute Nervous System Disorders
+1161220	Acute Nervous System Disorders - Follow Up
+1201120	Phacoemulsification Cataract Extraction Proc.
+1202120	Anterior Chamber Major Proc.
+1203120	Cataract - Other Proc.
+1204120	Anterior Chamber Moderate Proc.
+1206120	External Eye Major Proc.
+1207120	External Eye Moderate Proc.
+1208120	Biopsy of Eye Proc.
+1209120	Posterior Chamber Proc.
+1210120	Photocoagulation & Cryotherapy of Retina Proc.
+1211120	Extraocular Major Proc.
+1213120	Laser of Eye Proc.
+1214120	Extraocular Minor Proc.
+1215120	Anterior Chamber Minor Proc.
+1216120	Eye Diagnostic Major Proc.
+1217120	External Eye Minor Proc.
+1218120	Other Eye Proc.
+1219120	Eye Diagnostic Minor Proc.
+1248120	Eye Neoplasms
+1248220	Eye Neoplasms - Follow Up
+1250120	Eye Disorders w/ Multi-specialty Consultations
+1250220	Eye Disorders w/ Multi-specialty Consultations - Pre Op
+1260120	Chronic Eye Disorders
+1260220	Chronic Eye Disorders - Follow Up
+1261120	Acute Eye Disorders
+1261220	Acute Eye Disorders - Follow Up
+1302120	Ear, Nose, Mouth & Pharynx Major Proc.
+1304120	Dental Major Proc.
+1305120	Major Biopsy for Ear, Nose, Mouth & Pharynx
+1306120	Mouth & Tongue Major Proc.
+1307120	Salivary Gland Proc.
+1308120	Tonsil & Adenoid Proc.
+1309120	Minor Biopsy for Ear, Nose, Mouth & Pharynx
+1310120	Diagnostic Proc. for Ear, Nose, Mouth & Pharynx
+1311120	Sinus & Mastoid Proc.
+1312120	Mouth & Tongue Minor Proc.
+1313120	Ear, Nose, Mouth & Pharynx Moderate Proc.
+1314120	Other Ear, Nose, Mouth & Pharynx Moderate Proc.
+1315120	Middle Ear Proc.
+1316120	Ear, Nose, Mouth & Pharynx Minor Proc
+1317120	Dental Minor Proc.
+1318120	Cauterization & Packing in Nasal Cavity Proc.
+1319120	Other Ear, Nose, Mouth & Pharynx Minor Proc.
+1320120	Other Ear, Nose, Mouth & Pharynx Major Proc.
+1348120	Ear, Nose, Mouth & Pharynx Neoplasms
+1348220	Ear, Nose, Mouth & Pharynx Neoplasms - Follow Up
+1350120	ENT w/ Multi-specialty Consultations
+1350220	ENT w/ Multi-specialty Consultations - Pre Op
+1360120	Chronic Ear, Mouth & Throat Disorders
+1360220	Chronic Ear, Mouth & Throat Disorders - Follow Up
+1361120	Acute Ear, Mouth & Throat Disorders
+1361220	Acute Ear, Mouth & Throat Disorders - Follow Up
+1401120	Bronchoscopy Proc.
+1404120	Insertion of Intercostal Proc.
+1405120	Respiratory System Biopsy Major Proc.
+1407120	Larynx & Trachea Proc.
+1408120	Chest Wall & Thorax Proc.
+1409120	Thoracocentesis & Pleurodesis Proc.
+1410120	Chest Wall & Thorax Diagnostic Proc.
+1411120	Respiratory System Diagnostic Proc.
+1412120	Other Respiratory System Proc.
+1413120	Respiratory System Therapeutic Major Proc.
+1414120	Respiratory System Therapeutic Minor Proc.
+1415120	Respiratory System Biopsy Minor Proc.
+1448120	Respiratory System Neoplasms
+1448220	Respiratory System Neoplasms - Follow Up
+1450120	Respiratory Disorders w/ Multi-specialty Consultations
+1450220	Respiratory Disorders w/ Multi-specialty Consultations - Pre Op
+1454120	Respiratory Drug Resistance TB
+1454220	Respiratory Drug Resistance TB - Follow Up
+1455120	Respiratory Tuberculosis
+1455220	Respiratory Tuberculosis - Follow Up
+1460120	Chronic Respiratory System Disorders
+1460220	Chronic Respiratory System Disorders - Follow Up
+1461120	Acute Respiratory System Disorders
+1461220	Acute Respiratory System Disorders - Follow Up
+1507120	Ligation & Stripping Varicose Veins Proc.
+1508120	Peripheral Angioplasty Proc.
+1508220	Peripheral Angioplasty Proc. w/ Stent
+1510120	Blood Vessel Proc.
+1514120	Coronary Angioplasty Proc.
+1514220	Coronary Angioplasty Proc. w/ Stent
+1515120	Wound Debridement
+1516120	Resuscitation
+1518120	Cardiovascular & Vessel Proc.
+1520120	Cardiovascular Function Monitoring Proc.
+1524120	Echocardiography Proc.
+1526120	Stress Test Proc.
+1548120	Circulatory System Neoplasms
+1548220	Circulatory System Neoplasms - Follow Up
+1550120	Circulatory System Disorder w/ Multi-specialty Consultations
+1550220	Circulatory System Disorder w/ Multi-specialty Consultations - Pre Op
+1560120	Chronic Circulatory System Disorder
+1560220	Chronic Circulatory System Disorder - Follow Up
+1561120	Acute Circulatory System Disorder
+1561220	Acute Circulatory System Disorder - Follow Up
+1602120	Large Intestine Proc.
+1603120	Endoscopy of Upper Gastrointestinal Major Proc.
+1605120	Colonoscopy Proc.
+1606120	Major Biopsy for Digestive System
+1607120	Moderate Biopsy for Digestive System
+1610120	Endoscopy of Upper Gastrointestinal Minor Proc.
+1611120	Hernia Proc.
+1613120	Minor Biopsy for Digestive System
+1614120	Hemorrhoid Proc.
+1615120	Rectum & Anal Moderate Proc.
+1618120	Rectum & Anal Minor Proc.
+1619120	Other Gastrointestinal Major Proc.
+1620120	Other Rectum & Anal Proc.
+1621120	Sigmoidoscopy Proc.
+1624120	Other Gastrointestinal Minor Proc.
+1625120	Other Diagnostic for Digestive System
+1648120	Digestive System Neoplasms
+1648220	Digestive System Neoplasms - Follow Up
+1650120	Digestive System Disorders w/ Multi-specialty Consultations
+1650220	Digestive System Disorders w/ Multi-specialty Consultations - Pre Op
+1660120	Chronic Digestive System Disorders
+1660220	Chronic Digestive System Disorders - Follow Up
+1661120	Acute Digestive System Disorders
+1661220	Acute Digestive System Disorders - Follow Up
+1705120	ERCP Diagnostic
+1709120	Other Hepatobiliary Major Proc.
+1711120	Other Hepatobiliary Minor Proc.
+1748120	Hepatobiliary System or Pancreas Neoplasms
+1748220	Hepatobiliary System or Pancreas Neoplasms - Follow Up
+1750120	Hepatobiliary System or Pancreas w/ Multi-specialty Consultations
+1750220	Hepatobiliary System or Pancreas w/ Multi-specialty Consultations - Pre Op
+1760120	Chronic Hepatobiliary System or Pancreas Disorders
+1760220	Chronic Hepatobiliary System or Pancreas Disorders - Follow Up
+1761120	Acute Hepatobiliary System or Pancreas Disorders
+1761220	Acute Hepatobiliary System or Pancreas Disorders - Follow Up
+1802120	Release of Carpal/Tarsal Tunnel
+1803120	Hand and Wrist Major Proc.
+1804120	Major Tendon and Muscle Proc.
+1806120	Foot Proc.
+1809120	Arthroscopy Proc.
+1810120	Lower Limb Proc.
+1812120	Arm, Elbow, and Shoulder Major Proc.
+1813120	Closed Fracture Reduction Proc.
+1814120	Incision, Biopsy, and Graft Proc. for Musculoskeletal System and Connective Tissue
+1818120	Excision, Incision and Arthrotomi of Bone Proc.
+1819120	Implant Device Proc.
+1820120	Minor Tendon and Muscle Proc.
+1821120	Other Musculoskeletal System Proc.
+1822120	Head and Face Proc.
+1823120	Arm, Elbow, and Shoulder Minor Proc.
+1824120	Hand and Wrist Minor Proc.
+1825120	Musculoskeletal Therapeutic Proc.
+1826120	Skeletal Traction Proc.
+1828120	Casts and Splints Application Proc.
+1831120	Other Diagnostic for Musculoskeletal System Proc.
+1848120	Musculoskeletal System and Connective Tissue Neoplasms
+1848220	Musculoskeletal System and Connective Tissue Neoplasms - Follow Up
+1850120	Musculoskeletal System and Connective Tissue w/ Multi-specialty Consultations
+1850220	Musculoskeletal System and Connective Tissue w/ Multi-specialty Consultations - Pre Op
+1860120	Chronic Musculoskeletal System and Connective Tissue Disorders
+1860220	Chronic Musculoskeletal System and Connective Tissue Disorders - Follow Up
+1861120	Acute Musculoskeletal System and Connective Tissue Disorders
+1861220	Acute Musculoskeletal System and Connective Tissue Disorders - Follow Up
+1901120	Vascular Access Device Insertion Proc.
+1903120	Skin Graft Major Proc.
+1904120	Biopsy of Skin, Subcutaneous Tissue and Breast - Major Proc.
+1906120	Non Mastectomy Breast Proc.
+1908120	Biopsy of Skin, Subcutaneous Tissue and Breast - Moderate Proc.
+1909120	Biopsy of Skin, Subcutaneous Tissue and Breast - Minor Proc. & Other Diagnostic
+1910120	Other Skin & Subcutaneous Tissue Proc.
+1911120	Skin Graft Minor Proc.
+1912120	Other Breast Proc.
+1913120	Skin Major Proc.
+1914120	Skin Minor Proc.
+1948120	Skin, Subcutaneous Tissue and Breast Neoplasms
+1948220	Skin, Subcutaneous Tissue and Breast Neoplasms - Follow Up
+1950120	Skin, Subcutaneous Tissue and Breast w/ Multi-specialty Consultations
+1950220	Skin, Subcutaneous Tissue and Breast w/ Multi-specialty Consultations - Pre Op
+1960120	Chronic Skin, Subcutaneous Tissue and Breast Disorders
+1960220	Chronic Skin, Subcutaneous Tissue and Breast Disorders - Follow Up
+1961120	Acute Skin, Subcutaneous Tissue and Breast Disorders
+1961220	Acute Skin, Subcutaneous Tissue and Breast Disorders - Follow Up
+2004120	Biopsy for Endocrine, Nutritional and Metabolic System
+2005120	Endocrine Gland, Diagnostic Proc.
+2006120	Endocrine Gland Proc.
+2048120	Endocrine System Neoplasms
+2048220	Endocrine System Neoplasms - Follow Up
+2050120	Endocrine, Nutritional and Metabolic Diseases w/ Multi-specialty Consultations
+2050220	Endocrine, Nutritional and Metabolic Diseases w/ Multi-specialty Consultations - Pre Op
+2060120	Chronic Endocrine, Nutritional and Metabolic Diseases and Disorders
+2060220	Chronic Endocrine, Nutritional and Metabolic Diseases and Disorders - Follow Up
+2061120	Acute Endocrine, Nutritional and Metabolic Diseases and Disorders
+2061220	Acute Endocrine, Nutritional and Metabolic Diseases and Disorders - Follow Up
+2102120	ESWL Proc.
+2103120	Dialysis Device Proc.
+2104120	Kidney and Ureter Major Proc.
+2105120	Kidney and Ureter Moderate Proc.
+2106120	Urethra and Transurethra Major Proc.
+2107120	Endoscopy of Urinary System Major Proc.
+2108120	Endoscopy of Urinary System Minor Proc.
+2109120	Other Diagnostic for Urinary System Major Proc.
+2110120	Bladder and Urethra Proc.
+2111120	Urethra and Transurethra Minor Proc.
+2112120	Dialysis Proc.
+2114120	Kidney and Ureter Minor Proc.
+2117220	Other Diagnostic for Urinary System Minor Proc.
+2118120	Urinary System Major Proc.
+2119120	Urinary System Minor Proc.
+2120120	Other Kidney and Ureter Proc.
+2148120	Kidney and Urinary Tract Neoplasms
+2148220	Kidney and Urinary Tract Neoplasms - Follow Up
+2150120	Kidney and Urinary Tract Disorders w/ Multi-specialty Consultations
+2150220	Kidney and Urinary Tract Disorders w/ Multi-specialty Consultations - Pre Op
+2160120	Chronic Kidney and Urinary Tract Disorders
+2160220	Chronic Kidney and Urinary Tract Disorders - Follow Up
+2161120	Acute Kidney and Urinary Tract Disorders
+2161220	Acute Kidney and Urinary Tract Disorders - Follow Up
+2203120	Biopsy of Male Reproductive System
+2204120	Circumcision Proc.
+2207120	Transurethral Prostatectomy Proc.
+2209120	Other Procedure on Male Reproductive System
+2210120	Other Diagnostic Proc. for Male Reproductive System
+2248120	Male Reproductive System Neoplasms
+2248220	Male Reproductive System Neoplasms - Follow Up
+2250120	Male Reproductive System w/ Multi-specialty Consultations
+2250220	Male Reproductive System w/ Multi-specialty Consultations - Pre Op
+2260120	Chronic Male Reproductive System Disorders
+2260220	Chronic Male Reproductive System Disorders - Follow Up
+2261120	Acute Male Reproductive System Disorders
+2261220	Acute Male Reproductive System Disorders - Follow Up
+2302120	Uterus and Fallopian Tubes Proc.
+2303120	Gynaecological Endoscopic Proc.
+2304120	Major Biopsy for Female Reproductive System
+2305120	Cervix & Vulvovaginal Proc.
+2306120	Minor Biopsy for Female Reproductive System
+2307120	Gynaecology Major Proc.
+2309120	Gynaecology Minor Proc.
+2342120	Other Diagnostic for Female Reproductive System
+2348120	Female Reproductive System Neoplasms
+2348220	Female Reproductive System Neoplasms - Follow Up
+2350120	Female Reproductive System Disorders w/ Multi-specialty Consultations
+2350220	Female Reproductive System Disorders w/ Multi-specialty Consultations - Pre Op
+2360120	Chronic Female Reproductive System Disorders
+2360220	Chronic Female Reproductive System Disorders - Follow Up
+2361120	Acute Female Reproductive System Disorders
+2361220	Acute Female Reproductive System Disorders - Follow Up
+2401120	Curettage Proc.
+2402120	Delivery Proc.
+2403120	Transfusion for Pregnancy, Childbirth and Puerperium
+2405120	Other Pregnancy, Childbirth, and Puerperium Major Proc
+2408120	Other Diagnostic for Pregnancy, Childbirth and Puerperium Proc.
+2409120	Other Pregnancy, Childbirth, and Puerperium Minor Proc
+2410120	Sterilization Proc.
+2450120	Pregnancy, Childbirth and Puerperium w/ Multi-specialty Consultations
+2450220	Pregnancy, Childbirth and Puerperium w/ Multi-specialty Consultations - Pre Op
+2461120	Pregnancy, Childbirth and Puerperium
+2461220	Pregnancy, Childbirth and Puerperium - Follow Up
+2510120	Procedure for Newborn
+2511120	Diagnostic Procedure for Newborn
+2512120	Wound Care for Newborn
+2550120	Newborns and Other Neonates w/ Multi-specialty Consultations
+2550220	Newborns and Other Neonates w/ Multi-specialty Consultations - Pre Op
+2560120	Newborns and Other Neonates with Chronic Conditions
+2560220	Newborns and Other Neonates with Chronic Conditions - Follow Up
+2561120	Newborns and Other Neonates with Acute Conditions
+2561220	Newborns and Other Neonates with Acute Conditions - Follow Up
+2601120	Platelet & Coagulation Factors Transfusion
+2602120	Major Biopsy for Blood Forming Organs and Immunological System
+2603120	Diagnostic Proc. for Blood & Blood Forming Organs
+2604120	Bone Marrow Therapy and Other Transfusion Proc.
+2607120	Minor Biopsy for Blood Forming Organs and Immunological System
+2608120	Other Procedure for Lymphatic Structures
+2648120	Blood and Blood Forming Organs and Immunological Neoplasms
+2648220	Blood and Blood Forming Organs and Immunological Neoplasms - Follow Up
+2650120	Blood and Blood Forming Organs and Immunological Disorders w/ Multi-specialty Consultations
+2650220	Blood and Blood Forming Organs and Immunological Disorders w/ Multi-specialty Consultations - Pre Op
+2660120	Chronic Blood and Blood Forming Organs and Immunological Disorders
+2660220	Chronic Blood and Blood Forming Organs and Immunological Disorders - Follow Up
+2661120	Acute Blood and Blood Forming Organs and Immunological Disorders
+2661220	Acute Blood and Blood Forming Organs and Immunological Disorders - Follow Up
+2701120	Major Biopsy for Myeloproliferative Diseases
+2703120	Moderate Biopsy for Myeloproliferative Diseases
+2704120	Minor Biopsy for Myeloproliferative Diseases
+2750120	Myeloproliferative Diseases and Disorders w/ Multi-specialty Consultations
+2750220	Myeloproliferative Diseases and Disorders w/ Multi-specialty Consultations - Pre Op
+2761120	Myeloproliferative Diseases and Disorders
+2761220	Myeloproliferative Diseases and Disorders - Follow Up
+2850120	Infectious and Parasitic Diseases w/ Multi-specialty Consultations
+2850220	Infectious and Parasitic Diseases w/ Multi-specialty Consultations - Pre Op
+2860120	Chronic Infectious and Parasitic Diseases
+2860220	Chronic Infectious and Parasitic Diseases - Follow Up
+2861120	Acute Infectious and Parasitic Diseases
+2861220	Acute Infectious and Parasitic Diseases - Follow Up
+2901120	Electroconvulsive Therapy w/ Premedication
+2901220	Shock Therapy
+2903120	Mental Health Diagnostic Proc.
+2904120	Group Therapy
+2905120	Mental Rehabilitation
+2950120	Mental Diseases and Disorders w/ Multi-specialty Consultations
+2950220	Mental Diseases and Disorders w/ Multi-specialty Consultations - Pre Op
+2960120	Chronic Mental Diseases and Disorders
+2960220	Chronic Mental Diseases and Disorders - Follow Up
+2961120	Acute Mental Diseases and Disorders
+2961220	Acute Mental Diseases and Disorders - Follow Up
+3048120	Wound Care for Non-Diabetic - Follow Up
+3049120	Wound Care for Diabetic - Follow Up
+3050120	Factors Influencing Health Status w/ Multi-specialty Consultations
+3050220	Factors Influencing Health Status w/ Multi-specialty Consultations - Pre Op
+3061120	Factors Influencing Health Status
+3061220	Factors Influencing Health Status - Follow Up
+3203120	Skin Procedures for Burns
+3250120	Burns w/ Multi-specialty Consultations
+3250220	Burns w/ Multi-specialty Consultations - Pre Op
+3261120	Burns
+3261220	Burns - Follow Up
+3301120	Release of Carpal/Tarsal Tunnel
+3303120	Hand Proc.
+3304120	Other Proc. for Injuries
+3350120	Injuries, Poisonings and Toxic Effects of Drugs w/ Multi-specialty Consultations
+3350220	Injuries, Poisonings and Toxic Effects of Drugs w/ Multi-specialty Consultations - Pre Op
+3361120	Injuries, Poisonings and Toxic Effects of Drugs
+3361220	Injuries, Poisonings and Toxic Effects of Drugs - Follow Up
+3442120	Nuclear Medicine
+3443120	Radiotherapy & Chemotherapy
+3444120	Radiotherapy
+3445120	Chemotherapy (Injection)
+3445220	Chemotherapy (Oral)
+3446120	CT Simulation + TPS
+3447120	Blood Transfusion for Neoplasms
+3541120	Rehabilitation Comprehensive Examination
+3541220	Rehabilitation Comprehensive Examination & Therapy
+3542120	Rehabilitation Evaluation
+3543120	Orthotic Prosthetic Proc.
+3544120	Therapeutic Exercise Procedures
+3545120	Therapeutic Procedures with Modality
+3546120	Therapeutic Manipulation Procedures
+3547120	Interventional Rehabilitation Procedures
+3548120	Other Rehabilitation Procedures
+9040120	Nuclear Diagnostic - PET CT
+9040220	Nuclear Diagnostic - SPECT CT
+9040320	Nuclear Diagnostic - In Vitro
+9042120	Catheterization Diagnostic
+9043120	MRI with Contrast
+9043220	MRI
+9044120	CT Scan with Contrast
+9044220	CT Scan
+9046120	Other Imaging Diagnostic
+9047120	Other Ultrasound Diagnostic
