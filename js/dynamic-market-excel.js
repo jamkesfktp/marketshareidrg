@@ -61,7 +61,7 @@
       Subject: `Market share dinamis layanan ${service}`,
       Author: "Kementerian Kesehatan RI",
       Company: "Kementerian Kesehatan RI",
-      Comments: `Sumber kasus tambah mengikuti kompetensi target: ${sourceRelationLabel}. Pengurangan di luar kompetensi default 100% dan dapat diuji sensitivitasnya.`,
+      Comments: `Share tambah dan kurang mengikuti jumlah RS sumber eligible per level.`,
       CreatedDate: new Date()
     };
 
@@ -81,7 +81,7 @@
       [], ["Ketentuan audit", "Penjelasan"],
       ["Sumber kasus tambah", sourceRelationLabel],
       ["Matriks sumber", "Dasar: RS lebih tinggi; Madya/Utama: RS lebih rendah dan lebih tinggi (tidak termasuk kompetensi sama); Paripurna: RS lebih rendah."],
-      ["Kasus pengurang", "Satu parameter untuk seluruh skenario; default 100% dari kasus eksisting di luar kompetensi dan dapat diedit untuk sensitivitas."],
+      ["Kasus pengurang", "Menggunakan natural share per level berdasarkan jumlah RS sumber eligible dan dapat diedit untuk sensitivitas."],
       ["Natural share", "100 / (jumlah RS sumber eligible sesuai hubungan kompetensi + 1 RS target)."],
       ["Area input", "Kolom Persentase Simulasi pada sheet 03_Parameter dapat diedit untuk audit sensitivitas."],
       [], ["Urutan penelusuran", "01_Eksisting → 02_Driver_Pasar → 03_Parameter → 04_Hasil → 05_Rekonsiliasi"]
@@ -110,7 +110,7 @@
       ...levelData.map((item) => [levelNames[item.level], item.direction.toUpperCase(), item.regionalCases, item.targetCases, item.targetIna, item.targetIdrg,
         item.direction === "tambah" ? item.externalCases : item.targetCases,
         item.poolIna, item.poolIdrg, item.tariffDelta, item.tariffDeltaPct / 100,
-        item.competitors, item.direction === "kurang" ? pctFor(0, item) / 100 : item.direction === "tambah" ? item.naturalShare / 100 : 0])
+        item.competitors, item.direction !== "netral" ? item.naturalShare / 100 : 0])
     ];
     const driver = append(driverRows, "02_Driver_Pasar", "DRIVER PASAR DAN SUMBER KASUS", "M", [15, 14, 18, 18, 20, 20, 18, 20, 20, 22, 16, 20, 18], 3);
     styleRange(XLSX, driver, "A4:M7", { fill: COLORS.white });
@@ -132,7 +132,7 @@
         const poolCases = item.direction === "tambah" ? item.externalCases : item.direction === "kurang" ? item.targetCases : 0;
         const poolIdrg = item.direction === "tambah" ? item.externalIdrg : item.direction === "kurang" ? item.targetIdrg : 0;
         parameterRows.push([scenarioIndex + 1, scenario.name, scenario.factor, levelNames[item.level], item.direction.toUpperCase(),
-          formulaCell(`${quote("02_Driver_Pasar")}!M${driverRow}`, item.direction === "kurang" ? 1 : item.naturalShare / 100, "0.00%"),
+          formulaCell(`${quote("02_Driver_Pasar")}!M${driverRow}`, item.naturalShare / 100, "0.00%"),
           { t: "n", v: pct, z: "0.00%" },
           formulaCell(`${quote("02_Driver_Pasar")}!G${driverRow}`, poolCases, "#,##0"),
           formulaCell(`${quote("02_Driver_Pasar")}!H${driverRow}`, poolIdrg, '"Rp" #,##0'),
@@ -150,7 +150,7 @@
     const firstParam = 4;
     const lastParam = parameterRows.length;
     const resultRows = [["HASIL SIMULASI DINAMIS", "", "", "", "", "", "", "", "", "", ""], [],
-      ["No", "Skenario", "+ Kasus", "+ iDRG", "- Kasus (default 100%)", "- iDRG (default 100%)", "Kasus Pasca", "iDRG Pasca", "Delta Kasus", "Delta vs INA", "% Delta vs INA"]];
+      ["No", "Skenario", "+ Kasus", "+ iDRG", "- Kasus (natural share)", "- iDRG (natural share)", "Kasus Pasca", "iDRG Pasca", "Delta Kasus", "Delta vs INA", "% Delta vs INA"]];
     scenarioResults.forEach((result, index) => {
       const excelRow = 4 + index;
       const scenarioNo = index + 1;
