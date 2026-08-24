@@ -10528,4 +10528,13 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     syncSidebarForViewport();
   }
 
+  window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
+      const bootScreen = document.getElementById('appBootScreen');
+      document.body.classList.remove('app-booting');
+      bootScreen?.classList.add('is-ready');
+      window.setTimeout(() => bootScreen?.remove(), 260);
+    });
+  });
+
 

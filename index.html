@@ -5,9 +5,17 @@
   <link rel="icon" href="data:,">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Simulator Market Share Regional Rumah Sakit</title>
-  <link rel="stylesheet" href="css/style.css?v=202608221100">
+  <link rel="stylesheet" href="css/style.css?v=202608241900">
 </head>
-<body class="simulator-app">
+<body class="simulator-app app-booting">
+  <div id="appBootScreen" class="app-boot-screen" role="status" aria-live="polite" aria-label="Menyiapkan aplikasi">
+    <div class="app-boot-card">
+      <img src="img/logo-kemenkes.png" alt="Kementerian Kesehatan RI">
+      <strong>Menyiapkan Simulator Market Share</strong>
+      <p>Memuat data dan menyiapkan seluruh analisis…</p>
+      <div class="app-boot-progress" aria-hidden="true"></div>
+    </div>
+  </div>
   <!-- Login Gate Overlay (Kemenkes Theme) -->
   <div id="loginOverlay" style="display: none; position: fixed; inset: 0; z-index: 999999; background: linear-gradient(135deg, #042f2e 0%, #0f766e 50%, #064e3b 100%); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); align-items: center; justify-content: center; padding: 1.25rem; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
     <div style="background: rgba(255, 255, 255, 0.96); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 1.5rem; padding: 2.25rem; width: 100%; max-width: 420px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); color: #0f172a;">
@@ -577,7 +585,7 @@
   <script src="js/global-sim-excel.js?v=202608210836"></script>
   <script src="js/dynamic-market-excel.js?v=202608241600"></script>
   <script src="js/idrg-map-data.js?v=202608241500"></script>
-  <script src="js/app.js?v=202608241800"></script>
+  <script src="js/app.js?v=202608241900"></script>
   <script>
   (function initAuth() {
     const overlay = document.getElementById('loginOverlay');
