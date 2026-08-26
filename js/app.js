@@ -1894,8 +1894,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           lossIdrg += item.targetIdrg * pct;
         }
       });
-      const projectedCases = Math.max(0, baselineCases + addCases);
-      const projectedIdrg = Math.max(0, baselineIdrg + addIdrg);
+      const projectedCases = Math.max(0, competencyExistingCases + addCases);
+      const projectedIdrg = Math.max(0, competencyExistingIdrg + addIdrg);
       return { definition, scenarioIndex, addCases, addIdrg, lossCases, lossIdrg, projectedCases, projectedIdrg };
     });
 
@@ -1972,10 +1972,10 @@ document.getElementById("globalSimulationSlide").innerHTML = `
             </tr>
           </thead>
           <tbody>${scenarioResults.map((result) => {
-            const deltaCases = result.projectedCases - baselineCases;
-            const deltaCasesPct = baselineCases > 0 ? deltaCases / baselineCases * 100 : 0;
-            const deltaIna = result.projectedIdrg - baselineIna;
-            const deltaInaPct = baselineIna > 0 ? deltaIna / baselineIna * 100 : 0;
+            const deltaCases = result.projectedCases - competencyExistingCases;
+            const deltaCasesPct = competencyExistingCases > 0 ? deltaCases / competencyExistingCases * 100 : 0;
+            const deltaIna = result.projectedIdrg - competencyExistingIna;
+            const deltaInaPct = competencyExistingIna > 0 ? deltaIna / competencyExistingIna * 100 : 0;
             return `<tr style="background:${result.scenarioIndex === 2 ? "#ecfeff" : "#fff"};">
               <td style="border:1px solid #1e293b;padding:6px;font-weight:900;white-space:nowrap;">Skenario ${result.scenarioIndex + 1}<div style="font-size:9px;color:#64748b;">${result.definition.name}<br>${result.definition.factor.toFixed(2).replace(".", ",")}× natural</div></td>
               ${result.scenarioIndex === 0 ? `<td rowspan="${scenarioResults.length}" style="border:1px solid #1e293b;padding:7px;background:#f8fafc;min-width:175px;"><div style="font-size:10px;color:#475569;">EKSISTING ${competencyLevelLabel.toUpperCase()}</div><div style="font-size:16px;font-weight:900;color:#0f172a;margin:3px 0;">${formatNumber(competencyExistingCases)} kasus</div><div style="font-size:10px;font-weight:800;color:#c2410c;">INA ${formatTableMoney(competencyExistingIna)}</div><div style="font-size:10px;font-weight:800;color:#0369a1;">iDRG ${formatTableMoney(competencyExistingIdrg)}</div></td>` : ""}
@@ -7265,8 +7265,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       });
       return {
         definition, scenarioIndex, addCases, addIdrg, lossCases, lossIdrg,
-        projectedCases: Math.max(0, baselineCases + addCases),
-        projectedIdrg: Math.max(0, baselineIdrg + addIdrg)
+        projectedCases: Math.max(0, competencyExistingCases + addCases),
+        projectedIdrg: Math.max(0, competencyExistingIdrg + addIdrg)
       };
     });
     const pctInputs = (scenarioIndex, direction) => levelData.filter((item) => item.direction === direction).map((item) =>
@@ -7287,10 +7287,10 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           <th style="background:#f43f5e;color:#fff;padding:4px;">% Dinamis</th><th style="background:#f43f5e;color:#fff;padding:4px;">Kasus</th><th style="background:#f43f5e;color:#fff;padding:4px;">Pendapatan</th>
           <th style="background:#14b8a6;color:#fff;padding:4px;">Kasus</th><th style="background:#14b8a6;color:#fff;padding:4px;">% Kasus</th><th style="background:#14b8a6;color:#fff;padding:4px;">Pendapatan</th><th style="background:#14b8a6;color:#fff;padding:4px;">% Pendapatan</th>
         </tr></thead><tbody>${results.map((result) => {
-          const deltaCases = result.projectedCases - baselineCases;
-          const deltaCasesPct = baselineCases > 0 ? deltaCases / baselineCases * 100 : 0;
-          const deltaIncome = result.projectedIdrg - baselineIna;
-          const deltaIncomePct = baselineIna > 0 ? deltaIncome / baselineIna * 100 : 0;
+          const deltaCases = result.projectedCases - competencyExistingCases;
+          const deltaCasesPct = competencyExistingCases > 0 ? deltaCases / competencyExistingCases * 100 : 0;
+          const deltaIncome = result.projectedIdrg - competencyExistingIna;
+          const deltaIncomePct = competencyExistingIna > 0 ? deltaIncome / competencyExistingIna * 100 : 0;
           const cell = 'border:1px solid #cbd5e1;padding:4px;';
           return `<tr style="background:${result.scenarioIndex === 2 ? '#ecfeff' : '#fff'};"><td style="${cell}font-weight:900;white-space:nowrap;">Skenario ${result.scenarioIndex + 1}<div style="font-size:8px;color:#64748b;">${result.definition.name} · ${result.definition.factor.toFixed(2).replace('.', ',')}×</div></td>
             ${result.scenarioIndex === 0 ? `<td rowspan="${results.length}" style="${cell}background:#f8fafc;min-width:135px;"><b>${formatNumber(competencyExistingCases)} kasus</b><div style="font-size:9px;color:#c2410c;">INA ${formatTableMoney(competencyExistingIna)}</div><div style="font-size:9px;color:#0369a1;">iDRG ${formatTableMoney(competencyExistingIdrg)}</div></td>` : ''}
