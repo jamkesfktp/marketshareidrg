@@ -2139,7 +2139,20 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       const item = targetMap.get(link.idrg) || { code: link.idrg, description: link.idrgDescription, cases: 0 };
       item.cases += link.cases; targetMap.set(link.idrg, item);
     }));
-    const targets = [...targetMap.values()].sort((a, b) => { const cmp = String(a.code).localeCompare(String(b.code)); return cmp !== 0 ? cmp : b.cases - a.cases; });
+    const prefixCases = new Map();
+    [...targetMap.values()].forEach(item => {
+      const prefix = String(item.code).substring(0, 6);
+      prefixCases.set(prefix, (prefixCases.get(prefix) || 0) + item.cases);
+    });
+    const targets = [...targetMap.values()].sort((a, b) => {
+      const prefixA = String(a.code).substring(0, 6);
+      const prefixB = String(b.code).substring(0, 6);
+      if (prefixA !== prefixB) {
+        const diff = prefixCases.get(prefixB) - prefixCases.get(prefixA);
+        return diff !== 0 ? diff : prefixA.localeCompare(prefixB);
+      }
+      return b.cases - a.cases;
+    });
     const visibleCodes = new Set(targets.map((item) => item.code));
     const sevColors = { 1: "#317a7e", 2: "#55ad9e", 3: "#51aec0", 0: "#64748b" };
     const sevLabels = { 1: "Ringan", 2: "Sedang", 3: "Berat", 0: "Tanpa Severity / Rawat Jalan" };
