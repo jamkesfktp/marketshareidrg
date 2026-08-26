@@ -1725,7 +1725,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         
         <div style="margin-top: 15px; font-size: 11px; color: #475569;">
           <div style="margin-bottom: 4px;"><strong>Catatan:</strong> Tabel ini terhubung secara dinamis dengan pengaturan <em>Skenario Simulasi Global</em> di bilah samping.</div>
-          <div>* Total Pendapatan Pasca iDRG = Total iDRG Eksisting RS (${formatMoneyUnit(targetIdrgTotal)}) + Tambahan - Pengurangan.</div>
+          <div>* Total Pendapatan Pasca iDRG = Total iDRG Eksisting RS (${formatMoneyUnit(targetIdrgTotal)}) + Tambahan.</div>
         </div>
       </div>
     `;
@@ -1894,8 +1894,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           lossIdrg += item.targetIdrg * pct;
         }
       });
-      const projectedCases = Math.max(0, baselineCases + addCases - lossCases);
-      const projectedIdrg = Math.max(0, baselineIdrg + addIdrg - lossIdrg);
+      const projectedCases = Math.max(0, baselineCases + addCases);
+      const projectedIdrg = Math.max(0, baselineIdrg + addIdrg);
       return { definition, scenarioIndex, addCases, addIdrg, lossCases, lossIdrg, projectedCases, projectedIdrg };
     });
 
@@ -7265,8 +7265,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       });
       return {
         definition, scenarioIndex, addCases, addIdrg, lossCases, lossIdrg,
-        projectedCases: Math.max(0, baselineCases + addCases - lossCases),
-        projectedIdrg: Math.max(0, baselineIdrg + addIdrg - lossIdrg)
+        projectedCases: Math.max(0, baselineCases + addCases),
+        projectedIdrg: Math.max(0, baselineIdrg + addIdrg)
       };
     });
     const pctInputs = (scenarioIndex, direction) => levelData.filter((item) => item.direction === direction).map((item) =>
