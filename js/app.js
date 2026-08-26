@@ -2139,7 +2139,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       const item = targetMap.get(link.idrg) || { code: link.idrg, description: link.idrgDescription, cases: 0 };
       item.cases += link.cases; targetMap.set(link.idrg, item);
     }));
-    const targets = [...targetMap.values()].sort((a, b) => b.cases - a.cases);
+    const targets = [...targetMap.values()].sort((a, b) => { const cmp = String(a.code).localeCompare(String(b.code)); return cmp !== 0 ? cmp : b.cases - a.cases; });
     const visibleCodes = new Set(targets.map((item) => item.code));
     const sevColors = { 1: "#317a7e", 2: "#55ad9e", 3: "#51aec0", 0: "#64748b" };
     const sevLabels = { 1: "Ringan", 2: "Sedang", 3: "Berat", 0: "Tanpa Severity / Rawat Jalan" };
