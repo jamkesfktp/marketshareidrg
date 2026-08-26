@@ -36,16 +36,16 @@
   };
 
   const TARIFF_SCENARIOS = {
-    "1370_full": { index: 2, label: "iDRG 1370 - AF + AFreg + AFkep (Default)", chip: "iDRG 1370 (AF + AFreg + AFkep)", desc: "Model 1.370 DRG dengan penyesuaian AF + AFreg + AFkep" },
+    "1370_full": { index: 2, label: "iDRG 1370 - AF + AFreg + AFkep", chip: "iDRG 1370 (AF + AFreg + AFkep)", desc: "Model 1.370 DRG dengan penyesuaian AF + AFreg + AFkep" },
     "1370_afreg": { index: 3, label: "iDRG 1370 - AF + AFreg", chip: "iDRG 1370 (AF + AFreg)", desc: "Model 1.370 DRG dengan penyesuaian AF + AFreg" },
-    "1370_af": { index: 4, label: "iDRG 1370 - AF Saja", chip: "iDRG 1370 (AF Saja)", desc: "Model 1.370 DRG dengan penyesuaian AF saja" },
+    "1370_af": { index: 4, label: "iDRG 1370 - AF Saja (Default)", chip: "iDRG 1370 (AF Saja)", desc: "Model 1.370 DRG dengan penyesuaian AF saja" },
     "1370_noaf": { index: 5, label: "iDRG 1370 - Tanpa AF (Base)", chip: "iDRG 1370 (Tanpa AF)", desc: "Tarif dasar iDRG 1.370 tanpa penyesuaian AF" },
     "1370_juknis": { index: 6, label: "iDRG 1370 - Juknis Top-Up", chip: "iDRG 1370 (Juknis Top-Up)", desc: "Model 1.370 DRG skema Juknis Top-Up" },
     "1363_full": { index: 7, label: "iDRG 1363 - AF + AFreg + AFkep", chip: "iDRG 1363 (AF + AFreg + AFkep)", desc: "Model lama 1.363 DRG (AF + AFreg + AFkep)" }
   };
 
   function updateActiveTariff(scenarioKey) {
-    const sc = TARIFF_SCENARIOS[scenarioKey] || TARIFF_SCENARIOS["1370_full"];
+    const sc = TARIFF_SCENARIOS[scenarioKey] || TARIFF_SCENARIOS["1370_af"];
     state.activeTariffScenario = scenarioKey;
     IDRG = sc.index;
     REVENUE = sc.index;
@@ -120,7 +120,7 @@
     targetCode: defaultTarget,
     targetCodes: defaultTarget ? [defaultTarget] : [],
     activeSlide: 0,
-    activeTariffScenario: "1370_full",
+    activeTariffScenario: "1370_af",
     selectedService: data.services.includes("JIWA") ? "JIWA" : data.services[0],
     selectedSeverity: 4,
     targetShare: 50,
@@ -1246,7 +1246,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         <div style="background:#e2e8f0; display:flex; align-items:center; justify-content:center; padding:0 10px; font-size:13px; font-weight:800; color:#94a3b8;">VS</div>
         
         <!-- Panel Regional -->
-        <div style="flex:1; background:#f0f9ff; padding:14px 16px; border-left:3px solid #0369a1;">
+        <div style="flex:1; background:#ffffff; padding:14px 16px; border-left:3px solid #0369a1;">
           <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
             <div style="width:38px; height:38px; border-radius:8px; background:linear-gradient(135deg,#1e40af,#1d4ed8); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
               <span style="font-size:18px;">🌐</span>
@@ -1987,7 +1987,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           }).join("")}</tbody>
         </table>
       </div>
-      <div style="margin-top:7px;padding:6px 9px;border-radius:7px;background:#eff6ff;color:#1e40af;font-size:10px;font-weight:650;">Persentase tambah dan kurang dihitung dari natural share per level: 100 ÷ (RS sumber eligible + 1 RS target), kemudian disesuaikan faktor skenario dan dapat diedit.</div>`;
+      <div style="margin-top:7px;padding:6px 9px;border-radius:7px;background:#ffffff;color:#1e40af;font-size:10px;font-weight:650;">Persentase tambah dan kurang dihitung dari natural share per level: 100 ÷ (RS sumber eligible + 1 RS target), kemudian disesuaikan faktor skenario dan dapat diedit.</div>`;
 
     container.querySelector("#dynamicMarketServiceSelect")?.addEventListener("change", (event) => {
       window.dynamicMarketService = event.target.value;
@@ -2070,8 +2070,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const ui = window.tariffScatterUi;
     const services = Object.keys(source.scatterServices).sort();
     const matchesSegment = (segment) => (ui.ownership === "ALL" || segment[2] === ui.ownership) && (ui.hospitalClass === "ALL" || segment[3] === ui.hospitalClass) && (ui.rawatClass === "ALL" || segment[4] === ui.rawatClass) && (ui.region === "ALL" || segment[5] === ui.region);
-    const scenarioMetricIndex = { "1370_full": 8, "1370_afreg": 9, "1370_af": 10, "1370_noaf": 11, "1370_juknis": 12, "1363_full": 13 }[state.activeTariffScenario || "1370_full"] || 8;
-    const scatterScenarioLabel = TARIFF_SCENARIOS[state.activeTariffScenario || "1370_full"]?.chip || "iDRG 1370";
+    const scenarioMetricIndex = { "1370_full": 8, "1370_afreg": 9, "1370_af": 10, "1370_noaf": 11, "1370_juknis": 12, "1363_full": 13 }[state.activeTariffScenario || "1370_af"] || 8;
+    const scatterScenarioLabel = TARIFF_SCENARIOS[state.activeTariffScenario || "1370_af"]?.chip || "iDRG 1370";
     const selectedServices = ui.service === "ALL" ? services : [ui.service];
     const aggregate = new Map();
     selectedServices.forEach((service) => (source.scatterServices[service] || []).forEach((segment) => {
@@ -2407,7 +2407,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
             <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;">
               <div style="padding:8px 9px;border-radius:9px;background:#f0fdfa;border-left:4px solid #0d9488;"><div style="font-size:9px;color:#64748b;font-weight:800;">TOTAL KASUS</div><div style="font-size:18px;color:#0f172a;font-weight:900;margin-top:2px;">${formatNumber(totalCases)}</div><div style="font-size:9px;color:#94a3b8;">kasus regional</div></div>
               <div style="padding:8px 9px;border-radius:9px;background:#fff7ed;border-left:4px solid #f97316;"><div style="font-size:9px;color:#64748b;font-weight:800;">PENDAPATAN INA-CBG</div><div style="font-size:18px;color:#c2410c;font-weight:900;margin-top:2px;">${formatMoneyUnit(totalIna)}</div><div style="font-size:9px;color:#94a3b8;">nilai eksisting</div></div>
-              <div style="padding:8px 9px;border-radius:9px;background:#eff6ff;border-left:4px solid #0284c7;"><div style="font-size:9px;color:#64748b;font-weight:800;">POTENSI iDRG</div><div style="font-size:18px;color:#0369a1;font-weight:900;margin-top:2px;">${formatMoneyUnit(totalIdrg)}</div><div style="font-size:9px;color:#94a3b8;">hasil mirroring</div></div>
+              <div style="padding:8px 9px;border-radius:9px;background:#ffffff;border-left:4px solid #0284c7;"><div style="font-size:9px;color:#64748b;font-weight:800;">POTENSI iDRG</div><div style="font-size:18px;color:#0369a1;font-weight:900;margin-top:2px;">${formatMoneyUnit(totalIdrg)}</div><div style="font-size:9px;color:#94a3b8;">hasil mirroring</div></div>
             </div>
             <div style="margin-top:8px;padding:6px 8px;border-radius:7px;background:#f8fafc;border:1px solid #e2e8f0;display:flex;gap:7px;align-items:flex-start;"><span style="font-size:12px;">📍</span><div style="min-width:0;">${filterSummaryHTML}</div></div>
           </div>
@@ -6460,20 +6460,20 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           <td style="background:#f0fdf4; white-space:nowrap; text-align:center;">${formatCell(minTk, maxTk, false)}</td>
           <td style="background:#f0fdf4; white-space:nowrap; text-align:center;">${formatCell(minTrp, maxTrp, true)}</td>
           
-          <td style="background:#f0f9ff; white-space:nowrap; text-align:center;">${formatCell(minNetK, maxNetK, false)}</td>
-          <td style="background:#f0f9ff; white-space:nowrap; text-align:center;">${formatCell(minNetRp, maxNetRp, true)}</td>
+          <td style="background:#ffffff; white-space:nowrap; text-align:center;">${formatCell(minNetK, maxNetK, false)}</td>
+          <td style="background:#ffffff; white-space:nowrap; text-align:center;">${formatCell(minNetRp, maxNetRp, true)}</td>
           
           <td style="background:#ffffff; white-space:nowrap; text-align:center;">
             <div style="font-weight:700; color:#0369a1;">${formatCell(minSisaK, maxSisaK, false).replace('+','')}</div>
             <div style="font-size:11px;">${formatCell(minSisaRp, maxSisaRp, true).replace('+','')}</div>
           </td>
           
-          <td style="background:#eff6ff; white-space:nowrap; text-align:center;">
+          <td style="background:#ffffff; white-space:nowrap; text-align:center;">
             <div style="font-weight:800; color:#1d4ed8; font-size:14px;">${formatCell(minPascaK, maxPascaK, false).replace('+','')}</div>
             <div style="font-size:11px; font-weight:700; color:#2563eb;">${minPctRetensi === maxPctRetensi ? formatSignedPercent(minPctRetensi) : formatSignedPercent(minPctRetensi) + ' <span style="color:#94a3b8; font-size:9px; font-weight:normal;">s.d</span> ' + formatSignedPercent(maxPctRetensi)}</div>
           </td>
           
-          <td style="background:#eff6ff; white-space:nowrap; text-align:center; font-weight:800; color:#1e40af;">
+          <td style="background:#ffffff; white-space:nowrap; text-align:center; font-weight:800; color:#1e40af;">
             ${formatCell(minPascaRp, maxPascaRp, true).replace('+','')}
           </td>
           
@@ -6505,19 +6505,19 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           <td style="background:#f0fdf4; white-space:nowrap; text-align:center;">${formatCell(grandMinTk, grandMaxTk, false)}</td>
           <td style="background:#f0fdf4; white-space:nowrap; text-align:center;">${formatCell(grandMinTrp, grandMaxTrp, true)}</td>
           
-          <td style="background:#f0f9ff; white-space:nowrap; text-align:center;">${formatCell(grandMinNetK, grandMaxNetK, false)}</td>
-          <td style="background:#f0f9ff; white-space:nowrap; text-align:center;">${formatCell(grandMinNetRp, grandMaxNetRp, true)}</td>
+          <td style="background:#ffffff; white-space:nowrap; text-align:center;">${formatCell(grandMinNetK, grandMaxNetK, false)}</td>
+          <td style="background:#ffffff; white-space:nowrap; text-align:center;">${formatCell(grandMinNetRp, grandMaxNetRp, true)}</td>
           
           <td style="background:#ffffff; white-space:nowrap; text-align:center;">
             <div style="font-weight:800; color:#0369a1;">${formatCell(grandMinSisaK, grandMaxSisaK, false).replace('+','')}</div>
             <div style="font-size:11px;">${formatCell(grandMinSisaRp, grandMaxSisaRp, true).replace('+','')}</div>
           </td>
           
-          <td style="background:#eff6ff; white-space:nowrap; text-align:center;">
+          <td style="background:#ffffff; white-space:nowrap; text-align:center;">
             <div style="font-weight:900; color:#1d4ed8; font-size:14px;">${formatCell(grandMinPascaK, grandMaxPascaK, false).replace('+','')}</div>
           </td>
           
-          <td style="background:#eff6ff; white-space:nowrap; text-align:center; font-weight:900; color:#1e40af;">
+          <td style="background:#ffffff; white-space:nowrap; text-align:center; font-weight:900; color:#1e40af;">
             ${formatCell(grandMinPascaRp, grandMaxPascaRp, true).replace('+','')}
           </td>
           
@@ -10467,11 +10467,11 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     let simKurangScenarios = window.globalSimKurangScenarios;
     if (!simKurangScenarios) { simKurangScenarios = [1.0, 1.0, 1.0]; }
 
-    const tariffKey = state.activeTariffScenario || "1370_full";
+    const tariffKey = state.activeTariffScenario || "1370_af";
     const TARIFF_LABELS = {
-      "1370_full": "iDRG 1370 - AF + AFreg + AFkep (Default)",
+      "1370_full": "iDRG 1370 - AF + AFreg + AFkep",
       "1370_afreg": "iDRG 1370 - AF + AFreg",
-      "1370_af": "iDRG 1370 - AF Saja",
+      "1370_af": "iDRG 1370 - AF Saja (Default)",
       "1370_noaf": "iDRG 1370 - Tanpa AF (Base)",
       "1370_juknis": "iDRG 1370 - Juknis Top-Up",
       "1363_full": "iDRG 1363 - AF + AFreg + AFkep",
