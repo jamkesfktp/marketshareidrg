@@ -2111,7 +2111,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     }
     window.idrgMapUi = { service: Object.keys(source.services)[0], region: "ALL", hospitalClass: "WITHOUT_SPECIAL", rawatClass: "ALL", ownership: "ALL", severity: "ALL", search: "", page: 0, view: "summary", ...(window.idrgMapUi || {}) };
     const ui = window.idrgMapUi;
-    if (!["WITHOUT_SPECIAL", "WITH_SPECIAL"].includes(ui.hospitalClass)) ui.hospitalClass = "WITHOUT_SPECIAL";
+    if (!["WITHOUT_SPECIAL", "WITH_SPECIAL", "A", "B", "C", "D", "RS KHUSUS"].includes(ui.hospitalClass)) ui.hospitalClass = "WITHOUT_SPECIAL";
     const services = [...new Set([...Object.keys(source.services), "FORENSIK"])].sort();
     if (!services.includes(ui.service)) ui.service = services[0];
     const query = ui.search.trim().toLowerCase();
