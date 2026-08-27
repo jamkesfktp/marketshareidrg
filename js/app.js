@@ -1943,10 +1943,10 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const lossLevelLabel = rules.kurang.map((level) => levelNames[level]).join(" & ") || "Di Luar Kompetensi";
     const scenarioDefs = [
       { name: "Baseline", add: 0 },
-      { name: "Konservatif", add: 2 },
-      { name: "Moderat", add: 5 },
-      { name: "Optimistik", add: 10 },
-      { name: "Ekspansif", add: 15 }
+      { name: "Konservatif (+5%)", add: 5 },
+      { name: "Moderat (+10%)", add: 10 },
+      { name: "Optimistik (+15%)", add: 15 },
+      { name: "Ekspansif (+20%)", add: 20 }
     ];
     const overrideKey = `${activeDatasetKey}|${target.code}|${service}`;
     window.dynamicMarketOverrides = window.dynamicMarketOverrides || {};
@@ -7326,10 +7326,10 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const lossLevelLabel = rules.kurang.map((level) => levelNames[level]).join(" & ") || "Di Luar Kompetensi";
     const scenarioDefs = [
       { name: "Baseline", add: 0 },
-      { name: "Konservatif", add: 2 },
-      { name: "Moderat", add: 5 },
-      { name: "Optimistik", add: 10 },
-      { name: "Ekspansif", add: 15 }
+      { name: "Konservatif (+5%)", add: 5 },
+      { name: "Moderat (+10%)", add: 10 },
+      { name: "Optimistik (+15%)", add: 15 },
+      { name: "Ekspansif (+20%)", add: 20 }
     ];
     const overrideKey = `${activeDatasetKey}|${target.code}|${service}`;
     window.dynamicMarketOverrides = window.dynamicMarketOverrides || {};
@@ -10658,6 +10658,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       window.setTimeout(() => bootScreen?.remove(), 260);
     });
   });
+
 
 
 
