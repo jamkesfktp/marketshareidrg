@@ -1893,20 +1893,20 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           lossIdrg += item.targetIdrg * pct;
         }
       });
-      const projectedCases = Math.max(0, competencyExistingCases - lossCases + addCases);
-      const projectedIdrg = Math.max(0, competencyExistingIdrg - lossIdrg + addIdrg);
+      const projectedCases = competencyExistingCases + addCases;
+      const projectedIdrg = competencyExistingIdrg + addIdrg;
       return {
         definition, scenarioIndex, addCases, addIdrg, lossCases, lossIdrg, projectedCases, projectedIdrg
       };
     });
 
-    const safeScenarios = scenarioResults.filter(r => r.projectedCases <= competencyExistingCases);
+    const safeScenarios = scenarioResults.filter(r => r.projectedCases <= baselineCases);
     let mostLogicalIdx = 0;
     if (safeScenarios.length > 0) {
-      safeScenarios.sort((a, b) => (b.projectedIdrg - competencyExistingIna) - (a.projectedIdrg - competencyExistingIna) || b.addCases - a.addCases);
+      safeScenarios.sort((a, b) => (b.projectedIdrg - competencyExistingIdrg) - (a.projectedIdrg - competencyExistingIdrg) || b.addCases - a.addCases);
       mostLogicalIdx = safeScenarios[0].scenarioIndex;
     } else {
-      const sortedUnsafe = [...scenarioResults].sort((a, b) => a.projectedCases - b.projectedCases || (b.projectedIdrg - competencyExistingIna) - (a.projectedIdrg - competencyExistingIna));
+      const sortedUnsafe = [...scenarioResults].sort((a, b) => a.projectedCases - b.projectedCases || (b.projectedIdrg - competencyExistingIdrg) - (a.projectedIdrg - competencyExistingIdrg));
       mostLogicalIdx = sortedUnsafe[0].scenarioIndex;
     }
 
@@ -7278,18 +7278,18 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       });
       return {
         definition, scenarioIndex, addCases, addIdrg, lossCases, lossIdrg,
-        projectedCases: Math.max(0, competencyExistingCases - lossCases + addCases),
-        projectedIdrg: Math.max(0, competencyExistingIdrg - lossIdrg + addIdrg)
+        projectedCases: competencyExistingCases + addCases,
+        projectedIdrg: competencyExistingIdrg + addIdrg
       };
     });
 
-    const safeScenarios = results.filter(r => r.projectedCases <= competencyExistingCases);
+    const safeScenarios = results.filter(r => r.projectedCases <= baselineCases);
     let mostLogicalIdx = 0;
     if (safeScenarios.length > 0) {
-      safeScenarios.sort((a, b) => (b.projectedIdrg - competencyExistingIna) - (a.projectedIdrg - competencyExistingIna) || b.addCases - a.addCases);
+      safeScenarios.sort((a, b) => (b.projectedIdrg - competencyExistingIdrg) - (a.projectedIdrg - competencyExistingIdrg) || b.addCases - a.addCases);
       mostLogicalIdx = safeScenarios[0].scenarioIndex;
     } else {
-      const sortedUnsafe = [...results].sort((a, b) => a.projectedCases - b.projectedCases || (b.projectedIdrg - competencyExistingIna) - (a.projectedIdrg - competencyExistingIna));
+      const sortedUnsafe = [...results].sort((a, b) => a.projectedCases - b.projectedCases || (b.projectedIdrg - competencyExistingIdrg) - (a.projectedIdrg - competencyExistingIdrg));
       mostLogicalIdx = sortedUnsafe[0].scenarioIndex;
     }
 
