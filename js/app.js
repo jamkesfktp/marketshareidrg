@@ -396,12 +396,12 @@
     
     // Hitung baseline market share alami per level (100 / (n_kompetitor + 1))
     // Skenario 1 = Baseline  : % tambah = market share alami dari regional pool
-    // Skenario 2 = Konservatif: baseline × 1.25
-    // Skenario 3 = Moderat    : baseline × 1.5
-    // Skenario 4 = Optimistik : baseline × 2.0
-    // Skenario 5 = Agresif    : baseline × 2.5
+    // Skenario 2 = Konservatif: baseline + 2%
+    // Skenario 3 = Moderat    : baseline + 5%
+    // Skenario 4 = Optimistik : baseline + 10%
+    // Skenario 5 = Agresif    : baseline + 15%
     // Skenario 6 = Maksimum   : 100% (ambil semua potensi)
-    const multipliers = [1.0, 1.25, 1.5, 2.0, 2.5, null]; // null = 100%
+    const additions = [0, 2, 5, 10, 15, null]; // null = 100%
     
     // Hitung baseline % per level tambah
     const baselinePct = {};
@@ -416,13 +416,13 @@
     
     return Array(6).fill().map((_, i) => {
       const scn = {};
-      const mult = multipliers[i];
+      const addVal = additions[i];
       
       rules.tambah.forEach(lvl => {
-        if (mult === null) {
+        if (addVal === null) {
           scn["tambah_" + lvl] = 100; // Skenario 6: Maksimum
         } else {
-          scn["tambah_" + lvl] = parseFloat(Math.min(100, baselinePct[lvl] * mult).toFixed(1));
+          scn["tambah_" + lvl] = parseFloat(Math.min(100, baselinePct[lvl] + addVal).toFixed(1));
         }
       });
       
@@ -1468,10 +1468,10 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       if (!window.competencySimScenariosHasInit || window.lastSimCompetitorCount !== competitorCount) {
         const natural = competitorCount > 0 ? (100 / (competitorCount + 1)) : 100;
         window.competencySimScenarios = [
-          Number((natural * 0.5).toFixed(1)),
-          Number((natural * 1.0).toFixed(1)),
-          Number((natural * 1.5).toFixed(1)),
-          Number((natural * 2.0).toFixed(1))
+          Number(Math.min(100, natural).toFixed(1)),
+          Number(Math.min(100, natural + 2).toFixed(1)),
+          Number(Math.min(100, natural + 5).toFixed(1)),
+          Number(Math.min(100, natural + 10).toFixed(1))
         ];
         window.competencySimScenariosHasInit = true;
         window.lastSimCompetitorCount = competitorCount;
@@ -1866,11 +1866,11 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const competencyLevelLabel = competencyExisting.map((item) => levelNames[item.level]).join(" & ") || levelNames[targetComp];
     const lossLevelLabel = rules.kurang.map((level) => levelNames[level]).join(" & ") || "Di Luar Kompetensi";
     const scenarioDefs = [
-      { name: "Konservatif", factor: 0.50 },
-      { name: "Moderat", factor: 0.75 },
-      { name: "Proporsional", factor: 1.00 },
-      { name: "Ekspansif", factor: 1.50 },
-      { name: "Maksimum Rasional", factor: 2.00 }
+      { name: "Baseline", add: 0 },
+      { name: "Konservatif", add: 2 },
+      { name: "Moderat", add: 5 },
+      { name: "Optimistik", add: 10 },
+      { name: "Ekspansif", add: 15 }
     ];
     const overrideKey = `${activeDatasetKey}|${target.code}|${service}`;
     window.dynamicMarketOverrides = window.dynamicMarketOverrides || {};
@@ -1878,7 +1878,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const pctFor = (scenarioIndex, item) => {
       const field = `${item.direction}_${item.level}`;
       const manual = overrides[scenarioIndex]?.[field];
-      return Number.isFinite(manual) ? manual : (item.direction === "kurang" ? 100 : Math.min(100, item.naturalShare * scenarioDefs[scenarioIndex].factor));
+      return Number.isFinite(manual) ? manual : (item.direction === "kurang" ? 100 : Math.min(100, item.naturalShare + scenarioDefs[scenarioIndex].add));
     };
 
     const scenarioResults = scenarioDefs.map((definition, scenarioIndex) => {
@@ -1893,9 +1893,11 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           lossIdrg += item.targetIdrg * pct;
         }
       });
-      const projectedCases = Math.max(0, competencyExistingCases + addCases);
-      const projectedIdrg = Math.max(0, competencyExistingIdrg + addIdrg);
-      return { definition, scenarioIndex, addCases, addIdrg, lossCases, lossIdrg, projectedCases, projectedIdrg };
+      const projectedCases = Math.max(0, competencyExistingCases - lossCases + addCases);
+      const projectedIdrg = Math.max(0, competencyExistingIdrg - lossIdrg + addIdrg);
+      return {
+        definition, scenarioIndex, addCases, addIdrg, lossCases, lossIdrg, projectedCases, projectedIdrg
+      };
     });
 
     const safeScenarios = scenarioResults.filter(r => r.projectedCases <= competencyExistingCases);
@@ -1986,7 +1988,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
             const deltaIna = result.projectedIdrg - competencyExistingIna;
             const deltaInaPct = competencyExistingIna > 0 ? deltaIna / competencyExistingIna * 100 : 0;
             return `<tr style="background:${result.scenarioIndex === mostLogicalIdx ? "#ecfeff" : "#fff"};">
-              <td style="border:1px solid #1e293b;padding:6px;font-weight:900;white-space:nowrap;">Skenario ${result.scenarioIndex + 1}${result.scenarioIndex === mostLogicalIdx ? ' <span style="font-size: 8px; color: #ffffff; background: #ea580c; padding: 1px 4px; border-radius: 3px;">⚡ Paling Logis</span>' : ''}<div style="font-size:9px;color:#64748b;">${result.definition.name}<br>${result.definition.factor.toFixed(2).replace(".", ",")}× natural</div></td>
+              <td style="border:1px solid #1e293b;padding:6px;font-weight:900;white-space:nowrap;">Skenario ${result.scenarioIndex + 1}${result.scenarioIndex === mostLogicalIdx ? ' <span style="font-size: 8px; color: #ffffff; background: #ea580c; padding: 1px 4px; border-radius: 3px;">⚡ Paling Logis</span>' : ''}<div style="font-size:9px;color:#64748b;">${result.definition.name}<br>+${result.definition.add}% dari natural</div></td>
               ${result.scenarioIndex === 0 ? `<td rowspan="${scenarioResults.length}" style="border:1px solid #1e293b;padding:7px;background:#f8fafc;min-width:175px;"><div style="font-size:10px;color:#475569;">EKSISTING ${competencyLevelLabel.toUpperCase()}</div><div style="font-size:16px;font-weight:900;color:#0f172a;margin:3px 0;">${formatNumber(competencyExistingCases)} kasus</div><div style="font-size:10px;font-weight:800;color:#c2410c;">INA ${formatTableMoney(competencyExistingIna)}</div><div style="font-size:10px;font-weight:800;color:#0369a1;">iDRG ${formatTableMoney(competencyExistingIdrg)}</div></td>` : ""}
               <td style="border:1px solid #1e293b;padding:5px;min-width:105px;color:#15803d;font-weight:700;">${pctInputLines(result.scenarioIndex, "tambah")}</td><td style="border:1px solid #1e293b;padding:6px;font-weight:900;">${formatNumber(Math.round(result.addCases))}</td><td style="border:1px solid #1e293b;padding:6px;font-weight:900;color:#059669;">+${formatTableMoney(result.addIdrg)}</td>
               <td style="border:1px solid #1e293b;padding:5px;min-width:105px;color:#be123c;font-weight:700;">${pctInputLines(result.scenarioIndex, "kurang")}</td><td style="border:1px solid #1e293b;padding:6px;font-weight:900;">${formatNumber(Math.round(result.lossCases))}</td><td style="border:1px solid #1e293b;padding:6px;font-weight:900;color:#e11d48;">−${formatTableMoney(result.lossIdrg)}</td>
@@ -7274,8 +7276,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       });
       return {
         definition, scenarioIndex, addCases, addIdrg, lossCases, lossIdrg,
-        projectedCases: Math.max(0, competencyExistingCases + addCases),
-        projectedIdrg: Math.max(0, competencyExistingIdrg + addIdrg)
+        projectedCases: Math.max(0, competencyExistingCases - lossCases + addCases),
+        projectedIdrg: Math.max(0, competencyExistingIdrg - lossIdrg + addIdrg)
       };
     });
 
@@ -7312,7 +7314,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           const deltaIncome = result.projectedIdrg - competencyExistingIna;
           const deltaIncomePct = competencyExistingIna > 0 ? deltaIncome / competencyExistingIna * 100 : 0;
           const cell = 'border:1px solid #cbd5e1;padding:4px;';
-          return `<tr style="background:${result.scenarioIndex === mostLogicalIdx ? '#ecfeff' : '#fff'};"><td style="${cell}font-weight:900;white-space:nowrap;">Skenario ${result.scenarioIndex + 1}${result.scenarioIndex === mostLogicalIdx ? ' <span style="font-size: 8px; color: #ffffff; background: #ea580c; padding: 1px 4px; border-radius: 3px;">⚡ Paling Logis</span>' : ''}<div style="font-size:8px;color:#64748b;">${result.definition.name} · ${result.definition.factor.toFixed(2).replace('.', ',')}×</div></td>
+          return `<tr style="background:${result.scenarioIndex === mostLogicalIdx ? '#ecfeff' : '#fff'};"><td style="${cell}font-weight:900;white-space:nowrap;">Skenario ${result.scenarioIndex + 1}${result.scenarioIndex === mostLogicalIdx ? ' <span style="font-size: 8px; color: #ffffff; background: #ea580c; padding: 1px 4px; border-radius: 3px;">⚡ Paling Logis</span>' : ''}<div style="font-size:8px;color:#64748b;">${result.definition.name} · +${result.definition.add}% natural</div></td>
             ${result.scenarioIndex === 0 ? `<td rowspan="${results.length}" style="${cell}background:#f8fafc;min-width:135px;"><b>${formatNumber(competencyExistingCases)} kasus</b><div style="font-size:9px;color:#c2410c;">INA ${formatTableMoney(competencyExistingIna)}</div><div style="font-size:9px;color:#0369a1;">iDRG ${formatTableMoney(competencyExistingIdrg)}</div></td>` : ''}
             <td style="${cell}min-width:92px;color:#15803d;font-weight:700;">${pctInputs(result.scenarioIndex, "tambah")}</td><td style="${cell}font-weight:800;">${formatNumber(Math.round(result.addCases))}</td><td style="${cell}font-weight:800;color:#059669;">+${formatTableMoney(result.addIdrg)}</td>
             <td style="${cell}min-width:92px;color:#be123c;font-weight:700;">${pctInputs(result.scenarioIndex, "kurang")}</td><td style="${cell}font-weight:800;">${formatNumber(Math.round(result.lossCases))}</td><td style="${cell}font-weight:800;color:#e11d48;">−${formatTableMoney(result.lossIdrg)}</td>
