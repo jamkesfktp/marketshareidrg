@@ -40,6 +40,62 @@
     setTimeout(() => { btn.innerHTML = oldHtml; }, 1500);
   };
 
+  window.copyFullTable = function(btn) {
+    const table = btn.parentElement.nextElementSibling.querySelector('table');
+    let html = "<table style='border-collapse:collapse; text-align:center;'>";
+    let tsv = "";
+    for (let i = 0; i < table.rows.length; i++) {
+      let row = table.rows[i];
+      html += "<tr>";
+      let rowTsv = [];
+      for (let j = 0; j < row.cells.length; j++) {
+        let cell = row.cells[j];
+        let text = "";
+        let labels = cell.querySelectorAll('label');
+        if (labels.length > 0 && cell.querySelector('input')) {
+          let vals = [];
+          labels.forEach(lbl => {
+             let prefixSpan = lbl.querySelector('span');
+             let inp = lbl.querySelector('input');
+             if (prefixSpan && inp) {
+               vals.push(prefixSpan.innerText.trim() + " " + inp.value + "%");
+             }
+          });
+          text = vals.join(" <br> ");
+        } else {
+          text = cell.innerText.trim().replace(/\n/g, ' <br> ');
+        }
+        
+        let rs = cell.rowSpan > 1 ? ` rowspan="${cell.rowSpan}"` : "";
+        let cs = cell.colSpan > 1 ? ` colspan="${cell.colSpan}"` : "";
+        let bg = cell.style.backgroundColor ? ` background-color:${cell.style.backgroundColor};` : "";
+        let color = cell.style.color ? ` color:${cell.style.color};` : "";
+        html += `<td${rs}${cs} style="border:1px solid #000; padding:4px;${bg}${color}">${text}</td>`;
+        rowTsv.push(`"${text.replace(/ <br> /g, '\n').replace(/"/g, '""')}"`);
+      }
+      html += "</tr>";
+      tsv += rowTsv.join("\t") + "\n";
+    }
+    html += "</table>";
+    
+    try {
+      const blobHtml = new Blob([html], { type: 'text/html' });
+      const blobText = new Blob([tsv], { type: 'text/plain' });
+      const item = new ClipboardItem({
+        'text/html': blobHtml,
+        'text/plain': blobText
+      });
+      navigator.clipboard.write([item]);
+    } catch (e) {
+      // Fallback for older browsers
+      navigator.clipboard.writeText(tsv);
+    }
+    
+    const old = btn.innerHTML;
+    btn.innerHTML = "✅ Berhasil dicopy! Paste ke PPT/Excel";
+    setTimeout(() => { btn.innerHTML = old; }, 2500);
+  };
+
   const DATASET_PERIODS = {
     "okt_jun": {
       key: "okt_jun",
@@ -1936,6 +1992,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       .join("") || '<span style="color:#94a3b8;">—</span>';
     container.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px;padding:8px 10px;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:9px;">
+        <button type="button" onclick="copyFullTable(this)" style="background:#2563eb;color:#fff;border:none;padding:5px 12px;border-radius:5px;font-weight:bold;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:6px;"><span style="font-size:14px;">??</span> Copy Seluruh Tabel (untuk Excel / PPT)</button>
         <div style="display:flex;align-items:center;gap:9px;min-width:0;">
           <label style="font-size:11px;font-weight:900;color:#5b21b6;white-space:nowrap;">LAYANAN</label>
           <select id="dynamicMarketServiceSelect" style="min-width:420px;max-width:660px;padding:6px 9px;border:1.5px solid #7c3aed;border-radius:7px;background:#fff;font-size:12px;font-weight:750;color:#312e81;">
@@ -10601,6 +10658,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       window.setTimeout(() => bootScreen?.remove(), 260);
     });
   });
+
 
 
 
