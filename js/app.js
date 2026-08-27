@@ -1974,19 +1974,19 @@ document.getElementById("globalSimulationSlide").innerHTML = `
               <th colspan="3" style="border:1px solid #1e293b;padding:7px;background:#059669;">Tambahan Kasus ${competencyLevelLabel} dari ${sourceRelationLabel}</th>
               <th colspan="3" style="border:1px solid #1e293b;padding:7px;background:#e11d48;">Pengurangan Kasus ${lossLevelLabel} di Luar Kompetensi Target</th>
               <th rowspan="2" style="border:1px solid #1e293b;padding:7px;background:#047857;">Total Pendapatan Pasca iDRG &amp; RBKP</th>
-              <th colspan="4" style="border:1px solid #1e293b;padding:7px;background:#0d9488;">Net +/- Pasca iDRG &amp; RBKP (vs Eksisting)</th>
+              <th colspan="4" style="border:1px solid #1e293b;padding:7px;background:#0d9488;">Net +/- Pasca iDRG &amp; RBKP (vs Eksisting INA-CBG Keseluruhan)</th>
             </tr>
             <tr>
               <th style="border:1px solid #1e293b;padding:6px;background:#10b981;">Persentase Dinamis</th><th style="border:1px solid #1e293b;padding:6px;background:#10b981;">Jumlah Kasus</th><th style="border:1px solid #1e293b;padding:6px;background:#10b981;">Tambahan</th>
               <th style="border:1px solid #1e293b;padding:6px;background:#f43f5e;">Persentase Dinamis</th><th style="border:1px solid #1e293b;padding:6px;background:#f43f5e;">Jumlah Kasus</th><th style="border:1px solid #1e293b;padding:6px;background:#f43f5e;">Pengurangan</th>
-              <th style="border:1px solid #1e293b;padding:6px;background:#14b8a6;">+/- Kasus</th><th style="border:1px solid #1e293b;padding:6px;background:#14b8a6;">% thd Total Kasus</th><th style="border:1px solid #1e293b;padding:6px;background:#14b8a6;">+/- Pendapatan</th><th style="border:1px solid #1e293b;padding:6px;background:#14b8a6;">% +/- Pendapatan</th>
+              <th style="border:1px solid #1e293b;padding:6px;background:#14b8a6;">+/- Kasus</th><th style="border:1px solid #1e293b;padding:6px;background:#14b8a6;">% Kasus</th><th style="border:1px solid #1e293b;padding:6px;background:#14b8a6;">+/- Pendapatan</th><th style="border:1px solid #1e293b;padding:6px;background:#14b8a6;">% Pendapatan</th>
             </tr>
           </thead>
           <tbody>${scenarioResults.map((result) => {
-            const deltaCases = result.projectedCases - competencyExistingCases;
-          const deltaCasesPct = competencyExistingCases > 0 ? deltaCases / competencyExistingCases * 100 : 0;
-          const deltaIna = result.projectedIdrg - competencyExistingIdrg;
-          const deltaInaPct = competencyExistingIdrg > 0 ? deltaIna / competencyExistingIdrg * 100 : 0;
+            const deltaCases = result.projectedCases - baselineCases;
+            const deltaCasesPct = baselineCases > 0 ? deltaCases / baselineCases * 100 : 0;
+            const deltaIna = result.projectedIdrg - baselineIna;
+            const deltaInaPct = baselineIna > 0 ? deltaIna / baselineIna * 100 : 0;
             return `<tr style="background:${result.scenarioIndex === mostLogicalIdx ? "#ecfeff" : "#fff"};">
               <td style="border:1px solid #1e293b;padding:6px;font-weight:900;white-space:nowrap;">Skenario ${result.scenarioIndex + 1}${result.scenarioIndex === mostLogicalIdx ? ' <span style="font-size: 8px; color: #ffffff; background: #ea580c; padding: 1px 4px; border-radius: 3px;">⚡ Paling Logis</span>' : ''}<div style="font-size:9px;color:#64748b;">${result.definition.name}<br>+${result.definition.add}% dari natural</div></td>
               ${result.scenarioIndex === 0 ? `<td rowspan="${scenarioResults.length}" style="border:1px solid #1e293b;padding:7px;background:#f8fafc;min-width:175px;"><div style="font-size:10px;color:#475569;">EKSISTING ${competencyLevelLabel.toUpperCase()}</div><div style="font-size:16px;font-weight:900;color:#0f172a;margin:3px 0;">${formatNumber(competencyExistingCases)} kasus</div><div style="font-size:10px;font-weight:800;color:#c2410c;">INA ${formatTableMoney(competencyExistingIna)}</div><div style="font-size:10px;font-weight:800;color:#0369a1;">iDRG ${formatTableMoney(competencyExistingIdrg)}</div></td>` : ""}
@@ -7278,18 +7278,18 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       });
       return {
         definition, scenarioIndex, addCases, addIdrg, lossCases, lossIdrg,
-        projectedCases: competencyExistingCases + addCases,
-        projectedIdrg: competencyExistingIdrg + addIdrg
+        projectedCases: Math.max(0, baselineCases - lossCases + addCases),
+        projectedIdrg: Math.max(0, baselineIdrg - lossIdrg + addIdrg)
       };
     });
 
     const safeScenarios = results.filter(r => r.projectedCases <= baselineCases);
     let mostLogicalIdx = 0;
     if (safeScenarios.length > 0) {
-      safeScenarios.sort((a, b) => (b.projectedIdrg - competencyExistingIdrg) - (a.projectedIdrg - competencyExistingIdrg) || b.addCases - a.addCases);
+      safeScenarios.sort((a, b) => (b.projectedIdrg - baselineIna) - (a.projectedIdrg - baselineIna) || b.addCases - a.addCases);
       mostLogicalIdx = safeScenarios[0].scenarioIndex;
     } else {
-      const sortedUnsafe = [...results].sort((a, b) => a.projectedCases - b.projectedCases || (b.projectedIdrg - competencyExistingIdrg) - (a.projectedIdrg - competencyExistingIdrg));
+      const sortedUnsafe = [...results].sort((a, b) => a.projectedCases - b.projectedCases || (b.projectedIdrg - baselineIna) - (a.projectedIdrg - baselineIna));
       mostLogicalIdx = sortedUnsafe[0].scenarioIndex;
     }
 
@@ -7305,16 +7305,16 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           <th colspan="3" style="border:1px solid #fff;padding:5px;background:#059669;color:#fff;">TAMBAHAN ${competencyLevelLabel.toUpperCase()} DARI ${sourceRelationLabel.toUpperCase()}</th>
           <th colspan="3" style="border:1px solid #fff;padding:5px;background:#e11d48;color:#fff;">PENGURANGAN ${lossLevelLabel.toUpperCase()}</th>
           <th rowspan="2" style="border:1px solid #fff;padding:5px;background:#047857;color:#fff;">TOTAL PENDAPATAN PASCA iDRG</th>
-          <th colspan="4" style="border:1px solid #fff;padding:5px;background:#0d9488;color:#fff;">NET +/- PASCA iDRG (VS EKSISTING)</th>
+          <th colspan="4" style="border:1px solid #fff;padding:5px;background:#0d9488;color:#fff;">NET +/- PASCA iDRG (VS EKSISTING INA-CBG KESELURUHAN)</th>
         </tr><tr>
           <th style="background:#10b981;color:#fff;padding:4px;">% Dinamis</th><th style="background:#10b981;color:#fff;padding:4px;">Kasus</th><th style="background:#10b981;color:#fff;padding:4px;">Pendapatan</th>
           <th style="background:#f43f5e;color:#fff;padding:4px;">% Dinamis</th><th style="background:#f43f5e;color:#fff;padding:4px;">Kasus</th><th style="background:#f43f5e;color:#fff;padding:4px;">Pendapatan</th>
           <th style="background:#14b8a6;color:#fff;padding:4px;">Kasus</th><th style="background:#14b8a6;color:#fff;padding:4px;">% Kasus</th><th style="background:#14b8a6;color:#fff;padding:4px;">Pendapatan</th><th style="background:#14b8a6;color:#fff;padding:4px;">% Pendapatan</th>
         </tr></thead><tbody>${results.map((result) => {
-          const deltaCases = result.projectedCases - competencyExistingCases;
-          const deltaCasesPct = competencyExistingCases > 0 ? deltaCases / competencyExistingCases * 100 : 0;
-          const deltaIncome = result.projectedIdrg - competencyExistingIdrg;
-          const deltaIncomePct = competencyExistingIdrg > 0 ? deltaIncome / competencyExistingIdrg * 100 : 0;
+          const deltaCases = result.projectedCases - baselineCases;
+          const deltaCasesPct = baselineCases > 0 ? deltaCases / baselineCases * 100 : 0;
+          const deltaIncome = result.projectedIdrg - baselineIna;
+          const deltaIncomePct = baselineIna > 0 ? deltaIncome / baselineIna * 100 : 0;
           const cell = 'border:1px solid #cbd5e1;padding:4px;';
           return `<tr style="background:${result.scenarioIndex === mostLogicalIdx ? '#ecfeff' : '#fff'};"><td style="${cell}font-weight:900;white-space:nowrap;">Skenario ${result.scenarioIndex + 1}${result.scenarioIndex === mostLogicalIdx ? ' <span style="font-size: 8px; color: #ffffff; background: #ea580c; padding: 1px 4px; border-radius: 3px;">⚡ Paling Logis</span>' : ''}<div style="font-size:8px;color:#64748b;">${result.definition.name} · +${result.definition.add}% natural</div></td>
             ${result.scenarioIndex === 0 ? `<td rowspan="${results.length}" style="${cell}background:#f8fafc;min-width:145px;"><div style="font-size:16px; font-weight:900; color:#0f172a; margin-bottom:4px;">${formatNumber(competencyExistingCases)} kasus</div><div style="font-size:11px; font-weight:800; color:#c2410c;">INA ${formatTableMoney(competencyExistingIna)}</div><div style="font-size:11px; font-weight:800; color:#0369a1;">iDRG ${formatTableMoney(competencyExistingIdrg)}</div></td>` : ''}
