@@ -7248,9 +7248,11 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const competencyLevelLabel = competencyExisting.map((item) => levelNames[item.level]).join(" & ") || levelNames[targetComp];
     const lossLevelLabel = rules.kurang.map((level) => levelNames[level]).join(" & ") || "Di Luar Kompetensi";
     const scenarioDefs = [
-      { name: "Konservatif", factor: 0.50 }, { name: "Moderat", factor: 0.75 },
-      { name: "Proporsional", factor: 1.00 }, { name: "Ekspansif", factor: 1.50 },
-      { name: "Maksimum Rasional", factor: 2.00 }
+      { name: "Baseline", add: 0 },
+      { name: "Konservatif", add: 2 },
+      { name: "Moderat", add: 5 },
+      { name: "Optimistik", add: 10 },
+      { name: "Ekspansif", add: 15 }
     ];
     const overrideKey = `${activeDatasetKey}|${target.code}|${service}`;
     window.dynamicMarketOverrides = window.dynamicMarketOverrides || {};
