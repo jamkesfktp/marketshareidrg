@@ -1898,6 +1898,16 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       return { definition, scenarioIndex, addCases, addIdrg, lossCases, lossIdrg, projectedCases, projectedIdrg };
     });
 
+    const safeScenarios = scenarioResults.filter(r => r.projectedCases <= competencyExistingCases);
+    let mostLogicalIdx = 0;
+    if (safeScenarios.length > 0) {
+      safeScenarios.sort((a, b) => (b.projectedIdrg - competencyExistingIna) - (a.projectedIdrg - competencyExistingIna) || b.addCases - a.addCases);
+      mostLogicalIdx = safeScenarios[0].scenarioIndex;
+    } else {
+      const sortedUnsafe = [...scenarioResults].sort((a, b) => a.projectedCases - b.projectedCases || (b.projectedIdrg - competencyExistingIna) - (a.projectedIdrg - competencyExistingIna));
+      mostLogicalIdx = sortedUnsafe[0].scenarioIndex;
+    }
+
     const pctInputLines = (scenarioIndex, direction) => levelData
       .filter((item) => item.direction === direction)
       .map((item) => `<label style="display:flex;align-items:center;justify-content:space-between;gap:4px;white-space:nowrap;"><span>${shortLevelNames[item.level]}</span><span><input class="dynamic-market-pct" data-scenario="${scenarioIndex}" data-direction="${direction}" data-level="${item.level}" type="number" min="0" max="100" step="0.1" value="${pctFor(scenarioIndex, item).toFixed(1)}" style="width:52px;padding:3px;text-align:right;border:1px solid #cbd5e1;border-radius:4px;font-weight:800;">%</span></label>`)
@@ -1975,8 +1985,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
             const deltaCasesPct = competencyExistingCases > 0 ? deltaCases / competencyExistingCases * 100 : 0;
             const deltaIna = result.projectedIdrg - competencyExistingIna;
             const deltaInaPct = competencyExistingIna > 0 ? deltaIna / competencyExistingIna * 100 : 0;
-            return `<tr style="background:${result.scenarioIndex === 2 ? "#ecfeff" : "#fff"};">
-              <td style="border:1px solid #1e293b;padding:6px;font-weight:900;white-space:nowrap;">Skenario ${result.scenarioIndex + 1}<div style="font-size:9px;color:#64748b;">${result.definition.name}<br>${result.definition.factor.toFixed(2).replace(".", ",")}× natural</div></td>
+            return `<tr style="background:${result.scenarioIndex === mostLogicalIdx ? "#ecfeff" : "#fff"};">
+              <td style="border:1px solid #1e293b;padding:6px;font-weight:900;white-space:nowrap;">Skenario ${result.scenarioIndex + 1}${result.scenarioIndex === mostLogicalIdx ? ' <span style="font-size: 8px; color: #ffffff; background: #ea580c; padding: 1px 4px; border-radius: 3px;">⚡ Paling Logis</span>' : ''}<div style="font-size:9px;color:#64748b;">${result.definition.name}<br>${result.definition.factor.toFixed(2).replace(".", ",")}× natural</div></td>
               ${result.scenarioIndex === 0 ? `<td rowspan="${scenarioResults.length}" style="border:1px solid #1e293b;padding:7px;background:#f8fafc;min-width:175px;"><div style="font-size:10px;color:#475569;">EKSISTING ${competencyLevelLabel.toUpperCase()}</div><div style="font-size:16px;font-weight:900;color:#0f172a;margin:3px 0;">${formatNumber(competencyExistingCases)} kasus</div><div style="font-size:10px;font-weight:800;color:#c2410c;">INA ${formatTableMoney(competencyExistingIna)}</div><div style="font-size:10px;font-weight:800;color:#0369a1;">iDRG ${formatTableMoney(competencyExistingIdrg)}</div></td>` : ""}
               <td style="border:1px solid #1e293b;padding:5px;min-width:105px;color:#15803d;font-weight:700;">${pctInputLines(result.scenarioIndex, "tambah")}</td><td style="border:1px solid #1e293b;padding:6px;font-weight:900;">${formatNumber(Math.round(result.addCases))}</td><td style="border:1px solid #1e293b;padding:6px;font-weight:900;color:#059669;">+${formatTableMoney(result.addIdrg)}</td>
               <td style="border:1px solid #1e293b;padding:5px;min-width:105px;color:#be123c;font-weight:700;">${pctInputLines(result.scenarioIndex, "kurang")}</td><td style="border:1px solid #1e293b;padding:6px;font-weight:900;">${formatNumber(Math.round(result.lossCases))}</td><td style="border:1px solid #1e293b;padding:6px;font-weight:900;color:#e11d48;">−${formatTableMoney(result.lossIdrg)}</td>
@@ -6896,27 +6906,27 @@ document.getElementById("globalSimulationSlide").innerHTML = `
             <div>-${formatNumber(grandKurangKasus)}</div>
             <div style="font-size: 11px;">-${(grandKurangRp/1e9).toFixed(2).replace('.', ',')} M</div>
           </td>
-          <td style="text-align: center; padding: 8px 6px; color: #15803d; background: #dcfce7;">
+          <td style="text-align: center; padding: 8px 6px; color: #0891b2; font-weight: 800; background: #cffafe;">
+            <div>${formatNumber(grandSisaKasus)}</div>
+            <div style="font-size: 11px;">${(grandSisaRp/1e9).toFixed(2).replace('.', ',')} M</div>
+          </td>
+          <td style="text-align: center; padding: 8px 6px; color: #15803d; background: #dcfce7; font-weight: 800;">
             <div>+${formatNumber(grandTambahKasus)}</div>
             <div style="font-size: 11px;">+${(grandTambahRp/1e9).toFixed(2).replace('.', ',')} M</div>
           </td>
-          <td style="text-align: center; padding: 8px 6px; color: ${grandNetKasus >= 0 ? '#15803d' : '#b91c1c'}; font-weight: 800;">
+          <td style="text-align: center; padding: 8px 6px; font-weight: 900; color: #92400e; background: #fef3c7;">
+            <div>${formatNumber(grandPascaKasus)}</div>
+            <div style="font-size: 10.5px; color: #166534; font-weight: 800;">${formatPercent(pctGrandRetensi)}</div>
+          </td>
+          <td style="text-align: center; padding: 8px 6px; font-weight: 900; color: #9a3412; background: #fef3c7;">
+            ${(grandPascaRp/1e9).toFixed(2).replace('.', ',')} M
+          </td>
+          <td style="text-align: center; padding: 8px 6px; color: ${grandNetKasus >= 0 ? '#15803d' : '#b91c1c'}; font-weight: 800; background: #f1f5f9;">
             ${grandNetKasus > 0 ? '+' : ''}${formatNumber(grandNetKasus)}
             <div style="font-size: 10.5px; font-weight: normal;">(${formatSignedPercent(pctGrandNetKasus)})</div>
           </td>
           <td style="text-align: center; padding: 8px 6px; color: ${grandNetRp >= 0 ? '#15803d' : '#b91c1c'}; font-weight: 800; background: #f1f5f9;">
             ${grandNetRp > 0 ? '+' : ''}${(grandNetRp/1e9).toFixed(2).replace('.', ',')} M
-          </td>
-          <td style="text-align: center; padding: 8px 6px; color: #0d9488; font-weight: 800; background: #ccfbf1;">
-            <div>${formatNumber(grandSisaKasus)}</div>
-            <div style="font-size: 11px;">${(grandSisaRp/1e9).toFixed(2).replace('.', ',')} M</div>
-          </td>
-          <td style="text-align: center; padding: 8px 6px; font-weight: 900; color: #1e40af; background: #dbeafe;">
-            <div>${formatNumber(grandPascaKasus)}</div>
-            <div style="font-size: 10.5px; color: #166534; font-weight: 800;">${formatPercent(pctGrandRetensi)}</div>
-          </td>
-          <td style="text-align: center; padding: 8px 6px; font-weight: 900; color: #0f766e; background: #dbeafe;">
-            ${(grandPascaRp/1e9).toFixed(2).replace('.', ',')} M
           </td>
           <td style="text-align: center; padding: 8px 6px; font-weight: 800; color: ${pctGrandPascaIna >= 0 ? '#15803d' : '#b91c1c'};">
             ${formatSignedPercent(pctGrandPascaIna)}
@@ -7268,6 +7278,17 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         projectedIdrg: Math.max(0, competencyExistingIdrg + addIdrg)
       };
     });
+
+    const safeScenarios = results.filter(r => r.projectedCases <= competencyExistingCases);
+    let mostLogicalIdx = 0;
+    if (safeScenarios.length > 0) {
+      safeScenarios.sort((a, b) => (b.projectedIdrg - competencyExistingIna) - (a.projectedIdrg - competencyExistingIna) || b.addCases - a.addCases);
+      mostLogicalIdx = safeScenarios[0].scenarioIndex;
+    } else {
+      const sortedUnsafe = [...results].sort((a, b) => a.projectedCases - b.projectedCases || (b.projectedIdrg - competencyExistingIna) - (a.projectedIdrg - competencyExistingIna));
+      mostLogicalIdx = sortedUnsafe[0].scenarioIndex;
+    }
+
     const pctInputs = (scenarioIndex, direction) => levelData.filter((item) => item.direction === direction).map((item) =>
       `<label style="display:flex;align-items:center;justify-content:space-between;gap:3px;white-space:nowrap;"><span>${shortLevelNames[item.level]}</span><span><input class="per-service-dynamic-pct" data-service="${escapeHtml(service)}" data-scenario="${scenarioIndex}" data-direction="${direction}" data-level="${item.level}" type="number" min="0" max="100" step="0.1" value="${pctFor(scenarioIndex, item).toFixed(1)}" style="width:48px;padding:2px;text-align:right;border:1px solid ${direction === "tambah" ? "#86efac" : "#fda4af"};border-radius:4px;color:${direction === "tambah" ? "#15803d" : "#be123c"};font-weight:800;">%</span></label>`
     ).join("") || '<span style="color:#94a3b8;">—</span>';
@@ -7291,7 +7312,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           const deltaIncome = result.projectedIdrg - competencyExistingIna;
           const deltaIncomePct = competencyExistingIna > 0 ? deltaIncome / competencyExistingIna * 100 : 0;
           const cell = 'border:1px solid #cbd5e1;padding:4px;';
-          return `<tr style="background:${result.scenarioIndex === 2 ? '#ecfeff' : '#fff'};"><td style="${cell}font-weight:900;white-space:nowrap;">Skenario ${result.scenarioIndex + 1}<div style="font-size:8px;color:#64748b;">${result.definition.name} · ${result.definition.factor.toFixed(2).replace('.', ',')}×</div></td>
+          return `<tr style="background:${result.scenarioIndex === mostLogicalIdx ? '#ecfeff' : '#fff'};"><td style="${cell}font-weight:900;white-space:nowrap;">Skenario ${result.scenarioIndex + 1}${result.scenarioIndex === mostLogicalIdx ? ' <span style="font-size: 8px; color: #ffffff; background: #ea580c; padding: 1px 4px; border-radius: 3px;">⚡ Paling Logis</span>' : ''}<div style="font-size:8px;color:#64748b;">${result.definition.name} · ${result.definition.factor.toFixed(2).replace('.', ',')}×</div></td>
             ${result.scenarioIndex === 0 ? `<td rowspan="${results.length}" style="${cell}background:#f8fafc;min-width:135px;"><b>${formatNumber(competencyExistingCases)} kasus</b><div style="font-size:9px;color:#c2410c;">INA ${formatTableMoney(competencyExistingIna)}</div><div style="font-size:9px;color:#0369a1;">iDRG ${formatTableMoney(competencyExistingIdrg)}</div></td>` : ''}
             <td style="${cell}min-width:92px;color:#15803d;font-weight:700;">${pctInputs(result.scenarioIndex, "tambah")}</td><td style="${cell}font-weight:800;">${formatNumber(Math.round(result.addCases))}</td><td style="${cell}font-weight:800;color:#059669;">+${formatTableMoney(result.addIdrg)}</td>
             <td style="${cell}min-width:92px;color:#be123c;font-weight:700;">${pctInputs(result.scenarioIndex, "kurang")}</td><td style="${cell}font-weight:800;">${formatNumber(Math.round(result.lossCases))}</td><td style="${cell}font-weight:800;color:#e11d48;">−${formatTableMoney(result.lossIdrg)}</td>

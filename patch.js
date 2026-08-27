@@ -1,15 +1,15 @@
 const fs = require('fs');
 let code = fs.readFileSync('js/app.js', 'utf8');
 
-code = code.replace(/const isMostLogical = index === mostLogicalScenarioIndex;/g, 'const isMostLogical = false;');
-code = code.replace(/const bgRow = isMostLogical \? \'#eff6ff\' : \'#ffffff\';/g, 'const bgRow = \'#ffffff\';');
-code = code.replace(/const cellBorder = isMostLogical \? \'border: 2px solid #3b82f6;\' : \'border: 1px solid #cbd5e1;\';/g, 'const cellBorder = \'border: 1px solid #cbd5e1;\';');
-code = code.replace(/const outlineRow = isMostLogical \? \'outline: 2px solid #3b82f6; outline-offset: -2px; z-index: 10; position: relative;\' : \'\';/g, 'const outlineRow = \'\';');
-code = code.replace(/const badge = isMostLogical \? \<div style=\"margin-top: 2px;\"><span style=\"font-size: 8px; color: #fff; background: #3b82f6; padding: 2px 4px; border-radius: 4px; font-weight: 700; text-transform: uppercase;\">Paling Logis<\/span><\/div>\ : \'\';/g, 'const badge = \'\';');
+code = code.split('"1370_full": { index: 2, label: "iDRG 1370 - AF + AFreg + AFkep (Default)"').join('"1370_full": { index: 2, label: "iDRG 1370 - AF + AFreg + AFkep"');
+code = code.split('"1370_af": { index: 4, label: "iDRG 1370 - AF Saja"').join('"1370_af": { index: 4, label: "iDRG 1370 - AF Saja (Default)"');
 
-code = code.replace(/background-color: #f8fafc;/g, 'background-color: #ffffff;');
-code = code.replace(/background:#f0f9ff;/g, 'background:#ffffff;');
-code = code.replace(/background:#eff6ff;/g, 'background:#ffffff;');
-code = code.replace(/background:#fbfccb;/g, 'background:#ffffff;');
+code = code.split('TARIFF_SCENARIOS["1370_full"]').join('TARIFF_SCENARIOS["1370_af"]');
+code = code.split('activeTariffScenario: "1370_full",').join('activeTariffScenario: "1370_af",');
+code = code.split('state.activeTariffScenario || "1370_full"').join('state.activeTariffScenario || "1370_af"');
+
+code = code.split('"1370_full": "iDRG 1370 - AF + AFreg + AFkep (Default)"').join('"1370_full": "iDRG 1370 - AF + AFreg + AFkep"');
+code = code.split('"1370_af": "iDRG 1370 - AF Saja"').join('"1370_af": "iDRG 1370 - AF Saja (Default)"');
 
 fs.writeFileSync('js/app.js', code);
+console.log('Patch complete.');
