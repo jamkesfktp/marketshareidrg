@@ -1974,7 +1974,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
               <th colspan="3" style="border:1px solid #1e293b;padding:7px;background:#059669;">Tambahan Kasus ${competencyLevelLabel} dari ${sourceRelationLabel}</th>
               <th colspan="3" style="border:1px solid #1e293b;padding:7px;background:#e11d48;">Pengurangan Kasus ${lossLevelLabel} di Luar Kompetensi Target</th>
               <th rowspan="2" style="border:1px solid #1e293b;padding:7px;background:#047857;">Total Pendapatan Pasca iDRG &amp; RBKP</th>
-              <th colspan="4" style="border:1px solid #1e293b;padding:7px;background:#0d9488;">Net +/- Pasca iDRG &amp; RBKP (vs INA-CBG)</th>
+              <th colspan="4" style="border:1px solid #1e293b;padding:7px;background:#0d9488;">Net +/- Pasca iDRG &amp; RBKP (vs Eksisting)</th>
             </tr>
             <tr>
               <th style="border:1px solid #1e293b;padding:6px;background:#10b981;">Persentase Dinamis</th><th style="border:1px solid #1e293b;padding:6px;background:#10b981;">Jumlah Kasus</th><th style="border:1px solid #1e293b;padding:6px;background:#10b981;">Tambahan</th>
@@ -1984,9 +1984,9 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           </thead>
           <tbody>${scenarioResults.map((result) => {
             const deltaCases = result.projectedCases - competencyExistingCases;
-            const deltaCasesPct = competencyExistingCases > 0 ? deltaCases / competencyExistingCases * 100 : 0;
-            const deltaIna = result.projectedIdrg - competencyExistingIna;
-            const deltaInaPct = competencyExistingIna > 0 ? deltaIna / competencyExistingIna * 100 : 0;
+          const deltaCasesPct = competencyExistingCases > 0 ? deltaCases / competencyExistingCases * 100 : 0;
+          const deltaIna = result.projectedIdrg - competencyExistingIdrg;
+          const deltaInaPct = competencyExistingIdrg > 0 ? deltaIna / competencyExistingIdrg * 100 : 0;
             return `<tr style="background:${result.scenarioIndex === mostLogicalIdx ? "#ecfeff" : "#fff"};">
               <td style="border:1px solid #1e293b;padding:6px;font-weight:900;white-space:nowrap;">Skenario ${result.scenarioIndex + 1}${result.scenarioIndex === mostLogicalIdx ? ' <span style="font-size: 8px; color: #ffffff; background: #ea580c; padding: 1px 4px; border-radius: 3px;">⚡ Paling Logis</span>' : ''}<div style="font-size:9px;color:#64748b;">${result.definition.name}<br>+${result.definition.add}% dari natural</div></td>
               ${result.scenarioIndex === 0 ? `<td rowspan="${scenarioResults.length}" style="border:1px solid #1e293b;padding:7px;background:#f8fafc;min-width:175px;"><div style="font-size:10px;color:#475569;">EKSISTING ${competencyLevelLabel.toUpperCase()}</div><div style="font-size:16px;font-weight:900;color:#0f172a;margin:3px 0;">${formatNumber(competencyExistingCases)} kasus</div><div style="font-size:10px;font-weight:800;color:#c2410c;">INA ${formatTableMoney(competencyExistingIna)}</div><div style="font-size:10px;font-weight:800;color:#0369a1;">iDRG ${formatTableMoney(competencyExistingIdrg)}</div></td>` : ""}
@@ -7305,7 +7305,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           <th colspan="3" style="border:1px solid #fff;padding:5px;background:#059669;color:#fff;">TAMBAHAN ${competencyLevelLabel.toUpperCase()} DARI ${sourceRelationLabel.toUpperCase()}</th>
           <th colspan="3" style="border:1px solid #fff;padding:5px;background:#e11d48;color:#fff;">PENGURANGAN ${lossLevelLabel.toUpperCase()}</th>
           <th rowspan="2" style="border:1px solid #fff;padding:5px;background:#047857;color:#fff;">TOTAL PENDAPATAN PASCA iDRG</th>
-          <th colspan="4" style="border:1px solid #fff;padding:5px;background:#0d9488;color:#fff;">NET +/- PASCA iDRG (VS INA-CBG)</th>
+          <th colspan="4" style="border:1px solid #fff;padding:5px;background:#0d9488;color:#fff;">NET +/- PASCA iDRG (VS EKSISTING)</th>
         </tr><tr>
           <th style="background:#10b981;color:#fff;padding:4px;">% Dinamis</th><th style="background:#10b981;color:#fff;padding:4px;">Kasus</th><th style="background:#10b981;color:#fff;padding:4px;">Pendapatan</th>
           <th style="background:#f43f5e;color:#fff;padding:4px;">% Dinamis</th><th style="background:#f43f5e;color:#fff;padding:4px;">Kasus</th><th style="background:#f43f5e;color:#fff;padding:4px;">Pendapatan</th>
@@ -7313,8 +7313,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         </tr></thead><tbody>${results.map((result) => {
           const deltaCases = result.projectedCases - competencyExistingCases;
           const deltaCasesPct = competencyExistingCases > 0 ? deltaCases / competencyExistingCases * 100 : 0;
-          const deltaIncome = result.projectedIdrg - competencyExistingIna;
-          const deltaIncomePct = competencyExistingIna > 0 ? deltaIncome / competencyExistingIna * 100 : 0;
+          const deltaIncome = result.projectedIdrg - competencyExistingIdrg;
+          const deltaIncomePct = competencyExistingIdrg > 0 ? deltaIncome / competencyExistingIdrg * 100 : 0;
           const cell = 'border:1px solid #cbd5e1;padding:4px;';
           return `<tr style="background:${result.scenarioIndex === mostLogicalIdx ? '#ecfeff' : '#fff'};"><td style="${cell}font-weight:900;white-space:nowrap;">Skenario ${result.scenarioIndex + 1}${result.scenarioIndex === mostLogicalIdx ? ' <span style="font-size: 8px; color: #ffffff; background: #ea580c; padding: 1px 4px; border-radius: 3px;">⚡ Paling Logis</span>' : ''}<div style="font-size:8px;color:#64748b;">${result.definition.name} · +${result.definition.add}% natural</div></td>
             ${result.scenarioIndex === 0 ? `<td rowspan="${results.length}" style="${cell}background:#f8fafc;min-width:145px;"><div style="font-size:16px; font-weight:900; color:#0f172a; margin-bottom:4px;">${formatNumber(competencyExistingCases)} kasus</div><div style="font-size:11px; font-weight:800; color:#c2410c;">INA ${formatTableMoney(competencyExistingIna)}</div><div style="font-size:11px; font-weight:800; color:#0369a1;">iDRG ${formatTableMoney(competencyExistingIdrg)}</div></td>` : ''}
