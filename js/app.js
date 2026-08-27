@@ -419,25 +419,15 @@
       const mult = multipliers[i];
       
       rules.tambah.forEach(lvl => {
-        if (lvl === 1 || lvl === 2) {
-          // Custom rule for Dasar (1) and Madya (2)
-          if (i === 0) scn["tambah_" + lvl] = baselinePct[lvl];
-          else if (i === 1) scn["tambah_" + lvl] = 1;
-          else if (i === 2) scn["tambah_" + lvl] = 2;
-          else if (i === 3) scn["tambah_" + lvl] = 3;
-          else if (i === 4) scn["tambah_" + lvl] = 4;
-          else if (i === 5) scn["tambah_" + lvl] = 5;
+        if (mult === null) {
+          scn["tambah_" + lvl] = 100; // Skenario 6: Maksimum
         } else {
-          if (mult === null) {
-            scn["tambah_" + lvl] = 100; // Skenario 6: Maksimum
-          } else {
-            scn["tambah_" + lvl] = parseFloat(Math.min(100, baselinePct[lvl] * mult).toFixed(1));
-          }
+          scn["tambah_" + lvl] = parseFloat(Math.min(100, baselinePct[lvl] * mult).toFixed(1));
         }
       });
       
       rules.kurang.forEach(lvl => {
-        scn["kurang_" + lvl] = (lvl > targetComp || lvl === 4) ? 100 : 90;
+        scn["kurang_" + lvl] = 100;
       });
       return scn;
     });
@@ -1393,9 +1383,6 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       return;
     }
 
-    if (!window.competencySimScenarios) {
-      window.competencySimScenarios = [1, 3, 5, 10];
-    }
     if (!window.competencyKurangScenarios) {
       window.competencyKurangScenarios = [100, 100, 100, 100];
     }
@@ -1478,6 +1465,18 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         }
       });
       
+      if (!window.competencySimScenariosHasInit || window.lastSimCompetitorCount !== competitorCount) {
+        const natural = competitorCount > 0 ? (100 / (competitorCount + 1)) : 100;
+        window.competencySimScenarios = [
+          Number((natural * 0.5).toFixed(1)),
+          Number((natural * 1.0).toFixed(1)),
+          Number((natural * 1.5).toFixed(1)),
+          Number((natural * 2.0).toFixed(1))
+        ];
+        window.competencySimScenariosHasInit = true;
+        window.lastSimCompetitorCount = competitorCount;
+      }
+
       const compBadge = document.getElementById('globalSimCompetitorBadge');
       const compVal = document.getElementById('globalSimCompetitorValue');
       if (compBadge && compVal) {
@@ -1879,7 +1878,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const pctFor = (scenarioIndex, item) => {
       const field = `${item.direction}_${item.level}`;
       const manual = overrides[scenarioIndex]?.[field];
-      return Number.isFinite(manual) ? manual : Math.min(100, item.naturalShare * scenarioDefs[scenarioIndex].factor);
+      return Number.isFinite(manual) ? manual : (item.direction === "kurang" ? 100 : Math.min(100, item.naturalShare * scenarioDefs[scenarioIndex].factor));
     };
 
     const scenarioResults = scenarioDefs.map((definition, scenarioIndex) => {
