@@ -7254,22 +7254,22 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     ];
     const overrideKey = `${activeDatasetKey}|${target.code}|${service}`;
     window.dynamicMarketOverrides = window.dynamicMarketOverrides || {};
-    const overrides = window.dynamicMarketOverrides[overrideKey] || {};
+    const overrides = window.dynamicMarketOverrides[`${activeDatasetKey}|${target.code}|${service}`] || {};
     const additionPoolCases = levelData.filter((item) => item.direction === "tambah").reduce((sum, item) => sum + item.externalCases, 0);
     const additionPoolIdrg = levelData.filter((item) => item.direction === "tambah").reduce((sum, item) => sum + item.externalIdrg, 0);
     const pctFor = (scenarioIndex, item) => {
       const manual = overrides[scenarioIndex]?.[`${item.direction}_${item.level}`];
-      return Number.isFinite(manual) ? manual : (item.direction === "kurang" ? 100 : Math.min(100, item.naturalShare * scenarioDefs[scenarioIndex].factor));
+      return Number.isFinite(manual) ? manual : (item.direction === "kurang" ? 100 : Math.min(100, item.naturalShare + scenarioDefs[scenarioIndex].add));
     };
+
     const results = scenarioDefs.map((definition, scenarioIndex) => {
       let addCases = 0, addIdrg = 0, lossCases = 0, lossIdrg = 0;
       levelData.forEach((item) => {
+        const pct = pctFor(scenarioIndex, item) / 100;
         if (item.direction === "tambah") {
-          const pct = pctFor(scenarioIndex, item) / 100;
           addCases += item.externalCases * pct;
           addIdrg += item.externalIdrg * pct;
         } else if (item.direction === "kurang") {
-          const pct = pctFor(scenarioIndex, item) / 100;
           lossCases += item.targetCases * pct;
           lossIdrg += item.targetIdrg * pct;
         }
@@ -7315,7 +7315,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           const deltaIncomePct = competencyExistingIna > 0 ? deltaIncome / competencyExistingIna * 100 : 0;
           const cell = 'border:1px solid #cbd5e1;padding:4px;';
           return `<tr style="background:${result.scenarioIndex === mostLogicalIdx ? '#ecfeff' : '#fff'};"><td style="${cell}font-weight:900;white-space:nowrap;">Skenario ${result.scenarioIndex + 1}${result.scenarioIndex === mostLogicalIdx ? ' <span style="font-size: 8px; color: #ffffff; background: #ea580c; padding: 1px 4px; border-radius: 3px;">⚡ Paling Logis</span>' : ''}<div style="font-size:8px;color:#64748b;">${result.definition.name} · +${result.definition.add}% natural</div></td>
-            ${result.scenarioIndex === 0 ? `<td rowspan="${results.length}" style="${cell}background:#f8fafc;min-width:135px;"><b>${formatNumber(competencyExistingCases)} kasus</b><div style="font-size:9px;color:#c2410c;">INA ${formatTableMoney(competencyExistingIna)}</div><div style="font-size:9px;color:#0369a1;">iDRG ${formatTableMoney(competencyExistingIdrg)}</div></td>` : ''}
+            ${result.scenarioIndex === 0 ? `<td rowspan="${results.length}" style="${cell}background:#f8fafc;min-width:145px;"><div style="font-size:16px; font-weight:900; color:#0f172a; margin-bottom:4px;">${formatNumber(competencyExistingCases)} kasus</div><div style="font-size:11px; font-weight:800; color:#c2410c;">INA ${formatTableMoney(competencyExistingIna)}</div><div style="font-size:11px; font-weight:800; color:#0369a1;">iDRG ${formatTableMoney(competencyExistingIdrg)}</div></td>` : ''}
             <td style="${cell}min-width:92px;color:#15803d;font-weight:700;">${pctInputs(result.scenarioIndex, "tambah")}</td><td style="${cell}font-weight:800;">${formatNumber(Math.round(result.addCases))}</td><td style="${cell}font-weight:800;color:#059669;">+${formatTableMoney(result.addIdrg)}</td>
             <td style="${cell}min-width:92px;color:#be123c;font-weight:700;">${pctInputs(result.scenarioIndex, "kurang")}</td><td style="${cell}font-weight:800;">${formatNumber(Math.round(result.lossCases))}</td><td style="${cell}font-weight:800;color:#e11d48;">−${formatTableMoney(result.lossIdrg)}</td>
             <td style="${cell}font-weight:900;background:#f0fdf4;">${formatTableMoney(result.projectedIdrg)}</td><td style="${cell}font-weight:800;color:${deltaCases >= 0 ? '#059669' : '#e11d48'};">${deltaCases >= 0 ? '+' : ''}${formatNumber(Math.round(deltaCases))}</td><td style="${cell}font-weight:800;color:${deltaCases >= 0 ? '#059669' : '#e11d48'};">${deltaCases >= 0 ? '+' : ''}${deltaCasesPct.toFixed(2).replace('.', ',')}%</td><td style="${cell}font-weight:800;color:${deltaIncome >= 0 ? '#059669' : '#e11d48'};">${deltaIncome >= 0 ? '+' : ''}${formatTableMoney(deltaIncome)}</td><td style="${cell}font-weight:800;color:${deltaIncome >= 0 ? '#059669' : '#e11d48'};">${deltaIncome >= 0 ? '+' : ''}${deltaIncomePct.toFixed(2).replace('.', ',')}%</td></tr>`;
