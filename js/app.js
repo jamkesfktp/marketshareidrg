@@ -7278,8 +7278,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       });
       return {
         definition, scenarioIndex, addCases, addIdrg, lossCases, lossIdrg,
-        projectedCases: Math.max(0, baselineCases - lossCases + addCases),
-        projectedIdrg: Math.max(0, baselineIdrg - lossIdrg + addIdrg)
+        projectedCases: competencyExistingCases + addCases,
+        projectedIdrg: competencyExistingIdrg + addIdrg
       };
     });
 
