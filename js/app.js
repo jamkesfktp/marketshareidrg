@@ -7247,7 +7247,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const additionPoolIdrg = levelData.filter((item) => item.direction === "tambah").reduce((sum, item) => sum + item.externalIdrg, 0);
     const pctFor = (scenarioIndex, item) => {
       const manual = overrides[scenarioIndex]?.[`${item.direction}_${item.level}`];
-      return Number.isFinite(manual) ? manual : Math.min(100, item.naturalShare * scenarioDefs[scenarioIndex].factor);
+      return Number.isFinite(manual) ? manual : (item.direction === "kurang" ? 100 : Math.min(100, item.naturalShare * scenarioDefs[scenarioIndex].factor));
     };
     const results = scenarioDefs.map((definition, scenarioIndex) => {
       let addCases = 0, addIdrg = 0, lossCases = 0, lossIdrg = 0;
