@@ -99,14 +99,14 @@
   const DATASET_PERIODS = {
     "okt_jun": {
       key: "okt_jun",
-      label: "Okt 2025 - Jun 2026 (8 Bulan - 111,76 Jt Kasus)",
-      chip: "Okt 2025 - Jun 2026 (8 Bulan)",
+      label: "Uji Coba Okt 2025 - Jun 2026 (8 Bulan - 111,76 Jt Kasus)",
+      chip: "Uji Coba Okt 2025 - Jun 2026 (8 Bulan)",
       desc: "Master CSV: spending_okt_jun_v3_gabungan.csv"
     },
     "jan_des": {
       key: "jan_des",
-      label: "Jan - Des (1 Tahun Penuh / 12 Bulan)",
-      chip: "Jan - Des (1 Tahun Penuh)",
+      label: "Data Tahun 2025 (Jan - Des / 12 Bulan)",
+      chip: "Data Tahun 2025 (Jan - Des)",
       desc: "Master CSV: spending_jan_des_v11_gabungan.csv"
     }
   };
@@ -114,14 +114,14 @@
   const TARIFF_SCENARIOS = {
     "1370_full": { index: 2, label: "iDRG 1370 - AF + AFreg + AFkep", chip: "iDRG 1370 (AF + AFreg + AFkep)", desc: "Model 1.370 DRG dengan penyesuaian AF + AFreg + AFkep" },
     "1370_afreg": { index: 3, label: "iDRG 1370 - AF + AFreg", chip: "iDRG 1370 (AF + AFreg)", desc: "Model 1.370 DRG dengan penyesuaian AF + AFreg" },
-    "1370_af": { index: 4, label: "iDRG 1370 - AF Saja (Default)", chip: "iDRG 1370 (AF Saja)", desc: "Model 1.370 DRG dengan penyesuaian AF saja" },
+    "1370_af": { index: 4, label: "iDRG 1370 - AF Saja", chip: "iDRG 1370 (AF Saja)", desc: "Model 1.370 DRG dengan penyesuaian AF saja" },
     "1370_noaf": { index: 5, label: "iDRG 1370 - Tanpa AF (Base)", chip: "iDRG 1370 (Tanpa AF)", desc: "Tarif dasar iDRG 1.370 tanpa penyesuaian AF" },
     "1370_juknis": { index: 6, label: "iDRG 1370 - Juknis Top-Up", chip: "iDRG 1370 (Juknis Top-Up)", desc: "Model 1.370 DRG skema Juknis Top-Up" },
-    "1363_full": { index: 7, label: "iDRG 1363 - AF + AFreg + AFkep", chip: "iDRG 1363 (AF + AFreg + AFkep)", desc: "Model lama 1.363 DRG (AF + AFreg + AFkep)" }
+    "1363_full": { index: 7, label: "iDRG 1363 - AF + AFreg + AFkep (Default)", chip: "iDRG 1363 (AF + AFreg + AFkep)", desc: "Model 1.363 DRG dengan penyesuaian AF + AFreg + AFkep" }
   };
 
   function updateActiveTariff(scenarioKey) {
-    const sc = TARIFF_SCENARIOS[scenarioKey] || TARIFF_SCENARIOS["1370_af"];
+    const sc = TARIFF_SCENARIOS[scenarioKey] || TARIFF_SCENARIOS["1363_full"];
     state.activeTariffScenario = scenarioKey;
     IDRG = sc.index;
     REVENUE = sc.index;
@@ -196,7 +196,7 @@
     targetCode: defaultTarget,
     targetCodes: defaultTarget ? [defaultTarget] : [],
     activeSlide: 0,
-    activeTariffScenario: "1370_af",
+    activeTariffScenario: "1363_full",
     selectedService: data.services.includes("JIWA") ? "JIWA" : data.services[0],
     selectedSeverity: 4,
     targetShare: 50,
@@ -1870,19 +1870,18 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     }
 
     const rules = getLevelRules(targetComp, service);
+    const sourceModeKey = `${activeDatasetKey}|${target.code}|${service}`;
+    window.dynamicMarketSourceModes = window.dynamicMarketSourceModes || {};
+    const additionSourceMode = window.dynamicMarketSourceModes[sourceModeKey] || "regional_remaining";
     const targetCodes = new Set(selectedTargets.map((hospital) => hospital.code));
-    const sourceRelationLabel = targetComp === 1
-      ? "RS Kompetensi Lebih Tinggi"
-      : targetComp === 4
-        ? "RS Kompetensi Lebih Rendah"
-        : "RS Kompetensi Lebih Rendah & Lebih Tinggi";
+    const sourceRelationLabel = additionSourceMode === "higher_hospitals"
+      ? "RS dengan kompetensi lebih tinggi"
+      : "Sisa regional (seluruh RS selain target)";
     const additionSourceHospitals = data.hospitals.filter((hospital) => {
       if (targetCodes.has(hospital.code)) return false;
       const sourceComp = getCompetency(hospital, service);
       if (sourceComp <= 0) return false;
-      if (targetComp === 1) return sourceComp > targetComp;
-      if (targetComp === 4) return sourceComp < targetComp;
-      return sourceComp !== targetComp;
+      return additionSourceMode === "higher_hospitals" ? sourceComp > targetComp : true;
     });
     const competitorHospitals = data.hospitals
       .filter((hospital) => !targetCodes.has(hospital.code) && getCompetency(hospital, service) > 0)
@@ -1999,6 +1998,12 @@ document.getElementById("globalSimulationSlide").innerHTML = `
             ${data.services.map((item) => `<option value="${escapeHtml(item)}" ${item === service ? "selected" : ""}>${escapeHtml(formatService(item))}</option>`).join("")}
           </select>
           <span style="padding:5px 9px;border-radius:999px;background:#7c3aed;color:#fff;font-size:11px;font-weight:900;white-space:nowrap;">Target: ${levelNames[targetComp]}</span>
+          <label class="dynamic-source-control" style="display:flex;align-items:center;gap:6px;font-size:10px;font-weight:900;color:#5b21b6;white-space:nowrap;">SUMBER TAMBAHAN
+            <select id="dynamicMarketSourceSelect" style="min-width:235px;padding:6px 9px;border:1.5px solid #7c3aed;border-radius:7px;background:#fff;color:#312e81;font-size:11px;font-weight:800;">
+              <option value="regional_remaining" ${additionSourceMode === "regional_remaining" ? "selected" : ""}>Sisa Regional</option>
+              <option value="higher_hospitals" ${additionSourceMode === "higher_hospitals" ? "selected" : ""}>RS Kompetensi Lebih Tinggi</option>
+            </select>
+          </label>
         </div>
         <div style="display:flex;align-items:center;gap:6px;">
           <span style="font-size:10.5px;color:#64748b;font-weight:700;">${escapeHtml(target.name)}</span>
@@ -2075,10 +2080,14 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           }).join("")}</tbody>
         </table>
       </div>
-      <div style="margin-top:7px;padding:6px 9px;border-radius:7px;background:#ffffff;color:#1e40af;font-size:10px;font-weight:650;">Persentase tambah dan kurang dihitung dari natural share per level: 100 ÷ (RS sumber eligible + 1 RS target), kemudian disesuaikan faktor skenario dan dapat diedit.</div>`;
+      <div style="margin-top:7px;padding:6px 9px;border-radius:7px;background:#ffffff;color:#1e40af;font-size:10px;font-weight:650;">Sumber tambahan aktif: <b>${sourceRelationLabel}</b>. Persentase tambah dan kurang dihitung dari natural share per level: 100 ÷ (RS sumber eligible + 1 RS target), kemudian disesuaikan faktor skenario dan dapat diedit.</div>`;
 
     container.querySelector("#dynamicMarketServiceSelect")?.addEventListener("change", (event) => {
       window.dynamicMarketService = event.target.value;
+      renderDynamicMarketShareSlide();
+    });
+    container.querySelector("#dynamicMarketSourceSelect")?.addEventListener("change", (event) => {
+      window.dynamicMarketSourceModes[sourceModeKey] = event.target.value;
       renderDynamicMarketShareSlide();
     });
     container.querySelector("#dynamicMarketExcelBtn")?.addEventListener("click", (event) => {
@@ -2158,8 +2167,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const ui = window.tariffScatterUi;
     const services = Object.keys(source.scatterServices).sort();
     const matchesSegment = (segment) => (ui.ownership === "ALL" || segment[2] === ui.ownership) && (ui.hospitalClass === "ALL" || segment[3] === ui.hospitalClass) && (ui.rawatClass === "ALL" || segment[4] === ui.rawatClass) && (ui.region === "ALL" || segment[5] === ui.region);
-    const scenarioMetricIndex = { "1370_full": 8, "1370_afreg": 9, "1370_af": 10, "1370_noaf": 11, "1370_juknis": 12, "1363_full": 13 }[state.activeTariffScenario || "1370_af"] || 8;
-    const scatterScenarioLabel = TARIFF_SCENARIOS[state.activeTariffScenario || "1370_af"]?.chip || "iDRG 1370";
+    const scenarioMetricIndex = { "1370_full": 8, "1370_afreg": 9, "1370_af": 10, "1370_noaf": 11, "1370_juknis": 12, "1363_full": 13 }[state.activeTariffScenario || "1363_full"] || 13;
+    const scatterScenarioLabel = TARIFF_SCENARIOS[state.activeTariffScenario || "1363_full"]?.chip || "iDRG 1363";
     const selectedServices = ui.service === "ALL" ? services : [ui.service];
     const aggregate = new Map();
     selectedServices.forEach((service) => (source.scatterServices[service] || []).forEach((segment) => {
@@ -7266,20 +7275,19 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const targetCodes = new Set(selectedTargets.map((hospital) => hospital.code));
     targetCodes.add(target.code);
     const rules = getLevelRules(targetComp, service);
+    const sourceModeKey = `${activeDatasetKey}|${target.code}|${service}`;
+    window.dynamicMarketSourceModes = window.dynamicMarketSourceModes || {};
+    const additionSourceMode = window.dynamicMarketSourceModes[sourceModeKey] || "regional_remaining";
     const targetSrv = target.services?.[service] || { total: createZeroMetric(), severity: {} };
     const regionalSrv = data.regional?.services?.[service] || { total: createZeroMetric(), severity: {} };
-    const sourceRelationLabel = targetComp === 1
+    const sourceRelationLabel = additionSourceMode === "higher_hospitals"
       ? "RS Kompetensi Lebih Tinggi"
-      : targetComp === 4
-        ? "RS Kompetensi Lebih Rendah"
-        : "RS Kompetensi Lebih Rendah & Lebih Tinggi";
+      : "Sisa Regional";
     const additionSourceHospitals = data.hospitals.filter((hospital) => {
       if (targetCodes.has(hospital.code)) return false;
       const sourceComp = getCompetency(hospital, service);
       if (sourceComp <= 0) return false;
-      if (targetComp === 1) return sourceComp > targetComp;
-      if (targetComp === 4) return sourceComp < targetComp;
-      return sourceComp !== targetComp;
+      return additionSourceMode === "higher_hospitals" ? sourceComp > targetComp : true;
     });
     const levelData = severityRanks.map((level) => {
       const targetMetric = severityMetric(targetSrv, level);
@@ -7374,7 +7382,16 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       `<label style="display:flex;align-items:center;justify-content:space-between;gap:3px;white-space:nowrap;"><span>${shortLevelNames[item.level]}</span><span><span style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;">${pctFor(scenarioIndex, item).toFixed(1)}</span><input class="per-service-dynamic-pct" data-service="${escapeHtml(service)}" data-scenario="${scenarioIndex}" data-direction="${direction}" data-level="${item.level}" type="number" min="0" max="100" step="0.1" value="${pctFor(scenarioIndex, item).toFixed(1)}" style="width:48px;padding:2px;text-align:right;border:1px solid ${direction === "tambah" ? "#86efac" : "#fda4af"};border-radius:4px;color:${direction === "tambah" ? "#15803d" : "#be123c"};font-weight:800;">%</span></label>`
     ).join("") || '<span style="color:#94a3b8;">—</span>';
 
-    return `<div style="margin:2px 0 5px;padding:5px 8px;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:6px;font-size:10px;color:#5b21b6;font-weight:750;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;"><span>Share tambah dan kurang: 100 ÷ (RS eligible + 1 target) · dapat diedit</span><span style="color:#047857;">Pool tersedia: <b>${formatNumber(additionPoolCases)} kasus</b> · <b>${formatTableMoney(additionPoolIdrg)}</b> iDRG</span></div>
+    return `<div class="per-service-source-bar" style="margin:2px 0 5px;padding:7px 8px;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:6px;font-size:10px;color:#5b21b6;font-weight:750;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+        <label style="display:flex;align-items:center;gap:6px;font-weight:900;">SUMBER TAMBAHAN
+          <select class="per-service-source-select" data-service="${escapeHtml(service)}" style="min-width:210px;padding:5px 8px;border:1px solid #7c3aed;border-radius:6px;background:#fff;color:#312e81;font-size:10px;font-weight:800;">
+            <option value="regional_remaining" ${additionSourceMode === "regional_remaining" ? "selected" : ""}>Sisa Regional</option>
+            <option value="higher_hospitals" ${additionSourceMode === "higher_hospitals" ? "selected" : ""}>RS Kompetensi Lebih Tinggi</option>
+          </select>
+        </label>
+        <span>Share tambah dan kurang: 100 ÷ (RS eligible + 1 target) · dapat diedit</span>
+        <span style="color:#047857;">Pool ${sourceRelationLabel}: <b>${formatNumber(additionPoolCases)} kasus</b> · <b>${formatTableMoney(additionPoolIdrg)}</b> iDRG</span>
+      </div>
       <div style="overflow-x:auto;width:100%;"><table style="width:100%;border-collapse:collapse;border:1px solid #1e293b;text-align:center;font-size:10px;">
         <thead><tr>
           <th rowspan="2" style="border:1px solid #fff;padding:5px;background:#0f766e;color:#fff;">SKENARIO</th>
@@ -7922,6 +7939,15 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         window.dynamicMarketOverrides[key] = window.dynamicMarketOverrides[key] || {};
         window.dynamicMarketOverrides[key][scenarioIndex] = window.dynamicMarketOverrides[key][scenarioIndex] || {};
         window.dynamicMarketOverrides[key][scenarioIndex][`${event.target.dataset.direction}_${level}`] = value;
+        renderAll();
+      });
+    });
+    container.querySelectorAll('.per-service-source-select').forEach((select) => {
+      select.addEventListener('change', (event) => {
+        const srv = event.target.dataset.service;
+        const key = `${activeDatasetKey}|${target.code}|${srv}`;
+        window.dynamicMarketSourceModes = window.dynamicMarketSourceModes || {};
+        window.dynamicMarketSourceModes[key] = event.target.value;
         renderAll();
       });
     });
@@ -10568,19 +10594,19 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     let simKurangScenarios = window.globalSimKurangScenarios;
     if (!simKurangScenarios) { simKurangScenarios = [1.0, 1.0, 1.0]; }
 
-    const tariffKey = state.activeTariffScenario || "1370_af";
+    const tariffKey = state.activeTariffScenario || "1363_full";
     const TARIFF_LABELS = {
       "1370_full": "iDRG 1370 - AF + AFreg + AFkep",
       "1370_afreg": "iDRG 1370 - AF + AFreg",
-      "1370_af": "iDRG 1370 - AF Saja (Default)",
+      "1370_af": "iDRG 1370 - AF Saja",
       "1370_noaf": "iDRG 1370 - Tanpa AF (Base)",
       "1370_juknis": "iDRG 1370 - Juknis Top-Up",
-      "1363_full": "iDRG 1363 - AF + AFreg + AFkep",
+      "1363_full": "iDRG 1363 - AF + AFreg + AFkep (Default)",
     };
     const tariffLabel = TARIFF_LABELS[tariffKey] || tariffKey;
 
     const datasetKey = (typeof activeDatasetKey !== "undefined" ? activeDatasetKey : "okt_jun");
-    const DATASET_LABELS = { "okt_jun": "Okt 2025 - Jun 2026 (8 Bulan)", "jan_des": "Jan - Des (1 Tahun Penuh)" };
+    const DATASET_LABELS = { "okt_jun": "Uji Coba Okt 2025 - Jun 2026 (8 Bulan)", "jan_des": "Data Tahun 2025 (Jan - Des)" };
     const datasetLabel = DATASET_LABELS[datasetKey] || datasetKey;
 
     let filterDesc = "Tidak ada filter (Semua RS regional)";

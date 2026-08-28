@@ -1150,6 +1150,52 @@ tr.is-disabled td { color: #9aa4b2; background: #fafbfc; }
   }
 }
 
+/* Mobile workspace: navigation, report canvas, filters, and dynamic simulator. */
+@media (max-width: 768px) {
+  .enterprise-nav { display: none !important; }
+  .viewport-stage,
+  body.enterprise-nav-collapsed .viewport-stage { margin-left: 0 !important; padding: 0 !important; }
+  .deck-scaler { width: 100% !important; min-width: 0 !important; transform: none !important; }
+  .deck { width: 100% !important; min-width: 0 !important; height: auto !important; min-height: 100dvh; }
+  .slide { position: relative; inset: auto; width: 100%; min-height: calc(100dvh - 58px); padding: 16px 12px 74px !important; overflow: auto; }
+  .slide[hidden] { display: none !important; }
+  .global-toolbar { position: sticky; top: 0; z-index: 9000; padding: 9px 54px 9px 12px !important; flex-wrap: wrap; gap: 7px; }
+  .global-toolbar select,
+  .global-toolbar button,
+  .global-toolbar input { max-width: 100%; min-height: 42px; }
+  .deck-controls { position: fixed; inset: auto 0 0; z-index: 9500; min-height: 58px; padding: 7px 10px; }
+  .existing-report-title { min-height: 58px !important; height: auto !important; padding: 12px !important; }
+  .existing-report-title h1,
+  #dynamicMarketShareSlideTitle { font-size: 20px !important; line-height: 1.2; }
+  .existing-report-content,
+  #dynamicMarketShareSlide { height: auto !important; min-height: calc(100dvh - 132px); padding: 12px !important; overflow: visible !important; }
+  #dynamicMarketShareSlide > div:first-child { align-items: stretch !important; flex-direction: column; }
+  #dynamicMarketShareSlide > div:first-child > div { width: 100%; flex-wrap: wrap; }
+  #dynamicMarketShareSlide select,
+  #dynamicMarketShareSlide #dynamicMarketServiceSelect,
+  #dynamicMarketShareSlide #dynamicMarketSourceSelect { width: 100% !important; min-width: 0 !important; max-width: none !important; }
+  #dynamicMarketShareSlide .dynamic-source-control { width: 100%; align-items: stretch !important; flex-direction: column; }
+  .per-service-source-bar { align-items: stretch !important; flex-direction: column; }
+  .per-service-source-bar label { align-items: stretch !important; flex-direction: column; }
+  .per-service-source-bar select { width: 100% !important; min-width: 0 !important; min-height: 42px; }
+  #dynamicMarketShareSlide details summary { align-items: flex-start !important; flex-direction: column; }
+  #dynamicMarketShareSlide details summary > span:last-child { max-width: 100%; flex-wrap: wrap; }
+  #dynamicMarketShareSlide details > div > div { grid-template-columns: 1fr !important; }
+  #dynamicMarketShareSlide .dynamic-driver-table,
+  #dynamicMarketShareSlide .dynamic-scenario-table { min-width: 1100px !important; }
+  #dynamicMarketShareSlide > div:has(> .dynamic-driver-table),
+  #dynamicMarketShareSlide > div:has(> .dynamic-scenario-table) { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+  .scatter-shell > header { padding: 12px; align-items: flex-start; flex-direction: column; }
+  .scatter-controls { padding: 10px 12px; grid-template-columns: 1fr !important; max-height: 42dvh; overflow: auto; }
+}
+
+@media (max-width: 480px) {
+  #dynamicMarketShareSlide > div[style*="grid-template-columns:repeat(5"],
+  #dynamicMarketShareSlide > div[style*="grid-template-columns:repeat(4"] { grid-template-columns: 1fr !important; }
+  .brand-block strong { font-size: 13px; }
+  .brand-block div > span { display: none; }
+}
+
 .custom-multi .multi-select-container {
   position: relative;
 }

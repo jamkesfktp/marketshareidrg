@@ -13,7 +13,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
   <link rel="icon" href="data:,">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Simulator Market Share Regional Rumah Sakit</title>
-  <link rel="stylesheet" href="css/style.css?v=202608241900">
+  <link rel="stylesheet" href="css/style.css?v=202608281900">
 </head>
 <body class="simulator-app app-booting">
   <div id="appBootScreen" class="app-boot-screen" role="status" aria-live="polite" aria-label="Menyiapkan aplikasi">
@@ -91,10 +91,10 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
             </div>
           <div style="display: flex; align-items: center; gap: 10px; margin-left: auto;">
             <div id="activePeriodChip" style="background: #eff6ff; color: #1d4ed8; border: 1.5px solid #bfdbfe; font-size: 11.5px; font-weight: 800; padding: 4px 10px; border-radius: 8px; display: flex; align-items: center; gap: 5px; white-space: nowrap; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-              <span>📅</span> <span id="activePeriodLabel">Okt 2025 - Jun 2026 (8 Bulan)</span>
+              <span>📅</span> <span id="activePeriodLabel">Uji Coba Okt 2025 - Jun 2026 (8 Bulan)</span>
             </div>
             <div id="activeTariffChip" style="background: #f0fdf4; color: #166534; border: 1.5px solid #bbf7d0; font-size: 11.5px; font-weight: 800; padding: 4px 10px; border-radius: 8px; display: flex; align-items: center; gap: 5px; white-space: nowrap; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-              <span>💳</span> <span id="activeTariffLabel">iDRG 1370 (AF + AFreg + AFkep)</span>
+              <span>💳</span> <span id="activeTariffLabel">iDRG 1363 (AF + AFreg + AFkep)</span>
             </div>
             <div class="target-meta" id="targetMeta" aria-live="polite" style="border-left: none; padding-left: 0; text-align: right; margin-left: 0;"></div>
             <div style="display: flex; align-items: center; gap: 8px; border-left: 1px solid #cbd5e1; padding-left: 12px;">
@@ -410,8 +410,8 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
           <span>📅</span> Periode / Sumber Data
         </span>
         <select id="datasetPeriodSelect" class="tariff-scenario-select" aria-label="Pilih Periode / Dataset" style="width: 100%; box-sizing: border-box; padding: 7px 10px; border-radius: 8px; border: 1.5px solid #2563eb; background: #ffffff; font-weight: 750; font-size: 12px; color: #0f172a; cursor: pointer; outline: none; transition: all 0.2s;">
-          <option value="okt_jun" selected>Okt 2025 - Jun 2026 (8 Bulan - 111,76 Jt Kasus)</option>
-          <option value="jan_des">Jan - Des (1 Tahun Penuh / 12 Bulan)</option>
+          <option value="okt_jun" selected>Uji Coba Okt 2025 - Jun 2026 (8 Bulan - 111,76 Jt Kasus)</option>
+          <option value="jan_des">Data Tahun 2025 (Jan - Des / 12 Bulan)</option>
         </select>
         <div id="datasetPeriodDesc" style="font-size: 10.5px; color: #64748b; margin-top: 4px; line-height: 1.35;">Master CSV: spending_okt_jun_v3_gabungan.csv</div>
       </div>
@@ -422,12 +422,12 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
           <span>💳</span> Skenario Tarif iDRG
         </span>
         <select id="tariffScenarioSelect" class="tariff-scenario-select" aria-label="Pilih skenario tarif iDRG" style="width: 100%; box-sizing: border-box; padding: 7px 10px; border-radius: 8px; border: 1.5px solid #0d9488; background: #ffffff; font-weight: 750; font-size: 12px; color: #0f172a; cursor: pointer; outline: none; transition: all 0.2s;">
-          <option value="1370_full" selected>iDRG 1370 - AF + AFreg + AFkep (Default)</option>
+          <option value="1370_full">iDRG 1370 - AF + AFreg + AFkep</option>
           <option value="1370_afreg">iDRG 1370 - AF + AFreg</option>
           <option value="1370_af">iDRG 1370 - AF Saja</option>
           <option value="1370_noaf">iDRG 1370 - Tanpa AF (Base)</option>
           <option value="1370_juknis">iDRG 1370 - Juknis Top-Up</option>
-          <option value="1363_full">iDRG 1363 - AF + AFreg + AFkep</option>
+          <option value="1363_full" selected>iDRG 1363 - AF + AFreg + AFkep (Default)</option>
         </select>
         <div id="tariffScenarioDesc" style="font-size: 10.5px; color: #64748b; margin-top: 4px; line-height: 1.35;">Model 1.370 DRG dengan penyesuaian AF + AFreg + AFkep</div>
       </div>
@@ -504,7 +504,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
   <script src="js/global-sim-excel.js?v=202608210836"></script>
   <script src="js/dynamic-market-excel.js?v=202608242600"></script>
   <script src="js/idrg-map-data.js?v=202608241500"></script>
-  <script src="js/app.js?v=202608242600"></script>
+  <script src="js/app.js?v=202608281900"></script>
 </body>
 </html>
 
