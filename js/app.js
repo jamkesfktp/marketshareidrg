@@ -159,6 +159,9 @@
     const periodSelectEl = document.getElementById("datasetPeriodSelect");
     if (periodSelectEl && periodSelectEl.value !== datasetKey) periodSelectEl.value = datasetKey;
 
+    // Tarif otomatis mengikuti generasi iDRG pada periode sumber data.
+    updateActiveTariff(datasetKey === "jan_des" ? "1363_af" : "1370_af");
+
     updateDataState();
     populateFilters(true);
     populateHospitalSelector();
@@ -643,8 +646,8 @@
     document.getElementById("existingSlide").innerHTML = `
       <div class="existing-report-kpis">
         <article class="existing-report-kpi kpi-cases"><span>Total Kasus:</span><strong>${formatNumber(target.total[CASES])}</strong><em>Jumlah kasus eklaim</em></article>
-        <article class="existing-report-kpi kpi-ina"><span>Pendapatan INA-CBG:</span><strong>${formatMoney(target.total[INA])}</strong><em>Dari data 8 bulan</em></article>
-        <article class="existing-report-kpi kpi-idrg"><span>Pendapatan INACBG:</span><strong>${formatMoney(target.total[IDRG])}</strong><em>Klaim uji coba iDRG</em></article>
+        <article class="existing-report-kpi kpi-ina"><span>Pendapatan INA-CBG:</span><strong>${formatMoney(target.total[INA])}</strong><em>${activeDatasetKey === "jan_des" ? "Data tahun 2025" : "Data uji coba 8 bulan"}</em></article>
+        <article class="existing-report-kpi kpi-idrg"><span>Pendapatan iDRG:</span><strong>${formatMoney(target.total[IDRG])}</strong><em>${TARIFF_SCENARIOS[state.activeTariffScenario]?.chip || "Tarif iDRG aktif"}</em></article>
         <article class="existing-report-kpi kpi-difference ${delta < 0 ? "is-loss" : "is-gain"}"><span>Selisih Pendapatan:</span><strong>${formatMoney(delta)}</strong><em>iDRG − INA-CBG</em></article>
         <article class="existing-report-kpi kpi-percentage ${delta < 0 ? "is-loss" : "is-gain"}"><span>Persentase:</span><strong>${formatPercent(deltaPercent)}</strong><em>Dari pendapatan INA-CBG</em></article>
       </div>
@@ -7228,10 +7231,10 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     document.getElementById("scenarioSlide").innerHTML = `
       <div class="existing-report-kpis" style="margin-bottom: 15px;">
         <article class="existing-report-kpi kpi-cases"><span>Total Kasus:</span><strong>${formatNumber(target.total[CASES])}</strong><em>Jumlah kasus eklaim</em></article>
-        <article class="existing-report-kpi kpi-ina"><span>Pendapatan INA CBGs:</span><strong>${formatMoney(target.total[INA])}</strong><em>Dari data 8 bulan</em></article>
-        <article class="existing-report-kpi kpi-idrg"><span>Pendapatan INACBG:</span><strong>${formatMoney(target.total[IDRG])}</strong><em>Klaim uji coba iDRG</em></article>
+        <article class="existing-report-kpi kpi-ina"><span>Pendapatan INA-CBG:</span><strong>${formatMoney(target.total[INA])}</strong><em>${activeDatasetKey === "jan_des" ? "Data tahun 2025" : "Data uji coba 8 bulan"}</em></article>
+        <article class="existing-report-kpi kpi-idrg"><span>Pendapatan iDRG:</span><strong>${formatMoney(target.total[IDRG])}</strong><em>${TARIFF_SCENARIOS[state.activeTariffScenario]?.chip || "Tarif iDRG aktif"}</em></article>
         <article class="existing-report-kpi kpi-difference ${deltaIdrg < 0 ? "is-loss" : "is-gain"}"><span>Selisih Pendapatan:</span><strong>${formatMoney(deltaIdrg)}</strong><em>iDRG - INA CBGs</em></article>
-        <article class="existing-report-kpi kpi-percentage ${deltaIdrg < 0 ? "is-loss" : "is-gain"}"><span>Persentase:</span><strong>${formatPercent(deltaPercentIdrg)}</strong><em>Dari Pendapatan INACBG</em></article>
+        <article class="existing-report-kpi kpi-percentage ${deltaIdrg < 0 ? "is-loss" : "is-gain"}"><span>Persentase:</span><strong>${formatPercent(deltaPercentIdrg)}</strong><em>Dari pendapatan INA-CBG</em></article>
       </div>
       
       <div style="margin-bottom: 12px; font-weight: 600; color: #1e293b; font-size: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
@@ -9457,6 +9460,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     });
     nav.querySelectorAll("[data-slide-index]").forEach((button) => button.addEventListener("click", () => {
       const index = Number(button.dataset.slideIndex);
+      if (slides[index]?.dataset.viewTheme === "national") applyNationalIdrgScope();
       document.querySelector(`.slide-dot[data-index="${index}"]`)?.click();
       if (window.matchMedia("(max-width: 900px)").matches) {
         document.body.classList.add("enterprise-nav-collapsed");
@@ -10391,6 +10395,23 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     renderAll();
   }
 
+  function applyNationalIdrgScope() {
+    state.excludeUnmapped = false;
+    if (activeDatasetKey !== "jan_des") switchDatasetPeriod("jan_des");
+    data = originalData;
+    recalculateTotals();
+    updateDataState();
+    document.querySelectorAll("#provDropdown input[type='checkbox'], #cityDropdown input[type='checkbox']")
+      .forEach((checkbox) => { checkbox.checked = false; });
+    const muhammadiyahToggle = document.getElementById("muhammadiyahFilterToggle");
+    if (muhammadiyahToggle) muhammadiyahToggle.checked = false;
+    const excludeLevelZeroToggle = document.getElementById("excludeUnmappedToggle");
+    if (excludeLevelZeroToggle) excludeLevelZeroToggle.checked = false;
+    updateActiveTariff("1363_af");
+    applyFilters();
+    updateButtonLabels();
+  }
+
   populateFilters();
   populateHospitalSelector();
   populateSlideDots();
@@ -10416,12 +10437,14 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
         const offset = parseInt(btn.dataset.offset, 10) || 0;
+        applyNationalIdrgScope();
         window.showNationalMirroringSlide(offset);
         natDropdown.classList.remove("is-open");
       });
     });
   } else if (natNavBtn) {
     natNavBtn.addEventListener("click", () => {
+      applyNationalIdrgScope();
       window.showNationalMirroringSlide(0);
     });
   }
