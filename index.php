@@ -13,7 +13,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
   <link rel="icon" href="data:,">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Simulator Market Share Regional Rumah Sakit</title>
-  <link rel="stylesheet" href="css/style.css?v=202608281900">
+  <link rel="stylesheet" href="css/style.css?v=202608282200">
 </head>
 <body class="simulator-app app-booting">
   <div id="appBootScreen" class="app-boot-screen" role="status" aria-live="polite" aria-label="Menyiapkan aplikasi">
@@ -428,6 +428,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
           <option value="1370_noaf">iDRG 1370 - Tanpa AF (Base)</option>
           <option value="1370_juknis">iDRG 1370 - Juknis Top-Up</option>
           <option value="1363_full" selected>iDRG 1363 - AF + AFreg + AFkep (Default)</option>
+          <option value="1363_af">iDRG 1363 - AF Saja (Tarif 2025)</option>
         </select>
         <div id="tariffScenarioDesc" style="font-size: 10.5px; color: #64748b; margin-top: 4px; line-height: 1.35;">Model 1.370 DRG dengan penyesuaian AF + AFreg + AFkep</div>
       </div>
@@ -493,7 +494,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
       </div>
     </div>
   </aside>
-  <script src="js/data.js?v=202608180005"></script>
+  <script src="js/data.js?v=202608282330"></script>
   <script src="js/xlsx.bundle.js"></script>
   <script src="js/chart.umd.min.js?v=202608220900"></script>
   <script src="js/dom-to-pptx.bundle.js"></script>
@@ -503,8 +504,8 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
   <script src="js/audit-excel.js?v=202608180005"></script>
   <script src="js/global-sim-excel.js?v=202608210836"></script>
   <script src="js/dynamic-market-excel.js?v=202608242600"></script>
-  <script src="js/idrg-map-data.js?v=202608241500"></script>
-  <script src="js/app.js?v=202608281900"></script>
+  <script src="js/idrg-map-data.js?v=202608282330"></script>
+  <script src="js/app.js?v=202608282200"></script>
 </body>
 </html>
 

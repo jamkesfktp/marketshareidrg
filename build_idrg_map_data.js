@@ -147,8 +147,8 @@ input.on("line", (line) => {
   const segmentKey = `${ownership}|${hospitalClass}|${rawatClass}|${region}`;
   prev.segments.set(segmentKey, (prev.segments.get(segmentKey) || 0) + cases);
   const scatterKey = `${service}|${idrg}|${segmentKey}`;
-  const scatter = scatterRelations.get(scatterKey) || { description: clean(row[23]), metrics: [0, 0, 0, 0, 0, 0, 0, 0] };
-  const financials = [cases, number(row[29]), number(row[42]), number(row[41]), number(row[40]), number(row[39]), number(row[50]), number(row[37])];
+  const scatter = scatterRelations.get(scatterKey) || { description: clean(row[23]), metrics: [0, 0, 0, 0, 0, 0, 0, 0, 0] };
+  const financials = [cases, number(row[29]), number(row[42]), number(row[41]), number(row[40]), number(row[39]), number(row[50]), number(row[37]), number(row[35])];
   financials.forEach((value, index) => { scatter.metrics[index] += value; });
   scatterRelations.set(scatterKey, scatter);
   relations.set(key, prev);

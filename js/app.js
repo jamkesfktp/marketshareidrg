@@ -117,7 +117,8 @@
     "1370_af": { index: 4, label: "iDRG 1370 - AF Saja", chip: "iDRG 1370 (AF Saja)", desc: "Model 1.370 DRG dengan penyesuaian AF saja" },
     "1370_noaf": { index: 5, label: "iDRG 1370 - Tanpa AF (Base)", chip: "iDRG 1370 (Tanpa AF)", desc: "Tarif dasar iDRG 1.370 tanpa penyesuaian AF" },
     "1370_juknis": { index: 6, label: "iDRG 1370 - Juknis Top-Up", chip: "iDRG 1370 (Juknis Top-Up)", desc: "Model 1.370 DRG skema Juknis Top-Up" },
-    "1363_full": { index: 7, label: "iDRG 1363 - AF + AFreg + AFkep (Default)", chip: "iDRG 1363 (AF + AFreg + AFkep)", desc: "Model 1.363 DRG dengan penyesuaian AF + AFreg + AFkep" }
+    "1363_full": { index: 7, label: "iDRG 1363 - AF + AFreg + AFkep (Default)", chip: "iDRG 1363 (AF + AFreg + AFkep)", desc: "Model 1.363 DRG dengan penyesuaian AF + AFreg + AFkep" },
+    "1363_af": { index: 8, label: "iDRG 1363 - AF Saja (Tarif 2025)", chip: "iDRG 1363 (AF Saja)", desc: "Tarif iDRG 1.363 tahun 2025 dengan penyesuaian AF saja" }
   };
 
   function updateActiveTariff(scenarioKey) {
@@ -2167,7 +2168,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const ui = window.tariffScatterUi;
     const services = Object.keys(source.scatterServices).sort();
     const matchesSegment = (segment) => (ui.ownership === "ALL" || segment[2] === ui.ownership) && (ui.hospitalClass === "ALL" || segment[3] === ui.hospitalClass) && (ui.rawatClass === "ALL" || segment[4] === ui.rawatClass) && (ui.region === "ALL" || segment[5] === ui.region);
-    const scenarioMetricIndex = { "1370_full": 8, "1370_afreg": 9, "1370_af": 10, "1370_noaf": 11, "1370_juknis": 12, "1363_full": 13 }[state.activeTariffScenario || "1363_full"] || 13;
+    const scenarioMetricIndex = { "1370_full": 8, "1370_afreg": 9, "1370_af": 10, "1370_noaf": 11, "1370_juknis": 12, "1363_full": 13, "1363_af": 14 }[state.activeTariffScenario || "1363_full"] || 13;
     const scatterScenarioLabel = TARIFF_SCENARIOS[state.activeTariffScenario || "1363_full"]?.chip || "iDRG 1363";
     const selectedServices = ui.service === "ALL" ? services : [ui.service];
     const aggregate = new Map();
@@ -9421,6 +9422,13 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const icons = { "Analisis RS": "▦", "Simulasi & Proyeksi": "◇", "Nasional iDRG": "◎", "Jejaring RS": "⌂" };
     nav.innerHTML = `<div class="enterprise-nav-head"><div class="enterprise-nav-product"><span class="enterprise-nav-logo"><img src="img/logo-kemenkes.png" alt="Logo Kemenkes"></span><div><strong>Market Share Kemenkes</strong><small>Decision Intelligence</small></div></div><button id="enterpriseNavToggle" type="button" aria-label="Collapse menu" title="Collapse menu">‹</button></div><div class="enterprise-nav-scroll"><div class="enterprise-nav-section-label">MENU UTAMA</div><nav class="enterprise-shortcuts"><button type="button" data-slide-index="0" title="Overview"><i>⌂</i><span>Overview</span></button><button type="button" data-action="dynamic" title="Simulasi Dinamis"><i>⚡</i><span>Simulasi Dinamis</span></button><button type="button" data-action="idrg" title="PETA iDRG"><i>⌘</i><span>PETA iDRG</span></button><button type="button" data-action="scatter" title="Scatter Plot Tarif"><i>⁙</i><span>Scatter Plot Tarif</span></button><button type="button" data-action="filters" title="Filter & Parameter"><i>⚙</i><span>Filter & Parameter</span></button></nav><div class="enterprise-nav-section-label">FILTER &amp; WORKSPACE</div><div class="enterprise-nav-groups"><details id="enterpriseFilters"><summary><i>⚙</i><span>Filter &amp; Parameter</span><b>+</b></summary><div id="enterpriseFilterHost" class="enterprise-filter-host"></div></details>${[...groups].map(([name, items], groupIndex) => `<details class="menu-theme-${name === "Nasional iDRG" ? "national" : name === "Jejaring RS" ? "network" : name === "Simulasi & Proyeksi" ? "simulation" : "analysis"}" ${groupIndex < 2 ? "open" : ""}><summary><i>${icons[name] || "•"}</i><span>${name}</span><b>${items.length}</b></summary><div class="enterprise-report-links">${items.map((item) => `<button type="button" data-slide-index="${item.index}" title="${escapeHtml(item.title)}"><i>${item.index + 1}</i><span>${escapeHtml(item.title)}</span></button>`).join("")}</div></details>`).join("")}</div></div><footer><span class="enterprise-status-dot"></span><div><strong>Kementerian Kesehatan RI</strong><small>Data Mirroring iDRG</small></div></footer>`;
     document.body.appendChild(nav);
+    const navOpen = document.createElement("button");
+    navOpen.id = "enterpriseNavOpen";
+    navOpen.type = "button";
+    navOpen.setAttribute("aria-label", "Buka menu navigasi");
+    navOpen.title = "Buka menu navigasi";
+    navOpen.innerHTML = '<span aria-hidden="true">☰</span><b>Menu</b>';
+    document.body.appendChild(navOpen);
     const filterContent = document.querySelector(".sidebar-content");
     const filterHost = nav.querySelector("#enterpriseFilterHost");
     if (filterContent && filterHost) {
@@ -9428,15 +9436,33 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       filterHost.appendChild(filterContent);
       document.querySelector(".sidebar-panel")?.classList.add("is-integrated");
     }
-    const savedCollapsed = localStorage.getItem("enterpriseNavCollapsed") === "true";
+    const savedNavPreference = localStorage.getItem("enterpriseNavCollapsed");
+    const savedCollapsed = savedNavPreference === "true" || (savedNavPreference === null && window.matchMedia("(max-width: 900px)").matches);
     document.body.classList.toggle("enterprise-nav-collapsed", savedCollapsed);
     const toggle = nav.querySelector("#enterpriseNavToggle");
-    const syncToggle = () => { const collapsed = document.body.classList.contains("enterprise-nav-collapsed"); toggle.textContent = collapsed ? "›" : "‹"; toggle.title = collapsed ? "Buka menu" : "Tutup menu"; };
+    const syncToggle = () => {
+      const collapsed = document.body.classList.contains("enterprise-nav-collapsed");
+      toggle.textContent = "×";
+      toggle.title = "Tutup menu";
+      toggle.setAttribute("aria-expanded", String(!collapsed));
+      navOpen.hidden = !collapsed;
+    };
     syncToggle();
     toggle.addEventListener("click", () => { document.body.classList.toggle("enterprise-nav-collapsed"); localStorage.setItem("enterpriseNavCollapsed", document.body.classList.contains("enterprise-nav-collapsed")); syncToggle(); window.dispatchEvent(new Event("resize")); });
+    navOpen.addEventListener("click", () => {
+      document.body.classList.remove("enterprise-nav-collapsed");
+      localStorage.setItem("enterpriseNavCollapsed", "false");
+      syncToggle();
+      window.dispatchEvent(new Event("resize"));
+    });
     nav.querySelectorAll("[data-slide-index]").forEach((button) => button.addEventListener("click", () => {
       const index = Number(button.dataset.slideIndex);
       document.querySelector(`.slide-dot[data-index="${index}"]`)?.click();
+      if (window.matchMedia("(max-width: 900px)").matches) {
+        document.body.classList.add("enterprise-nav-collapsed");
+        localStorage.setItem("enterpriseNavCollapsed", "true");
+        syncToggle();
+      }
     }));
     nav.querySelector('[data-action="dynamic"]')?.addEventListener("click", () => document.getElementById("btnOpenDynamicMarket")?.click());
     nav.querySelector('[data-action="idrg"]')?.addEventListener("click", () => document.getElementById("idrgMapNavBtn")?.click());
@@ -10602,6 +10628,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       "1370_noaf": "iDRG 1370 - Tanpa AF (Base)",
       "1370_juknis": "iDRG 1370 - Juknis Top-Up",
       "1363_full": "iDRG 1363 - AF + AFreg + AFkep (Default)",
+      "1363_af": "iDRG 1363 - AF Saja (Tarif 2025)",
     };
     const tariffLabel = TARIFF_LABELS[tariffKey] || tariffKey;
 
