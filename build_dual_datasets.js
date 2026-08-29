@@ -37,9 +37,9 @@ function parseLevel(val) {
   return 0;
 }
 
-// 8-element metric vector:
-// [0: CASES, 1: INA, 2: 1370_FULL, 3: 1370_AFREG, 4: 1370_AF, 5: 1370_NOAF, 6: 1370_JUKNIS, 7: 1363_FULL]
-const VECTOR_LEN = 8;
+// 9-element metric vector:
+// [0: CASES, 1: INA, 2: 1370_FULL, 3: 1370_AFREG, 4: 1370_AF, 5: 1370_NOAF, 6: 1370_JUKNIS, 7: 1363_FULL, 8: 1363_AF]
+const VECTOR_LEN = 9;
 function createZeroVector() {
   return new Array(VECTOR_LEN).fill(0);
 }
@@ -187,6 +187,7 @@ function processCsv(csvPath, isJanDes, hospCompetencies) {
     const colCases = 28 + colOffset;
     const colIna = 29 + colOffset;
     const col1363Full = 37 + colOffset;
+    const col1363Af = 35 + colOffset;
     const col1370NoAf = 39 + colOffset;
     const col1370Af = 40 + colOffset;
     const col1370AfReg = 41 + colOffset;
@@ -250,6 +251,7 @@ function processCsv(csvPath, isJanDes, hospCompetencies) {
       const idrg1370_noaf = parseFloat(row[col1370NoAf]) || 0;
       const idrg1370_juknis = parseFloat(row[col1370Juknis]) || 0;
       const idrg1363_full = parseFloat(row[col1363Full]) || 0;
+      const idrg1363_af = parseFloat(row[col1363Af]) || 0;
 
       const rowVector = [
         cases,
@@ -259,7 +261,8 @@ function processCsv(csvPath, isJanDes, hospCompetencies) {
         idrg1370_af,
         idrg1370_noaf,
         idrg1370_juknis,
-        idrg1363_full
+        idrg1363_full,
+        idrg1363_af
       ];
 
       addVectors(h.total, rowVector);
@@ -369,7 +372,8 @@ function processCsv(csvPath, isJanDes, hospCompetencies) {
             "1370_af": { index: 4, label: "iDRG 1370 - AF Saja", chip: "iDRG 1370 (AF Saja)", desc: "Model 1.370 DRG dengan penyesuaian AF saja" },
             "1370_noaf": { index: 5, label: "iDRG 1370 - Tanpa AF (Base)", chip: "iDRG 1370 (Tanpa AF)", desc: "Tarif dasar iDRG 1.370 tanpa penyesuaian AF" },
             "1370_juknis": { index: 6, label: "iDRG 1370 - Juknis Top-Up", chip: "iDRG 1370 (Juknis Top-Up)", desc: "Model 1.370 DRG skema Juknis Top-Up" },
-            "1363_full": { index: 7, label: "iDRG 1363 - AF + AFreg + AFkep", chip: "iDRG 1363 (AF + AFreg + AFkep)", desc: "Model lama 1.363 DRG (AF + AFreg + AFkep)" }
+            "1363_full": { index: 7, label: "iDRG 1363 - AF + AFreg + AFkep", chip: "iDRG 1363 (AF + AFreg + AFkep)", desc: "Model 1.363 DRG dengan AF + AFreg + AFkep" },
+            "1363_af": { index: 8, label: "iDRG 1363 - AF Saja", chip: "iDRG 1363 (AF Saja)", desc: "Tarif iDRG 1.363 tahun 2025 dengan penyesuaian AF saja" }
           }
         },
         severityLabels: {

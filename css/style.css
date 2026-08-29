@@ -265,7 +265,7 @@ body.idrg-workspace-open { overflow: hidden; }
 #dynamicMarketShareSlide button { min-height: 38px; padding: 8px 12px !important; font-size: 13px !important; }
 
 /* Enterprise BI navigation */
-.enterprise-nav { position: fixed; inset: 0 auto 0 0; z-index: 9000; width: 320px; display: grid; grid-template-rows: 82px minmax(0,1fr) 66px; color: #dbeafe; background: linear-gradient(180deg,#083f46 0%,#07575b 48%,#07383e 100%); border-top: 5px solid #f39a32; border-right: 1px solid rgba(255,255,255,.12); box-shadow: 10px 0 30px rgba(15,45,51,.18); transition: width .22s ease; }
+.enterprise-nav { position: fixed; inset: 0 auto 0 0; z-index: 9000; width: 320px; display: grid; grid-template-rows: 82px minmax(0,1fr) 66px; color: #e8f5f3; background: linear-gradient(180deg,#073f45 0%,#07585b 52%,#052f35 100%); border-top: 5px solid #f39a32; border-right: 1px solid rgba(255,255,255,.14); box-shadow: 12px 0 36px rgba(8,37,42,.24); transition: transform .24s ease,box-shadow .24s ease; }
 .enterprise-nav-head { padding: 14px 13px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,.1); }
 .enterprise-nav-product { min-width: 0; display: flex; align-items: center; gap: 11px; overflow: hidden; }
 .enterprise-nav-logo { flex: 0 0 48px; width: 48px; height: 48px; padding: 5px; display: grid; place-items: center; border-radius: 11px; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,.18); overflow: hidden; }
@@ -274,10 +274,10 @@ body.idrg-workspace-open { overflow: hidden; }
 .enterprise-nav-product strong,.enterprise-nav-product small { display: block; white-space: nowrap; }
 .enterprise-nav-product strong { color: white; font-size: 15px; }
 .enterprise-nav-product small { margin-top: 2px; color: #8db7b8; font-size: 10px; letter-spacing: .04em; }
-#enterpriseNavToggle { flex: 0 0 30px; width: 30px; height: 30px; padding: 0; border: 1px solid rgba(255,255,255,.15); border-radius: 7px; color: white; background: rgba(255,255,255,.08); font-size: 22px; cursor: pointer; }
+#enterpriseNavToggle { flex: 0 0 34px; width: 34px; height: 34px; padding: 0; border: 1px solid rgba(255,255,255,.22); border-radius: 9px; color: white; background: rgba(255,255,255,.1); font-size: 22px; line-height: 1; cursor: pointer; }
 #enterpriseNavToggle:hover { background: rgba(255,255,255,.16); }
 .enterprise-nav-scroll { min-height: 0; padding: 12px 10px 18px; overflow: auto; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.2) transparent; }
-.enterprise-nav-section-label { padding: 8px 10px 6px; color: #6fa4a8; font-size: 9px; font-weight: 900; letter-spacing: .14em; white-space: nowrap; }
+.enterprise-nav-section-label { padding: 10px 10px 7px; color: #a9cfcd; font-size: 9px; font-weight: 900; letter-spacing: .15em; white-space: nowrap; }
 .enterprise-shortcuts { display: grid; gap: 4px; margin-bottom: 12px; }
 .enterprise-shortcuts button,.enterprise-report-links button { width: 100%; min-height: 42px; padding: 7px 9px; display: grid; grid-template-columns: 32px minmax(0,1fr); gap: 8px; align-items: center; border: 0; border-radius: 8px; color: #c8dfe0; background: transparent; text-align: left; cursor: pointer; }
 .enterprise-shortcuts button i { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 7px; color: #dff6f2; background: rgba(139,213,200,.12); font-size: 15px; font-style: normal; }
@@ -302,34 +302,31 @@ body.idrg-workspace-open { overflow: hidden; }
 .enterprise-nav footer strong { color: #d8eeee; font-size: 11px; }.enterprise-nav footer small { margin-top: 2px; color: #789fa1; font-size: 9px; }
 .enterprise-status-dot { flex: 0 0 9px; width: 9px; height: 9px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 0 4px rgba(74,222,128,.12); }
 .viewport-stage { margin-left: 320px; transition: margin-left .22s ease; }
-body.enterprise-nav-collapsed .enterprise-nav { width: 72px; }
-body.enterprise-nav-collapsed .viewport-stage { margin-left: 72px; }
-body.enterprise-nav-collapsed .enterprise-nav-product div,
-body.enterprise-nav-collapsed .enterprise-nav-section-label,
-body.enterprise-nav-collapsed .enterprise-shortcuts button span,
-body.enterprise-nav-collapsed .enterprise-nav-groups summary span,
-body.enterprise-nav-collapsed .enterprise-nav-groups summary b,
-body.enterprise-nav-collapsed .enterprise-nav-groups details > div,
-body.enterprise-nav-collapsed .enterprise-nav footer div { display: none; }
-body.enterprise-nav-collapsed .enterprise-nav-head { padding-inline: 9px; flex-direction: column; gap: 5px; }
-body.enterprise-nav-collapsed .enterprise-nav-product { overflow: visible; }
-body.enterprise-nav-collapsed .enterprise-nav-logo { flex-basis: 34px; width: 34px; height: 34px; }
-body.enterprise-nav-collapsed #enterpriseNavToggle { position: absolute; top: 54px; width: 24px; height: 24px; font-size: 17px; background: #1f5558; }
-body.enterprise-nav-collapsed .enterprise-nav-scroll { padding-inline: 10px; padding-top: 20px; }
-body.enterprise-nav-collapsed .enterprise-shortcuts button { grid-template-columns: 32px; justify-content: center; padding-inline: 9px; }
-body.enterprise-nav-collapsed .enterprise-nav-groups summary { grid-template-columns: 32px; justify-content: center; padding-inline: 9px; }
-body.enterprise-nav-collapsed .enterprise-nav footer { justify-content: center; padding-inline: 0; }
+body.enterprise-nav-collapsed .enterprise-nav { transform: translateX(-105%); box-shadow: none; }
+body.enterprise-nav-collapsed .viewport-stage { margin-left: 0; }
+#enterpriseNavOpen { position: fixed; top: 18px; left: 16px; z-index: 8999; min-height: 42px; padding: 0 15px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(7,87,91,.18); border-radius: 11px; color: #07575b; background: rgba(255,255,255,.96); box-shadow: 0 8px 24px rgba(8,61,65,.18); font-size: 13px; cursor: pointer; backdrop-filter: blur(10px); }
+#enterpriseNavOpen[hidden] { display: none !important; }
+#enterpriseNavOpen span { font-size: 19px; line-height: 1; }
+#enterpriseNavOpen b { font-size: 12px; letter-spacing: .02em; }
+#enterpriseNavOpen:hover { color: #fff; background: #087e83; transform: translateY(-1px); }
 .global-toolbar #muhammadiyahGroupNavBtn,.global-toolbar #idrgMapNavBtn,.global-toolbar #nationalMirroringNavBtn { display: none !important; }
 .global-toolbar #nationalMirroringNavBtn + .multi-select-dropdown { display: none !important; }
 .sidebar-panel.is-integrated,#sidebarOpenBtn { display: none !important; }
-.enterprise-filter-host { padding: 8px 3px 10px !important; display: block !important; }
+.enterprise-filter-host { padding: 10px 4px 14px !important; display: block !important; }
 .enterprise-filter-content { width: auto !important; height: auto !important; padding: 4px 2px 8px !important; gap: 9px !important; overflow: visible !important; }
-.enterprise-filter-content > .target-picker { margin-bottom: 0 !important; padding: 10px !important; border-radius: 8px !important; box-shadow: 0 2px 8px rgba(1,48,52,.12); }
+.enterprise-filter-content > .target-picker { margin-bottom: 0 !important; padding: 12px !important; border: 1px solid rgba(208,229,227,.9) !important; border-radius: 10px !important; background: #fff !important; box-shadow: 0 5px 15px rgba(1,35,39,.16) !important; }
+.enterprise-filter-content > .target-picker > span { color: #315c5e !important; font-size: 10px !important; font-weight: 900 !important; letter-spacing: .1em; }
+.enterprise-filter-content .multi-select-btn { width: 100% !important; min-height: 42px !important; color: #132f31 !important; border-color: #b5cfcd !important; background: #fafeFD !important; font-size: 12px !important; }
+.enterprise-filter-content .preset-muhammadiyah-btn,
+.enterprise-filter-content .preset-moewardi-btn { min-height: 42px !important; border-radius: 8px !important; font-weight: 800 !important; }
+.enterprise-filter-content > div:last-child { padding: 12px !important; border: 1px solid rgba(208,229,227,.9) !important; border-radius: 10px; background: #fff; box-shadow: 0 5px 15px rgba(1,35,39,.16); }
+.enterprise-filter-content > div:last-child label { color: #173b3d !important; font-size: 12px !important; }
+.enterprise-filter-content > div:last-child div { color: #5a7475 !important; font-size: 10px !important; }
 .enterprise-filter-content select,.enterprise-filter-content button { min-height: 34px; font-size: 11px !important; }
 .enterprise-filter-content .multi-select-dropdown { z-index: 9100; color: #1e293b; }
 #enterpriseFilters[open] > summary { color: #fff; background: linear-gradient(90deg,rgba(243,154,50,.25),rgba(145,205,65,.12)); box-shadow: inset 3px 0 #f39a32; }
 #enterpriseFilters > summary b { color: #fff; background: #e68a2e; }
-@media (max-width: 900px) { .enterprise-nav { width: 72px; }.viewport-stage { margin-left: 72px; }.enterprise-nav-product div,.enterprise-nav-section-label,.enterprise-shortcuts button span,.enterprise-nav-groups summary span,.enterprise-nav-groups summary b,.enterprise-nav-groups details > div,.enterprise-nav footer div { display:none; } }
+@media (max-width: 900px) { .enterprise-nav { width: min(88vw,340px); }.viewport-stage { margin-left: 0; }#enterpriseNavOpen { top: 10px; left: 10px; } }
 
 /* Unified Kemenkes report design system */
 .global-toolbar { position: relative; border-bottom: 0; box-shadow: 0 5px 18px rgba(8,88,91,.09); }
@@ -1152,7 +1149,7 @@ tr.is-disabled td { color: #9aa4b2; background: #fafbfc; }
 
 /* Mobile workspace: navigation, report canvas, filters, and dynamic simulator. */
 @media (max-width: 768px) {
-  .enterprise-nav { display: none !important; }
+  .enterprise-nav { display: grid !important; width: min(90vw,340px) !important; }
   .viewport-stage,
   body.enterprise-nav-collapsed .viewport-stage { margin-left: 0 !important; padding: 0 !important; }
   .deck-scaler { width: 100% !important; min-width: 0 !important; transform: none !important; }
