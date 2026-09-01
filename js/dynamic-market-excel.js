@@ -153,7 +153,7 @@
     const firstParam = 4;
     const lastParam = parameterRows.length;
     const resultRows = [["HASIL SIMULASI DINAMIS", "", "", "", "", "", "", "", "", "", ""], [],
-      ["No", "Skenario", "+ Kasus", "+ iDRG", "- Kasus (natural share)", "- iDRG (natural share)", "Total Kasus", "iDRG Pasca", "Delta Kasus", "Delta vs INA", "% Delta vs INA"]];
+      ["No", "Skenario", "+ Kasus", "+ iDRG", "- Kasus (natural share)", "- iDRG (natural share)", "Total Kasus Pasca RBKP", "iDRG Pasca", "Delta Kasus", "Delta vs INA", "% Delta vs INA"]];
     scenarioResults.forEach((result, index) => {
       const excelRow = 4 + index;
       const scenarioNo = index + 1;

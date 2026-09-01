@@ -349,7 +349,7 @@
         "Tambah Kasus","Tambah iDRG",
         "Kurang Kasus","Kurang iDRG",
         "Net Kasus","Net iDRG","% Net thd Eksisting",
-        "Total Kasus","Proyeksi iDRG",
+        "Total Kasus Pasca RBKP","Proyeksi iDRG",
         "Market Share Kasus Pasca (%)","Market Share iDRG Pasca (%)"];
       const rows=[HDR];
       let no=1;
@@ -405,9 +405,9 @@
     (function(){
       const HDR=["No","Kode Layanan","Nama Layanan","Kompetensi Target",
         "Kasus Eksisting","iDRG Eksisting",
-        "Net Kasus - Opt","Net iDRG - Opt","Total Kasus Opt","Proyeksi iDRG Opt",
-        "Net Kasus - Prop","Net iDRG - Prop","Total Kasus Prop","Proyeksi iDRG Prop",
-        "Net Kasus - Kons","Net iDRG - Kons","Total Kasus Kons","Proyeksi iDRG Kons",
+        "Net Kasus - Opt","Net iDRG - Opt","Total Kasus Pasca RBKP Opt","Proyeksi iDRG Opt",
+        "Net Kasus - Prop","Net iDRG - Prop","Total Kasus Pasca RBKP Prop","Proyeksi iDRG Prop",
+        "Net Kasus - Kons","Net iDRG - Kons","Total Kasus Pasca RBKP Kons","Proyeksi iDRG Kons",
         "Rentang Net Kasus","Rentang Net iDRG","Skenario Terbaik (iDRG)"];
       const rows=[HDR];
       let no=1;
