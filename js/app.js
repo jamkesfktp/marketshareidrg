@@ -7770,8 +7770,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
                     <div style="font-size: 30px; font-weight: 800; color: #1e293b;">${formatNumber(targetKasus)}</div>
                   </div>
                   <div style="text-align: right; padding-left: 16px; border-left: 1px solid #e2e8f0;">
-                    <div style="font-size: 14px; color: #475569; font-weight: 700;">Pendapatan iDRG</div>
-                    <div style="font-size: 30px; font-weight: 800; color: #22c55e;">${formatMoneyM(targetIdrg)}</div>
+                    <div style="font-size: 14px; color: #475569; font-weight: 700;">Pendapatan INACBG</div>
+                    <div style="font-size: 30px; font-weight: 800; color: #22c55e;">${formatMoneyM(targetIna)}</div>
                   </div>
                 </div>
                 <div style="padding: 8px 12px; background: #fff;">
@@ -7799,8 +7799,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
                     <div style="font-size: 30px; font-weight: 800; color: #1e293b;">${formatNumber(regionalKasus)}</div>
                   </div>
                   <div style="text-align: right; padding-left: 16px; border-left: 1px solid #e2e8f0;">
-                    <div style="font-size: 14px; color: #475569; font-weight: 700;">Pendapatan iDRG</div>
-                    <div style="font-size: 30px; font-weight: 800; color: #22c55e;">${formatMoneyM(regionalIdrg)}</div>
+                    <div style="font-size: 14px; color: #475569; font-weight: 700;">Pendapatan INACBG</div>
+                    <div style="font-size: 30px; font-weight: 800; color: #22c55e;">${formatMoneyM(regionalIna)}</div>
                   </div>
                 </div>
                 <div style="padding: 8px 12px; background: #fff;">
