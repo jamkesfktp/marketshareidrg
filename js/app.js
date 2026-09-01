@@ -1944,8 +1944,11 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const pctFor = (scenarioIndex, item) => { const sIdx = item.direction === "kurang" ? 0 : scenarioIndex;
       const field = `${item.direction}_${item.level}`;
       const manual = overrides[sIdx]?.[field];
-      return Math.ceil(Number.isFinite(manual) ? manual : (item.direction === "kurang" ? 100 : Math.min(100, item.naturalShare + scenarioDefs[scenarioIndex].add)));
-    };
+        if (Number.isFinite(manual)) return Math.ceil(manual);
+        if (item.direction === "kurang") return 100;
+        if (item.competitors === 0) return [100, 75, 50, 25, 0][scenarioIndex] || 0;
+        return Math.ceil(Math.min(100, item.naturalShare + scenarioDefs[scenarioIndex].add));
+      };
 
     const scenarioResults = scenarioDefs.map((definition, scenarioIndex) => {
       let addCases = 0, addIdrg = 0, lossCases = 0, lossIdrg = 0;
@@ -7330,8 +7333,11 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const additionPoolIdrg = levelData.filter((item) => item.direction === "tambah").reduce((sum, item) => sum + item.externalIdrg, 0);
     const pctFor = (scenarioIndex, item) => { const sIdx = item.direction === "kurang" ? 0 : scenarioIndex;
       const manual = overrides[sIdx]?.[`${item.direction}_${item.level}`];
-      return Math.ceil(Number.isFinite(manual) ? manual : (item.direction === "kurang" ? 100 : Math.min(100, item.naturalShare + scenarioDefs[scenarioIndex].add)));
-    };
+        if (Number.isFinite(manual)) return Math.ceil(manual);
+        if (item.direction === "kurang") return 100;
+        if (item.competitors === 0) return [100, 75, 50, 25, 0][scenarioIndex] || 0;
+        return Math.ceil(Math.min(100, item.naturalShare + scenarioDefs[scenarioIndex].add));
+      };
 
     const results = scenarioDefs.map((definition, scenarioIndex) => {
       let addCases = 0, addIdrg = 0, lossCases = 0, lossIdrg = 0;
@@ -10703,6 +10709,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       window.setTimeout(() => bootScreen?.remove(), 260);
     });
   });
+
 
 
 
