@@ -7383,7 +7383,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           <th colspan="3" style="border:1px solid #fff;padding:5px;background:#e11d48;color:#fff;">Pengurangan Kasus ${lossLevelLabel}</th>
           <th rowspan="2" style="border:1px solid #fff;padding:5px;background:#0369a1;color:#fff;">Total Kasus Pasca iDRG &amp; RBKP</th>
           <th rowspan="2" style="border:1px solid #fff;padding:5px;background:#047857;color:#fff;">Total Pendapatan Pasca iDRG &amp; RBKP (Rp M)</th>
-          <th colspan="4" style="border:1px solid #fff;padding:5px;background:#0d9488;color:#fff;">Net +/- Pasca iDRG &amp; RBKP (vs INACBG)</th>
+          <th colspan="4" style="border:1px solid #fff;padding:5px;background:#0d9488;color:#fff;">Net +/- Pasca iDRG &amp; RBKP (vs Eksisting iDRG)</th>
         </tr><tr>
           <th style="background:#10b981;color:#fff;padding:4px;">Persentase</th><th style="background:#10b981;color:#fff;padding:4px;">Jumlah Kasus</th><th style="background:#10b981;color:#fff;padding:4px;">Tambahan (Rp M)</th>
           <th style="background:#f43f5e;color:#fff;padding:4px;">Persentase</th><th style="background:#f43f5e;color:#fff;padding:4px;">Jumlah Kasus</th><th style="background:#f43f5e;color:#fff;padding:4px;">Pengurangan (Rp M)</th>
@@ -7391,12 +7391,12 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         </tr></thead><tbody>${[results[0]].map((result) => {
           const deltaCases = result.projectedCases - baselineCases;
           const deltaCasesPct = baselineCases > 0 ? deltaCases / baselineCases * 100 : 0;
-          const deltaIncome = result.projectedIdrg - baselineIna;
-          const deltaIncomePct = baselineIna > 0 ? deltaIncome / baselineIna * 100 : 0;
+          const deltaIncome = result.projectedIdrg - baselineIdrg;
+          const deltaIncomePct = baselineIdrg > 0 ? deltaIncome / baselineIdrg * 100 : 0;
           const cell = 'border:1px solid #cbd5e1;padding:4px;';
           return `<tr style="background:#fff;">
             <td style="${cell}font-weight:900;white-space:nowrap;">Skenario 1</td>
-            <td style="${cell}background:#f8fafc;min-width:175px;text-align:left;font-size:10px;line-height:1.45;"><div style="font-size:12px;font-weight:900;color:#0f172a;border-bottom:1px solid #cbd5e1;padding-bottom:3px;margin-bottom:3px;">Total Kasus: ${formatNumber(baselineCases)}</div>${levelData.map((item) => `<div style="font-weight:${rules.tambah.includes(item.level) ? '900' : '400'};color:${rules.tambah.includes(item.level) ? '#0f172a' : '#64748b'};">${shortLevelNames[item.level]}: ${formatNumber(item.targetCases)} (${formatTableMoney(item.targetIdrg)})</div>`).join('')}<div style="font-weight:800;color:#c2410c;border-top:1px solid #e2e8f0;margin-top:3px;padding-top:3px;text-align:center;">${formatTableMoney(baselineIna)}</div></td>
+            <td style="${cell}background:#f8fafc;min-width:175px;text-align:left;font-size:10px;line-height:1.45;"><div style="font-size:12px;font-weight:900;color:#0f172a;border-bottom:1px solid #cbd5e1;padding-bottom:3px;margin-bottom:3px;">Total Kasus: ${formatNumber(baselineCases)}</div>${levelData.map((item) => `<div style="font-weight:${rules.tambah.includes(item.level) ? '900' : '400'};color:${rules.tambah.includes(item.level) ? '#0f172a' : '#64748b'};">${shortLevelNames[item.level]}: ${formatNumber(item.targetCases)} (${formatTableMoney(item.targetIdrg)})</div>`).join('')}<div style="font-weight:800;color:#0369a1;border-top:1px solid #e2e8f0;margin-top:3px;padding-top:3px;text-align:center;">${formatTableMoney(baselineIdrg)}</div></td>
             <td data-col="srv-tb-pct" style="${cell}min-width:92px;color:#15803d;font-weight:700;">${pctInputs(result.scenarioIndex, "tambah")}</td><td data-col="srv-tb-kasus" style="${cell}font-weight:800;">${formatNumber(Math.round(result.addCases))}</td><td data-col="srv-tb-rp" style="${cell}font-weight:800;color:#059669;">▲ ${formatTableMoney(result.addIdrg)}</td>
             <td data-col="srv-kr-pct" style="${cell}min-width:92px;color:#be123c;font-weight:700;">${pctInputs(0, "kurang")}</td><td data-col="srv-kr-kasus" style="${cell}font-weight:800;">${formatNumber(Math.round(result.lossCases))}</td><td data-col="srv-kr-rp" style="${cell}font-weight:800;color:#e11d48;">▼ ${formatTableMoney(result.lossIdrg)}</td>
             <td style="${cell}font-weight:900;background:#eff6ff;">${formatNumber(Math.round(result.projectedCases))}</td><td style="${cell}font-weight:900;background:#f0fdf4;">${formatTableMoney(result.projectedIdrg)}</td>
