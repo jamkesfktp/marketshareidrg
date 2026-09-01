@@ -1224,8 +1224,8 @@
           </td>
           <!-- Tambah -->
           <td style="text-align:center; border:1px solid #bbf7d0; padding:14px 10px; background:#f0fdf4;">
-            <div style="font-size:16px; font-weight:700; color:#059669;">+${formatNumber(tambahKasus)}</div>
-            <div style="font-size:13px; font-weight:600; color:#16a34a; margin-top:2px;">+${fmtM(tambahIdrg)}</div>
+            <div style="font-size:16px; font-weight:700; color:#059669;">▲ ${formatNumber(tambahKasus)}</div>
+            <div style="font-size:13px; font-weight:600; color:#16a34a; margin-top:2px;">▲ ${fmtM(tambahIdrg)}</div>
           </td>
           <!-- Kurang -->
           <td style="text-align:center; border:1px solid #fecdd3; padding:14px 10px; background:#fff1f2;">
@@ -1235,12 +1235,12 @@
                 style="width:52px; padding:3px 4px; text-align:center; border:1px solid #fca5a5; border-radius:5px; font-size:13px; font-weight:700; color:#b91c1c; background:#fff;">
               <span style="font-size:11px; color:#b91c1c;">%</span>
             </div>
-            <div style="font-size:16px; font-weight:700; color:#ea580c;">-${formatNumber(kurangKasus)}</div>
-            <div style="font-size:13px; font-weight:600; color:#dc2626; margin-top:2px;">-${fmtM(kurangIdrg)}</div>
+            <div style="font-size:16px; font-weight:700; color:#ea580c;">▼ ${formatNumber(kurangKasus)}</div>
+            <div style="font-size:13px; font-weight:600; color:#dc2626; margin-top:2px;">▼ ${fmtM(kurangIdrg)}</div>
           </td>
           <!-- Net Kasus -->
           <td style="text-align:center; border:1px solid #c7d2fe; padding:14px 10px; background:#eef2ff;">
-            <div style="font-size:16px; font-weight:800; color:${netKasus >= 0 ? '#15803d' : '#b91c1c'};">${netKasus > 0 ? '+' : ''}${formatNumber(netKasus)}</div>
+            <div style="font-size:16px; font-weight:800; color:${netKasus >= 0 ? '#15803d' : '#b91c1c'};">${netKasus >= 0 ? "▲ " : "▼ "}${formatNumber(Math.abs(netKasus))}</div>
             <div style="font-size:12px; color:${pctThdEksisting >= 0 ? '#059669' : '#b91c1c'}; margin-top:2px; font-weight:600;">${pctThdEksisting > 0 ? '+' : ''}${formatPercent(pctThdEksisting)}</div>
           </td>
           <!-- Net Pendapatan -->
@@ -1766,7 +1766,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
                       </div>
                     </td>
                     <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold;">${formatNumber(tambahKasus)}</td>
-                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: #059669;">+${formatMoneyUnit(tambahIdrg)}</td>
+                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: #059669;">▲ ${formatMoneyUnit(tambahIdrg)}</td>
                     
                     <!-- Pengurangan -->
                     <td style="border: 1px solid #1e293b; padding: 8px;">
@@ -1776,7 +1776,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
                       </div>
                     </td>
                     <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold;">${formatNumber(kurangKasus)}</td>
-                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: #e11d48;">-${formatMoneyUnit(kurangIdrg)}</td>
+                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: #e11d48;">▼ ${formatMoneyUnit(kurangIdrg)}</td>
                     
                     <!-- Total Pasca -->
                     <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; background: #eff6ff;">${formatNumber(totalKasus)}</td>
@@ -2175,15 +2175,15 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const datasets = [{ key:"high",label:"Di atas threshold",color:"#d86652" },{ key:"within",label:"Di dalam threshold",color:"#e8c84e" },{ key:"negative",label:"Selisih negatif",color:"#5c9dca" }].map((group) => ({ label:group.label, data:points.filter((point)=>point.segment===group.key), backgroundColor:group.color, borderColor:group.color, pointRadius:(ctx)=>Math.max(4,Math.min(9,3+Math.log10(ctx.raw?.cases||1))), pointHoverRadius:10 }));
     const chartCanvas = root.querySelector("#tariffScatterChart");
     const zonePlugin = { id:"scatterZones", beforeDraw(chart) { const {ctx,chartArea,scales}=chart;if(!chartArea)return;const zero=scales.y.getPixelForValue(0),threshold=scales.y.getPixelForValue(ui.threshold);ctx.save();ctx.fillStyle="#fff5f3";ctx.fillRect(chartArea.left,chartArea.top,chartArea.width,Math.max(0,threshold-chartArea.top));ctx.fillStyle="#fffbea";ctx.fillRect(chartArea.left,threshold,chartArea.width,Math.max(0,zero-threshold));ctx.fillStyle="#eff7fc";ctx.fillRect(chartArea.left,zero,chartArea.width,Math.max(0,chartArea.bottom-zero));ctx.restore();}, afterDatasetsDraw(chart){const {ctx,scales,chartArea}=chart;ctx.save();[0,ui.threshold].forEach((value,index)=>{const y=scales.y.getPixelForValue(value);ctx.strokeStyle=index?"#c43125":"#162d31";ctx.lineWidth=index?2:3;ctx.setLineDash(index?[9,7]:[]);ctx.beginPath();ctx.moveTo(chartArea.left,y);ctx.lineTo(chartArea.right,y);ctx.stroke();});points.slice(0,5).forEach((point)=>{const x=scales.x.getPixelForValue(point.x),y=scales.y.getPixelForValue(point.y);if(x<chartArea.left||x>chartArea.right||y<chartArea.top||y>chartArea.bottom)return;ctx.fillStyle="#26383b";ctx.font="600 10px Arial";ctx.textAlign=x>chartArea.right-230?"right":"left";ctx.fillText(`${point.code} · ${point.description.slice(0,36)}`,x+(ctx.textAlign==="right"?-8:8),y-8);});ctx.restore();} };
-    const chart = new Chart(chartCanvas,{ type:"scatter",data:{datasets},plugins:[zonePlugin],options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"nearest",intersect:false},onClick:(event,elements)=>{if(!elements.length)return;const element=elements[0],point=chart.data.datasets[element.datasetIndex].data[element.index];showDetail(point);},plugins:{legend:{display:false},tooltip:{callbacks:{title:(items)=>items[0]?.raw?.description||"",label:(ctx)=>{const p=ctx.raw;return [`${p.code} · ${formatNumber(p.cases)} kasus`,`INA-CBG ${moneyFormat(p.ina)} · iDRG ${moneyFormat(p.idrg)}`,`Selisih ${p.y>=0?"+":""}${p.y.toFixed(2)}%`];}}}},scales:{x:{type:"logarithmic",title:{display:true,text:"Jumlah Kasus (Volume) · Skala Logaritmik",font:{size:14,weight:"bold"}},grid:{color:"rgba(71,85,105,.10)"},ticks:{callback:(value)=>Number(value).toLocaleString("id-ID")}},y:{title:{display:true,text:"% Selisih Rata-rata Tarif iDRG terhadap INA-CBG",font:{size:14,weight:"bold"}},grid:{color:"rgba(71,85,105,.10)"},ticks:{callback:(value)=>`${value}%`}}}}});
+    const chart = new Chart(chartCanvas,{ type:"scatter",data:{datasets},plugins:[zonePlugin],options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"nearest",intersect:false},onClick:(event,elements)=>{if(!elements.length)return;const element=elements[0],point=chart.data.datasets[element.datasetIndex].data[element.index];showDetail(point);},plugins:{legend:{display:false},tooltip:{callbacks:{title:(items)=>items[0]?.raw?.description||"",label:(ctx)=>{const p=ctx.raw;return [`${p.code} · ${formatNumber(p.cases)} kasus`,`INA-CBG ${moneyFormat(p.ina)} · iDRG ${moneyFormat(p.idrg)}`,`Selisih ${p.y>=0?"▲ ":"▼ "}${Math.abs(p.y).toFixed(2)}%`];}}}},scales:{x:{type:"logarithmic",title:{display:true,text:"Jumlah Kasus (Volume) · Skala Logaritmik",font:{size:14,weight:"bold"}},grid:{color:"rgba(71,85,105,.10)"},ticks:{callback:(value)=>Number(value).toLocaleString("id-ID")}},y:{title:{display:true,text:"% Selisih Rata-rata Tarif iDRG terhadap INA-CBG",font:{size:14,weight:"bold"}},grid:{color:"rgba(71,85,105,.10)"},ticks:{callback:(value)=>`${value}%`}}}}});
     function moneyFormat(value){return `Rp ${Math.round(value).toLocaleString("id-ID")}`;}
-    function showDetail(point){root.querySelector("#scatterSelectedDetail").innerHTML=`<span>DETAIL TITIK SCATTER</span><h2>${escapeHtml(point.code)}</h2><p>${escapeHtml(point.description)}</p><dl><div><dt>Volume</dt><dd>${formatNumber(point.cases)} kasus</dd></div><div><dt>Rata-rata INA-CBG</dt><dd>${moneyFormat(point.ina)}</dd></div><div><dt>Rata-rata iDRG</dt><dd>${moneyFormat(point.idrg)}</dd></div><div><dt>Selisih</dt><dd class="${point.y>=0?"positive":"negative"}">${point.y>=0?"+":""}${point.y.toFixed(2)}%</dd></div></dl><small>Layanan: ${escapeHtml(point.services)}</small>`;}
+    function showDetail(point){root.querySelector("#scatterSelectedDetail").innerHTML=`<span>DETAIL TITIK SCATTER</span><h2>${escapeHtml(point.code)}</h2><p>${escapeHtml(point.description)}</p><dl><div><dt>Volume</dt><dd>${formatNumber(point.cases)} kasus</dd></div><div><dt>Rata-rata INA-CBG</dt><dd>${moneyFormat(point.ina)}</dd></div><div><dt>Rata-rata iDRG</dt><dd>${moneyFormat(point.idrg)}</dd></div><div><dt>Selisih</dt><dd class="${point.y>=0?"positive":"negative"}">${point.y>=0?"▲ ":"▼ "}${Math.abs(point.y).toFixed(2)}%</dd></div></dl><small>Layanan: ${escapeHtml(point.services)}</small>`;}
     root.querySelectorAll("[data-scatter-code]").forEach((button)=>button.addEventListener("click",()=>{const point=points.find((item)=>item.code===button.dataset.scatterCode);if(point)showDetail(point);}));
     const rerender = () => { chart.destroy(); renderTariffScatterWorkspace(); };
     [["scatterService","service"],["scatterPtd","ptd"],["scatterRegion","region"],["scatterHospitalClass","hospitalClass"],["scatterRawatClass","rawatClass"],["scatterOwnership","ownership"]].forEach(([id,key])=>root.querySelector(`#${id}`)?.addEventListener("change",(event)=>{ui[key]=event.target.value;rerender();}));
     root.querySelector("#scatterThreshold")?.addEventListener("change",(event)=>{ui.threshold=Math.max(0,Number(event.target.value)||0);rerender();});
     root.querySelector("#scatterClose")?.addEventListener("click",()=>{chart.destroy();root.remove();});
-    root.querySelector("#scatterSave")?.addEventListener("click",()=>{const output=document.createElement("canvas");output.width=1800;output.height=1250;const ctx=output.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,output.width,output.height);ctx.fillStyle="#07575b";ctx.font="bold 36px Arial";ctx.fillText("Analisis Selisih Tarif iDRG terhadap INA-CBG",45,55);ctx.font="18px Arial";ctx.fillStyle="#52615f";ctx.fillText(`${scatterScenarioLabel} · ${ui.service === "ALL" ? "ALL Layanan" : ui.service} · PTD ${ui.ptd === "1" ? "Rawat Inap" : ui.ptd === "2" ? "Rawat Jalan" : "ALL"} · ${ui.region} · ${ui.hospitalClass} · ${ui.rawatClass} · ${ui.ownership}`,45,88);ctx.drawImage(chartCanvas,45,115,1710,850);ctx.fillStyle="#07575b";ctx.font="bold 23px Arial";ctx.fillText("Deskripsi outlier utama · rata-rata aktual per kasus",45,1010);ctx.font="16px Arial";points.slice(0,8).forEach((point,index)=>{ctx.fillStyle=point.y>=0?"#b53b2e":"#2879ad";ctx.fillText(`${index+1}. ${point.code} · ${point.y>=0?"+":""}${point.y.toFixed(1)}% · ${formatNumber(point.cases)} kasus`,55,1045+index*24);ctx.fillStyle="#34464a";ctx.fillText(point.description.slice(0,120),390,1045+index*24);});const link=document.createElement("a");link.download=`Scatter_Tarif_iDRG_${new Date().toISOString().slice(0,10)}.png`;link.href=output.toDataURL("image/png");link.click();});
+    root.querySelector("#scatterSave")?.addEventListener("click",()=>{const output=document.createElement("canvas");output.width=1800;output.height=1250;const ctx=output.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,output.width,output.height);ctx.fillStyle="#07575b";ctx.font="bold 36px Arial";ctx.fillText("Analisis Selisih Tarif iDRG terhadap INA-CBG",45,55);ctx.font="18px Arial";ctx.fillStyle="#52615f";ctx.fillText(`${scatterScenarioLabel} · ${ui.service === "ALL" ? "ALL Layanan" : ui.service} · PTD ${ui.ptd === "1" ? "Rawat Inap" : ui.ptd === "2" ? "Rawat Jalan" : "ALL"} · ${ui.region} · ${ui.hospitalClass} · ${ui.rawatClass} · ${ui.ownership}`,45,88);ctx.drawImage(chartCanvas,45,115,1710,850);ctx.fillStyle="#07575b";ctx.font="bold 23px Arial";ctx.fillText("Deskripsi outlier utama · rata-rata aktual per kasus",45,1010);ctx.font="16px Arial";points.slice(0,8).forEach((point,index)=>{ctx.fillStyle=point.y>=0?"#b53b2e":"#2879ad";ctx.fillText(`${index+1}. ${point.code} · ${point.y>=0?"▲ ":"▼ "}${Math.abs(point.y).toFixed(1)}% · ${formatNumber(point.cases)} kasus`,55,1045+index*24);ctx.fillStyle="#34464a";ctx.fillText(point.description.slice(0,120),390,1045+index*24);});const link=document.createElement("a");link.download=`Scatter_Tarif_iDRG_${new Date().toISOString().slice(0,10)}.png`;link.href=output.toDataURL("image/png");link.click();});
   }
 
   window.showTariffScatterWorkspace = function() { renderTariffScatterWorkspace(); };
@@ -6940,8 +6940,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
             ${r.eksBreakdownHtml}
           </td>
           <td style="text-align: center; color: #b91c1c; padding: 5px 6px; background: #fff1f2;">
-            <div>-${formatNumber(c.kk)}</div>
-            <div style="font-size: 10.5px; font-weight: 600;">-${(c.krp/1e9).toFixed(2).replace('.', ',')} M</div>
+            <div>▼ ${formatNumber(c.kk)}</div>
+            <div style="font-size: 10.5px; font-weight: 600;">▼ ${(c.krp/1e9).toFixed(2).replace('.', ',')} M</div>
           </td>
           <td style="text-align: center; color: #0891b2; font-weight: 700; padding: 5px 6px; background: #ecfeff;">
             <div>${formatNumber(c.sisaK)}</div>
@@ -6949,8 +6949,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
             ${r.sisaBreakdownHtml}
           </td>
           <td style="text-align: center; color: #15803d; padding: 5px 6px; background: #f0fdf4;">
-            <div>+${formatNumber(c.tk)}</div>
-            <div style="font-size: 10.5px; font-weight: 600;">+${(c.trp/1e9).toFixed(2).replace('.', ',')} M</div>
+            <div>▲ ${formatNumber(c.tk)}</div>
+            <div style="font-size: 10.5px; font-weight: 600;">▲ ${(c.trp/1e9).toFixed(2).replace('.', ',')} M</div>
           </td>
           <td style="text-align: center; font-weight: 800; color: #92400e; padding: 5px 6px; background: #fffbeb;">
             <div>${formatNumber(c.pascaK)}</div>
@@ -6981,16 +6981,16 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           <td colspan="4" style="text-align: right; padding: 8px 10px; color: #0f172a; font-weight: 800;">TOTAL SELURUH LAYANAN (OPTIMAL & LOGIS)</td>
           <td style="text-align: center; padding: 8px 6px; font-weight: 800; color: #0f172a;">${formatNumber(grandEksKasus)}</td>
           <td style="text-align: center; padding: 8px 6px; color: #b91c1c; background: #ffe4e6;">
-            <div>-${formatNumber(grandKurangKasus)}</div>
-            <div style="font-size: 11px;">-${(grandKurangRp/1e9).toFixed(2).replace('.', ',')} M</div>
+            <div>▼ ${formatNumber(grandKurangKasus)}</div>
+            <div style="font-size: 11px;">▼ ${(grandKurangRp/1e9).toFixed(2).replace('.', ',')} M</div>
           </td>
           <td style="text-align: center; padding: 8px 6px; color: #0891b2; font-weight: 800; background: #cffafe;">
             <div>${formatNumber(grandSisaKasus)}</div>
             <div style="font-size: 11px;">${(grandSisaRp/1e9).toFixed(2).replace('.', ',')} M</div>
           </td>
           <td style="text-align: center; padding: 8px 6px; color: #15803d; background: #dcfce7; font-weight: 800;">
-            <div>+${formatNumber(grandTambahKasus)}</div>
-            <div style="font-size: 11px;">+${(grandTambahRp/1e9).toFixed(2).replace('.', ',')} M</div>
+            <div>▲ ${formatNumber(grandTambahKasus)}</div>
+            <div style="font-size: 11px;">▲ ${(grandTambahRp/1e9).toFixed(2).replace('.', ',')} M</div>
           </td>
           <td style="text-align: center; padding: 8px 6px; font-weight: 900; color: #92400e; background: #fef3c7;">
             <div>${formatNumber(grandPascaKasus)}</div>
@@ -7549,7 +7549,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
                 <td rowspan="${nRows}" style="border: 1px solid #fecaca; padding: 4px; vertical-align: middle; background-color: #fff5f5;">
                   <input type="number" class="scenario-input dynamic-scenario-input" data-service="${escapeHtml(service)}" data-index="${index}" data-field="kurang_${lvl}" value="${scn['kurang_' + lvl]}" step="0.1" style="width: 52px; padding: 2px; font-size: 13px; text-align: center; border: 1px solid #fca5a5; border-radius: 4px; color: #b91c1c; background: transparent;">
                 </td>
-                <td rowspan="${nRows}" style="border: 1px solid #fecaca; padding: 4px; font-size: 13px; font-weight: 600; color: #b91c1c; vertical-align: middle; background-color: #fff5f5;">-${formatNumber(kk)}</td>
+                <td rowspan="${nRows}" style="border: 1px solid #fecaca; padding: 4px; font-size: 13px; font-weight: 600; color: #b91c1c; vertical-align: middle; background-color: #fff5f5;">▼ ${formatNumber(kk)}</td>
               `;
             }
           }
@@ -7568,7 +7568,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
               <td style="${cb} padding: 4px; vertical-align: middle; background-color: ${isMostLogical ? '#f0fdf4' : 'transparent'};">
                 <input type="number" class="scenario-input dynamic-scenario-input" data-service="${escapeHtml(service)}" data-index="${index}" data-field="tambah_${lvl}" value="${scn['tambah_' + lvl]}" step="0.1" style="width: 52px; padding: 2px; font-size: 13px; text-align: center; border: 1px solid #86efac; border-radius: 4px; color: #15803d; background: transparent;">
               </td>
-              <td style="${cb} padding: 4px; font-size: 13px; font-weight: 600; color: #15803d; vertical-align: middle;">+${formatNumber(tk)}</td>
+              <td style="${cb} padding: 4px; font-size: 13px; font-weight: 600; color: #15803d; vertical-align: middle;">▲ ${formatNumber(tk)}</td>
               <td style="${cb} padding: 4px; font-size: 12px; color: #15803d; vertical-align: middle;">${formatMatrixMoneyJT(trp)}</td>
             `;
           }
@@ -7642,8 +7642,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           <td style="${cb} font-size: 13px; padding: 4px; font-weight: 700; color: ${isSafeRow ? '#b45309' : '#b91c1c'}; background-color: ${isMostLogical ? '#fffbeb' : 'transparent'};">${formatNumber(pascaKasus)}${safeIcon}</td>
           <td style="${cb} font-size: 13px; padding: 4px; font-weight: 800; color: ${pascaRbkp < 0 ? '#b91c1c' : '#92400e'}; background-color: ${isMostLogical ? '#ffedd5' : 'transparent'};">Rp ${formatMatrixMoneyJT(pascaRbkp)}</td>
           <!-- NET +/- -->
-          <td style="${cb} font-size: 13px; padding: 4px; color: ${netKasus > 0 ? '#15803d' : (netKasus < 0 ? '#b91c1c' : '#334155')}; font-weight: 700;">${netKasus > 0 ? '+' : ''}${formatNumber(netKasus)}</td>
-          <td style="${cb} font-size: 12px; padding: 4px; color: ${netRp > 0 ? '#15803d' : (netRp < 0 ? '#b91c1c' : '#334155')}; font-weight: 700;">${netRp > 0 ? '+' : ''}${formatMatrixMoneyJT(netRp)}<br><span style="font-size: 10px; font-weight: 600; color: ${pctKenaikan > 0 ? '#15803d' : (pctKenaikan < 0 ? '#b91c1c' : '#94a3b8')};">${pctKenaikan > 0 ? '+' : ''}${formatPercent(pctKenaikan)}</span></td>
+          <td style="${cb} font-size: 13px; padding: 4px; color: ${netKasus > 0 ? '#15803d' : (netKasus < 0 ? '#b91c1c' : '#334155')}; font-weight: 700;">${netKasus >= 0 ? "▲ " : "▼ "}${formatNumber(Math.abs(netKasus))}</td>
+          <td style="${cb} font-size: 12px; padding: 4px; color: ${netRp > 0 ? '#15803d' : (netRp < 0 ? '#b91c1c' : '#334155')}; font-weight: 700;">${netRp >= 0 ? "▲ " : "▼ "}${formatMatrixMoneyJT(Math.abs(netRp))}<br><span style="font-size: 10px; font-weight: 600; color: ${pctKenaikan > 0 ? '#15803d' : (pctKenaikan < 0 ? '#b91c1c' : '#94a3b8')};">${pctKenaikan >= 0 ? "▲ " : "▼ "}${formatPercent(Math.abs(pctKenaikan))}</span></td>
         </tr>`;
       };
       
