@@ -1178,10 +1178,10 @@
     
     window.globalSimScenarios.forEach((pct, idx) => {
       const pctValue = pct; // Gunakan nilai mentah dari array (bisa desimal)
-      const pctDisplay = Math.round(pctValue * 100);
+      const pctDisplay = Math.ceil(pctValue * 100);
       
       const kurangPctValue = window.globalSimKurangScenarios[idx] !== undefined ? window.globalSimKurangScenarios[idx] : 1.0;
-      const kurangPctDisplay = Math.round(kurangPctValue * 100);
+      const kurangPctDisplay = Math.ceil(kurangPctValue * 100);
       
       const tambahKasus = Math.round(potensiSerapanKasus * pctValue);
       const tambahIdrg = potensiSerapanIdrg * pctValue;
@@ -2095,6 +2095,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           target,
           service,
           targetComp,
+          rules,
           levelNames,
           levelData,
           scenarioDefs,
