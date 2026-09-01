@@ -7706,7 +7706,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           <div class="slide-content" style="padding: 16px 24px; overflow-y: auto;">
               <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 13px; line-height: 1.6; color: #334155;">
                 <div style="font-weight: 800; font-size: 15px; color: #0f172a; margin-bottom: 4px;">
-                  Layanan: ${escapeHtml(servicesConfig[service]?.name || service)} <span style="color: #cbd5e1; margin: 0 8px;">|</span> Kompetensi RS Target: ${levelNames[targetCompetency]}
+                  Layanan: ${escapeHtml(service)} <span style="color: #cbd5e1; margin: 0 8px;">|</span> Kompetensi RS Target: ${levelNames[targetCompetency]}
                 </div>
                 ${(() => {
                   const compCountByLevel = { 1: 0, 2: 0, 3: 0, 4: 0 };
