@@ -1178,10 +1178,10 @@
     
     window.globalSimScenarios.forEach((pct, idx) => {
       const pctValue = pct; // Gunakan nilai mentah dari array (bisa desimal)
-      const pctDisplay = Math.ceil(pctValue * 100);
+      const pctDisplay = Number((pctValue * 100).toFixed(2));
       
       const kurangPctValue = window.globalSimKurangScenarios[idx] !== undefined ? window.globalSimKurangScenarios[idx] : 1.0;
-      const kurangPctDisplay = Math.ceil(kurangPctValue * 100);
+      const kurangPctDisplay = Number((kurangPctValue * 100).toFixed(2));
       
       const tambahKasus = Math.round(potensiSerapanKasus * pctValue);
       const tambahIdrg = potensiSerapanIdrg * pctValue;
@@ -1197,7 +1197,7 @@
       
       // Input dinamis
       const inputHtml = `<div style="display:flex; align-items:center; justify-content:center; gap:4px;">
-        <input type="number" min="0" max="100" step="1" value="${pctDisplay}" 
+        <input type="number" min="0" max="100" step="0.01" value="${pctDisplay}" 
           class="global-sim-input" data-idx="${idx}"
           style="width:50px; padding:2px 4px; text-align:center; border:1px solid #94a3b8; border-radius:4px; font-size:12px; font-weight:bold; color:#0f172a;">
         <span style="font-size:11px; color:#64748b; font-weight:normal;">%</span>
@@ -1211,7 +1211,7 @@
             Skenario ${idx + 1}<br>
             <span style="font-size:11px; color:#64748b; font-weight:500;">${scnLabels[idx] || ''}</span><br>
             <div style="display:flex; align-items:center; justify-content:center; gap:4px; margin-top:6px;">
-              <input type="number" min="0" max="100" step="1" value="${pctDisplay}" 
+              <input type="number" min="0" max="100" step="0.01" value="${pctDisplay}" 
                 class="global-sim-input" data-idx="${idx}"
                 style="width:52px; padding:3px 4px; text-align:center; border:1.5px solid #94a3b8; border-radius:5px; font-size:13px; font-weight:700; color:#0f172a; background:#fff;">
               <span style="font-size:11px; color:#64748b;">%</span>
@@ -1230,7 +1230,7 @@
           <!-- Kurang -->
           <td style="text-align:center; border:1px solid #fecdd3; padding:14px 10px; background:#fff1f2;">
             <div style="display:flex; align-items:center; justify-content:center; gap:4px; margin-bottom:6px;">
-              <input type="number" min="0" max="100" step="1" value="${kurangPctDisplay}" 
+              <input type="number" min="0" max="100" step="0.01" value="${kurangPctDisplay}" 
                 class="global-sim-kurang-input" data-idx="${idx}"
                 style="width:52px; padding:3px 4px; text-align:center; border:1px solid #fca5a5; border-radius:5px; font-size:13px; font-weight:700; color:#b91c1c; background:#fff;">
               <span style="font-size:11px; color:#b91c1c;">%</span>
@@ -1671,7 +1671,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           <div style="flex: 1; min-width: 160px; background: ${selisihPendapatan >= 0 ? '#f0fdf4' : '#fef2f2'}; border: 1px solid ${selisihPendapatan >= 0 ? '#bbf7d0' : '#fecaca'}; padding: 12px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
             <div style="color: #64748b; font-size: 13px; font-weight: bold; margin-bottom: 5px;">Selisih Pendapatan:</div>
             <div style="color: ${selisihPendapatan >= 0 ? '#15803d' : '#b91c1c'}; font-size: 24px; font-weight: 900;">${selisihPendapatan >= 0 ? '+' : ''}${formatMoneyUnit(selisihPendapatan)}</div>
-            <div style="color: ${selisihPendapatan >= 0 ? '#15803d' : '#b91c1c'}; font-size: 14px; font-weight: bold; margin-top: 4px;">${selisihPendapatan >= 0 ? '+' : ''}${Math.ceil(pctSelisih)}%</div>
+            <div style="color: ${selisihPendapatan >= 0 ? '#15803d' : '#b91c1c'}; font-size: 14px; font-weight: bold; margin-top: 4px;">${selisihPendapatan >= 0 ? '+' : ''}${decimalFormatter.format(pctSelisih)}%</div>
           </div>
 
           <div style="flex: 1; min-width: 160px; background: #fdf2f8; border: 1px solid #fbcfe8; padding: 12px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
@@ -1784,9 +1784,9 @@ document.getElementById("globalSimulationSlide").innerHTML = `
 
                     <!-- Net -->
                     <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: ${netKasus >= 0 ? '#059669' : '#e11d48'}">${netKasus >= 0 ? '+' : ''}${formatNumber(netKasus)}</td>
-                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: ${netKasus >= 0 ? '#059669' : '#e11d48'}">${netKasus >= 0 ? '+' : ''}${Math.ceil(netKasusPct)}%</td>
+                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: ${netKasus >= 0 ? '#059669' : '#e11d48'}">${netKasus >= 0 ? '+' : ''}${decimalFormatter.format(netKasusPct)}%</td>
                     <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: ${selisihVsInacbg >= 0 ? '#059669' : '#e11d48'}">${selisihVsInacbg >= 0 ? '+' : ''}${formatMoneyUnit(Math.abs(selisihVsInacbg))}</td>
-                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: ${selisihVsInacbg >= 0 ? '#059669' : '#e11d48'}">${selisihVsInacbg >= 0 ? '+' : ''}${Math.ceil(pctSelisihVsInacbg)}%</td>
+                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: ${selisihVsInacbg >= 0 ? '#059669' : '#e11d48'}">${selisihVsInacbg >= 0 ? '+' : ''}${decimalFormatter.format(pctSelisihVsInacbg)}%</td>
                   </tr>
                 `;
               }).join('')}
@@ -1944,10 +1944,11 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const pctFor = (scenarioIndex, item) => { const sIdx = item.direction === "kurang" ? 0 : scenarioIndex;
       const field = `${item.direction}_${item.level}`;
       const manual = overrides[sIdx]?.[field];
-        if (Number.isFinite(manual)) return Math.ceil(manual);
-        if (item.direction === "kurang") return 100;
-        if (item.competitors === 0) return [100, 75, 50, 25, 0][scenarioIndex] || 0;
-        return Math.ceil(Math.min(100, item.naturalShare + scenarioDefs[scenarioIndex].add));
+        if (Number.isFinite(manual)) return manual;
+          if (item.direction === "kurang") return 100;
+          if (item.direction === "tambah" && window.dynamicMarketAddMode === "flat") return Number(Math.min(100, 50 + scenarioDefs[scenarioIndex].add).toFixed(2));
+          if (item.competitors === 0) return [100, 75, 50, 25, 0][scenarioIndex] || 0;
+          return Number(Math.min(100, item.naturalShare + scenarioDefs[scenarioIndex].add).toFixed(2));
       };
 
     const scenarioResults = scenarioDefs.map((definition, scenarioIndex) => {
@@ -1981,7 +1982,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
 
     const pctInputLines = (scenarioIndex, direction) => levelData
       .filter((item) => item.direction === direction)
-      .map((item) => `<label style="display:flex;align-items:center;justify-content:space-between;gap:4px;white-space:nowrap;"><span>${shortLevelNames[item.level]}</span><span><input class="dynamic-market-pct" data-scenario="${scenarioIndex}" data-direction="${direction}" data-level="${item.level}" type="number" min="0" max="100" step="1" value="${pctFor(scenarioIndex, item)}" style="width:52px;padding:3px;text-align:right;border:1px solid #cbd5e1;border-radius:4px;font-weight:800;">%</span></label>`)
+      .map((item) => `<label style="display:flex;align-items:center;justify-content:space-between;gap:4px;white-space:nowrap;"><span>${shortLevelNames[item.level]}</span><span><input class="dynamic-market-pct" data-scenario="${scenarioIndex}" data-direction="${direction}" data-level="${item.level}" type="number" min="0" max="100" step="0.01" value="${pctFor(scenarioIndex, item)}" style="width:52px;padding:3px;text-align:right;border:1px solid #cbd5e1;border-radius:4px;font-weight:800;">%</span></label>`)
       .join("") || '<span style="color:#94a3b8;">—</span>';
     container.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px;padding:8px 10px;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:9px;">
@@ -2068,7 +2069,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
               ${result.scenarioIndex === 0 ? `<td data-col="kr-pct" rowspan="${scenarioResults.length}" style="border:1px solid #1e293b;padding:5px;min-width:105px;color:#be123c;font-weight:700;">${pctInputLines(0, "kurang")}</td><td data-col="kr-kasus" rowspan="${scenarioResults.length}" style="border:1px solid #1e293b;padding:6px;font-weight:900;">${formatNumber(Math.round(result.lossCases))}</td><td data-col="kr-rp" rowspan="${scenarioResults.length}" style="border:1px solid #1e293b;padding:6px;font-weight:900;color:#e11d48;">▼ ${formatTableMoney(result.lossIdrg)}</td>` : ""}
               <td style="border:1px solid #1e293b;padding:6px;font-weight:900;background:#eff6ff;">${formatNumber(Math.round(result.projectedCases))}</td>
               <td style="border:1px solid #1e293b;padding:6px;font-weight:900;background:#f0fdf4;">${formatTableMoney(result.projectedIdrg)}</td>
-              <td data-col="nt-kasus" style="border:1px solid #1e293b;padding:6px;font-weight:900;color:${deltaCases >= 0 ? "#059669" : "#e11d48"};">${deltaCases >= 0 ? "▲ " : "▼ "}${formatNumber(Math.abs(Math.round(deltaCases)))}</td><td data-col="nt-kasuspct" style="border:1px solid #1e293b;padding:6px;font-weight:900;color:${deltaCases >= 0 ? "#059669" : "#e11d48"};">${deltaCases >= 0 ? "▲ " : "▼ "}${Math.abs(Math.ceil(deltaCasesPct))}%</td><td data-col="nt-rp" style="border:1px solid #1e293b;padding:6px;font-weight:900;color:${deltaIna >= 0 ? "#059669" : "#e11d48"};">${deltaIna >= 0 ? "▲ " : "▼ "}${formatTableMoney(Math.abs(deltaIna))}</td><td data-col="nt-rppct" style="border:1px solid #1e293b;padding:6px;font-weight:900;color:${deltaIna >= 0 ? "#059669" : "#e11d48"};">${deltaIna >= 0 ? "▲ " : "▼ "}${Math.abs(Math.ceil(deltaInaPct))}%</td>
+              <td data-col="nt-kasus" style="border:1px solid #1e293b;padding:6px;font-weight:900;color:${deltaCases >= 0 ? "#059669" : "#e11d48"};">${deltaCases >= 0 ? "▲ " : "▼ "}${formatNumber(Math.abs(Math.round(deltaCases)))}</td><td data-col="nt-kasuspct" style="border:1px solid #1e293b;padding:6px;font-weight:900;color:${deltaCases >= 0 ? "#059669" : "#e11d48"};">${deltaCases >= 0 ? "▲ " : "▼ "}${decimalFormatter.format(Math.abs(deltaCasesPct))}%</td><td data-col="nt-rp" style="border:1px solid #1e293b;padding:6px;font-weight:900;color:${deltaIna >= 0 ? "#059669" : "#e11d48"};">${deltaIna >= 0 ? "▲ " : "▼ "}${formatTableMoney(Math.abs(deltaIna))}</td><td data-col="nt-rppct" style="border:1px solid #1e293b;padding:6px;font-weight:900;color:${deltaIna >= 0 ? "#059669" : "#e11d48"};">${deltaIna >= 0 ? "▲ " : "▼ "}${decimalFormatter.format(Math.abs(deltaInaPct))}%</td>
             </tr>`;
           }).join("")}</tbody>
         </table>
@@ -7333,10 +7334,11 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const additionPoolIdrg = levelData.filter((item) => item.direction === "tambah").reduce((sum, item) => sum + item.externalIdrg, 0);
     const pctFor = (scenarioIndex, item) => { const sIdx = item.direction === "kurang" ? 0 : scenarioIndex;
       const manual = overrides[sIdx]?.[`${item.direction}_${item.level}`];
-        if (Number.isFinite(manual)) return Math.ceil(manual);
-        if (item.direction === "kurang") return 100;
-        if (item.competitors === 0) return [100, 75, 50, 25, 0][scenarioIndex] || 0;
-        return Math.ceil(Math.min(100, item.naturalShare + scenarioDefs[scenarioIndex].add));
+        if (Number.isFinite(manual)) return manual;
+          if (item.direction === "kurang") return 100;
+          if (item.direction === "tambah" && window.dynamicMarketAddMode === "flat") return Number(Math.min(100, 50 + scenarioDefs[scenarioIndex].add).toFixed(2));
+          if (item.competitors === 0) return [100, 75, 50, 25, 0][scenarioIndex] || 0;
+          return Number(Math.min(100, item.naturalShare + scenarioDefs[scenarioIndex].add).toFixed(2));
       };
 
     const results = scenarioDefs.map((definition, scenarioIndex) => {
@@ -7402,7 +7404,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
             ${result.scenarioIndex === 0 ? `<td rowspan="${results.length}" style="${cell}background:#f8fafc;min-width:175px;text-align:left;font-size:10px;line-height:1.45;"><div style="font-size:12px;font-weight:900;color:#0f172a;border-bottom:1px solid #cbd5e1;padding-bottom:3px;margin-bottom:3px;">Total Kasus: ${formatNumber(baselineCases)}</div>${levelData.map((item) => `<div style="font-weight:${rules.tambah.includes(item.level) ? '900' : '400'};color:${rules.tambah.includes(item.level) ? '#0f172a' : '#64748b'};">${shortLevelNames[item.level]}: ${formatNumber(item.targetCases)} (${formatMoneyUnit(item.targetIdrg)})</div>`).join('')}<div style="font-weight:800;color:#c2410c;border-top:1px solid #e2e8f0;margin-top:3px;padding-top:3px;">INA-CBG: ${formatMoneyUnit(baselineIna)}</div><div style="font-weight:800;color:#0369a1;">iDRG: ${formatMoneyUnit(baselineIdrg)}</div></td>` : ''}
             <td data-col="srv-tb-pct" style="${cell}min-width:92px;color:#15803d;font-weight:700;">${pctInputs(result.scenarioIndex, "tambah")}</td><td data-col="srv-tb-kasus" style="${cell}font-weight:800;">${formatNumber(Math.round(result.addCases))}</td><td data-col="srv-tb-rp" style="${cell}font-weight:800;color:#059669;">▲ ${formatTableMoney(result.addIdrg)}</td>
             ${result.scenarioIndex === 0 ? `<td data-col="srv-kr-pct" rowspan="${results.length}" style="${cell}min-width:92px;color:#be123c;font-weight:700;">${pctInputs(0, "kurang")}</td><td data-col="srv-kr-kasus" rowspan="${results.length}" style="${cell}font-weight:800;">${formatNumber(Math.round(result.lossCases))}</td><td data-col="srv-kr-rp" rowspan="${results.length}" style="${cell}font-weight:800;color:#e11d48;">▼ ${formatTableMoney(result.lossIdrg)}</td>` : ""}
-            <td style="${cell}font-weight:900;background:#eff6ff;">${formatNumber(Math.round(result.projectedCases))}</td><td style="${cell}font-weight:900;background:#f0fdf4;">${formatTableMoney(result.projectedIdrg)}</td><td data-col="srv-nt-kasus" style="${cell}font-weight:800;color:${deltaCases >= 0 ? '#059669' : '#e11d48'};">${deltaCases >= 0 ? "▲ " : "▼ "}${formatNumber(Math.abs(Math.round(deltaCases)))}</td><td data-col="srv-nt-kasuspct" style="${cell}font-weight:800;color:${deltaCases >= 0 ? '#059669' : '#e11d48'};">${deltaCases >= 0 ? "▲ " : "▼ "}${Math.abs(Math.ceil(deltaCasesPct))}%</td><td data-col="srv-nt-rp" style="${cell}font-weight:800;color:${deltaIncome >= 0 ? '#059669' : '#e11d48'};">${deltaIncome >= 0 ? "▲ " : "▼ "}${formatTableMoney(Math.abs(deltaIncome))}</td><td data-col="srv-nt-rppct" style="${cell}font-weight:800;color:${deltaIncome >= 0 ? '#059669' : '#e11d48'};">${deltaIncome >= 0 ? "▲ " : "▼ "}${Math.abs(Math.ceil(deltaIncomePct))}%</td></tr>`;
+            <td style="${cell}font-weight:900;background:#eff6ff;">${formatNumber(Math.round(result.projectedCases))}</td><td style="${cell}font-weight:900;background:#f0fdf4;">${formatTableMoney(result.projectedIdrg)}</td><td data-col="srv-nt-kasus" style="${cell}font-weight:800;color:${deltaCases >= 0 ? '#059669' : '#e11d48'};">${deltaCases >= 0 ? "▲ " : "▼ "}${formatNumber(Math.abs(Math.round(deltaCases)))}</td><td data-col="srv-nt-kasuspct" style="${cell}font-weight:800;color:${deltaCases >= 0 ? '#059669' : '#e11d48'};">${deltaCases >= 0 ? "▲ " : "▼ "}${decimalFormatter.format(Math.abs(deltaCasesPct))}%</td><td data-col="srv-nt-rp" style="${cell}font-weight:800;color:${deltaIncome >= 0 ? '#059669' : '#e11d48'};">${deltaIncome >= 0 ? "▲ " : "▼ "}${formatTableMoney(Math.abs(deltaIncome))}</td><td data-col="srv-nt-rppct" style="${cell}font-weight:800;color:${deltaIncome >= 0 ? '#059669' : '#e11d48'};">${deltaIncome >= 0 ? "▲ " : "▼ "}${decimalFormatter.format(Math.abs(deltaIncomePct))}%</td></tr>`;
         }).join('')}</tbody></table></div>`;
   }
 
@@ -7547,7 +7549,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
               const nRows = state.serviceScenarios[service].length;
               kurangCols += `
                 <td rowspan="${nRows}" style="border: 1px solid #fecaca; padding: 4px; vertical-align: middle; background-color: #fff5f5;">
-                  <input type="number" class="scenario-input dynamic-scenario-input" data-service="${escapeHtml(service)}" data-index="${index}" data-field="kurang_${lvl}" value="${scn['kurang_' + lvl]}" step="0.1" style="width: 52px; padding: 2px; font-size: 13px; text-align: center; border: 1px solid #fca5a5; border-radius: 4px; color: #b91c1c; background: transparent;">
+                  <input type="number" class="scenario-input dynamic-scenario-input" data-service="${escapeHtml(service)}" data-index="${index}" data-field="kurang_${lvl}" value="${scn['kurang_' + lvl]}" step="0.01" style="width: 52px; padding: 2px; font-size: 13px; text-align: center; border: 1px solid #fca5a5; border-radius: 4px; color: #b91c1c; background: transparent;">
                 </td>
                 <td rowspan="${nRows}" style="border: 1px solid #fecaca; padding: 4px; font-size: 13px; font-weight: 600; color: #b91c1c; vertical-align: middle; background-color: #fff5f5;">▼ ${formatNumber(kk)}</td>
               `;
@@ -7566,7 +7568,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
             totalTambahRp += trp;
             tambahCols += `
               <td style="${cb} padding: 4px; vertical-align: middle; background-color: ${isMostLogical ? '#f0fdf4' : 'transparent'};">
-                <input type="number" class="scenario-input dynamic-scenario-input" data-service="${escapeHtml(service)}" data-index="${index}" data-field="tambah_${lvl}" value="${scn['tambah_' + lvl]}" step="0.1" style="width: 52px; padding: 2px; font-size: 13px; text-align: center; border: 1px solid #86efac; border-radius: 4px; color: #15803d; background: transparent;">
+                <input type="number" class="scenario-input dynamic-scenario-input" data-service="${escapeHtml(service)}" data-index="${index}" data-field="tambah_${lvl}" value="${scn['tambah_' + lvl]}" step="0.01" style="width: 52px; padding: 2px; font-size: 13px; text-align: center; border: 1px solid #86efac; border-radius: 4px; color: #15803d; background: transparent;">
               </td>
               <td style="${cb} padding: 4px; font-size: 13px; font-weight: 600; color: #15803d; vertical-align: middle;">▲ ${formatNumber(tk)}</td>
               <td style="${cb} padding: 4px; font-size: 12px; color: #15803d; vertical-align: middle;">${formatMatrixMoneyJT(trp)}</td>
