@@ -490,7 +490,7 @@
     const baselinePct = {};
     rules.tambah.forEach(lvl => {
       const lvlComp = target
-        ? data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= lvl).length
+        ? data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) === lvl).length
         : 0;
       // Jika ada kompetitor: market share alami = 100/(kompetitor+1)
       // Jika tidak ada kompetitor, RS target menjadi satu-satunya penyedia eligible.
