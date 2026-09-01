@@ -10252,7 +10252,6 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       }
       
       for (const svc in h.services) {
-        if (getCompetency(h, svc) <= 0) continue;
         if (!regional.services[svc]) {
           regional.services[svc] = { competency: 0, total: createZeroMetric(), severity: {} };
         }
