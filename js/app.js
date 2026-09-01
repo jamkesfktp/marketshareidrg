@@ -1870,8 +1870,6 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const sourceRelationLabel = "RS kompetensi selain level kasus";
     const additionSourceHospitals = data.hospitals.filter((hospital) => {
       if (targetCodes.has(hospital.code)) return false;
-      const sourceComp = getCompetency(hospital, service);
-      if (sourceComp <= 0) return false;
       return true;
     });
     const competitorHospitals = data.hospitals
@@ -7271,8 +7269,6 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const sourceRelationLabel = "RS Kompetensi Selain Level Kasus";
     const additionSourceHospitals = data.hospitals.filter((hospital) => {
       if (targetCodes.has(hospital.code)) return false;
-      const sourceComp = getCompetency(hospital, service);
-      if (sourceComp <= 0) return false;
       return true;
     });
     const levelData = severityRanks.map((level) => {
