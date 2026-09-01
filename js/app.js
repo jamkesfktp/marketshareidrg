@@ -7917,7 +7917,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
                       <span style="color: #64748b; font-size: 11px; margin-left: 4px;">(Berdasarkan Update Data 13 Agustus 2026)</span>
                     </div>
                     <div>
-                      <strong>Kasus Regional : ${formatNumber(regionalTotalCases)} kasus</strong> &rarr; 
+                      <strong>Kasus Regional : ${formatNumber(regionalKasus)} kasus</strong> &rarr; 
                       Dasar : ${formatNumber(rD[CASES]||0)} Kasus (${formatMoneyUnit(rD[IDRG]||0)}), 
                       Madya: ${formatNumber(rM[CASES]||0)} Kasus (${formatMoneyUnit(rM[IDRG]||0)}), 
                       Utama: ${formatNumber(rU[CASES]||0)} Kasus (${formatMoneyUnit(rU[IDRG]||0)}), 
@@ -7942,8 +7942,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
                     <div style="font-size: 30px; font-weight: 800; color: #1e293b;">${formatNumber(targetKasus)}</div>
                   </div>
                   <div style="text-align: right; padding-left: 16px; border-left: 1px solid #e2e8f0;">
-                    <div style="font-size: 14px; color: #475569; font-weight: 700;">Pendapatan INACBG</div>
-                    <div style="font-size: 30px; font-weight: 800; color: #22c55e;">${formatMoneyM(targetIna)}</div>
+                    <div style="font-size: 14px; color: #475569; font-weight: 700;">Pendapatan iDRG</div>
+                    <div style="font-size: 30px; font-weight: 800; color: #22c55e;">${formatMoneyM(targetIdrg)}</div>
                   </div>
                 </div>
                 <div style="padding: 8px 12px; background: #fff;">
@@ -7971,8 +7971,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
                     <div style="font-size: 30px; font-weight: 800; color: #1e293b;">${formatNumber(regionalKasus)}</div>
                   </div>
                   <div style="text-align: right; padding-left: 16px; border-left: 1px solid #e2e8f0;">
-                    <div style="font-size: 14px; color: #475569; font-weight: 700;">Pendapatan INACBG</div>
-                    <div style="font-size: 30px; font-weight: 800; color: #22c55e;">${formatMoneyM(regionalIna)}</div>
+                    <div style="font-size: 14px; color: #475569; font-weight: 700;">Pendapatan iDRG</div>
+                    <div style="font-size: 30px; font-weight: 800; color: #22c55e;">${formatMoneyM(regionalIdrg)}</div>
                   </div>
                 </div>
                 <div style="padding: 8px 12px; background: #fff;">
