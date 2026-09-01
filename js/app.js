@@ -893,7 +893,7 @@
     let compCountM = 0;
     let compCountU = 0;
     let compCountP = 0;
-    data.hospitals.forEach(h => {
+    data.hospitals.filter(h => h.code !== target.code).forEach(h => {
       if (h.code === target.code) return;
       if (targetServiceSelect !== 'ALL') {
         const hComp = getCompetency(h, targetServiceSelect);
@@ -949,7 +949,7 @@
       compCountU = 0;
       compCountP = 0;
       
-      data.hospitals.forEach(h => {
+      data.hospitals.filter(h => h.code !== target.code).forEach(h => {
         if (h.code === targetHospital()?.code) return;
         
         if (targetServiceSelect !== 'ALL') {
@@ -993,7 +993,7 @@
 
       // --- PENAMBAH KASUS ---
       if (tambahMode === 'tambah_cross_comp') {
-        data.hospitals.forEach(h => {
+        data.hospitals.filter(h => h.code !== target.code).forEach(h => {
           if (h.code === target.code) return;
           const hCompetency = getCompetency(h, service);
           if (!hCompetency || hCompetency === 0) return;
@@ -1062,7 +1062,7 @@
         potensiSerapanKasus += Math.max(0, sRegDasarX[CASES] - sTargetDasarX[CASES]);
         potensiSerapanIdrg += Math.max(0, sRegDasarX[IDRG] - sTargetDasarX[IDRG]);
       } else if (tambahMode === 'tambah_mu_higher') {
-        data.hospitals.forEach(h => {
+        data.hospitals.filter(h => h.code !== target.code).forEach(h => {
           if (h.code === target.code) return;
           if (getCompetency(h, service) > getCompetency(target, service)) {
             const hSrv = h.services[service];
@@ -1075,7 +1075,7 @@
           }
         });
       } else if (tambahMode === 'tambah_d_higher') {
-        data.hospitals.forEach(h => {
+        data.hospitals.filter(h => h.code !== target.code).forEach(h => {
           if (h.code === target.code) return;
           if (getCompetency(h, service) > getCompetency(target, service)) {
             const hSrv = h.services[service];
@@ -1088,7 +1088,7 @@
         });
       } else {
         // Default: tambah_dm — Serap Dasar & Madya dari RS kompetensi lebih tinggi
-        data.hospitals.forEach(h => {
+        data.hospitals.filter(h => h.code !== target.code).forEach(h => {
           if (h.code === target.code) return;
           const hCompetency = getCompetency(h, service);
           const tCompetency = getCompetency(target, service);
@@ -1524,7 +1524,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       compCountU = 0;
       compCountP = 0;
       
-      data.hospitals.forEach(h => {
+      data.hospitals.filter(h => h.code !== target.code).forEach(h => {
         if (h.code === targetHospital()?.code) return;
         
         if (targetServiceSelect !== 'ALL') {
@@ -2401,7 +2401,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
 
     // Hospital classes
     const classCounts = { A: 0, B: 0, C: 0, D: 0 };
-    data.hospitals.forEach(h => {
+    data.hospitals.filter(h => h.code !== target.code).forEach(h => {
       const cls = String(h.class || '').toUpperCase().trim();
       if (classCounts[cls] !== undefined) classCounts[cls]++;
     });
@@ -6424,7 +6424,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       compCountU = 0;
       compCountP = 0;
       
-      data.hospitals.forEach(h => {
+      data.hospitals.filter(h => h.code !== target.code).forEach(h => {
         if (h.code === targetHospital()?.code) return;
         
         if (targetServiceSelect !== 'ALL') {
@@ -6708,7 +6708,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       compCountU = 0;
       compCountP = 0;
       
-      data.hospitals.forEach(h => {
+      data.hospitals.filter(h => h.code !== target.code).forEach(h => {
         if (h.code === targetHospital()?.code) return;
         
         if (targetServiceSelect !== 'ALL') {
@@ -7047,7 +7047,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       }
     };
     
-    data.hospitals.forEach(h => {
+    data.hospitals.filter(h => h.code !== target.code).forEach(h => {
       processItem(h);
       if (h.services) {
         Object.values(h.services).forEach(s => processItem(s));
@@ -7710,7 +7710,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
                 </div>
                 ${(() => {
                   const compCountByLevel = { 1: 0, 2: 0, 3: 0, 4: 0 };
-                  data.hospitals.forEach(h => {
+                  data.hospitals.filter(h => h.code !== target.code).forEach(h => {
                     const comp = getCompetency(h, service);
                     if (comp in compCountByLevel) compCountByLevel[comp]++;
                   });
@@ -7725,7 +7725,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
                   
                   return `
                     <div style="margin-bottom: 2px;">
-                      <strong>Jumlah RS : ${totalRS}</strong> &rarr; Kompetensi layanan : 
+                      <strong>RS Kompetitor ${target.province ? 'Regional ' + target.province : 'Regional'} : ${totalRS}</strong> &rarr; Kompetensi layanan : 
                       Dasar : ${compCountByLevel[1]}, Madya: ${compCountByLevel[2]}, Utama: ${compCountByLevel[3]}, Paripurna: ${compCountByLevel[4]} 
                       <span style="color: #64748b; font-size: 11px; margin-left: 4px;">(Berdasarkan Update Data 13 Agustus 2026)</span>
                     </div>
