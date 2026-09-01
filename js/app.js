@@ -1898,7 +1898,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         total[IDRG] += metric[IDRG] || 0;
         return total;
       }, createZeroMetric());
-      const competitors = direction === "tambah" ? sourceHospitals.length : competitorGroups[level].length;
+      const competitors = data.hospitals.filter((hospital) => !targetCodes.has(hospital.code) && getCompetency(hospital, service) === level).length;
       const naturalShare = competitors > 0 ? 100 / (competitors + 1) : (direction === "tambah" ? 100 : 0);
       const poolIna = direction === "tambah" ? sourceMetric[INA] || 0 : targetMetric[INA] || 0;
       const poolIdrg = direction === "tambah" ? sourceMetric[IDRG] || 0 : targetMetric[IDRG] || 0;
@@ -7289,9 +7289,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         total[IDRG] += metric[IDRG] || 0;
         return total;
       }, createZeroMetric());
-      const competitors = direction === "tambah"
-        ? sourceHospitals.length
-        : data.hospitals.filter((hospital) => !targetCodes.has(hospital.code) && getCompetency(hospital, service) === level).length;
+      const competitors = data.hospitals.filter((hospital) => !targetCodes.has(hospital.code) && getCompetency(hospital, service) === level).length;
       const poolIna = direction === "tambah" ? sourceMetric[INA] || 0 : targetMetric[INA] || 0;
       const poolIdrg = direction === "tambah" ? sourceMetric[IDRG] || 0 : targetMetric[IDRG] || 0;
       return {
