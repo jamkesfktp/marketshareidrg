@@ -7719,10 +7719,52 @@ document.getElementById("globalSimulationSlide").innerHTML = `
             </div>
           </div>
           <div class="slide-content" style="padding: 16px 24px; overflow-y: auto;">
-              <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 13px; line-height: 1.6; color: #334155;">
-                <div style="font-weight: 800; font-size: 15px; color: #0f172a; margin-bottom: 4px;">
-                  Layanan: ${escapeHtml(service)} <span style="color: #cbd5e1; margin: 0 8px;">|</span> Kompetensi RS Target: ${levelNames[targetCompetency]}
+              
+              <!-- 5-Box Summary Eksisting RS -->
+              ${(() => {
+                const targetExistingService = data.hospitals.find(h => h.code === state.targetCode)?.services?.[service]?.total || [0, 0, 0];
+                const tk = targetExistingService[CASES] || 0;
+                const tIna = targetExistingService[INA] || 0;
+                const tIdrg = targetExistingService[IDRG] || 0;
+                const selisih = tIdrg - tIna;
+                const pct = tIna ? (selisih / tIna) : 0;
+                const isPos = selisih >= 0;
+                const arrow = isPos ? '▲' : '▼';
+                const color = isPos ? '#16a34a' : '#b91c1c';
+                
+                return `
+                <div style="display: flex; gap: 0; margin-bottom: 16px; background: #f8fafc; padding: 16px 20px; justify-content: space-between; border-radius: 4px;">
+                  <div style="flex: 1; min-width: 140px; border-right: 2px solid white; padding-right: 16px;">
+                    <div style="font-size: 13px; font-weight: 700; color: #64748b; margin-bottom: 6px;">Total Kasus:</div>
+                    <div style="font-size: 26px; font-weight: 800; color: #9f1239; line-height: 1;">${formatNumber(tk)}</div>
+                    <div style="font-size: 11px; color: #94a3b8; margin-top: 6px;">Jumlah kasus eklaim</div>
+                  </div>
+                  <div style="flex: 1; min-width: 140px; border-right: 2px solid white; padding: 0 16px;">
+                    <div style="font-size: 13px; font-weight: 700; color: #64748b; margin-bottom: 6px;">Pendapatan INA CBGs:</div>
+                    <div style="font-size: 26px; font-weight: 800; color: #ea580c; line-height: 1;">${formatMoneyM(tIna)}</div>
+                    <div style="font-size: 11px; color: #94a3b8; margin-top: 6px;">Dari data 8 bulan</div>
+                  </div>
+                  <div style="flex: 1; min-width: 140px; border-right: 2px solid white; padding: 0 16px;">
+                    <div style="font-size: 13px; font-weight: 700; color: #64748b; margin-bottom: 6px;">Pendapatan iDRG:</div>
+                    <div style="font-size: 26px; font-weight: 800; color: #ca8a04; line-height: 1;">${formatMoneyM(tIdrg)}</div>
+                    <div style="font-size: 11px; color: #94a3b8; margin-top: 6px;">Klaim uji coba iDRG</div>
+                  </div>
+                  <div style="flex: 1; min-width: 140px; border-right: 2px solid white; padding: 0 16px;">
+                    <div style="font-size: 13px; font-weight: 700; color: #64748b; margin-bottom: 6px;">Selisih Pendapatan:</div>
+                    <div style="font-size: 26px; font-weight: 800; color: ${color}; line-height: 1;">${arrow} ${formatMoneyM(Math.abs(selisih))}</div>
+                    <div style="font-size: 11px; color: #94a3b8; margin-top: 6px;">iDRG - INA CBGs</div>
+                  </div>
+                  <div style="flex: 1; min-width: 140px; padding-left: 16px;">
+                    <div style="font-size: 13px; font-weight: 700; color: #64748b; margin-bottom: 6px;">Persentase:</div>
+                    <div style="font-size: 26px; font-weight: 800; color: ${color}; line-height: 1;">${arrow} ${formatPercent(Math.abs(pct))}</div>
+                    <div style="font-size: 11px; color: #94a3b8; margin-top: 6px;">Dari Pendapatan INACBG</div>
+                  </div>
                 </div>
+                `;
+              })()}
+              
+              <!-- Yellow Block Update -->
+              <div style="background: #fefce8; padding: 12px 16px; margin-bottom: 16px; font-size: 12px; line-height: 1.6;">
                 ${(() => {
                   const compCountByLevel = { 1: 0, 2: 0, 3: 0, 4: 0 };
                   data.hospitals.filter(h => h.code !== target.code).forEach(h => {
@@ -7736,16 +7778,14 @@ document.getElementById("globalSimulationSlide").innerHTML = `
                   const rM = severityMetric(regionalSrv, 2);
                   const rU = severityMetric(regionalSrv, 3);
                   const rP = severityMetric(regionalSrv, 4);
-                  const regionalTotalCases = (rD[CASES]||0) + (rM[CASES]||0) + (rU[CASES]||0) + (rP[CASES]||0);
                   
                   return `
-                    <div style="margin-bottom: 2px;">
-                      <strong>RS Kompetitor ${target.province ? 'Regional ' + target.province : 'Regional'} : ${totalRS}</strong> &rarr; Kompetensi layanan : 
+                    <div style="margin-bottom: 4px; color: #9f1239; font-weight: 700;">
+                      Kompetensi RS: ${levelNames[targetCompetency].toUpperCase()} | RS Kompetitor ${target.province ? 'Regional ' + target.province : 'Regional'} : ${totalRS} &rarr; Kompetensi layanan : 
                       Dasar : ${compCountByLevel[1]}, Madya: ${compCountByLevel[2]}, Utama: ${compCountByLevel[3]}, Paripurna: ${compCountByLevel[4]} 
-                      <span style="color: #64748b; font-size: 11px; margin-left: 4px;">(Berdasarkan Update Data 13 Agustus 2026)</span>
                     </div>
-                    <div>
-                      <strong>Kasus Regional : ${formatNumber(regionalKasus)} kasus</strong> &rarr; 
+                    <div style="color: #0369a1; font-weight: 700;">
+                      Kasus Regional : ${formatNumber(regionalKasus)} kasus &rarr; 
                       Dasar : ${formatNumber(rD[CASES]||0)} Kasus (${formatMoneyUnit(rD[IDRG]||0)}), 
                       Madya: ${formatNumber(rM[CASES]||0)} Kasus (${formatMoneyUnit(rM[IDRG]||0)}), 
                       Utama: ${formatNumber(rU[CASES]||0)} Kasus (${formatMoneyUnit(rU[IDRG]||0)}), 
