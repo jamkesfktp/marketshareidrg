@@ -539,7 +539,7 @@
       );
       const external = subtractMetrics(eligibleRegional, eligibleExisting);
       const competitors = competency
-        ? data.hospitals.filter((hospital) => hospital.code !== target.code && getCompetency(hospital, service) >= competency).length
+        ? data.hospitals.filter((hospital) => hospital.code !== target.code && getCompetency(hospital, service) === competency).length
         : 0;
       return { service, competency, eligibleRegional, eligibleExisting, external, competitors };
     });
@@ -609,7 +609,7 @@
     const regional = severityMetric(regionalService(service), rank);
     const targetExisting = severityMetric(target?.services?.[service], rank);
     const rows = data.hospitals
-      .filter((hospital) => hospital.code !== target?.code && getCompetency(hospital, service) >= minimumCompetency)
+      .filter((hospital) => hospital.code !== target?.code && getCompetency(hospital, service) === minimumCompetency)
       .map((hospital) => {
         const existing = severityMetric(hospital.services?.[service], rank);
         return {
@@ -7102,7 +7102,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       const regionalSvc = data.regional.services[service];
       const rules = getLevelRules(targetCompetency, service);
       
-      const competitorsList = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= Math.max(1, targetCompetency));
+      const competitorsList = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) === Math.max(1, targetCompetency));
       const utamaCompetitors = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= 4).length;
 
       if (!state.serviceScenarios[service] || state.serviceScenarios[service].length === 0) {
@@ -7438,7 +7438,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     availableServices.forEach((service, idx) => {
       const targetCompetency = getCompetency(target, service);
       // Hitung kompetitor (RS lain yang punya kompetensi >= targetCompetency)
-      const competitorsList = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= Math.max(1, targetCompetency));
+      const competitorsList = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) === Math.max(1, targetCompetency));
       const competitors = competitorsList.length;
       let competitorHtml = '';
       if (competitors > 0) {
@@ -7651,7 +7651,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       
       const totalTargetCases = targetKasusArr[CASES] || 0;
       const totalRegionalCases = data.regional.services[service]?.total?.[CASES] || 0;
-      const competitorsCount = data.hospitals.filter((h) => h.code !== target.code && getCompetency(h, service) >= targetCompetency).length;
+      const competitorsCount = data.hospitals.filter((h) => h.code !== target.code && getCompetency(h, service) === targetCompetency).length;
 
       const opportunityInsight =
         totalRegionalCases > 0
