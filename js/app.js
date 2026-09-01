@@ -120,10 +120,12 @@
     "1363_full": { index: 7, label: "iDRG 1363 - AF + AFreg + AFkep (Default)", chip: "iDRG 1363 (AF + AFreg + AFkep)", desc: "Model 1.363 DRG dengan penyesuaian AF + AFreg + AFkep" },
     "1363_af": { index: 8, label: "iDRG 1363 - AF Saja (Tarif 2025)", chip: "iDRG 1363 (AF Saja)", desc: "Tarif iDRG 1.363 tahun 2025 dengan penyesuaian AF saja" }
   };
+  const DEFAULT_TARIFF_BY_DATASET = { "okt_jun": "1370_af", "jan_des": "1363_af" };
 
   function updateActiveTariff(scenarioKey) {
-    const sc = TARIFF_SCENARIOS[scenarioKey] || TARIFF_SCENARIOS["1363_full"];
-    state.activeTariffScenario = scenarioKey;
+    const resolvedKey = TARIFF_SCENARIOS[scenarioKey] ? scenarioKey : (DEFAULT_TARIFF_BY_DATASET[activeDatasetKey] || "1370_af");
+    const sc = TARIFF_SCENARIOS[resolvedKey];
+    state.activeTariffScenario = resolvedKey;
     IDRG = sc.index;
     REVENUE = sc.index;
 
@@ -134,7 +136,7 @@
     if (descEl) descEl.textContent = sc.desc;
 
     const selectEl = document.getElementById("tariffScenarioSelect");
-    if (selectEl && selectEl.value !== scenarioKey) selectEl.value = scenarioKey;
+    if (selectEl && selectEl.value !== resolvedKey) selectEl.value = resolvedKey;
   }
 
   function switchDatasetPeriod(datasetKey) {
@@ -160,7 +162,7 @@
     if (periodSelectEl && periodSelectEl.value !== datasetKey) periodSelectEl.value = datasetKey;
 
     // Tarif otomatis mengikuti generasi iDRG pada periode sumber data.
-    updateActiveTariff(datasetKey === "jan_des" ? "1363_af" : "1370_af");
+    updateActiveTariff(DEFAULT_TARIFF_BY_DATASET[datasetKey]);
 
     updateDataState();
     populateFilters(true);
@@ -200,7 +202,7 @@
     targetCode: defaultTarget,
     targetCodes: defaultTarget ? [defaultTarget] : [],
     activeSlide: 0,
-    activeTariffScenario: "1363_full",
+    activeTariffScenario: DEFAULT_TARIFF_BY_DATASET[activeDatasetKey],
     selectedService: data.services.includes("JIWA") ? "JIWA" : data.services[0],
     selectedSeverity: 4,
     targetShare: 50,
@@ -212,6 +214,7 @@
     },
     overrides: {},
   };
+  updateActiveTariff(state.activeTariffScenario);
 
   let liveRenderTimer = null;
   function scheduleLiveRender(render, delay = 280) {
@@ -1623,16 +1626,6 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     else if (kurangMode === 'kurang_dp') headerPengurangan = 'Pengurangan Kasus Dasar & Paripurna';
     else if (kurangMode === 'kurang_mup') headerPengurangan = 'Pengurangan Kasus Madya, Utama & Paripurna';
     
-    let headerEksisting = 'Pendapatan Eksisting iDRG Kasus Dasar & Madya (Rp. M)';
-    if (tambahMode === 'tambah_up') headerEksisting = 'Pendapatan Eksisting iDRG Kasus Utama & Paripurna (Rp. M)';
-    else if (tambahMode === 'tambah_mu_reg' || tambahMode === 'tambah_mu_higher') headerEksisting = 'Pendapatan Eksisting iDRG Kasus Madya & Utama (Rp. M)';
-    else if (tambahMode === 'tambah_d_reg' || tambahMode === 'tambah_d_higher') headerEksisting = 'Pendapatan Eksisting iDRG Kasus Dasar (Rp. M)';
-
-    let eksistingTambahan = eksistingDM_Idrg;
-    if (tambahMode === 'tambah_up') eksistingTambahan = eksistingUP_Idrg;
-    else if (tambahMode === 'tambah_mu_reg' || tambahMode === 'tambah_mu_higher') eksistingTambahan = idrgMadya + idrgUtama;
-    else if (tambahMode === 'tambah_d_reg' || tambahMode === 'tambah_d_higher') eksistingTambahan = idrgDasar;
-
     const html = `
       <div style="font-family: Arial, sans-serif; padding-top: 10px;">
         
@@ -1673,7 +1666,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           <div style="flex: 1; min-width: 160px; background: ${selisihPendapatan >= 0 ? '#f0fdf4' : '#fef2f2'}; border: 1px solid ${selisihPendapatan >= 0 ? '#bbf7d0' : '#fecaca'}; padding: 12px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
             <div style="color: #64748b; font-size: 13px; font-weight: bold; margin-bottom: 5px;">Selisih Pendapatan:</div>
             <div style="color: ${selisihPendapatan >= 0 ? '#15803d' : '#b91c1c'}; font-size: 24px; font-weight: 900;">${selisihPendapatan >= 0 ? '+' : ''}${formatMoneyUnit(selisihPendapatan)}</div>
-            <div style="color: ${selisihPendapatan >= 0 ? '#15803d' : '#b91c1c'}; font-size: 14px; font-weight: bold; margin-top: 4px;">${selisihPendapatan >= 0 ? '+' : ''}${pctSelisih.toFixed(2).replace('.', ',')}%</div>
+            <div style="color: ${selisihPendapatan >= 0 ? '#15803d' : '#b91c1c'}; font-size: 14px; font-weight: bold; margin-top: 4px;">${selisihPendapatan >= 0 ? '+' : ''}${Math.ceil(pctSelisih)}%</div>
           </div>
 
           <div style="flex: 1; min-width: 160px; background: #fdf2f8; border: 1px solid #fbcfe8; padding: 12px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
@@ -1704,9 +1697,10 @@ document.getElementById("globalSimulationSlide").innerHTML = `
             <thead style="background: #38bdf8; color: white;">
               <tr>
                 <th rowspan="2" style="border: 1px solid #1e293b; padding: 8px; background: #0f766e;">Skenario</th>
-                <th rowspan="2" style="border: 1px solid #1e293b; padding: 8px; background: #334155;">Eksisting Kasus & Pendapatan (Rp. M)<br><span style="font-size:10px;font-weight:normal;">(${headerTambahan.replace('Tambahan Kasus ', '')})</span></th>
+                <th rowspan="2" style="border: 1px solid #1e293b; padding: 8px; background: #334155;">Kasus Eksisting</th>
                 <th colspan="3" style="border: 1px solid #1e293b; padding: 8px; background: #059669;">${headerTambahan}</th>
                 <th colspan="3" style="border: 1px solid #1e293b; padding: 8px; background: #e11d48;">${headerPengurangan}</th>
+                <th rowspan="2" style="border: 1px solid #1e293b; padding: 8px; background: #0369a1;">Total Kasus</th>
                 <th rowspan="2" style="border: 1px solid #1e293b; padding: 8px; background: #047857;">Total Pendapatan Pasca iDRG & RBKP (Rp. M)</th>
                 <th colspan="4" style="border: 1px solid #1e293b; padding: 8px; background: #0d9488;">Net +/- Pasca iDRG & RBKP (vs INACBG)</th>
               </tr>
@@ -1736,6 +1730,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
                 const netKasus = tambahKasus - kurangKasus;
                 const netKasusPct = targetTotalKasus > 0 ? (netKasus / targetTotalKasus) * 100 : 0;
                 const netIdrg = tambahIdrg - kurangIdrg; 
+                const totalKasus = targetTotalKasus + tambahKasus - kurangKasus;
                 
                 // Total Pasca RS Keseluruhan = Total Awal + Tambahan - Pengurangan
                 const totalPasca = targetIdrgTotal + netIdrg;
@@ -1750,20 +1745,12 @@ document.getElementById("globalSimulationSlide").innerHTML = `
                     ${idx === 0 ? `
                       <td rowspan="${window.competencySimScenarios.length}" style="border: 1px solid #1e293b; padding: 8px; background: #f8fafc;">
                         <div style="font-size:11px; color:#475569; margin-bottom:2px;">Total Kasus:</div>
-                        <div style="font-weight:bold; font-size:14px; color:#0f172a;">${formatNumber(
-                          tambahMode === 'tambah_up' ? (kasusUtama + kasusParipurna) :
-                          (tambahMode === 'tambah_mu_reg' || tambahMode === 'tambah_mu_higher') ? (kasusMadya + kasusUtama) :
-                          (tambahMode === 'tambah_d_reg' || tambahMode === 'tambah_d_higher') ? kasusDasar :
-                          (kasusDasar + kasusMadya)
-                        )}</div>
+                        <div style="font-weight:bold; font-size:14px; color:#0f172a;">${formatNumber(targetTotalKasus)}</div>
                         <div style="font-size:11px; color:#475569; margin-top:4px; display:flex; justify-content:center; gap:8px;">
-                          ${tambahMode === 'tambah_up' ? `<div>U: ${formatNumber(kasusUtama)}</div><div>P: ${formatNumber(kasusParipurna)}</div>` :
-                            (tambahMode === 'tambah_mu_reg' || tambahMode === 'tambah_mu_higher') ? `<div>M: ${formatNumber(kasusMadya)}</div><div>U: ${formatNumber(kasusUtama)}</div>` :
-                            (tambahMode === 'tambah_d_reg' || tambahMode === 'tambah_d_higher') ? `<div>D: ${formatNumber(kasusDasar)}</div>` :
-                            `<div>D: ${formatNumber(kasusDasar)}</div><div>M: ${formatNumber(kasusMadya)}</div>`}
+                          <div>D: ${formatNumber(kasusDasar)}</div><div>M: ${formatNumber(kasusMadya)}</div><div>U: ${formatNumber(kasusUtama)}</div><div>P: ${formatNumber(kasusParipurna)}</div>
                         
                         </div>
-                        <div style="font-weight:bold; font-size:13px; color:#c2410c; margin-top:6px; padding-top:6px; border-top:1px solid #e2e8f0;">${formatMoneyUnit(eksistingTambahan)}</div>
+                        <div style="font-weight:bold; font-size:13px; color:#c2410c; margin-top:6px; padding-top:6px; border-top:1px solid #e2e8f0;">${formatMoneyUnit(targetIdrgTotal)}</div>
                       </td>
                     ` : ''}
 
@@ -1788,13 +1775,14 @@ document.getElementById("globalSimulationSlide").innerHTML = `
                     <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: #e11d48;">-${formatMoneyUnit(kurangIdrg)}</td>
                     
                     <!-- Total Pasca -->
+                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; background: #eff6ff;">${formatNumber(totalKasus)}</td>
                     <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; background: #f0fdf4;">${formatMoneyUnit(totalPasca)}</td>
 
                     <!-- Net -->
                     <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: ${netKasus >= 0 ? '#059669' : '#e11d48'}">${netKasus >= 0 ? '+' : ''}${formatNumber(netKasus)}</td>
-                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: ${netKasus >= 0 ? '#059669' : '#e11d48'}">${netKasus >= 0 ? '+' : ''}${netKasusPct.toFixed(2).replace('.', ',')} %</td>
+                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: ${netKasus >= 0 ? '#059669' : '#e11d48'}">${netKasus >= 0 ? '+' : ''}${Math.ceil(netKasusPct)}%</td>
                     <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: ${selisihVsInacbg >= 0 ? '#059669' : '#e11d48'}">${selisihVsInacbg >= 0 ? '+' : ''}${formatMoneyUnit(Math.abs(selisihVsInacbg))}</td>
-                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: ${selisihVsInacbg >= 0 ? '#059669' : '#e11d48'}">${selisihVsInacbg >= 0 ? '+' : ''}${pctSelisihVsInacbg.toFixed(2).replace('.', ',')} %</td>
+                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: ${selisihVsInacbg >= 0 ? '#059669' : '#e11d48'}">${selisihVsInacbg >= 0 ? '+' : ''}${Math.ceil(pctSelisihVsInacbg)}%</td>
                   </tr>
                 `;
               }).join('')}
@@ -1874,18 +1862,13 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     }
 
     const rules = getLevelRules(targetComp, service);
-    const sourceModeKey = `${activeDatasetKey}|${target.code}|${service}`;
-    window.dynamicMarketSourceModes = window.dynamicMarketSourceModes || {};
-    const additionSourceMode = window.dynamicMarketSourceModes[sourceModeKey] || "regional_remaining";
     const targetCodes = new Set(selectedTargets.map((hospital) => hospital.code));
-    const sourceRelationLabel = additionSourceMode === "higher_hospitals"
-      ? "RS dengan kompetensi lebih tinggi"
-      : "Sisa regional (seluruh RS selain target)";
+    const sourceRelationLabel = "RS kompetensi selain level kasus";
     const additionSourceHospitals = data.hospitals.filter((hospital) => {
       if (targetCodes.has(hospital.code)) return false;
       const sourceComp = getCompetency(hospital, service);
       if (sourceComp <= 0) return false;
-      return additionSourceMode === "higher_hospitals" ? sourceComp > targetComp : true;
+      return true;
     });
     const competitorHospitals = data.hospitals
       .filter((hospital) => !targetCodes.has(hospital.code) && getCompetency(hospital, service) > 0)
@@ -1902,7 +1885,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       const targetMetric = severityMetric(targetSrv, level);
       const direction = rules.tambah.includes(level) ? "tambah" : (rules.kurang.includes(level) ? "kurang" : "netral");
       const sourceHospitals = direction === "tambah"
-        ? additionSourceHospitals.filter((hospital) => (severityMetric(hospital.services?.[service], level)[CASES] || 0) > 0)
+        ? additionSourceHospitals.filter((hospital) => getCompetency(hospital, service) !== level && (severityMetric(hospital.services?.[service], level)[CASES] || 0) > 0)
         : data.hospitals.filter((hospital) => !targetCodes.has(hospital.code) && getCompetency(hospital, service) >= level);
       const sourceMetric = sourceHospitals.reduce((total, hospital) => {
         const metric = severityMetric(hospital.services?.[service], level);
@@ -1911,7 +1894,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         total[IDRG] += metric[IDRG] || 0;
         return total;
       }, createZeroMetric());
-      const competitors = competitorGroups[level].length;
+      const competitors = direction === "tambah" ? sourceHospitals.length : competitorGroups[level].length;
       const naturalShare = competitors > 0 ? 100 / (competitors + 1) : (direction === "tambah" ? 100 : 0);
       const poolIna = direction === "tambah" ? sourceMetric[INA] || 0 : targetMetric[INA] || 0;
       const poolIdrg = direction === "tambah" ? sourceMetric[IDRG] || 0 : targetMetric[IDRG] || 0;
@@ -1957,7 +1940,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const pctFor = (scenarioIndex, item) => { const sIdx = item.direction === "kurang" ? 0 : scenarioIndex;
       const field = `${item.direction}_${item.level}`;
       const manual = overrides[sIdx]?.[field];
-      return Number.isFinite(manual) ? manual : (item.direction === "kurang" ? 100 : Math.min(100, item.naturalShare + scenarioDefs[scenarioIndex].add));
+      return Math.ceil(Number.isFinite(manual) ? manual : (item.direction === "kurang" ? 100 : Math.min(100, item.naturalShare + scenarioDefs[scenarioIndex].add)));
     };
 
     const scenarioResults = scenarioDefs.map((definition, scenarioIndex) => {
@@ -1972,8 +1955,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           lossIdrg += item.targetIdrg * pct;
         }
       });
-      const projectedCases = competencyExistingCases + addCases;
-      const projectedIdrg = competencyExistingIdrg + addIdrg;
+      const projectedCases = baselineCases + addCases - lossCases;
+      const projectedIdrg = baselineIdrg + addIdrg - lossIdrg;
       return {
         definition, scenarioIndex, addCases, addIdrg, lossCases, lossIdrg, projectedCases, projectedIdrg
       };
@@ -1991,7 +1974,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
 
     const pctInputLines = (scenarioIndex, direction) => levelData
       .filter((item) => item.direction === direction)
-      .map((item) => `<label style="display:flex;align-items:center;justify-content:space-between;gap:4px;white-space:nowrap;"><span>${shortLevelNames[item.level]}</span><span><span style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;">${pctFor(scenarioIndex, item).toFixed(1)}</span><input class="dynamic-market-pct" data-scenario="${scenarioIndex}" data-direction="${direction}" data-level="${item.level}" type="number" min="0" max="100" step="0.1" value="${pctFor(scenarioIndex, item).toFixed(1)}" style="width:52px;padding:3px;text-align:right;border:1px solid #cbd5e1;border-radius:4px;font-weight:800;">%</span></label>`)
+      .map((item) => `<label style="display:flex;align-items:center;justify-content:space-between;gap:4px;white-space:nowrap;"><span>${shortLevelNames[item.level]}</span><span><input class="dynamic-market-pct" data-scenario="${scenarioIndex}" data-direction="${direction}" data-level="${item.level}" type="number" min="0" max="100" step="1" value="${pctFor(scenarioIndex, item)}" style="width:52px;padding:3px;text-align:right;border:1px solid #cbd5e1;border-radius:4px;font-weight:800;">%</span></label>`)
       .join("") || '<span style="color:#94a3b8;">—</span>';
     container.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px;padding:8px 10px;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:9px;">
@@ -2002,12 +1985,9 @@ document.getElementById("globalSimulationSlide").innerHTML = `
             ${data.services.map((item) => `<option value="${escapeHtml(item)}" ${item === service ? "selected" : ""}>${escapeHtml(formatService(item))}</option>`).join("")}
           </select>
           <span style="padding:5px 9px;border-radius:999px;background:#7c3aed;color:#fff;font-size:11px;font-weight:900;white-space:nowrap;">Target: ${levelNames[targetComp]}</span>
-          <label class="dynamic-source-control" style="display:flex;align-items:center;gap:6px;font-size:10px;font-weight:900;color:#5b21b6;white-space:nowrap;">SUMBER TAMBAHAN
-            <select id="dynamicMarketSourceSelect" style="min-width:235px;padding:6px 9px;border:1.5px solid #7c3aed;border-radius:7px;background:#fff;color:#312e81;font-size:11px;font-weight:800;">
-              <option value="regional_remaining" ${additionSourceMode === "regional_remaining" ? "selected" : ""}>Sisa Regional</option>
-              <option value="higher_hospitals" ${additionSourceMode === "higher_hospitals" ? "selected" : ""}>RS Kompetensi Lebih Tinggi</option>
-            </select>
-          </label>
+          <div class="dynamic-source-control" style="display:flex;align-items:center;gap:6px;font-size:10px;font-weight:900;color:#5b21b6;white-space:nowrap;">SUMBER TAMBAHAN
+            <span style="padding:6px 9px;border:1.5px solid #7c3aed;border-radius:7px;background:#fff;color:#312e81;font-size:11px;">${sourceRelationLabel}</span>
+          </div>
         </div>
         <div style="display:flex;align-items:center;gap:6px;">
           <span style="font-size:10.5px;color:#64748b;font-weight:700;">${escapeHtml(target.name)}</span>
@@ -2056,9 +2036,10 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           <thead style="background:#38bdf8;color:white;">
             <tr>
               <th rowspan="2" style="border:1px solid #1e293b;padding:7px;background:#0f766e;">Skenario</th>
-              <th rowspan="2" style="border:1px solid #1e293b;padding:7px;background:#334155;">Eksisting Sesuai Kompetensi Target ${levelNames[targetComp]}<br><span style="font-size:9px;font-weight:normal;">${competencyLevelLabel}</span></th>
+              <th rowspan="2" style="border:1px solid #1e293b;padding:7px;background:#334155;">Kasus Eksisting</th>
               <th colspan="3" style="border:1px solid #1e293b;padding:7px;background:#059669;">Tambahan Kasus ${competencyLevelLabel} dari ${sourceRelationLabel}</th>
               <th colspan="3" style="border:1px solid #1e293b;padding:7px;background:#e11d48;">Pengurangan Kasus ${lossLevelLabel} di Luar Kompetensi Target</th>
+              <th rowspan="2" style="border:1px solid #1e293b;padding:7px;background:#0369a1;">Total Kasus</th>
               <th rowspan="2" style="border:1px solid #1e293b;padding:7px;background:#047857;">Total Pendapatan Pasca iDRG &amp; RBKP</th>
               <th colspan="4" style="border:1px solid #1e293b;padding:7px;background:#0d9488;">Net +/- Pasca iDRG &amp; RBKP (vs Eksisting INA-CBG Keseluruhan)</th>
             </tr>
@@ -2075,11 +2056,12 @@ document.getElementById("globalSimulationSlide").innerHTML = `
             const deltaInaPct = baselineIna > 0 ? deltaIna / baselineIna * 100 : 0;
             return `<tr style="background:${result.scenarioIndex === mostLogicalIdx ? "#ecfeff" : "#fff"};">
               <td style="border:1px solid #1e293b;padding:6px;font-weight:900;white-space:nowrap;">Skenario ${result.scenarioIndex + 1}${result.scenarioIndex === mostLogicalIdx ? ' <span style="font-size: 8px; color: #ffffff; background: #ea580c; padding: 1px 4px; border-radius: 3px;">⚡ Paling Logis</span>' : ''}<div style="font-size:9px;color:#64748b;">${result.definition.name}<br>+${result.definition.add}% dari natural</div></td>
-              ${result.scenarioIndex === 0 ? `<td rowspan="${scenarioResults.length}" style="border:1px solid #1e293b;padding:7px;background:#f8fafc;min-width:175px;"><div style="font-size:10px;color:#475569;">EKSISTING ${competencyLevelLabel.toUpperCase()}</div><div style="font-size:16px;font-weight:900;color:#0f172a;margin:3px 0;">${formatNumber(competencyExistingCases)} kasus</div><div style="font-size:10px;font-weight:800;color:#c2410c;">INA ${formatTableMoney(competencyExistingIna)}</div><div style="font-size:10px;font-weight:800;color:#0369a1;">iDRG ${formatTableMoney(competencyExistingIdrg)}</div></td>` : ""}
+              ${result.scenarioIndex === 0 ? `<td rowspan="${scenarioResults.length}" style="border:1px solid #1e293b;padding:7px;background:#f8fafc;min-width:175px;"><div style="font-size:10px;color:#475569;">DASAR · MADYA · UTAMA · PARIPURNA</div><div style="font-size:16px;font-weight:900;color:#0f172a;margin:3px 0;">${formatNumber(baselineCases)} kasus</div><div style="font-size:10px;font-weight:800;color:#c2410c;">INA ${formatTableMoney(baselineIna)}</div><div style="font-size:10px;font-weight:800;color:#0369a1;">iDRG ${formatTableMoney(baselineIdrg)}</div></td>` : ""}
               <td data-col="tb-pct" style="border:1px solid #1e293b;padding:5px;min-width:105px;color:#15803d;font-weight:700;">${pctInputLines(result.scenarioIndex, "tambah")}</td><td data-col="tb-kasus" style="border:1px solid #1e293b;padding:6px;font-weight:900;">${formatNumber(Math.round(result.addCases))}</td><td data-col="tb-rp" style="border:1px solid #1e293b;padding:6px;font-weight:900;color:#059669;">+${formatTableMoney(result.addIdrg)}</td>
               ${result.scenarioIndex === 0 ? `<td data-col="kr-pct" rowspan="${scenarioResults.length}" style="border:1px solid #1e293b;padding:5px;min-width:105px;color:#be123c;font-weight:700;">${pctInputLines(0, "kurang")}</td><td data-col="kr-kasus" rowspan="${scenarioResults.length}" style="border:1px solid #1e293b;padding:6px;font-weight:900;">${formatNumber(Math.round(result.lossCases))}</td><td data-col="kr-rp" rowspan="${scenarioResults.length}" style="border:1px solid #1e293b;padding:6px;font-weight:900;color:#e11d48;">−${formatTableMoney(result.lossIdrg)}</td>` : ""}
+              <td style="border:1px solid #1e293b;padding:6px;font-weight:900;background:#eff6ff;">${formatNumber(Math.round(result.projectedCases))}</td>
               <td style="border:1px solid #1e293b;padding:6px;font-weight:900;background:#f0fdf4;">${formatTableMoney(result.projectedIdrg)}</td>
-              <td data-col="nt-kasus" style="border:1px solid #1e293b;padding:6px;font-weight:900;color:${deltaCases >= 0 ? "#059669" : "#e11d48"};">${deltaCases >= 0 ? "+" : ""}${formatNumber(Math.round(deltaCases))}</td><td data-col="nt-kasuspct" style="border:1px solid #1e293b;padding:6px;font-weight:900;color:${deltaCases >= 0 ? "#059669" : "#e11d48"};">${deltaCases >= 0 ? "+" : ""}${deltaCasesPct.toFixed(2).replace(".", ",")}%</td><td data-col="nt-rp" style="border:1px solid #1e293b;padding:6px;font-weight:900;color:${deltaIna >= 0 ? "#059669" : "#e11d48"};">${deltaIna >= 0 ? "+" : ""}${formatTableMoney(deltaIna)}</td><td data-col="nt-rppct" style="border:1px solid #1e293b;padding:6px;font-weight:900;color:${deltaIna >= 0 ? "#059669" : "#e11d48"};">${deltaIna >= 0 ? "+" : ""}${deltaInaPct.toFixed(2).replace(".", ",")}%</td>
+              <td data-col="nt-kasus" style="border:1px solid #1e293b;padding:6px;font-weight:900;color:${deltaCases >= 0 ? "#059669" : "#e11d48"};">${deltaCases >= 0 ? "+" : ""}${formatNumber(Math.round(deltaCases))}</td><td data-col="nt-kasuspct" style="border:1px solid #1e293b;padding:6px;font-weight:900;color:${deltaCases >= 0 ? "#059669" : "#e11d48"};">${deltaCases >= 0 ? "+" : ""}${Math.ceil(deltaCasesPct)}%</td><td data-col="nt-rp" style="border:1px solid #1e293b;padding:6px;font-weight:900;color:${deltaIna >= 0 ? "#059669" : "#e11d48"};">${deltaIna >= 0 ? "+" : ""}${formatTableMoney(deltaIna)}</td><td data-col="nt-rppct" style="border:1px solid #1e293b;padding:6px;font-weight:900;color:${deltaIna >= 0 ? "#059669" : "#e11d48"};">${deltaIna >= 0 ? "+" : ""}${Math.ceil(deltaInaPct)}%</td>
             </tr>`;
           }).join("")}</tbody>
         </table>
@@ -2088,10 +2070,6 @@ document.getElementById("globalSimulationSlide").innerHTML = `
 
     container.querySelector("#dynamicMarketServiceSelect")?.addEventListener("change", (event) => {
       window.dynamicMarketService = event.target.value;
-      renderDynamicMarketShareSlide();
-    });
-    container.querySelector("#dynamicMarketSourceSelect")?.addEventListener("change", (event) => {
-      window.dynamicMarketSourceModes[sourceModeKey] = event.target.value;
       renderDynamicMarketShareSlide();
     });
     container.querySelector("#dynamicMarketExcelBtn")?.addEventListener("click", (event) => {
@@ -7279,26 +7257,21 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const targetCodes = new Set(selectedTargets.map((hospital) => hospital.code));
     targetCodes.add(target.code);
     const rules = getLevelRules(targetComp, service);
-    const sourceModeKey = `${activeDatasetKey}|${target.code}|${service}`;
-    window.dynamicMarketSourceModes = window.dynamicMarketSourceModes || {};
-    const additionSourceMode = window.dynamicMarketSourceModes[sourceModeKey] || "regional_remaining";
     const targetSrv = target.services?.[service] || { total: createZeroMetric(), severity: {} };
     const regionalSrv = data.regional?.services?.[service] || { total: createZeroMetric(), severity: {} };
-    const sourceRelationLabel = additionSourceMode === "higher_hospitals"
-      ? "RS Kompetensi Lebih Tinggi"
-      : "Sisa Regional";
+    const sourceRelationLabel = "RS Kompetensi Selain Level Kasus";
     const additionSourceHospitals = data.hospitals.filter((hospital) => {
       if (targetCodes.has(hospital.code)) return false;
       const sourceComp = getCompetency(hospital, service);
       if (sourceComp <= 0) return false;
-      return additionSourceMode === "higher_hospitals" ? sourceComp > targetComp : true;
+      return true;
     });
     const levelData = severityRanks.map((level) => {
       const targetMetric = severityMetric(targetSrv, level);
       const regionalMetric = severityMetric(regionalSrv, level);
       const direction = rules.tambah.includes(level) ? "tambah" : (rules.kurang.includes(level) ? "kurang" : "netral");
       const sourceHospitals = direction === "tambah"
-        ? additionSourceHospitals.filter((hospital) => (severityMetric(hospital.services?.[service], level)[CASES] || 0) > 0)
+        ? additionSourceHospitals.filter((hospital) => getCompetency(hospital, service) !== level && (severityMetric(hospital.services?.[service], level)[CASES] || 0) > 0)
         : data.hospitals.filter((hospital) => hospital.code !== target.code && getCompetency(hospital, service) >= level);
       const sourceMetric = sourceHospitals.reduce((total, hospital) => {
         const metric = severityMetric(hospital.services?.[service], level);
@@ -7307,7 +7280,9 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         total[IDRG] += metric[IDRG] || 0;
         return total;
       }, createZeroMetric());
-      const competitors = data.hospitals.filter((hospital) => hospital.code !== target.code && getCompetency(hospital, service) === level).length;
+      const competitors = direction === "tambah"
+        ? sourceHospitals.length
+        : data.hospitals.filter((hospital) => !targetCodes.has(hospital.code) && getCompetency(hospital, service) === level).length;
       const poolIna = direction === "tambah" ? sourceMetric[INA] || 0 : targetMetric[INA] || 0;
       const poolIdrg = direction === "tambah" ? sourceMetric[IDRG] || 0 : targetMetric[IDRG] || 0;
       return {
@@ -7350,7 +7325,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const additionPoolIdrg = levelData.filter((item) => item.direction === "tambah").reduce((sum, item) => sum + item.externalIdrg, 0);
     const pctFor = (scenarioIndex, item) => { const sIdx = item.direction === "kurang" ? 0 : scenarioIndex;
       const manual = overrides[sIdx]?.[`${item.direction}_${item.level}`];
-      return Number.isFinite(manual) ? manual : (item.direction === "kurang" ? 100 : Math.min(100, item.naturalShare + scenarioDefs[scenarioIndex].add));
+      return Math.ceil(Number.isFinite(manual) ? manual : (item.direction === "kurang" ? 100 : Math.min(100, item.naturalShare + scenarioDefs[scenarioIndex].add)));
     };
 
     const results = scenarioDefs.map((definition, scenarioIndex) => {
@@ -7367,8 +7342,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       });
       return {
         definition, scenarioIndex, addCases, addIdrg, lossCases, lossIdrg,
-        projectedCases: competencyExistingCases + addCases,
-        projectedIdrg: competencyExistingIdrg + addIdrg
+        projectedCases: baselineCases + addCases - lossCases,
+        projectedIdrg: baselineIdrg + addIdrg - lossIdrg
       };
     });
 
@@ -7383,25 +7358,23 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     }
 
     const pctInputs = (scenarioIndex, direction) => levelData.filter((item) => item.direction === direction).map((item) =>
-      `<label style="display:flex;align-items:center;justify-content:space-between;gap:3px;white-space:nowrap;"><span>${shortLevelNames[item.level]}</span><span><span style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;">${pctFor(scenarioIndex, item).toFixed(1)}</span><input class="per-service-dynamic-pct" data-service="${escapeHtml(service)}" data-scenario="${scenarioIndex}" data-direction="${direction}" data-level="${item.level}" type="number" min="0" max="100" step="0.1" value="${pctFor(scenarioIndex, item).toFixed(1)}" style="width:48px;padding:2px;text-align:right;border:1px solid ${direction === "tambah" ? "#86efac" : "#fda4af"};border-radius:4px;color:${direction === "tambah" ? "#15803d" : "#be123c"};font-weight:800;">%</span></label>`
+      `<label style="display:flex;align-items:center;justify-content:space-between;gap:3px;white-space:nowrap;"><span>${shortLevelNames[item.level]}</span><span><input class="per-service-dynamic-pct" data-service="${escapeHtml(service)}" data-scenario="${scenarioIndex}" data-direction="${direction}" data-level="${item.level}" type="number" min="0" max="100" step="1" value="${pctFor(scenarioIndex, item)}" style="width:48px;padding:2px;text-align:right;border:1px solid ${direction === "tambah" ? "#86efac" : "#fda4af"};border-radius:4px;color:${direction === "tambah" ? "#15803d" : "#be123c"};font-weight:800;">%</span></label>`
     ).join("") || '<span style="color:#94a3b8;">—</span>';
 
     return `<div class="per-service-source-bar" style="margin:2px 0 5px;padding:7px 8px;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:6px;font-size:10px;color:#5b21b6;font-weight:750;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-        <label style="display:flex;align-items:center;gap:6px;font-weight:900;">SUMBER TAMBAHAN
-          <select class="per-service-source-select" data-service="${escapeHtml(service)}" style="min-width:210px;padding:5px 8px;border:1px solid #7c3aed;border-radius:6px;background:#fff;color:#312e81;font-size:10px;font-weight:800;">
-            <option value="regional_remaining" ${additionSourceMode === "regional_remaining" ? "selected" : ""}>Sisa Regional</option>
-            <option value="higher_hospitals" ${additionSourceMode === "higher_hospitals" ? "selected" : ""}>RS Kompetensi Lebih Tinggi</option>
-          </select>
-        </label>
+        <div style="display:flex;align-items:center;gap:6px;font-weight:900;">SUMBER TAMBAHAN
+          <span style="padding:5px 8px;border:1px solid #7c3aed;border-radius:6px;background:#fff;color:#312e81;font-size:10px;">${sourceRelationLabel}</span>
+        </div>
         <span>Share tambah dan kurang: 100 ÷ (RS eligible + 1 target) · dapat diedit</span>
         <span style="color:#047857;">Pool ${sourceRelationLabel}: <b>${formatNumber(additionPoolCases)} kasus</b> · <b>${formatTableMoney(additionPoolIdrg)}</b> iDRG</span>
       </div>
       <div style="overflow-x:auto;width:100%;"><table style="width:100%;border-collapse:collapse;border:1px solid #1e293b;text-align:center;font-size:10px;">
         <thead><tr>
           <th rowspan="2" style="border:1px solid #fff;padding:5px;background:#0f766e;color:#fff;">SKENARIO</th>
-          <th rowspan="2" style="border:1px solid #fff;padding:5px;background:#334155;color:#fff;">EKSISTING SESUAI KOMPETENSI TARGET ${levelNames[targetComp].toUpperCase()}<br><span style="font-size:8px;font-weight:500;">${competencyLevelLabel}</span></th>
+          <th rowspan="2" style="border:1px solid #fff;padding:5px;background:#334155;color:#fff;">KASUS EKSISTING</th>
           <th colspan="3" style="border:1px solid #fff;padding:5px;background:#059669;color:#fff;">TAMBAHAN ${competencyLevelLabel.toUpperCase()} DARI ${sourceRelationLabel.toUpperCase()}</th>
           <th colspan="3" style="border:1px solid #fff;padding:5px;background:#e11d48;color:#fff;">PENGURANGAN ${lossLevelLabel.toUpperCase()}</th>
+          <th rowspan="2" style="border:1px solid #fff;padding:5px;background:#0369a1;color:#fff;">TOTAL KASUS</th>
           <th rowspan="2" style="border:1px solid #fff;padding:5px;background:#047857;color:#fff;">TOTAL PENDAPATAN PASCA iDRG</th>
           <th colspan="4" style="border:1px solid #fff;padding:5px;background:#0d9488;color:#fff;">NET +/- PASCA iDRG (VS EKSISTING INA-CBG KESELURUHAN)</th>
         </tr><tr>
@@ -7415,10 +7388,10 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           const deltaIncomePct = baselineIna > 0 ? deltaIncome / baselineIna * 100 : 0;
           const cell = 'border:1px solid #cbd5e1;padding:4px;';
           return `<tr style="background:${result.scenarioIndex === mostLogicalIdx ? '#ecfeff' : '#fff'};"><td style="${cell}font-weight:900;white-space:nowrap;">Skenario ${result.scenarioIndex + 1}${result.scenarioIndex === mostLogicalIdx ? ' <span style="font-size: 8px; color: #ffffff; background: #ea580c; padding: 1px 4px; border-radius: 3px;">⚡ Paling Logis</span>' : ''}<div style="font-size:8px;color:#64748b;">${result.definition.name} · +${result.definition.add}% natural</div></td>
-            ${result.scenarioIndex === 0 ? `<td rowspan="${results.length}" style="${cell}background:#f8fafc;min-width:145px;"><div style="font-size:16px; font-weight:900; color:#0f172a; margin-bottom:4px;">${formatNumber(competencyExistingCases)} kasus</div><div style="font-size:11px; font-weight:800; color:#c2410c;">INA ${formatTableMoney(competencyExistingIna)}</div><div style="font-size:11px; font-weight:800; color:#0369a1;">iDRG ${formatTableMoney(competencyExistingIdrg)}</div></td>` : ''}
+            ${result.scenarioIndex === 0 ? `<td rowspan="${results.length}" style="${cell}background:#f8fafc;min-width:145px;"><div style="font-size:9px;color:#475569;">DASAR · MADYA · UTAMA · PARIPURNA</div><div style="font-size:16px; font-weight:900; color:#0f172a; margin-bottom:4px;">${formatNumber(baselineCases)} kasus</div><div style="font-size:11px; font-weight:800; color:#c2410c;">INA ${formatTableMoney(baselineIna)}</div><div style="font-size:11px; font-weight:800; color:#0369a1;">iDRG ${formatTableMoney(baselineIdrg)}</div></td>` : ''}
             <td data-col="srv-tb-pct" style="${cell}min-width:92px;color:#15803d;font-weight:700;">${pctInputs(result.scenarioIndex, "tambah")}</td><td data-col="srv-tb-kasus" style="${cell}font-weight:800;">${formatNumber(Math.round(result.addCases))}</td><td data-col="srv-tb-rp" style="${cell}font-weight:800;color:#059669;">+${formatTableMoney(result.addIdrg)}</td>
             ${result.scenarioIndex === 0 ? `<td data-col="srv-kr-pct" rowspan="${results.length}" style="${cell}min-width:92px;color:#be123c;font-weight:700;">${pctInputs(0, "kurang")}</td><td data-col="srv-kr-kasus" rowspan="${results.length}" style="${cell}font-weight:800;">${formatNumber(Math.round(result.lossCases))}</td><td data-col="srv-kr-rp" rowspan="${results.length}" style="${cell}font-weight:800;color:#e11d48;">−${formatTableMoney(result.lossIdrg)}</td>` : ""}
-            <td style="${cell}font-weight:900;background:#f0fdf4;">${formatTableMoney(result.projectedIdrg)}</td><td data-col="srv-nt-kasus" style="${cell}font-weight:800;color:${deltaCases >= 0 ? '#059669' : '#e11d48'};">${deltaCases >= 0 ? '+' : ''}${formatNumber(Math.round(deltaCases))}</td><td data-col="srv-nt-kasuspct" style="${cell}font-weight:800;color:${deltaCases >= 0 ? '#059669' : '#e11d48'};">${deltaCases >= 0 ? '+' : ''}${deltaCasesPct.toFixed(2).replace('.', ',')}%</td><td data-col="srv-nt-rp" style="${cell}font-weight:800;color:${deltaIncome >= 0 ? '#059669' : '#e11d48'};">${deltaIncome >= 0 ? '+' : ''}${formatTableMoney(deltaIncome)}</td><td data-col="srv-nt-rppct" style="${cell}font-weight:800;color:${deltaIncome >= 0 ? '#059669' : '#e11d48'};">${deltaIncome >= 0 ? '+' : ''}${deltaIncomePct.toFixed(2).replace('.', ',')}%</td></tr>`;
+            <td style="${cell}font-weight:900;background:#eff6ff;">${formatNumber(Math.round(result.projectedCases))}</td><td style="${cell}font-weight:900;background:#f0fdf4;">${formatTableMoney(result.projectedIdrg)}</td><td data-col="srv-nt-kasus" style="${cell}font-weight:800;color:${deltaCases >= 0 ? '#059669' : '#e11d48'};">${deltaCases >= 0 ? '+' : ''}${formatNumber(Math.round(deltaCases))}</td><td data-col="srv-nt-kasuspct" style="${cell}font-weight:800;color:${deltaCases >= 0 ? '#059669' : '#e11d48'};">${deltaCases >= 0 ? '+' : ''}${Math.ceil(deltaCasesPct)}%</td><td data-col="srv-nt-rp" style="${cell}font-weight:800;color:${deltaIncome >= 0 ? '#059669' : '#e11d48'};">${deltaIncome >= 0 ? '+' : ''}${formatTableMoney(deltaIncome)}</td><td data-col="srv-nt-rppct" style="${cell}font-weight:800;color:${deltaIncome >= 0 ? '#059669' : '#e11d48'};">${deltaIncome >= 0 ? '+' : ''}${Math.ceil(deltaIncomePct)}%</td></tr>`;
         }).join('')}</tbody></table></div>`;
   }
 
@@ -7943,15 +7916,6 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         window.dynamicMarketOverrides[key] = window.dynamicMarketOverrides[key] || {};
         window.dynamicMarketOverrides[key][scenarioIndex] = window.dynamicMarketOverrides[key][scenarioIndex] || {};
         window.dynamicMarketOverrides[key][scenarioIndex][`${event.target.dataset.direction}_${level}`] = value;
-        renderAll();
-      });
-    });
-    container.querySelectorAll('.per-service-source-select').forEach((select) => {
-      select.addEventListener('change', (event) => {
-        const srv = event.target.dataset.service;
-        const key = `${activeDatasetKey}|${target.code}|${srv}`;
-        window.dynamicMarketSourceModes = window.dynamicMarketSourceModes || {};
-        window.dynamicMarketSourceModes[key] = event.target.value;
         renderAll();
       });
     });
