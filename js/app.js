@@ -7704,6 +7704,42 @@ document.getElementById("globalSimulationSlide").innerHTML = `
             </div>
           </div>
           <div class="slide-content" style="padding: 16px 24px; overflow-y: auto;">
+              <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 13px; line-height: 1.6; color: #334155;">
+                <div style="font-weight: 800; font-size: 15px; color: #0f172a; margin-bottom: 4px;">
+                  Layanan: ${escapeHtml(servicesConfig[service]?.name || service)} <span style="color: #cbd5e1; margin: 0 8px;">|</span> Kompetensi RS Target: ${levelNames[targetCompetency]}
+                </div>
+                ${(() => {
+                  const compCountByLevel = { 1: 0, 2: 0, 3: 0, 4: 0 };
+                  data.hospitals.forEach(h => {
+                    const comp = getCompetency(h, service);
+                    if (comp in compCountByLevel) compCountByLevel[comp]++;
+                  });
+                  const totalRS = Object.values(compCountByLevel).reduce((a, b) => a + b, 0);
+                  
+                  const regionalSrv = data.regional?.services?.[service] || { total: createZeroMetric(), severity: {} };
+                  const rD = severityMetric(regionalSrv, 1);
+                  const rM = severityMetric(regionalSrv, 2);
+                  const rU = severityMetric(regionalSrv, 3);
+                  const rP = severityMetric(regionalSrv, 4);
+                  const regionalTotalCases = (rD[CASES]||0) + (rM[CASES]||0) + (rU[CASES]||0) + (rP[CASES]||0);
+                  
+                  return `
+                    <div style="margin-bottom: 2px;">
+                      <strong>Jumlah RS : ${totalRS}</strong> &rarr; Kompetensi layanan : 
+                      Dasar : ${compCountByLevel[1]}, Madya: ${compCountByLevel[2]}, Utama: ${compCountByLevel[3]}, Paripurna: ${compCountByLevel[4]} 
+                      <span style="color: #64748b; font-size: 11px; margin-left: 4px;">(Berdasarkan Update Data 13 Agustus 2026)</span>
+                    </div>
+                    <div>
+                      <strong>Kasus Regional : ${formatNumber(regionalTotalCases)} kasus</strong> &rarr; 
+                      Dasar : ${formatNumber(rD[CASES]||0)} Kasus (${formatMoneyUnit(rD[IDRG]||0)}), 
+                      Madya: ${formatNumber(rM[CASES]||0)} Kasus (${formatMoneyUnit(rM[IDRG]||0)}), 
+                      Utama: ${formatNumber(rU[CASES]||0)} Kasus (${formatMoneyUnit(rU[IDRG]||0)}), 
+                      Paripurna: ${formatNumber(rP[CASES]||0)} Kasus (${formatMoneyUnit(rP[IDRG]||0)})
+                    </div>
+                  `;
+                })()}
+              </div>
+    
             
             <div style="display: flex; align-items: stretch; gap: 12px; margin-bottom: 16px;">
               
