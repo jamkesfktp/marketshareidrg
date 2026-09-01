@@ -18,7 +18,7 @@
     top:{style:"thin",color:{rgb:C.border}}, bottom:{style:"thin",color:{rgb:C.border}},
     left:{style:"thin",color:{rgb:C.border}}, right:{style:"thin",color:{rgb:C.border}},
   };
-  const FMT_NUM="#,##0", FMT_MONEY='"Rp" #,##0', FMT_PCT="0.00%";
+  const FMT_NUM="#,##0", FMT_MONEY='"Rp" #,##0', FMT_PCT="0%";
 
   function nFmt(v,z){return{t:"n",v:Number(v)||0,z:z};}
   function s(v){return{t:"s",v:String(v??"")};}
@@ -147,6 +147,10 @@
       totalCompetitors,tariffLabel,datasetLabel,filterDesc}=ctx;
 
     const LN={0:"Tidak Kompeten",1:"Dasar",2:"Madya",3:"Utama",4:"Paripurna"};
+    const SERVED_LEVELS={0:[],1:[1],2:[1,2],3:[2,3],4:[3,4]};
+    const ceilRate=(value)=>Math.ceil((Number(value)||0)*100)/100;
+    const addRates=globalSimScenarios.map(ceilRate);
+    const lossRates=globalSimKurangScenarios.map(ceilRate);
     const ML={
       tambah_cross_comp:"Serapan Lintas Kompetensi Layanan (Semua Strata)",
       tambah_up:"Serap Utama & Paripurna (dari Sisa Regional)",
@@ -175,12 +179,12 @@
 
     /* --- SHEET 00: INFO GLOBAL --- */
     (function(){
-      const pct0=Math.round(globalSimScenarios[0]*100)+"%";
-      const pct1=Math.round(globalSimScenarios[1]*100)+"%";
-      const pct2=Math.round(globalSimScenarios[2]*100)+"%";
-      const kpct0=Math.round(globalSimKurangScenarios[0]*100)+"%";
-      const kpct1=Math.round(globalSimKurangScenarios[1]*100)+"%";
-      const kpct2=Math.round(globalSimKurangScenarios[2]*100)+"%";
+      const pct0=Math.ceil(addRates[0]*100)+"%";
+      const pct1=Math.ceil(addRates[1]*100)+"%";
+      const pct2=Math.ceil(addRates[2]*100)+"%";
+      const kpct0=Math.ceil(lossRates[0]*100)+"%";
+      const kpct1=Math.ceil(lossRates[1]*100)+"%";
+      const kpct2=Math.ceil(lossRates[2]*100)+"%";
       const rows=[
         [`KERTAS KERJA AUDIT SIMULASI GLOBAL - ${target.name}`,"","",""],
         ["","","",""],
@@ -327,6 +331,10 @@
       styleRange(XLSX,ws,{s:{r:1,c:16},e:{r:L,c:17}},{fill:C.redSoft});
       styleRange(XLSX,ws,{s:{r:1,c:18},e:{r:L,c:19}},{fill:C.purpleSoft});
       styleRange(XLSX,ws,{s:{r:1,c:20},e:{r:L,c:21}},{fill:C.light});
+      data.services.forEach((svc,index)=>{
+        const served=SERVED_LEVELS[getCompetency(target,svc)]||[];
+        served.forEach(rank=>styleCell(ws[XLSX.utils.encode_cell({r:index+2,c:rank+3})],{fill:C.blueSoft,bold:true,align:"right"}));
+      });
       ws["!autofilter"]={ref:`A2:V${L+1}`};
       setDefaults(ws,[5,28,36,18,13,13,13,13,16,18,18,18,18,20,22,22,22,22,18,18,16,52],2);
       auditSheetName=app(ws,"02_Audit_Per_Layanan");
@@ -341,7 +349,7 @@
         "Tambah Kasus","Tambah iDRG",
         "Kurang Kasus","Kurang iDRG",
         "Net Kasus","Net iDRG","% Net thd Eksisting",
-        "Proyeksi Kasus","Proyeksi iDRG",
+        "Total Kasus","Proyeksi iDRG",
         "Market Share Kasus Pasca (%)","Market Share iDRG Pasca (%)"];
       const rows=[HDR];
       let no=1;
@@ -353,8 +361,8 @@
         const rTot=data.regional?.services?.[svc]?.total||[0,0,0];
         const regK=Number(rTot[CASES])||0, regIdrg=Number(rTot[IDRG])||0;
         const {addK,addIdrg,redK,redIdrg}=computePool(svc,tambahMode,kurangMode,target,data,CASES,INA,IDRG,severityMetric,getCompetency);
-        globalSimScenarios.forEach((pA,si)=>{
-          const pR=globalSimKurangScenarios[si]!==undefined?globalSimKurangScenarios[si]:1.0;
+        addRates.forEach((pA,si)=>{
+          const pR=lossRates[si]!==undefined?lossRates[si]:1.0;
           const tK=Math.round(addK*pA), tIdrg=addIdrg*pA;
           const kK=Math.round(redK*pR), kIdrg=redIdrg*pR;
           const netK=tK-kK, netIdrg=tIdrg-kIdrg;
@@ -397,9 +405,9 @@
     (function(){
       const HDR=["No","Kode Layanan","Nama Layanan","Kompetensi Target",
         "Kasus Eksisting","iDRG Eksisting",
-        "Net Kasus - Opt","Net iDRG - Opt","Proyeksi Kasus Opt","Proyeksi iDRG Opt",
-        "Net Kasus - Prop","Net iDRG - Prop","Proyeksi Kasus Prop","Proyeksi iDRG Prop",
-        "Net Kasus - Kons","Net iDRG - Kons","Proyeksi Kasus Kons","Proyeksi iDRG Kons",
+        "Net Kasus - Opt","Net iDRG - Opt","Total Kasus Opt","Proyeksi iDRG Opt",
+        "Net Kasus - Prop","Net iDRG - Prop","Total Kasus Prop","Proyeksi iDRG Prop",
+        "Net Kasus - Kons","Net iDRG - Kons","Total Kasus Kons","Proyeksi iDRG Kons",
         "Rentang Net Kasus","Rentang Net iDRG","Skenario Terbaik (iDRG)"];
       const rows=[HDR];
       let no=1;
@@ -409,8 +417,8 @@
         let eksK=0,eksIdrg=0;
         [1,2,3,4].forEach(rank=>{const m=severityMetric(srvT,rank);eksK+=m[CASES]||0;eksIdrg+=m[IDRG]||0;});
         const {addK,addIdrg,redK,redIdrg}=computePool(svc,tambahMode,kurangMode,target,data,CASES,INA,IDRG,severityMetric,getCompetency);
-        const scnD=globalSimScenarios.map((pA,si)=>{
-          const pR=globalSimKurangScenarios[si]!==undefined?globalSimKurangScenarios[si]:1.0;
+        const scnD=addRates.map((pA,si)=>{
+          const pR=lossRates[si]!==undefined?lossRates[si]:1.0;
           const nK=Math.round(addK*pA)-Math.round(redK*pR);
           const nIdrg=addIdrg*pA-redIdrg*pR;
           return{nK,nIdrg,proyK:eksK+nK,proyIdrg:eksIdrg+nIdrg};
@@ -467,11 +475,11 @@
         let eksK=0,eksIdrg=0;
         [1,2,3,4].forEach(rank=>{const m=severityMetric(srvT,rank);eksK+=m[CASES]||0;eksIdrg+=m[IDRG]||0;});
         const {addK,addIdrg,redK,redIdrg}=computePool(svc,tambahMode,kurangMode,target,data,CASES,INA,IDRG,severityMetric,getCompetency);
-        const nets=globalSimScenarios.map((pA,si)=>{
-          const pR=globalSimKurangScenarios[si]!==undefined?globalSimKurangScenarios[si]:1.0;
+        const nets=addRates.map((pA,si)=>{
+          const pR=lossRates[si]!==undefined?lossRates[si]:1.0;
           return{nK:Math.round(addK*pA)-Math.round(redK*pR),nIdrg:addIdrg*pA-redIdrg*pR};
         });
-        const cek=(Math.round(addK*globalSimScenarios[0])-Math.round(redK*(globalSimKurangScenarios[0]||1)))===nets[0].nK;
+        const cek=(Math.round(addK*addRates[0])-Math.round(redK*(lossRates[0]||1)))===nets[0].nK;
         gEksK+=eksK;gEksIdrg+=eksIdrg;
         gAddK+=addK;gAddIdrg+=addIdrg;
         gRedK+=redK;gRedIdrg+=redIdrg;

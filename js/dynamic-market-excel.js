@@ -51,7 +51,7 @@
   }
 
   function exportWorkbook(context) {
-    const { XLSX, target, service, targetComp, levelNames, levelData, scenarioDefs, scenarioResults, pctFor,
+    const { XLSX, target, service, targetComp, rules, levelNames, levelData, scenarioDefs, scenarioResults, pctFor,
       baselineCases, baselineIna, baselineIdrg, datasetLabel, tariffLabel, filterDescription, sourceRelationLabel } = context;
     if (!XLSX?.utils) throw new Error("Library XLSX belum tersedia.");
 
@@ -80,9 +80,9 @@
       ["Skenario tarif", tariffLabel], ["Filter regional", filterDescription], ["Tanggal ekspor", new Date().toLocaleString("id-ID")],
       [], ["Ketentuan audit", "Penjelasan"],
       ["Sumber kasus tambah", sourceRelationLabel],
-      ["Matriks sumber", "Dasar: RS lebih tinggi; Madya/Utama: RS lebih rendah dan lebih tinggi (tidak termasuk kompetensi sama); Paripurna: RS lebih rendah. RS eligible per level hanya mencakup RS sumber yang memiliki kasus aktual pada level tersebut."],
+      ["Matriks sumber", "Dasar: RS Madya, Utama, Paripurna; Madya: RS Dasar, Utama, Paripurna; Utama: RS Dasar, Madya, Paripurna; Paripurna: RS Dasar, Madya, Utama. RS dengan kompetensi sama tidak menjadi sumber."],
       ["Kasus pengurang", "Menggunakan natural share per level berdasarkan jumlah RS sumber eligible dan dapat diedit untuk sensitivitas."],
-      ["Natural share", "100 / (jumlah RS kompetitor pada level kompetensi yang sama + 1 RS target). Pool kasus tetap mengikuti hubungan kompetensi sumber."],
+      ["Natural share", "100 / (jumlah RS sumber eligible sesuai matriks kompetensi + 1 RS target), lalu dibulatkan ke atas tanpa desimal."],
       ["Area input", "Kolom Persentase Simulasi pada sheet 03_Parameter dapat diedit untuk audit sensitivitas."],
       [], ["Urutan penelusuran", "01_Eksisting → 02_Driver_Pasar → 03_Parameter → 04_Hasil → 05_Rekonsiliasi"]
     ];
@@ -91,17 +91,20 @@
     styleRange(XLSX, guide, "A12:B12", { fill: COLORS.navy, fontColor: COLORS.white, bold: true });
 
     const existingRows = [
-      ["KOMPOSISI KASUS EKSISTING RS TARGET D–M–U–P", "", "", "", ""],
+      ["KASUS EKSISTING", "", "", "", ""],
       ["Layanan", service, "Kompetensi target", levelNames[targetComp] || targetComp, ""],
       ["Level", "Jumlah Kasus", "INA-CBG (Rp)", "iDRG (Rp)", "Selisih iDRG–INA (Rp)"],
       ...levelData.map((item) => [levelNames[item.level], item.targetCases, item.targetIna, item.targetIdrg, item.targetIdrg - item.targetIna]),
       ["TOTAL", formulaCell("SUM(B4:B7)", baselineCases, "#,##0"), formulaCell("SUM(C4:C7)", baselineIna, '"Rp" #,##0'), formulaCell("SUM(D4:D7)", baselineIdrg, '"Rp" #,##0'), formulaCell("D8-C8", baselineIdrg - baselineIna, '"Rp" #,##0')]
     ];
-    const existing = append(existingRows, "01_Eksisting", "KOMPOSISI KASUS EKSISTING RS TARGET D–M–U–P", "E", [18, 18, 22, 22, 24], 3);
+    const existing = append(existingRows, "01_Eksisting", "KASUS EKSISTING", "E", [18, 18, 22, 22, 24], 3);
     styleRange(XLSX, existing, "A4:E8", { fill: COLORS.white });
     styleRange(XLSX, existing, "A8:E8", { fill: COLORS.grey, bold: true });
     styleRange(XLSX, existing, "B4:B8", { align: "right", numFmt: "#,##0" });
     styleRange(XLSX, existing, "C4:E8", { align: "right", numFmt: '"Rp" #,##0' });
+    levelData.forEach((item, index) => {
+      if (rules?.tambah?.includes(item.level)) styleRange(XLSX, existing, `A${index + 4}:E${index + 4}`, { fill: COLORS.blueSoft, bold: true });
+    });
 
     const driverRows = [
       ["DRIVER PASAR DAN SUMBER KASUS", "", "", "", "", "", "", "", "", "", "", "", ""],
@@ -110,7 +113,7 @@
       ...levelData.map((item) => [levelNames[item.level], item.direction.toUpperCase(), item.regionalCases, item.targetCases, item.targetIna, item.targetIdrg,
         item.direction === "tambah" ? item.externalCases : item.targetCases,
         item.poolIna, item.poolIdrg, item.tariffDelta, item.tariffDeltaPct / 100,
-        item.competitors, item.direction !== "netral" ? item.naturalShare / 100 : 0])
+        item.competitors, item.direction !== "netral" ? Math.ceil(item.naturalShare) / 100 : 0])
     ];
     const driver = append(driverRows, "02_Driver_Pasar", "DRIVER PASAR DAN SUMBER KASUS", "M", [15, 14, 18, 18, 20, 20, 18, 20, 20, 22, 16, 20, 18], 3);
     styleRange(XLSX, driver, "A4:M7", { fill: COLORS.white });
@@ -118,9 +121,9 @@
     styleRange(XLSX, driver, "E4:F7", { align: "right", numFmt: '"Rp" #,##0' });
     styleRange(XLSX, driver, "G4:G7", { align: "right", numFmt: "#,##0" });
     styleRange(XLSX, driver, "H4:J7", { align: "right", numFmt: '"Rp" #,##0' });
-    styleRange(XLSX, driver, "K4:K7", { align: "right", numFmt: "0.00%" });
+    styleRange(XLSX, driver, "K4:K7", { align: "right", numFmt: "0%" });
     styleRange(XLSX, driver, "L4:L7", { align: "right", numFmt: "#,##0" });
-    styleRange(XLSX, driver, "M4:M7", { align: "right", numFmt: "0.00%" });
+    styleRange(XLSX, driver, "M4:M7", { align: "right", numFmt: "0%" });
 
     const parameterRows = [["PARAMETER SKENARIO DINAMIS", "", "", "", "", "", "", "", "", "", ""], [],
       ["No Skenario", "Nama", "Faktor Natural", "Level", "Arah", "Natural Share", "Persentase Simulasi", "Pool Kasus", "Pool iDRG", "Kasus Dampak", "iDRG Dampak"]];
@@ -132,8 +135,8 @@
         const poolCases = item.direction === "tambah" ? item.externalCases : item.direction === "kurang" ? item.targetCases : 0;
         const poolIdrg = item.direction === "tambah" ? item.externalIdrg : item.direction === "kurang" ? item.targetIdrg : 0;
         parameterRows.push([scenarioIndex + 1, scenario.name, scenario.factor, levelNames[item.level], item.direction.toUpperCase(),
-          formulaCell(`${quote("02_Driver_Pasar")}!M${driverRow}`, item.naturalShare / 100, "0.00%"),
-          { t: "n", v: pct, z: "0.00%" },
+          formulaCell(`${quote("02_Driver_Pasar")}!M${driverRow}`, Math.ceil(item.naturalShare) / 100, "0%"),
+          { t: "n", v: pct, z: "0%" },
           formulaCell(`${quote("02_Driver_Pasar")}!G${driverRow}`, poolCases, "#,##0"),
           formulaCell(`${quote("02_Driver_Pasar")}!H${driverRow}`, poolIdrg, '"Rp" #,##0'),
           formulaCell(`G${row}*H${row}`, poolCases * pct, "#,##0"),
@@ -142,15 +145,15 @@
     });
     const parameter = append(parameterRows, "03_Parameter", "PARAMETER SKENARIO DINAMIS", "K", [14, 22, 15, 14, 14, 17, 20, 18, 20, 18, 20], 3);
     styleRange(XLSX, parameter, `A4:K${parameterRows.length}`, { fill: COLORS.white });
-    styleRange(XLSX, parameter, `G4:G${parameterRows.length}`, { fill: "FFF2CC", bold: true, align: "right", numFmt: "0.00%" });
-    styleRange(XLSX, parameter, `F4:G${parameterRows.length}`, { align: "right", numFmt: "0.00%" });
+    styleRange(XLSX, parameter, `G4:G${parameterRows.length}`, { fill: "FFF2CC", bold: true, align: "right", numFmt: "0%" });
+    styleRange(XLSX, parameter, `F4:G${parameterRows.length}`, { align: "right", numFmt: "0%" });
     styleRange(XLSX, parameter, `H4:H${parameterRows.length}`, { align: "right", numFmt: "#,##0" });
     styleRange(XLSX, parameter, `I4:K${parameterRows.length}`, { align: "right", numFmt: '"Rp" #,##0' });
 
     const firstParam = 4;
     const lastParam = parameterRows.length;
     const resultRows = [["HASIL SIMULASI DINAMIS", "", "", "", "", "", "", "", "", "", ""], [],
-      ["No", "Skenario", "+ Kasus", "+ iDRG", "- Kasus (natural share)", "- iDRG (natural share)", "Kasus Pasca", "iDRG Pasca", "Delta Kasus", "Delta vs INA", "% Delta vs INA"]];
+      ["No", "Skenario", "+ Kasus", "+ iDRG", "- Kasus (natural share)", "- iDRG (natural share)", "Total Kasus", "iDRG Pasca", "Delta Kasus", "Delta vs INA", "% Delta vs INA"]];
     scenarioResults.forEach((result, index) => {
       const excelRow = 4 + index;
       const scenarioNo = index + 1;
@@ -166,7 +169,7 @@
         formulaCell(`${quote("01_Eksisting")}!D8+D${excelRow}-F${excelRow}`, result.projectedIdrg, '"Rp" #,##0'),
         formulaCell(`G${excelRow}-${quote("01_Eksisting")}!B8`, result.projectedCases - baselineCases, "#,##0"),
         formulaCell(`H${excelRow}-${quote("01_Eksisting")}!C8`, deltaIna, '"Rp" #,##0'),
-        formulaCell(`IFERROR(J${excelRow}/${quote("01_Eksisting")}!C8,0)`, baselineIna ? deltaIna / baselineIna : 0, "0.00%")]);
+        formulaCell(`CEILING(IFERROR(J${excelRow}/${quote("01_Eksisting")}!C8,0)*100,1)/100`, Math.ceil((baselineIna ? deltaIna / baselineIna : 0) * 100) / 100, "0%")]);
     });
     const results = append(resultRows, "04_Hasil", "HASIL SIMULASI DINAMIS", "K", [9, 23, 16, 20, 18, 20, 18, 20, 16, 20, 18], 3);
     styleRange(XLSX, results, `A4:K${resultRows.length}`, { fill: COLORS.white });
@@ -174,7 +177,7 @@
     styleRange(XLSX, results, `D4:D${resultRows.length}`, { numFmt: '"Rp" #,##0' });
     styleRange(XLSX, results, `F4:F${resultRows.length}`, { numFmt: '"Rp" #,##0' });
     styleRange(XLSX, results, `H4:J${resultRows.length}`, { numFmt: '"Rp" #,##0' });
-    styleRange(XLSX, results, `K4:K${resultRows.length}`, { numFmt: "0.00%" });
+    styleRange(XLSX, results, `K4:K${resultRows.length}`, { numFmt: "0%" });
 
     const lossCasesExpected = levelData.filter((item) => item.direction === "kurang").reduce((sum, item) => sum + item.targetCases * pctFor(0, item) / 100, 0);
     const lossIdrgExpected = levelData.filter((item) => item.direction === "kurang").reduce((sum, item) => sum + item.targetIdrg * pctFor(0, item) / 100, 0);
