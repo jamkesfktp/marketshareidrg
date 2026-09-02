@@ -463,7 +463,7 @@
       return { tambah: [1], kurang: [2, 3, 4] };
     }
     switch (competency) {
-      case 0: return { tambah: [], kurang: [] };
+      case 0: return { tambah: [], kurang: [1, 2, 3, 4] };
       case 1: return { tambah: [1], kurang: [2, 3, 4] };
       case 2: return { tambah: [1, 2], kurang: [3, 4] };
       case 3: return { tambah: [2, 3], kurang: [1, 4] };
