@@ -7073,7 +7073,6 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     if (!state.serviceScenarios) state.serviceScenarios = {};
     
     const availableServices = data.services
-      .filter(service => getCompetency(target, service) > 0 || service.toLowerCase().includes('forensik'))
       .sort((a, b) => {
         const casesA = target.services[a] && target.services[a].total ? target.services[a].total[CASES] : 0;
         const casesB = target.services[b] && target.services[b].total ? target.services[b].total[CASES] : 0;
@@ -7451,7 +7450,6 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     
     // Extract available services for the target hospital, sorted by total cases descending
     const availableServices = data.services
-      .filter(service => getCompetency(target, service) > 0 || service.toLowerCase().includes('forensik'))
       .sort((a, b) => {
         const casesA = target.services[a] && target.services[a].total ? target.services[a].total[CASES] : 0;
         const casesB = target.services[b] && target.services[b].total ? target.services[b].total[CASES] : 0;
