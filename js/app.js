@@ -8076,41 +8076,21 @@ document.getElementById("globalSimulationSlide").innerHTML = `
                     </tr>
                   </thead>
                   <tbody>${recapDetailRows}</tbody>
-                </table>
-              </div>
-
-              <div style="font-size:16px;font-weight:900;color:#0f172a;margin:0 0 10px;">Total hasil rekapitulasi</div>
-              
-              <div style="background: white; border: 1px solid #cbd5e1; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden;">
-                <table style="width: 100%; border-collapse: collapse; text-align: right; font-size: 14px;">
-                  <thead style="background: #1e293b; color: white;">
+                  <tfoot style="position:sticky;bottom:0;z-index:2;background:#dbeafe;box-shadow:0 -2px 5px rgba(15,23,42,0.16);">
                     <tr>
-                      <th style="padding: 12px; text-align: left; border: 1px solid #334155;">Parameter</th>
-                      <th style="padding: 12px; border: 1px solid #334155;">Eksisting</th>
-                      <th style="padding: 12px; border: 1px solid #334155; color: #86efac;">Tambahan</th>
-                      <th style="padding: 12px; border: 1px solid #334155; color: #fca5a5;">Pengurangan</th>
-                      <th style="padding: 12px; border: 1px solid #334155; color: #67e8f9;">Pasca RBKP (iDRG)</th>
-                      <th style="padding: 12px; border: 1px solid #334155; color: #fde047;">Net (+/-) thd INA-CBG</th>
+                      <td style="padding:11px 8px;text-align:center;border:1px solid #94a3b8;font-weight:900;color:#0f172a;">∑</td>
+                      <td style="padding:11px 10px;text-align:left;border:1px solid #94a3b8;font-weight:900;color:#0f172a;white-space:nowrap;">TOTAL SELURUH LAYANAN</td>
+                      <td style="padding:11px 8px;text-align:center;border:1px solid #94a3b8;font-weight:800;color:#475569;">${window.dynamicSimRecap.length} layanan</td>
+                      <td style="padding:11px 8px;border:1px solid #94a3b8;font-weight:900;color:#0f172a;"><b>${formatNumber(tEksKasus)}</b><span style="display:block;font-size:10px;color:#475569;">${formatTableMoney(tEksIna)} INA-CBG</span></td>
+                      <td style="padding:11px 8px;border:1px solid #94a3b8;font-weight:900;color:#15803d;"><b>+${formatNumber(tTambKasus)}</b><span style="display:block;font-size:10px;">+${formatTableMoney(tTambIdrg)} iDRG</span></td>
+                      <td style="padding:11px 8px;border:1px solid #94a3b8;font-weight:900;color:#dc2626;"><b>-${formatNumber(tKurangKasus)}</b><span style="display:block;font-size:10px;">-${formatTableMoney(tKurangIdrg)} iDRG</span></td>
+                      <td style="padding:11px 8px;border:1px solid #94a3b8;font-weight:900;color:#0369a1;"><b>${formatNumber(tPascaKasus)}</b><span style="display:block;font-size:10px;">${formatTableMoney(tPascaIdrg)} iDRG</span></td>
+                      <td style="padding:11px 8px;border:1px solid #94a3b8;font-weight:900;color:${netKasus >= 0 ? '#15803d' : '#dc2626'};">${netKasus >= 0 ? '▲' : '▼'} ${formatNumber(Math.abs(netKasus))}</td>
+                      <td style="padding:11px 8px;border:1px solid #94a3b8;font-weight:900;color:${netKasus >= 0 ? '#15803d' : '#dc2626'};">${netKasusPct > 0 ? '+' : ''}${formatPercent(netKasusPct)}</td>
+                      <td style="padding:11px 8px;border:1px solid #94a3b8;font-weight:900;color:${netIdrg >= 0 ? '#15803d' : '#dc2626'};">${netIdrg >= 0 ? '▲' : '▼'} ${formatTableMoney(Math.abs(netIdrg))}</td>
+                      <td style="padding:11px 8px;border:1px solid #94a3b8;font-weight:900;color:${netIdrg >= 0 ? '#15803d' : '#dc2626'};">${netIdrgPct > 0 ? '+' : ''}${formatPercent(netIdrgPct)}</td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    <tr style="border-bottom: 1px solid #e2e8f0; background: #f8fafc;">
-                      <td style="padding: 12px; text-align: left; font-weight: 800; color: #0f172a; border: 1px solid #e2e8f0;">Total Kasus</td>
-                      <td style="padding: 12px; font-weight: 700; border: 1px solid #e2e8f0;">${formatNumber(tEksKasus)}</td>
-                      <td style="padding: 12px; font-weight: 700; color: #16a34a; border: 1px solid #e2e8f0;">+${formatNumber(tTambKasus)}</td>
-                      <td style="padding: 12px; font-weight: 700; color: #dc2626; border: 1px solid #e2e8f0;">-${formatNumber(tKurangKasus)}</td>
-                      <td style="padding: 12px; font-weight: 800; color: #0369a1; border: 1px solid #e2e8f0;">${formatNumber(tPascaKasus)}</td>
-                      <td style="padding: 12px; font-weight: 800; color: ${netKasus >= 0 ? '#16a34a' : '#dc2626'}; border: 1px solid #e2e8f0;">${netKasus >= 0 ? '▲' : '▼'} ${formatNumber(Math.abs(netKasus))}<br><span style="font-size:12px;">${netKasusPct > 0 ? '+' : ''}${formatPercent(netKasusPct)}</span></td>
-                    </tr>
-                    <tr>
-                      <td style="padding: 12px; text-align: left; font-weight: 800; color: #0f172a; border: 1px solid #e2e8f0;">Pendapatan (Rp M)</td>
-                      <td style="padding: 12px; font-weight: 700; border: 1px solid #e2e8f0;">${formatTableMoney(tEksIna)} <span style="font-size:10px;color:#64748b;display:block;">(INA-CBG)</span></td>
-                      <td style="padding: 12px; font-weight: 700; color: #16a34a; border: 1px solid #e2e8f0;">+${formatTableMoney(tTambIdrg)} <span style="font-size:10px;color:#64748b;display:block;">(iDRG)</span></td>
-                      <td style="padding: 12px; font-weight: 700; color: #dc2626; border: 1px solid #e2e8f0;">-${formatTableMoney(tKurangIdrg)} <span style="font-size:10px;color:#64748b;display:block;">(iDRG)</span></td>
-                      <td style="padding: 12px; font-weight: 800; color: #0369a1; border: 1px solid #e2e8f0;">${formatTableMoney(tPascaIdrg)} <span style="font-size:10px;color:#64748b;display:block;">(iDRG)</span></td>
-                      <td style="padding: 12px; font-weight: 800; color: ${netIdrg >= 0 ? '#16a34a' : '#dc2626'}; border: 1px solid #e2e8f0;">${netIdrg >= 0 ? '▲' : '▼'} ${formatTableMoney(Math.abs(netIdrg))}<br><span style="font-size:12px;">${formatPercent(netIdrgPct)}</span></td>
-                    </tr>
-                  </tbody>
+                  </tfoot>
                 </table>
               </div>
               
