@@ -1622,11 +1622,11 @@ document.getElementById("globalSimulationSlide").innerHTML = `
 
     
     let headerTambahan = 'Tambahan Kasus Dasar & Madya';
-    if (tambahMode === 'tambah_up') headerTambahan = 'Tambahan Kasus Utama & Paripurna';
+    if (tambahMode === 'tambah_up') headerTambahan = 'Tambahan Kasus';
     else if (tambahMode === 'tambah_mu_reg' || tambahMode === 'tambah_mu_higher') headerTambahan = 'Tambahan Kasus Madya & Utama';
     else if (tambahMode === 'tambah_d_reg' || tambahMode === 'tambah_d_higher') headerTambahan = 'Tambahan Kasus Dasar';
     
-    let headerPengurangan = 'Pengurangan Kasus Dasar & Madya';
+    let headerPengurangan = 'Pengurangan Kasus';
     if (kurangMode === 'kurang_up') headerPengurangan = 'Pengurangan Kasus Utama & Paripurna';
     else if (kurangMode === 'kurang_dp') headerPengurangan = 'Pengurangan Kasus Dasar & Paripurna';
     else if (kurangMode === 'kurang_mup') headerPengurangan = 'Pengurangan Kasus Madya, Utama & Paripurna';
@@ -8083,8 +8083,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
                       <th rowspan="2" style="background:#0f172a;color:#fff;border:1px solid #cbd5e1;padding:6px 4px;min-width:150px;text-align:left;">Layanan RS</th>
                       <th rowspan="2" style="background:#0f172a;color:#fff;border:1px solid #cbd5e1;padding:6px 4px;min-width:90px;">Kompetensi RS</th>
                       <th rowspan="2" style="background:#0f172a;color:#fff;border:1px solid #cbd5e1;padding:6px 4px;min-width:130px;">Eksisting Kasus & Pendapatan<br><span style="font-size:9px;font-weight:400;">(Rp M)</span></th>
-                      <th colspan="3" style="background:#16a34a;color:#fff;border:1px solid #cbd5e1;padding:6px 4px;">Tambahan Kasus Utama & Paripurna</th>
-                      <th colspan="3" style="background:#be123c;color:#fff;border:1px solid #cbd5e1;padding:6px 4px;">Pengurangan Kasus Dasar & Madya</th>
+                      <th colspan="3" style="background:#16a34a;color:#fff;border:1px solid #cbd5e1;padding:6px 4px;">Tambahan Kasus</th>
+                      <th colspan="3" style="background:#be123c;color:#fff;border:1px solid #cbd5e1;padding:6px 4px;">Pengurangan Kasus</th>
                       <th rowspan="2" style="background:#0369a1;color:#fff;border:1px solid #cbd5e1;padding:6px 4px;">Total Kasus<br>Pasca iDRG & RBKP</th>
                       <th rowspan="2" style="background:#0369a1;color:#fff;border:1px solid #cbd5e1;padding:6px 4px;">Total Pendapatan<br>Pasca iDRG & RBKP (Rp M)</th>
                       <th colspan="4" style="background:#0f172a;color:#fff;border:1px solid #cbd5e1;padding:6px 4px;">Net +/- Pasca iDRG & RBKP (vs INACBG)</th>
