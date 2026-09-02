@@ -338,10 +338,26 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
 
           <section class="slide" data-slide="18" aria-labelledby="recapSlideTitle" hidden>
             <div class="slide-heading">
-              <div><p class="eyebrow">Rekapitulasi</p><h1 id="recapSlideTitle">Rekapitulasi Rentang Skenario Seluruh Layanan</h1><p>Rentang minimum s.d. maksimum tambahan dan pengurangan kasus serta pendapatan (iDRG/INA-CBG) dari seluruh skenario.</p></div>
+              <div><p class="eyebrow">Rekapitulasi</p><h1 id="recapSlideTitle">Rekapitulasi Rentang Skenario Seluruh Layanan (Bagian 1)</h1><p>Rentang minimum s.d. maksimum tambahan dan pengurangan kasus serta pendapatan (iDRG/INA-CBG) dari seluruh skenario.</p></div>
               <span class="slide-chip">Rekap Rentang</span>
             </div>
             <div id="recapSlide" class="slide-content" style="overflow-y: auto; padding-top: 10px;"></div>
+          </section>
+
+          <section class="slide" data-slide="18-2" aria-labelledby="recapSlideTitle2" hidden>
+            <div class="slide-heading">
+              <div><p class="eyebrow">Rekapitulasi (Lanjutan)</p><h1 id="recapSlideTitle2">Rekapitulasi Rentang Skenario Seluruh Layanan (Bagian 2)</h1><p>Lanjutan tabel rentang minimum s.d. maksimum tambahan dan pengurangan kasus.</p></div>
+              <span class="slide-chip">Rekap Rentang</span>
+            </div>
+            <div id="recapSlide2" class="slide-content" style="overflow-y: auto; padding-top: 10px;"></div>
+          </section>
+
+          <section class="slide" data-slide="18-3" aria-labelledby="recapSlideTitle3" hidden>
+            <div class="slide-heading">
+              <div><p class="eyebrow">Rekapitulasi (Lanjutan)</p><h1 id="recapSlideTitle3">Rekapitulasi Rentang Skenario Seluruh Layanan (Bagian 3)</h1><p>Lanjutan tabel rentang minimum s.d. maksimum tambahan dan pengurangan kasus, diakhiri total hasil rekap.</p></div>
+              <span class="slide-chip">Rekap Rentang</span>
+            </div>
+            <div id="recapSlide3" class="slide-content" style="overflow-y: auto; padding-top: 10px;"></div>
           </section>
 
           <section class="slide" data-slide="19" aria-labelledby="logicalRecapSlideTitle" hidden>

@@ -7432,7 +7432,10 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       container.id = "dynamicServiceSlides";
       const stack = document.querySelector(".slide-stack");
       if (stack) {
-        stack.appendChild(container);
+        // Tabel simulasi per layanan harus dibaca lebih dahulu sebelum rekap total.
+        // Sisipkan tepat di depan slide rekap, bukan di ujung seluruh presentasi.
+        const recapSection = stack.querySelector('[data-slide="18"]');
+        stack.insertBefore(container, recapSection || null);
       } else {
         return;
       }
@@ -7711,7 +7714,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       };
 
       html += `
-        <section class="slide service-sim-slide" data-slide="${9 + idx}" aria-labelledby="dynamicSlide${idx}Title" style="padding: 0; background-color: #fff;">
+        <section class="slide service-sim-slide" data-slide="service-${idx + 1}" aria-labelledby="dynamicSlide${idx}Title" style="padding: 0; background-color: #fff;">
           <div style="background-color: #16a085; border-bottom: 8px solid #f1c40f; padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px;">
             <h1 id="dynamicSlide${idx}Title" style="color: white; font-size: 22px; font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">Simulasi Kasus Market Share - ${escapeHtml(service)}</h1>
             <div style="background-color: #e74c3c; color: white; border-radius: 99px; padding: 6px 14px; text-align: center; font-size: 11.5px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.2); line-height: 1.2; flex-shrink: 0;">
@@ -10077,26 +10080,20 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     exportStage.appendChild(style);
 
     const allSlides = [...document.querySelectorAll(".slide")];
-    const layoutOrder = ["0", "2", "5", "6", "7", "16", "19", "19-2", "19-3"];
-    
-    // Add all dynamic slides (23 and onwards)
-    allSlides.forEach(s => {
-      const dsStr = s.getAttribute("data-slide");
-      const ds = parseInt(dsStr);
-      if (!isNaN(ds) && ds >= 23 && dsStr === String(ds)) {
-        layoutOrder.push(String(ds));
-      }
-    });
-    
-    // Add slide 18 at the very end
-    layoutOrder.push("18", "18-2", "18-3");
-    
     const sourceSlides = [];
-    
-    layoutOrder.forEach(ds => {
-      const s = allSlides.find(x => x.getAttribute("data-slide") === ds);
-      if (s) sourceSlides.push(s);
+    const appendStaticSlides = (slideIds) => slideIds.forEach((slideId) => {
+      const slide = allSlides.find((item) => item.getAttribute("data-slide") === slideId);
+      if (slide) sourceSlides.push(slide);
     });
+
+    appendStaticSlides(["0", "2", "5", "6", "7", "16"]);
+
+    // Ambil seluruh tabel simulasi berdasarkan kelasnya. Nomor data-slide tidak
+    // boleh dipakai karena dahulu bertabrakan dengan nomor slide statis 9–22.
+    sourceSlides.push(...allSlides.filter((slide) => slide.classList.contains("service-sim-slide")));
+
+    // Rekap rentang dan rekap skenario logis selalu berada setelah semua tabel layanan.
+    appendStaticSlides(["18", "18-2", "18-3", "19", "19-2", "19-3"]);
     
     const target = targetHospital();
 
