@@ -7365,7 +7365,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     }
 
     const pctInputs = (scenarioIndex, direction) => levelData.filter((item) => item.direction === direction).map((item) =>
-      `<label style="display:flex;align-items:center;justify-content:space-between;gap:3px;white-space:nowrap;"><span>${shortLevelNames[item.level]}</span><span><input class="per-service-dynamic-pct" data-service="${escapeHtml(service)}" data-scenario="${scenarioIndex}" data-direction="${direction}" data-level="${item.level}" type="number" min="0" max="100" step="1" value="${pctFor(scenarioIndex, item)}" style="width:48px;padding:2px;text-align:right;border:1px solid ${direction === "tambah" ? "#86efac" : "#fda4af"};border-radius:4px;color:${direction === "tambah" ? "#15803d" : "#be123c"};font-weight:800;">%</span></label>`
+      `<label style="display:flex;align-items:center;justify-content:space-between;gap:3px;white-space:nowrap;"><span>${shortLevelNames[item.level]}</span><span><input class="per-service-dynamic-pct" data-service="${escapeHtml(service)}" data-scenario="${scenarioIndex}" data-direction="${direction}" data-level="${item.level}" type="number" min="0" max="100" step="0.01" value="${Number(pctFor(scenarioIndex, item) || 0).toFixed(2)}" style="width:58px;padding:2px;text-align:right;border:1px solid ${direction === "tambah" ? "#86efac" : "#fda4af"};border-radius:4px;color:${direction === "tambah" ? "#15803d" : "#be123c"};font-weight:800;">%</span></label>`
     ).join("") || '<span style="color:#94a3b8;">—</span>';
 
     window.dynamicSimRecap = window.dynamicSimRecap || [];
@@ -7415,9 +7415,9 @@ document.getElementById("globalSimulationSlide").innerHTML = `
             <td data-col="srv-kr-pct" style="${cell}min-width:92px;color:#be123c;font-weight:700;">${pctInputs(0, "kurang")}</td><td data-col="srv-kr-kasus" style="${cell}font-weight:800;">${formatNumber(Math.round(result.lossCases))}</td><td data-col="srv-kr-rp" style="${cell}font-weight:800;color:#e11d48;">▼ ${formatTableMoney(result.lossIdrg)}</td>
             <td style="${cell}font-weight:900;background:#eff6ff;">${formatNumber(Math.round(result.projectedCases))}</td><td style="${cell}font-weight:900;background:#f0fdf4;">${formatTableMoney(result.projectedIdrg)}</td>
             <td data-col="srv-nt-kasus" style="${cell}font-weight:800;color:${deltaCases >= 0 ? '#059669' : '#e11d48'};"><span style="font-family: monospace; font-size: 11px;">${deltaCases >= 0 ? "▲ " : "▼ "}</span>${formatNumber(Math.abs(Math.round(deltaCases)))}</td>
-            <td data-col="srv-nt-kasuspct" style="${cell}font-weight:800;color:${deltaCases >= 0 ? '#059669' : '#e11d48'};"><span style="font-family: monospace; font-size: 11px;">${deltaCases >= 0 ? "▲ " : "▼ "}</span>${Math.round(Math.abs(deltaCasesPct))}%</td>
+            <td data-col="srv-nt-kasuspct" style="${cell}font-weight:800;color:${deltaCases >= 0 ? '#059669' : '#e11d48'};"><span style="font-family: monospace; font-size: 11px;">${deltaCases >= 0 ? "▲ " : "▼ "}</span>${decimalFormatter.format(Math.abs(deltaCasesPct))}%</td>
             <td data-col="srv-nt-rp" style="${cell}font-weight:800;color:${deltaIncome >= 0 ? '#059669' : '#e11d48'};"><span style="font-family: monospace; font-size: 11px;">${deltaIncome >= 0 ? "▲ " : "▼ "}</span>${formatTableMoney(Math.abs(deltaIncome))}</td>
-            <td data-col="srv-nt-rppct" style="${cell}font-weight:800;color:${deltaIncome >= 0 ? '#059669' : '#e11d48'};"><span style="font-family: monospace; font-size: 11px;">${deltaIncome >= 0 ? "▲ " : "▼ "}</span>${Math.round(Math.abs(deltaIncomePct))}%</td></tr>`;
+            <td data-col="srv-nt-rppct" style="${cell}font-weight:800;color:${deltaIncome >= 0 ? '#059669' : '#e11d48'};"><span style="font-family: monospace; font-size: 11px;">${deltaIncome >= 0 ? "▲ " : "▼ "}</span>${decimalFormatter.format(Math.abs(deltaIncomePct))}%</td></tr>`;
         }).join('')}</tbody></table></div>`;
   }
 
@@ -7701,16 +7701,10 @@ document.getElementById("globalSimulationSlide").innerHTML = `
 
       const formatMoneyM = (val) => {
         const absVal = Math.abs(val || 0);
-        if (absVal >= 1e12) {
-          return (absVal / 1e12).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " T";
-        }
-        if (absVal >= 1e9) {
-          return (absVal / 1e9).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " M";
-        }
-        if (absVal >= 1e6) {
-          return (absVal / 1e6).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " JT";
-        }
-        return absVal.toLocaleString('id-ID');
+        return (absVal / 1e9).toLocaleString('id-ID', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        }) + " M";
       };
 
       html += `
