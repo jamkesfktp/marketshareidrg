@@ -7365,13 +7365,15 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     }
 
     const pctInputs = (scenarioIndex, direction) => levelData.filter((item) => item.direction === direction).map((item) =>
-      `<label style="display:flex;align-items:center;justify-content:space-between;gap:3px;white-space:nowrap;"><span>${shortLevelNames[item.level]}</span><span><input class="per-service-dynamic-pct" data-service="${escapeHtml(service)}" data-scenario="${scenarioIndex}" data-direction="${direction}" data-level="${item.level}" type="number" min="0" max="100" step="0.01" value="${Number(pctFor(scenarioIndex, item) || 0).toFixed(2)}" style="width:58px;padding:2px;text-align:right;border:1px solid ${direction === "tambah" ? "#86efac" : "#fda4af"};border-radius:4px;color:${direction === "tambah" ? "#15803d" : "#be123c"};font-weight:800;">%</span></label>`
+      `<label style="display:flex;align-items:center;justify-content:space-between;gap:3px;white-space:nowrap;"><span>${shortLevelNames[item.level]}</span><span><input class="per-service-dynamic-pct" data-service="${escapeHtml(service)}" data-scenario="${scenarioIndex}" data-direction="${direction}" data-level="${item.level}" type="number" min="0" max="100" step="0.01" value="${Number(pctFor(scenarioIndex, item) || 0) % 1 === 0 ? Number(pctFor(scenarioIndex, item) || 0).toString() : Number(pctFor(scenarioIndex, item) || 0).toFixed(2)}" style="width:58px;padding:2px;text-align:right;border:1px solid ${direction === "tambah" ? "#86efac" : "#fda4af"};border-radius:4px;color:${direction === "tambah" ? "#15803d" : "#be123c"};font-weight:800;">%</span></label>`
     ).join("") || '<span style="color:#94a3b8;">—</span>';
 
     window.dynamicSimRecap = window.dynamicSimRecap || [];
-    const getPctStr = (scenarioIndex, direction) => levelData.filter((item) => item.direction === direction).map((item) =>
-      `<div style="font-size:10px;margin-bottom:2px;white-space:nowrap;">${shortLevelNames[item.level]}: ${Number(pctFor(scenarioIndex, item) || 0).toFixed(0)}%</div>`
-    ).join("") || '-';
+    const getPctStr = (scenarioIndex, direction) => levelData.filter((item) => item.direction === direction).map((item) => {
+      const p = Number(pctFor(scenarioIndex, item) || 0);
+      const pStr = p % 1 === 0 ? p.toString() : p.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+      return `<div style="font-size:10px;margin-bottom:2px;white-space:nowrap;">${shortLevelNames[item.level]}: ${pStr}%</div>`;
+    }).join("") || '-';
 
     window.dynamicSimRecap.push({
       service,
