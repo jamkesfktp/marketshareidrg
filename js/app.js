@@ -7369,6 +7369,10 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     ).join("") || '<span style="color:#94a3b8;">—</span>';
 
     window.dynamicSimRecap = window.dynamicSimRecap || [];
+    const getPctStr = (scenarioIndex, direction) => levelData.filter((item) => item.direction === direction).map((item) =>
+      `<div style="font-size:10px;margin-bottom:2px;white-space:nowrap;">${shortLevelNames[item.level]}: ${Number(pctFor(scenarioIndex, item) || 0).toFixed(0)}%</div>`
+    ).join("") || '-';
+
     window.dynamicSimRecap.push({
       service,
       baselineCases,
@@ -7376,8 +7380,10 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       baselineIdrg,
       addCases: results[0].addCases,
       addIdrg: results[0].addIdrg,
+      addPctStr: getPctStr(0, "tambah"),
       lossCases: results[0].lossCases,
       lossIdrg: results[0].lossIdrg,
+      lossPctStr: getPctStr(0, "kurang"),
       projectedCases: results[0].projectedCases,
       projectedIdrg: results[0].projectedIdrg
     });
@@ -8036,11 +8042,11 @@ document.getElementById("globalSimulationSlide").innerHTML = `
                 <div style="font-size:10px;color:#0369a1;margin-top:2px;">${formatTableMoney(row.baselineIna)}</div>
               </td>
               
-              <td style="padding:6px 4px;border:1px solid #cbd5e1;color:#15803d;font-weight:700;">100%</td>
+              <td style="padding:6px 4px;border:1px solid #cbd5e1;color:#15803d;font-weight:700;">${row.addPctStr}</td>
               <td style="padding:6px 4px;border:1px solid #cbd5e1;font-weight:800;">${formatNumber(Math.round(row.addCases))}</td>
               <td style="padding:6px 4px;border:1px solid #cbd5e1;font-weight:800;color:#059669;">+ ${formatTableMoney(row.addIdrg)}</td>
               
-              <td style="padding:6px 4px;border:1px solid #cbd5e1;color:#be123c;font-weight:700;">100%</td>
+              <td style="padding:6px 4px;border:1px solid #cbd5e1;color:#be123c;font-weight:700;">${row.lossPctStr}</td>
               <td style="padding:6px 4px;border:1px solid #cbd5e1;font-weight:800;">${formatNumber(Math.round(row.lossCases))}</td>
               <td style="padding:6px 4px;border:1px solid #cbd5e1;font-weight:800;color:#e11d48;">- ${formatTableMoney(row.lossIdrg)}</td>
               
