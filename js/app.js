@@ -8018,22 +8018,39 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           const rowNetRevenue = row.projectedIdrg - row.baselineIna;
           const rowNetRevenuePct = row.baselineIna ? rowNetRevenue / row.baselineIna : 0;
           const competency = getCompetency(target, row.service);
-          const netCasesColor = rowNetCases >= 0 ? '#15803d' : '#dc2626';
-          const netRevenueColor = rowNetRevenue >= 0 ? '#15803d' : '#dc2626';
+          
+          const netCasesColor = rowNetCases >= 0 ? '#059669' : '#e11d48';
+          const netRevenueColor = rowNetRevenue >= 0 ? '#059669' : '#e11d48';
+          
+          const arrowCases = rowNetCases >= 0 ? '<span style="font-family: monospace; font-size: 11px; color: #059669;">▲ </span>' : '<span style="font-family: monospace; font-size: 11px; color: #e11d48;">▼ </span>';
+          const arrowRevenue = rowNetRevenue >= 0 ? '<span style="font-family: monospace; font-size: 11px; color: #059669;">▲ </span>' : '<span style="font-family: monospace; font-size: 11px; color: #e11d48;">▼ </span>';
 
           return `
-            <tr style="background:${index % 2 === 0 ? '#ffffff' : '#f8fafc'};">
-              <td style="padding:9px 8px;text-align:center;border:1px solid #e2e8f0;color:#64748b;">${index + 1}</td>
-              <td style="padding:9px 10px;text-align:left;border:1px solid #e2e8f0;font-weight:800;color:#0f172a;white-space:nowrap;">${escapeHtml(formatService(row.service))}</td>
-              <td style="padding:9px 8px;text-align:center;border:1px solid #e2e8f0;font-weight:800;color:#0f766e;white-space:nowrap;">${escapeHtml(levelNames[competency] || '—')}</td>
-              <td style="padding:9px 8px;border:1px solid #e2e8f0;"><b>${formatNumber(row.baselineCases)}</b><span style="display:block;font-size:10px;color:#64748b;">${formatTableMoney(row.baselineIna)} INA-CBG</span></td>
-              <td style="padding:9px 8px;border:1px solid #e2e8f0;color:#15803d;"><b>+${formatNumber(row.addCases)}</b><span style="display:block;font-size:10px;">+${formatTableMoney(row.addIdrg)} iDRG</span></td>
-              <td style="padding:9px 8px;border:1px solid #e2e8f0;color:#dc2626;"><b>-${formatNumber(row.lossCases)}</b><span style="display:block;font-size:10px;">-${formatTableMoney(row.lossIdrg)} iDRG</span></td>
-              <td style="padding:9px 8px;border:1px solid #e2e8f0;color:#0369a1;"><b>${formatNumber(row.projectedCases)}</b><span style="display:block;font-size:10px;">${formatTableMoney(row.projectedIdrg)} iDRG</span></td>
-              <td style="padding:9px 8px;border:1px solid #e2e8f0;color:${netCasesColor};font-weight:800;">${rowNetCases >= 0 ? '▲' : '▼'} ${formatNumber(Math.abs(rowNetCases))}</td>
-              <td style="padding:9px 8px;border:1px solid #e2e8f0;color:${netCasesColor};font-weight:800;">${rowNetCasesPct > 0 ? '+' : ''}${formatPercent(rowNetCasesPct)}</td>
-              <td style="padding:9px 8px;border:1px solid #e2e8f0;color:${netRevenueColor};font-weight:800;">${rowNetRevenue >= 0 ? '▲' : '▼'} ${formatTableMoney(Math.abs(rowNetRevenue))}</td>
-              <td style="padding:9px 8px;border:1px solid #e2e8f0;color:${netRevenueColor};font-weight:800;">${rowNetRevenuePct > 0 ? '+' : ''}${formatPercent(rowNetRevenuePct)}</td>
+            <tr style="background:${index % 2 === 0 ? '#ffffff' : '#f8fafc'}; text-align: center; font-size: 11px;">
+              <td style="padding:6px 4px;border:1px solid #cbd5e1;color:#64748b;">${index + 1}</td>
+              <td style="padding:6px 8px;text-align:left;border:1px solid #cbd5e1;font-weight:800;color:#0f172a;white-space:nowrap;">${escapeHtml(formatService(row.service))}</td>
+              <td style="padding:6px 4px;border:1px solid #cbd5e1;font-weight:800;color:#0f766e;white-space:nowrap;">${escapeHtml(levelNames[competency] || '-')}</td>
+              
+              <td style="padding:6px 4px;border:1px solid #cbd5e1;font-weight:800;text-align:left;">
+                <div style="font-size:12px;color:#0f172a;">${formatNumber(row.baselineCases)}</div>
+                <div style="font-size:10px;color:#0369a1;margin-top:2px;">${formatTableMoney(row.baselineIna)}</div>
+              </td>
+              
+              <td style="padding:6px 4px;border:1px solid #cbd5e1;color:#15803d;font-weight:700;">100%</td>
+              <td style="padding:6px 4px;border:1px solid #cbd5e1;font-weight:800;">${formatNumber(Math.round(row.addCases))}</td>
+              <td style="padding:6px 4px;border:1px solid #cbd5e1;font-weight:800;color:#059669;">+ ${formatTableMoney(row.addIdrg)}</td>
+              
+              <td style="padding:6px 4px;border:1px solid #cbd5e1;color:#be123c;font-weight:700;">100%</td>
+              <td style="padding:6px 4px;border:1px solid #cbd5e1;font-weight:800;">${formatNumber(Math.round(row.lossCases))}</td>
+              <td style="padding:6px 4px;border:1px solid #cbd5e1;font-weight:800;color:#e11d48;">- ${formatTableMoney(row.lossIdrg)}</td>
+              
+              <td style="padding:6px 4px;border:1px solid #cbd5e1;font-weight:900;background:#eff6ff;">${formatNumber(Math.round(row.projectedCases))}</td>
+              <td style="padding:6px 4px;border:1px solid #cbd5e1;font-weight:900;background:#f0fdf4;">${formatTableMoney(row.projectedIdrg)}</td>
+              
+              <td style="padding:6px 4px;border:1px solid #cbd5e1;font-weight:800;color:${netCasesColor};">${arrowCases}${formatNumber(Math.abs(Math.round(rowNetCases)))}</td>
+              <td style="padding:6px 4px;border:1px solid #cbd5e1;font-weight:800;color:${netCasesColor};">${arrowCases}${decimalFormatter.format(Math.abs(rowNetCasesPct * 100))}%</td>
+              <td style="padding:6px 4px;border:1px solid #cbd5e1;font-weight:800;color:${netRevenueColor};">${arrowRevenue}${formatTableMoney(Math.abs(rowNetRevenue))}</td>
+              <td style="padding:6px 4px;border:1px solid #cbd5e1;font-weight:800;color:${netRevenueColor};">${arrowRevenue}${decimalFormatter.format(Math.abs(rowNetRevenuePct * 100))}%</td>
             </tr>`;
         }).join('');
 
@@ -8052,65 +8069,79 @@ document.getElementById("globalSimulationSlide").innerHTML = `
                 <div style="font-size:11px;font-weight:800;color:#0f766e;">${window.dynamicSimRecap.length} layanan disimulasikan</div>
               </div>
 
-              <div style="background:white;border:1px solid #cbd5e1;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.05);overflow:auto;max-height:430px;margin-bottom:18px;">
-                <table style="width:100%;min-width:1280px;border-collapse:collapse;text-align:right;font-size:12px;">
-                  <thead style="position:sticky;top:0;z-index:2;background:#1e293b;color:white;">
+              <div style="background:white;border:1px solid #cbd5e1;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.05);overflow:auto;max-height:450px;margin-bottom:18px;">
+                <table style="width:100%;min-width:1400px;border-collapse:collapse;text-align:center;font-size:11px;">
+                  <thead style="position:sticky;top:0;z-index:2;">
                     <tr>
-                      <th style="padding:10px 8px;text-align:center;border:1px solid #334155;width:38px;">No</th>
-                      <th style="padding:10px;text-align:left;border:1px solid #334155;min-width:220px;">Layanan RS</th>
-                      <th style="padding:10px 8px;text-align:center;border:1px solid #334155;min-width:110px;">Kompetensi</th>
-                      <th style="padding:10px 8px;border:1px solid #334155;min-width:155px;">Eksisting<br><span style="font-size:9px;font-weight:500;">Kasus · INA-CBG</span></th>
-                      <th style="padding:10px 8px;border:1px solid #334155;color:#86efac;min-width:155px;">Tambahan<br><span style="font-size:9px;font-weight:500;">Kasus · iDRG</span></th>
-                      <th style="padding:10px 8px;border:1px solid #334155;color:#fca5a5;min-width:155px;">Pengurangan<br><span style="font-size:9px;font-weight:500;">Kasus · iDRG</span></th>
-                      <th style="padding:10px 8px;border:1px solid #334155;color:#67e8f9;min-width:165px;">Pasca RBKP<br><span style="font-size:9px;font-weight:500;">Kasus · iDRG</span></th>
-                      <th style="padding:10px 8px;border:1px solid #334155;min-width:110px;">Net Kasus</th>
-                      <th style="padding:10px 8px;border:1px solid #334155;min-width:105px;">% Net Kasus<br><span style="font-size:9px;font-weight:500;">thd Eksisting</span></th>
-                      <th style="padding:10px 8px;border:1px solid #334155;color:#fde047;min-width:145px;">Net Pendapatan</th>
-                      <th style="padding:10px 8px;border:1px solid #334155;color:#fde047;min-width:115px;">% Net Pendapatan<br><span style="font-size:9px;font-weight:500;">thd INA-CBG</span></th>
+                      <th rowspan="2" style="background:#0f172a;color:#fff;border:1px solid #cbd5e1;padding:6px 4px;width:30px;">No</th>
+                      <th rowspan="2" style="background:#0f172a;color:#fff;border:1px solid #cbd5e1;padding:6px 4px;min-width:150px;text-align:left;">Layanan RS</th>
+                      <th rowspan="2" style="background:#0f172a;color:#fff;border:1px solid #cbd5e1;padding:6px 4px;min-width:90px;">Kompetensi RS</th>
+                      <th rowspan="2" style="background:#0f172a;color:#fff;border:1px solid #cbd5e1;padding:6px 4px;min-width:130px;">Eksisting Kasus & Pendapatan<br><span style="font-size:9px;font-weight:400;">(Rp M)</span></th>
+                      <th colspan="3" style="background:#16a34a;color:#fff;border:1px solid #cbd5e1;padding:6px 4px;">Tambahan Kasus Utama & Paripurna</th>
+                      <th colspan="3" style="background:#be123c;color:#fff;border:1px solid #cbd5e1;padding:6px 4px;">Pengurangan Kasus Dasar & Madya</th>
+                      <th rowspan="2" style="background:#0369a1;color:#fff;border:1px solid #cbd5e1;padding:6px 4px;">Total Kasus<br>Pasca iDRG & RBKP</th>
+                      <th rowspan="2" style="background:#0369a1;color:#fff;border:1px solid #cbd5e1;padding:6px 4px;">Total Pendapatan<br>Pasca iDRG & RBKP (Rp M)</th>
+                      <th colspan="4" style="background:#0f172a;color:#fff;border:1px solid #cbd5e1;padding:6px 4px;">Net +/- Pasca iDRG & RBKP (vs INACBG)</th>
+                    </tr>
+                    <tr>
+                      <th style="background:#4ade80;color:#064e3b;padding:4px 2px;font-size:10px;border:1px solid #cbd5e1;">Persentase</th>
+                      <th style="background:#4ade80;color:#064e3b;padding:4px 2px;font-size:10px;border:1px solid #cbd5e1;">Jumlah Kasus</th>
+                      <th style="background:#4ade80;color:#064e3b;padding:4px 2px;font-size:10px;border:1px solid #cbd5e1;">Tambahan (Rp M)</th>
+                      <th style="background:#f87171;color:#450a0a;padding:4px 2px;font-size:10px;border:1px solid #cbd5e1;">Persentase</th>
+                      <th style="background:#f87171;color:#450a0a;padding:4px 2px;font-size:10px;border:1px solid #cbd5e1;">Jumlah Kasus</th>
+                      <th style="background:#f87171;color:#450a0a;padding:4px 2px;font-size:10px;border:1px solid #cbd5e1;">Pengurangan (Rp M)</th>
+                      <th style="background:#1e293b;color:#f8fafc;padding:4px 2px;font-size:10px;border:1px solid #cbd5e1;">+/- Kasus</th>
+                      <th style="background:#1e293b;color:#f8fafc;padding:4px 2px;font-size:10px;border:1px solid #cbd5e1;">% thd total kasus</th>
+                      <th style="background:#1e293b;color:#f8fafc;padding:4px 2px;font-size:10px;border:1px solid #cbd5e1;">+/- Pendapatan (Rp M)</th>
+                      <th style="background:#1e293b;color:#f8fafc;padding:4px 2px;font-size:10px;border:1px solid #cbd5e1;">% +/- Pendapatan</th>
                     </tr>
                   </thead>
                   <tbody>${recapDetailRows}</tbody>
                   <tfoot style="position:sticky;bottom:0;z-index:2;background:#dbeafe;box-shadow:0 -2px 5px rgba(15,23,42,0.16);">
                     <tr>
-                      <td style="padding:11px 8px;text-align:center;border:1px solid #94a3b8;font-weight:900;color:#0f172a;">∑</td>
-                      <td style="padding:11px 10px;text-align:left;border:1px solid #94a3b8;font-weight:900;color:#0f172a;white-space:nowrap;">TOTAL SELURUH LAYANAN</td>
-                      <td style="padding:11px 8px;text-align:center;border:1px solid #94a3b8;font-weight:800;color:#475569;">${window.dynamicSimRecap.length} layanan</td>
-                      <td style="padding:11px 8px;border:1px solid #94a3b8;font-weight:900;color:#0f172a;"><b>${formatNumber(tEksKasus)}</b><span style="display:block;font-size:10px;color:#475569;">${formatTableMoney(tEksIna)} INA-CBG</span></td>
-                      <td style="padding:11px 8px;border:1px solid #94a3b8;font-weight:900;color:#15803d;"><b>+${formatNumber(tTambKasus)}</b><span style="display:block;font-size:10px;">+${formatTableMoney(tTambIdrg)} iDRG</span></td>
-                      <td style="padding:11px 8px;border:1px solid #94a3b8;font-weight:900;color:#dc2626;"><b>-${formatNumber(tKurangKasus)}</b><span style="display:block;font-size:10px;">-${formatTableMoney(tKurangIdrg)} iDRG</span></td>
-                      <td style="padding:11px 8px;border:1px solid #94a3b8;font-weight:900;color:#0369a1;"><b>${formatNumber(tPascaKasus)}</b><span style="display:block;font-size:10px;">${formatTableMoney(tPascaIdrg)} iDRG</span></td>
-                      <td style="padding:11px 8px;border:1px solid #94a3b8;font-weight:900;color:${netKasus >= 0 ? '#15803d' : '#dc2626'};">${netKasus >= 0 ? '▲' : '▼'} ${formatNumber(Math.abs(netKasus))}</td>
-                      <td style="padding:11px 8px;border:1px solid #94a3b8;font-weight:900;color:${netKasus >= 0 ? '#15803d' : '#dc2626'};">${netKasusPct > 0 ? '+' : ''}${formatPercent(netKasusPct)}</td>
-                      <td style="padding:11px 8px;border:1px solid #94a3b8;font-weight:900;color:${netIdrg >= 0 ? '#15803d' : '#dc2626'};">${netIdrg >= 0 ? '▲' : '▼'} ${formatTableMoney(Math.abs(netIdrg))}</td>
-                      <td style="padding:11px 8px;border:1px solid #94a3b8;font-weight:900;color:${netIdrg >= 0 ? '#15803d' : '#dc2626'};">${netIdrgPct > 0 ? '+' : ''}${formatPercent(netIdrgPct)}</td>
+                      ${(() => {
+                        const totalNetCases = tTambKasus - tKurangKasus;
+                        const totalNetCasesPct = tEksKasus ? totalNetCases / tEksKasus : 0;
+                        const totalNetRev = tPascaIdrg - tEksIna;
+                        const totalNetRevPct = tEksIna ? totalNetRev / tEksIna : 0;
+                        
+                        const tColorCases = totalNetCases >= 0 ? '#059669' : '#e11d48';
+                        const tColorRev = totalNetRev >= 0 ? '#059669' : '#e11d48';
+                        const tArrowCases = totalNetCases >= 0 ? '<span style="font-family: monospace; font-size: 11px; color: #059669;">▲ </span>' : '<span style="font-family: monospace; font-size: 11px; color: #e11d48;">▼ </span>';
+                        const tArrowRev = totalNetRev >= 0 ? '<span style="font-family: monospace; font-size: 11px; color: #059669;">▲ </span>' : '<span style="font-family: monospace; font-size: 11px; color: #e11d48;">▼ </span>';
+
+                        return `
+                          <td style="padding:8px 4px;border:1px solid #cbd5e1;font-weight:900;color:#0f172a;">∑</td>
+                          <td style="padding:8px 8px;text-align:left;border:1px solid #cbd5e1;font-weight:900;color:#0f172a;white-space:nowrap;">TOTAL KESELURUHAN</td>
+                          <td style="padding:8px 4px;border:1px solid #cbd5e1;font-weight:800;color:#475569;">${window.dynamicSimRecap.length} lay</td>
+                          <td style="padding:8px 4px;border:1px solid #cbd5e1;font-weight:900;text-align:left;">
+                            <div style="font-size:12px;color:#0f172a;">${formatNumber(tEksKasus)}</div>
+                            <div style="font-size:10px;color:#0369a1;margin-top:2px;">${formatTableMoney(tEksIna)}</div>
+                          </td>
+                          <td style="padding:8px 4px;border:1px solid #cbd5e1;font-weight:900;">-</td>
+                          <td style="padding:8px 4px;border:1px solid #cbd5e1;font-weight:900;color:#15803d;">${formatNumber(Math.round(tTambKasus))}</td>
+                          <td style="padding:8px 4px;border:1px solid #cbd5e1;font-weight:900;color:#059669;">+ ${formatTableMoney(tTambIdrg)}</td>
+                          <td style="padding:8px 4px;border:1px solid #cbd5e1;font-weight:900;">-</td>
+                          <td style="padding:8px 4px;border:1px solid #cbd5e1;font-weight:900;color:#dc2626;">${formatNumber(Math.round(tKurangKasus))}</td>
+                          <td style="padding:8px 4px;border:1px solid #cbd5e1;font-weight:900;color:#e11d48;">- ${formatTableMoney(tKurangIdrg)}</td>
+                          <td style="padding:8px 4px;border:1px solid #cbd5e1;font-weight:900;color:#0369a1;">${formatNumber(Math.round(tPascaKasus))}</td>
+                          <td style="padding:8px 4px;border:1px solid #cbd5e1;font-weight:900;color:#0369a1;">${formatTableMoney(tPascaIdrg)}</td>
+                          <td style="padding:8px 4px;border:1px solid #cbd5e1;font-weight:900;color:${tColorCases};">${tArrowCases}${formatNumber(Math.abs(Math.round(totalNetCases)))}</td>
+                          <td style="padding:8px 4px;border:1px solid #cbd5e1;font-weight:900;color:${tColorCases};">${tArrowCases}${decimalFormatter.format(Math.abs(totalNetCasesPct * 100))}%</td>
+                          <td style="padding:8px 4px;border:1px solid #cbd5e1;font-weight:900;color:${tColorRev};">${tArrowRev}${formatTableMoney(Math.abs(totalNetRev))}</td>
+                          <td style="padding:8px 4px;border:1px solid #cbd5e1;font-weight:900;color:${tColorRev};">${tArrowRev}${decimalFormatter.format(Math.abs(totalNetRevPct * 100))}%</td>
+                        `;
+                      })()}
                     </tr>
                   </tfoot>
                 </table>
-              </div>
-              
-              <div style="margin-top:24px; font-size:13px; color:#475569; border-top: 1px solid #cbd5e1; padding-top: 16px;">
-                <div style="font-weight: 800; color: #1e293b; margin-bottom: 8px;">Keterangan Parameter Rekapitulasi:</div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                  <div>
-                    <span style="font-weight: 700;">Eksisting:</span> Baseline pendapatan aktual menggunakan tarif INA-CBG (karena selisih Net dinilai terhadap pendapatan saat ini).
-                  </div>
-                  <div>
-                    <span style="font-weight: 700;">Tambahan & Pengurangan:</span> Angka pergerakan simulasi menggunakan tarif iDRG yang disimulasikan.
-                  </div>
-                  <div>
-                    <span style="font-weight: 700;">Pasca RBKP:</span> Proyeksi kasus dan pendapatan total menggunakan tarif iDRG.
-                  </div>
-                  <div>
-                    <span style="font-weight: 700;">Net (+/-):</span> Perbandingan <i>apple-to-orange</i> antara proyeksi iDRG masa depan vs baseline INA-CBG saat ini.
-                  </div>
-                </div>
               </div>
 
             </div>
           </section>
         `;
       }
-    container.innerHTML = html;    container.innerHTML = html;
+      container.innerHTML = html;
     
     container.querySelectorAll('.dynamic-scenario-input').forEach(input => {
       input.addEventListener('change', (e) => {
