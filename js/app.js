@@ -8015,8 +8015,33 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         });
 
         const netKasus = tTambKasus - tKurangKasus;
+        const netKasusPct = tEksKasus ? netKasus / tEksKasus : 0;
         const netIdrg = tPascaIdrg - tEksIna;
         const netIdrgPct = tEksIna ? (netIdrg / tEksIna) : 0;
+        const recapDetailRows = window.dynamicSimRecap.map((row, index) => {
+          const rowNetCases = row.addCases - row.lossCases;
+          const rowNetCasesPct = row.baselineCases ? rowNetCases / row.baselineCases : 0;
+          const rowNetRevenue = row.projectedIdrg - row.baselineIna;
+          const rowNetRevenuePct = row.baselineIna ? rowNetRevenue / row.baselineIna : 0;
+          const competency = getCompetency(target, row.service);
+          const netCasesColor = rowNetCases >= 0 ? '#15803d' : '#dc2626';
+          const netRevenueColor = rowNetRevenue >= 0 ? '#15803d' : '#dc2626';
+
+          return `
+            <tr style="background:${index % 2 === 0 ? '#ffffff' : '#f8fafc'};">
+              <td style="padding:9px 8px;text-align:center;border:1px solid #e2e8f0;color:#64748b;">${index + 1}</td>
+              <td style="padding:9px 10px;text-align:left;border:1px solid #e2e8f0;font-weight:800;color:#0f172a;white-space:nowrap;">${escapeHtml(formatService(row.service))}</td>
+              <td style="padding:9px 8px;text-align:center;border:1px solid #e2e8f0;font-weight:800;color:#0f766e;white-space:nowrap;">${escapeHtml(levelNames[competency] || '—')}</td>
+              <td style="padding:9px 8px;border:1px solid #e2e8f0;"><b>${formatNumber(row.baselineCases)}</b><span style="display:block;font-size:10px;color:#64748b;">${formatTableMoney(row.baselineIna)} INA-CBG</span></td>
+              <td style="padding:9px 8px;border:1px solid #e2e8f0;color:#15803d;"><b>+${formatNumber(row.addCases)}</b><span style="display:block;font-size:10px;">+${formatTableMoney(row.addIdrg)} iDRG</span></td>
+              <td style="padding:9px 8px;border:1px solid #e2e8f0;color:#dc2626;"><b>-${formatNumber(row.lossCases)}</b><span style="display:block;font-size:10px;">-${formatTableMoney(row.lossIdrg)} iDRG</span></td>
+              <td style="padding:9px 8px;border:1px solid #e2e8f0;color:#0369a1;"><b>${formatNumber(row.projectedCases)}</b><span style="display:block;font-size:10px;">${formatTableMoney(row.projectedIdrg)} iDRG</span></td>
+              <td style="padding:9px 8px;border:1px solid #e2e8f0;color:${netCasesColor};font-weight:800;">${rowNetCases >= 0 ? '▲' : '▼'} ${formatNumber(Math.abs(rowNetCases))}</td>
+              <td style="padding:9px 8px;border:1px solid #e2e8f0;color:${netCasesColor};font-weight:800;">${rowNetCasesPct > 0 ? '+' : ''}${formatPercent(rowNetCasesPct)}</td>
+              <td style="padding:9px 8px;border:1px solid #e2e8f0;color:${netRevenueColor};font-weight:800;">${rowNetRevenue >= 0 ? '▲' : '▼'} ${formatTableMoney(Math.abs(rowNetRevenue))}</td>
+              <td style="padding:9px 8px;border:1px solid #e2e8f0;color:${netRevenueColor};font-weight:800;">${rowNetRevenuePct > 0 ? '+' : ''}${formatPercent(rowNetRevenuePct)}</td>
+            </tr>`;
+        }).join('');
 
         html += `
           <section class="slide" id="dynamicServiceRecap">
@@ -8024,6 +8049,37 @@ document.getElementById("globalSimulationSlide").innerHTML = `
               <h1 style="color: white; font-size: 22px; font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">REKAPITULASI KESELURUHAN SIMULASI</h1>
             </div>
             <div class="slide-content" style="padding: 16px 24px; overflow-y: auto;">
+
+              <div style="margin-bottom:10px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;">
+                <div>
+                  <div style="font-size:16px;font-weight:900;color:#0f172a;">Rincian hasil simulasi per layanan</div>
+                  <div style="font-size:11px;color:#64748b;margin-top:2px;">Mengikuti nilai Skenario 1 pada setiap tabel simulasi layanan.</div>
+                </div>
+                <div style="font-size:11px;font-weight:800;color:#0f766e;">${window.dynamicSimRecap.length} layanan disimulasikan</div>
+              </div>
+
+              <div style="background:white;border:1px solid #cbd5e1;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.05);overflow:auto;max-height:430px;margin-bottom:18px;">
+                <table style="width:100%;min-width:1280px;border-collapse:collapse;text-align:right;font-size:12px;">
+                  <thead style="position:sticky;top:0;z-index:2;background:#1e293b;color:white;">
+                    <tr>
+                      <th style="padding:10px 8px;text-align:center;border:1px solid #334155;width:38px;">No</th>
+                      <th style="padding:10px;text-align:left;border:1px solid #334155;min-width:220px;">Layanan RS</th>
+                      <th style="padding:10px 8px;text-align:center;border:1px solid #334155;min-width:110px;">Kompetensi</th>
+                      <th style="padding:10px 8px;border:1px solid #334155;min-width:155px;">Eksisting<br><span style="font-size:9px;font-weight:500;">Kasus · INA-CBG</span></th>
+                      <th style="padding:10px 8px;border:1px solid #334155;color:#86efac;min-width:155px;">Tambahan<br><span style="font-size:9px;font-weight:500;">Kasus · iDRG</span></th>
+                      <th style="padding:10px 8px;border:1px solid #334155;color:#fca5a5;min-width:155px;">Pengurangan<br><span style="font-size:9px;font-weight:500;">Kasus · iDRG</span></th>
+                      <th style="padding:10px 8px;border:1px solid #334155;color:#67e8f9;min-width:165px;">Pasca RBKP<br><span style="font-size:9px;font-weight:500;">Kasus · iDRG</span></th>
+                      <th style="padding:10px 8px;border:1px solid #334155;min-width:110px;">Net Kasus</th>
+                      <th style="padding:10px 8px;border:1px solid #334155;min-width:105px;">% Net Kasus<br><span style="font-size:9px;font-weight:500;">thd Eksisting</span></th>
+                      <th style="padding:10px 8px;border:1px solid #334155;color:#fde047;min-width:145px;">Net Pendapatan</th>
+                      <th style="padding:10px 8px;border:1px solid #334155;color:#fde047;min-width:115px;">% Net Pendapatan<br><span style="font-size:9px;font-weight:500;">thd INA-CBG</span></th>
+                    </tr>
+                  </thead>
+                  <tbody>${recapDetailRows}</tbody>
+                </table>
+              </div>
+
+              <div style="font-size:16px;font-weight:900;color:#0f172a;margin:0 0 10px;">Total hasil rekapitulasi</div>
               
               <div style="background: white; border: 1px solid #cbd5e1; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden;">
                 <table style="width: 100%; border-collapse: collapse; text-align: right; font-size: 14px;">
@@ -8044,7 +8100,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
                       <td style="padding: 12px; font-weight: 700; color: #16a34a; border: 1px solid #e2e8f0;">+${formatNumber(tTambKasus)}</td>
                       <td style="padding: 12px; font-weight: 700; color: #dc2626; border: 1px solid #e2e8f0;">-${formatNumber(tKurangKasus)}</td>
                       <td style="padding: 12px; font-weight: 800; color: #0369a1; border: 1px solid #e2e8f0;">${formatNumber(tPascaKasus)}</td>
-                      <td style="padding: 12px; font-weight: 800; color: ${netKasus >= 0 ? '#16a34a' : '#dc2626'}; border: 1px solid #e2e8f0;">${netKasus >= 0 ? '▲' : '▼'} ${formatNumber(Math.abs(netKasus))}</td>
+                      <td style="padding: 12px; font-weight: 800; color: ${netKasus >= 0 ? '#16a34a' : '#dc2626'}; border: 1px solid #e2e8f0;">${netKasus >= 0 ? '▲' : '▼'} ${formatNumber(Math.abs(netKasus))}<br><span style="font-size:12px;">${netKasusPct > 0 ? '+' : ''}${formatPercent(netKasusPct)}</span></td>
                     </tr>
                     <tr>
                       <td style="padding: 12px; text-align: left; font-weight: 800; color: #0f172a; border: 1px solid #e2e8f0;">Pendapatan (Rp M)</td>
