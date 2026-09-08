@@ -116,3 +116,12 @@ Untuk memastikan kedua dataset sudah terkompilasi dengan sempurna:
 node -e "const d = window.marketSimulatorDatasets || JSON.parse(require('fs').readFileSync('js/data.js', 'utf8').replace(/^window\.marketSimulatorDatasets\s*=\s*/, '').replace(/;\s*window\.marketSimulatorData.*$/, '')); console.log('Datasets loaded:', Object.keys(d)); console.log('Okt-Jun RS count:', d.okt_jun.hospitals.length); console.log('Jan-Des RS count:', d.jan_des.hospitals.length);"
 ```
 
+
+## Dataset Scatter Plot
+
+Scatter Plot memiliki pilihan periode tersendiri: **Tahun 2025 (Jan–Des)** sebagai default dan **Uji Coba Okt 2025–Jun 2026**. Pilihan sumber tarif (data awal, AF 10%, AF 19% dengan AF = 1) tidak mengubah periode atau jumlah kasus.
+
+- Tahun 2025: `spending_jan_des_v11_gabungan.csv`, kolom `jml_kasus`. Bangun ulang dengan `node build_scatter_2025.js`; hasilnya `js/scatter-2025-data.js`.
+- Uji coba: `spending_okt_jun_v3_gabungan.csv`, kolom `jml_kasus`, pada `scatterServices` dalam `js/idrg-map-data.js` (builder: `build_idrg_map_data.js`).
+- Agregasi berdasarkan kode iDRG 1370, layanan, kepemilikan, kelas RS, kelas rawat, dan regional. Nol kasus tidak ditampilkan sebagai titik pada sumbu volume logaritmik.
+- Validasi pergantian periode/tarif: `node check-scatter-af10.js`.
