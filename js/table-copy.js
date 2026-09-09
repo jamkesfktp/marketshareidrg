@@ -1,13 +1,27 @@
 (function () {
   'use strict';
-  const style = 'font-family:"Century Gothic",sans-serif;font-size:8pt;background-color:transparent;color:#000;';
+  const style = 'font-family:"Century Gothic",sans-serif;font-size:8pt;';
   function prepare(table) {
     const clone = table.cloneNode(true);
+    const colors = new WeakMap();
+    const bgColors = new WeakMap();
+    const sourceNodes = [table, ...table.querySelectorAll('*')];
+    [clone, ...clone.querySelectorAll('*')].forEach((node, index) => {
+      const source = sourceNodes[index];
+      // Read CSS while attached; prepared fragments already carry resolved inline colors.
+      const comp = source.isConnected ? window.getComputedStyle(source) : source.style;
+      colors.set(node, comp.color || 'inherit');
+      bgColors.set(node, comp.backgroundColor || 'transparent');
+    });
     const originals = table.querySelectorAll('input,select,textarea');
     clone.querySelectorAll('input,select,textarea').forEach((node, index) => {
       const original = originals[index];
       const value = original.tagName === 'SELECT' ? original.selectedOptions[0]?.textContent || '' : original.value;
-      node.replaceWith(document.createTextNode(value));
+      const text = document.createElement('span');
+      text.textContent = value;
+      colors.set(text, colors.get(node));
+      bgColors.set(text, bgColors.get(node));
+      node.replaceWith(text);
     });
     clone.querySelectorAll('button,script,style').forEach(node => node.remove());
     clone.querySelectorAll('label').forEach(label => {
@@ -18,9 +32,13 @@
       for (const attr of Array.from(node.attributes)) {
         if (!['rowspan', 'colspan'].includes(attr.name)) node.removeAttribute(attr.name);
       }
-      node.setAttribute('style', style + (isCell ? 'border:1px solid #999;padding:3pt;vertical-align:middle;' : ''));
+      const bg = bgColors.get(node);
+      const bgRule = (node.tagName === 'TH' && bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') ? `background-color:${bg};` : 'background-color:transparent;';
+      node.setAttribute('style', style + bgRule + 'color:' + colors.get(node) + ';' + (isCell ? 'border:1px solid #999;padding:3pt;vertical-align:middle;' : ''));
     });
-    clone.setAttribute('style', style + 'border-collapse:collapse;');
+    const tableBg = bgColors.get(clone);
+    const tableBgRule = (tableBg && tableBg !== 'rgba(0, 0, 0, 0)' && tableBg !== 'transparent') ? `background-color:${tableBg};` : 'background-color:transparent;';
+    clone.setAttribute('style', style + tableBgRule + 'color:' + colors.get(clone) + ';border-collapse:collapse;');
     return clone;
   }
   function cellText(cell) {
