@@ -1604,3 +1604,37 @@ body.simulator-app {
 
 
 
+/* Per-service report matching the compact market-share reference. */
+.slide.service-reference { padding: 0 !important; background: #fff; }
+.service-report-header { background: #16afaa; border-bottom: 9px solid #ccd32d; min-height: 78px; padding: 12px 28px; display:flex; align-items:center; justify-content:space-between; gap:20px; }
+.service-report-header h1 { margin:0; color:white; font-size:28px; line-height:1.2; }
+.service-period { flex-shrink:0; border-radius:40px; background:#c00; color:white; padding:7px 18px; font-size:14px; font-weight:750; line-height:1.25; }
+.service-reference .service-report-content { padding:16px 38px 20px; height:calc(100% - 78px); overflow:auto; }
+.service-summary { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; margin-bottom:20px; }
+.service-summary > div { background:#efefef; padding:14px 13px; display:flex; flex-direction:column; gap:7px; min-width:0; }
+.service-summary strong { font-size:17px; color:#383838; }
+.service-summary b { font-size:30px; line-height:1.2; color:#087c7e; white-space:nowrap; }
+.service-summary > div:nth-child(2) b { color:#df8834; }
+.service-summary > div:nth-child(3) b { color:#b8b52b; }
+.service-summary > div > span { font-size:15px; color:#525252; }
+.service-positive { color:#159c73; } .service-negative { color:#c00; }
+.service-competency-table { width:100%; border-collapse:collapse; table-layout:fixed; margin-bottom:20px; font-size:14px; text-align:center; }
+.service-competency-table th, .service-competency-table td { border:1px solid #999; padding:5px 8px; }
+.service-competency-table thead { color:#fff; background:#16aa98; }
+.service-competency-table thead tr:first-child { background:#087c7e; }
+.service-competency-table thead tr:first-child th:last-child { text-align:left; padding-left:20px; }
+.service-competency-table th:first-child { width:19%; }
+.service-competency-table tbody th { background:#f5f8be; color:#454545; }
+.service-result-table { width:100%; overflow-x:auto; margin-bottom:12px; }
+.service-reference .service-result-table table { table-layout:fixed; font-size:13px !important; min-width:1050px; }
+.service-reference .service-result-table th { border:1px solid #999 !important; font-size:14px; line-height:1.4; padding:7px 4px !important; overflow-wrap:break-word; }
+.service-reference .service-result-table th:first-child[rowspan] { width:15%; }
+.service-reference .service-result-table td { border:1px solid #999 !important; padding:8px 5px !important; background:white !important; min-width:0 !important; height:142px; font-size:14px !important; }
+.service-reference .service-result-table td:first-child { font-size:13px !important; }
+.service-reference .service-result-table td:first-child div { font-size:13px !important; }
+.service-reference .per-service-dynamic-pct { width:48px !important; max-width:100%; font-size:12px; }
+.service-recommendations { display:grid; grid-template-columns:125px 1fr 1fr 1.1fr; color:#08777d; background:#efefef; border:1px solid #bbb; font-size:12px; line-height:1.35; }
+.service-recommendations > strong { display:flex; align-items:center; justify-content:center; color:white; background:#087f85; font-size:17px; }
+.service-recommendations > div { padding:6px; border-left:1px solid #bbb; }
+@media(max-width:1100px) { .service-report-header h1 {font-size:22px;} .service-period {font-size:11px;} .service-summary strong {font-size:13px;} .service-summary b {font-size:22px;} .service-summary > div > span {font-size:12px;} }
+@media(max-width:700px) { .service-report-header {flex-wrap:wrap;padding:12px;} .service-reference .service-report-content {height:auto;padding:12px;} .service-summary {grid-template-columns:repeat(2,minmax(0,1fr));} .service-competency-table {font-size:11px;} .service-competency-table th,.service-competency-table td {padding:4px 2px;} .service-recommendations {grid-template-columns:1fr;} .service-recommendations > strong {padding:8px;} }
