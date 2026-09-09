@@ -7749,7 +7749,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
               <tbody>
                 <tr><th>Jumlah RS Kompetitor</th>${counts.map(n => `<td>${formatNumber(n)}</td>`).join('')}<td>${formatNumber(counts.reduce((a,b) => a+b,0))}</td></tr>
                 <tr><th>Jumlah Kasus Regional</th>${regionalMetrics.map(m => `<td>${formatNumber(m[CASES])}</td>`).join('')}<td>${formatNumber(regionalKasus)}</td></tr>
-                <tr><th>Pendapatan iDRG</th>${regionalMetrics.map(m => `<td>${formatMoneyM(m[IDRG])}</td>`).join('')}<td>${formatMoneyM(regionalExistingService[IDRG])}</td></tr>
+                <tr><th>Spending iDRG Regional</th>${regionalMetrics.map(m => `<td>${formatMoneyM(m[IDRG])}</td>`).join('')}<td>${formatMoneyM(regionalExistingService[IDRG])}</td></tr>
               </tbody>
             </table>
             ${serviceTable}
