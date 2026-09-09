@@ -7511,8 +7511,23 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         state.serviceScenarios[service] = generateDefaultServiceScenarios(service, target, targetCompetency);
       }
       
-      const targetExistingService = target.services[service] ? target.services[service].total : [0, 0, 0];
-      const regionalExistingService = data.regional.services[service] ? data.regional.services[service].total : [0, 0, 0];
+      const getSumValidLevels = (svcData) => {
+        const res = [0, 0, 0];
+        if (svcData && svcData.severity) {
+          [1, 2, 3, 4].forEach(lvl => {
+            const m = svcData.severity[lvl];
+            if (m) {
+              res[CASES] += m[CASES] || 0;
+              res[INA] += m[INA] || 0;
+              res[IDRG] += m[IDRG] || 0;
+            }
+          });
+        }
+        return res;
+      };
+      
+      const targetExistingService = getSumValidLevels(target.services[service]);
+      const regionalExistingService = getSumValidLevels(data.regional.services[service]);
       
       const targetKasus = targetExistingService[CASES];
       const regionalKasus = regionalExistingService[CASES];
@@ -7525,7 +7540,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       const selisih = potensiRegional - targetIdrg;
       
       const targetSvc = target.services[service];
-      const targetKasusArr = targetSvc ? targetSvc.total : [0,0,0];
+      const targetKasusArr = targetExistingService;
       const existingKasus = targetKasusArr[CASES] || 0;
       const existingIna = targetKasusArr[INA] || 0;
       const existingIdrg = targetKasusArr[IDRG] || 0;
@@ -7680,7 +7695,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       };
       
       const totalTargetCases = targetKasusArr[CASES] || 0;
-      const totalRegionalCases = data.regional.services[service]?.total?.[CASES] || 0;
+      const totalRegionalCases = regionalKasus;
       const competitorsCount = data.hospitals.filter((h) => h.code !== target.code && getCompetency(h, service) === targetCompetency).length;
 
       const opportunityInsight =
