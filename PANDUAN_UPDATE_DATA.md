@@ -1,3 +1,17 @@
+## Pembaruan kompetensi 3 September 2026
+
+Sumber terbaru: `RS Online - Monitoring Kompetensi dan olah tarikan 03 September 2026 (1).xlsx`, sheet `Tarik` (3.314 RS × 24 layanan). Master tervalidasi disimpan pada `data/competencies-2026-09-03.json`, termasuk tanggal sumber dan SHA-256 workbook.
+
+Untuk memperbarui kompetensi tanpa membangun ulang klaim:
+
+1. Jalankan `extract_competencies.py <file.xlsx> 2026-09-03 data/competencies-2026-09-03.json` memakai Python dengan openpyxl.
+2. Jalankan `node update_competencies.cjs` untuk memeriksa perubahan, lalu `node update_competencies.cjs --write` untuk menerapkan.
+3. Periksa `data/competency-update-2026-09-03-report.json` dan perbarui versi cache data/app pada kedua halaman masuk.
+
+Pencocokan memakai kode RS, bukan nama. Status Tidak Kompeten menjadi 0; Forensik dipetakan ke FORENSIK DAN MEDIKOLEGAL. Entri layanan yang belum ada ditambahkan dengan metrik klaim nol. Fasilitas tanpa kecocokan dipertahankan dan dicatat sebagai pengecualian; tidak dinyatakan memiliki pembaruan kompetensi. Semua metrik klaim RS dan regional diverifikasi tetap sama. Builder dua periode menggunakan master tervalidasi yang sama.
+
+Pembaruan awal: uji coba 2.777 RS cocok, 458 tidak cocok, 669 tingkat berubah dan 5.009 entri ditambahkan; tahunan 2.725 RS cocok, 465 tidak cocok, 656 tingkat berubah dan 4.385 entri ditambahkan. Angka entri tambahan mencakup status Tidak Kompeten.
+
 # 📖 Panduan Lengkap Pembaruan Data & Konfigurasi Simulator
 ## Simulator Market Share iDRG & INA-CBG Kemenkes RI
 
