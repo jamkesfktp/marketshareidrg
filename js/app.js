@@ -7512,7 +7512,10 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       }
       
       const getSumValidLevels = (svcData) => {
-        const res = [0, 0, 0];
+        const res = [];
+        res[CASES] = 0;
+        res[INA] = 0;
+        res[IDRG] = 0;
         if (svcData && svcData.severity) {
           [1, 2, 3, 4].forEach(lvl => {
             const m = svcData.severity[lvl];
