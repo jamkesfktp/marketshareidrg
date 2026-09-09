@@ -21,79 +21,22 @@
   const shortLevelNames = { 1: "D", 2: "M", 3: "U", 4: "P" };
 
   window.copyColData = function(btn, colId) {
-    const table = btn.closest('table');
-    const cells = table.querySelectorAll('td[data-col="' + colId + '"]');
-    let text = '';
-    cells.forEach(c => {
-      const inputs = c.querySelectorAll('input');
-      if (inputs.length > 0) {
-        let val = '';
-        inputs.forEach(i => val += i.value + '% ');
-        text += val.trim() + '\n';
-      } else {
-        text += c.innerText.trim().replace(/\n/g, ' ') + '\n';
-      }
+    const source = btn.closest('table');
+    const table = document.createElement('table');
+    source.querySelectorAll('td[data-col="' + colId + '"]').forEach(cell => {
+      const row = table.insertRow();
+      const copy = cell.cloneNode(true);
+      copy.removeAttribute('rowspan'); copy.removeAttribute('colspan');
+      const originals = cell.querySelectorAll('input');
+      copy.querySelectorAll('input').forEach((input, index) => { input.value = originals[index].value; });
+      row.append(copy);
     });
-    navigator.clipboard.writeText(text);
-    const oldHtml = btn.innerHTML;
-    btn.innerHTML = '✅';
-    setTimeout(() => { btn.innerHTML = oldHtml; }, 1500);
+    return window.TableCopy.copy(btn, table);
   };
 
   window.copyFullTable = function(btn) {
-    const table = btn.parentElement.nextElementSibling.querySelector('table');
-    let html = "<table style='border-collapse:collapse; text-align:center;'>";
-    let tsv = "";
-    for (let i = 0; i < table.rows.length; i++) {
-      let row = table.rows[i];
-      html += "<tr>";
-      let rowTsv = [];
-      for (let j = 0; j < row.cells.length; j++) {
-        let cell = row.cells[j];
-        let text = "";
-        let labels = cell.querySelectorAll('label');
-        if (labels.length > 0 && cell.querySelector('input')) {
-          let vals = [];
-          labels.forEach(lbl => {
-             let prefixSpan = lbl.querySelector('span');
-             let inp = lbl.querySelector('input');
-             if (prefixSpan && inp) {
-               vals.push(prefixSpan.innerText.trim() + " " + inp.value + "%");
-             }
-          });
-          text = vals.join(" <br> ");
-        } else {
-          text = cell.innerText.trim().replace(/\n/g, ' <br> ');
-        }
-        
-        let rs = cell.rowSpan > 1 ? ` rowspan="${cell.rowSpan}"` : "";
-        let cs = cell.colSpan > 1 ? ` colspan="${cell.colSpan}"` : "";
-        let bg = cell.style.backgroundColor ? ` background-color:${cell.style.backgroundColor};` : "";
-        let color = cell.style.color ? ` color:${cell.style.color};` : "";
-        html += `<td${rs}${cs} style="border:1px solid #000; padding:4px;${bg}${color}">${text}</td>`;
-        rowTsv.push(`"${text.replace(/ <br> /g, '\n').replace(/"/g, '""')}"`);
-      }
-      html += "</tr>";
-      tsv += rowTsv.join("\t") + "\n";
-    }
-    html += "</table>";
-    
-    try {
-      const blobHtml = new Blob([html], { type: 'text/html' });
-      const blobText = new Blob([tsv], { type: 'text/plain' });
-      const item = new ClipboardItem({
-        'text/html': blobHtml,
-        'text/plain': blobText
-      });
-      navigator.clipboard.write([item]);
-    } catch (e) {
-      // Fallback for older browsers
-      navigator.clipboard.writeText(tsv);
-    }
-    
-    const old = btn.innerHTML;
-    btn.innerHTML = "✅ Berhasil dicopy! Paste ke PPT/Excel";
-    setTimeout(() => { btn.innerHTML = old; }, 2500);
+    const table = btn.closest('.service-result-table')?.querySelector('table') || btn.parentElement.nextElementSibling?.querySelector('table');
+    return window.TableCopy.copy(btn, table);
   };
 
   const DATASET_PERIODS = {
@@ -1371,7 +1314,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
             </div>
             <div>
               Jumlah RS : ${competitorCount} &rarr; Kompetensi layanan : Dasar : ${compCountD}, Madya: ${compCountM}, Utama: ${compCountU}, Paripurna: ${compCountP}
-              <span style="font-size:10px; font-weight:normal; color:#64748b; margin-left:8px;">(Berdasarkan Update Data 13 Agustus 2026)</span>
+              <span style="font-size:10px; font-weight:normal; color:#64748b; margin-left:8px;">(Berdasarkan Update Kompetensi 3 September 2026)</span>
             </div>
           </div>
           <div style="color: #0369a1;">Kasus Regional : ${formatNumber(regTotalD.cases + regTotalM.cases + regTotalU.cases + regTotalP.cases)} kasus &rarr; Dasar : ${formatNumber(regTotalD.cases)} Kasus (${formatMoneyUnit(regTotalD.rp)}), Madya: ${formatNumber(regTotalM.cases)} Kasus (${formatMoneyUnit(regTotalM.rp)}), Utama: ${formatNumber(regTotalU.cases)} Kasus (${formatMoneyUnit(regTotalU.rp)}), Paripurna: ${formatNumber(regTotalP.cases)} Kasus (${formatMoneyUnit(regTotalP.rp)})</div>
@@ -1690,7 +1633,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
             </div>
             <div>
               Jumlah RS : ${competitorCount} &rarr; Kompetensi layanan : Dasar : ${compCountD}, Madya: ${compCountM}, Utama: ${compCountU}, Paripurna: ${compCountP}
-              <span style="font-size:10px; font-weight:normal; color:#64748b; margin-left:8px;">(Berdasarkan Update Data 13 Agustus 2026)</span>
+              <span style="font-size:10px; font-weight:normal; color:#64748b; margin-left:8px;">(Berdasarkan Update Kompetensi 3 September 2026)</span>
             </div>
           </div>
           <div style="color: #0369a1;">Kasus Regional : ${formatNumber(regTotalD.cases + regTotalM.cases + regTotalU.cases + regTotalP.cases)} kasus &rarr; Dasar : ${formatNumber(regTotalD.cases)} Kasus (${formatMoneyUnit(regTotalD.rp)}), Madya: ${formatNumber(regTotalM.cases)} Kasus (${formatMoneyUnit(regTotalM.rp)}), Utama: ${formatNumber(regTotalU.cases)} Kasus (${formatMoneyUnit(regTotalU.rp)}), Paripurna: ${formatNumber(regTotalP.cases)} Kasus (${formatMoneyUnit(regTotalP.rp)})</div>
@@ -7406,7 +7349,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       projectedIdrg: results[0].projectedIdrg
     });
 
-    return `<div class="service-result-table"><table style="width:100%;border-collapse:collapse;border:1px solid #1e293b;text-align:center;font-size:10px;">
+    return `<div class="service-result-table"><button type="button" onclick="copyFullTable(this)" style="margin-bottom:6px;padding:5px 10px;border:1px solid #0f766e;background:white;color:#0f766e;border-radius:4px;cursor:pointer;font-size:12px;">Salin tabel · Century Gothic 8 pt</button><table style="width:100%;border-collapse:collapse;border:1px solid #1e293b;text-align:center;font-size:10px;">
         <thead><tr>
           <th rowspan="2" style="border:1px solid #fff;padding:5px;background:#334155;color:#fff;">Eksisting Kasus &amp; Pendapatan<br>(Rp M)</th>
           <th colspan="3" style="border:1px solid #fff;padding:5px;background:#46ae7e;color:#fff;">Tambahan Kasus ${competencyLevelLabel}</th>

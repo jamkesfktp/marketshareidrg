@@ -5,7 +5,7 @@ const XLSX = require('xlsx');
 
 const csvOktJunPath = 'C:\\Backup Riki\\Drive D\\Analsisi Uji Coba\\spending_okt_jun_v3_gabungan.csv';
 const csvJanDesPath = 'C:\\Backup Riki\\Drive D\\Analsisi Uji Coba\\spending_jan_des_v11_gabungan.csv';
-const excelCompetencyPath = 'C:\\Backup Riki\\Dokumen\\Market Share\\RS Online - Monitoring Kompetensi 13 Agustus 2026.xlsx';
+const excelCompetencyPath = 'C:\\Backup Riki\\Dokumen\\Market Share\\RS Online - Monitoring Kompetensi dan olah tarikan 03 September 2026 (1).xlsx';
 const outputPath = path.join(__dirname, 'js', 'data.js');
 
 function parseCsvLine(line) {
@@ -51,6 +51,12 @@ function addVectors(target, source) {
 }
 
 function loadCompetencyMap() {
+  // Validated master preserves explicit zero levels and all 24 source services.
+  const masterPath = path.join(__dirname, 'data', 'competencies-2026-09-03.json');
+  if (fs.existsSync(masterPath)) {
+    const master = JSON.parse(fs.readFileSync(masterPath, 'utf8'));
+    return new Map(Object.entries(master.hospitals));
+  }
   const serviceNameMap = {
     'JANTUNG DAN PEMBULUH DARAH': 'JANTUNG DAN PEMBULUH DARAH',
     'PARU DAN PERNAFASAN': 'PARU DAN PERNAFASAN',
@@ -330,7 +336,7 @@ function processCsv(csvPath, isJanDes, hospCompetencies) {
         }
       }
 
-      const sortedServices = Array.from(services).sort();
+      const sortedServices = Array.from(new Set([...services, ...Array.from(hospCompetencies.values()).flatMap(entries => Object.keys(entries))])).sort();
 
       // Apply RS Online competencies
       let matchedComp = 0;
@@ -364,7 +370,8 @@ function processCsv(csvPath, isJanDes, hospCompetencies) {
           referenceServiceCount: sortedServices.length,
           hospitalCount: hospitals.size,
           unclassifiedSeverityCases: unclassifiedCases,
-          competencySource: "RS Online - Monitoring Kompetensi dan olah tarikan 30 Juli 2026.xlsx",
+          competencySource: path.basename(excelCompetencyPath),
+          competencyAsOf: "2026-09-03",
           competencyMatchedHospitals: matchedComp,
           tariffScenarios: {
             "1370_full": { index: 2, label: "iDRG 1370 - AF + AFreg + AFkep (Default)", chip: "iDRG 1370 (AF + AFreg + AFkep)", desc: "Model 1.370 DRG dengan penyesuaian AF + AFreg + AFkep" },

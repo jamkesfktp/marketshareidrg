@@ -510,7 +510,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
       </div>
     </div>
   </aside>
-  <script src="js/data.js?v=202608282330"></script>
+  <script src="js/data.js?v=20260903-competencies"></script>
   <script src="js/xlsx.bundle.js"></script>
   <script src="js/chart.umd.min.js?v=202608220900"></script>
   <script src="js/dom-to-pptx.bundle.js"></script>
@@ -524,7 +524,8 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
   <script src="js/scatter-2025-data.js?v=20260908"></script>
   <script src="js/scatter-af10-data.js?v=20260908"></script>
   <script src="js/service-insights.js?v=20260909-insights"></script>
-  <script src="js/app.js?v=20260909-insights"></script>
+  <script src="js/table-copy.js?v=20260909-selection-copy"></script>
+  <script src="js/app.js?v=20260909-selection-copy"></script>
 </body>
 </html>
 
