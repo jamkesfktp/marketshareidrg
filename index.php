@@ -13,7 +13,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
   <link rel="icon" href="data:,">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Simulator Market Share Regional Rumah Sakit</title>
-  <link rel="stylesheet" href="css/style.css?v=20260909-service-reference">
+  <link rel="stylesheet" href="css/style.css?v=20260909-insights">
 </head>
 <body class="simulator-app app-booting">
   <div id="appBootScreen" class="app-boot-screen" role="status" aria-live="polite" aria-label="Menyiapkan aplikasi">
@@ -523,7 +523,8 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
   <script src="js/idrg-map-data.js?v=202608282330"></script>
   <script src="js/scatter-2025-data.js?v=20260908"></script>
   <script src="js/scatter-af10-data.js?v=20260908"></script>
-  <script src="js/app.js?v=20260909-service-reference"></script>
+  <script src="js/service-insights.js?v=20260909-insights"></script>
+  <script src="js/app.js?v=20260909-insights"></script>
 </body>
 </html>
 

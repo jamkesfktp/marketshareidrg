@@ -7384,6 +7384,15 @@ document.getElementById("globalSimulationSlide").innerHTML = `
 
     window.dynamicSimRecap.push({
       service,
+      insightLevels: levelData.map(item => ({
+        level: item.level,
+        regionalCases: item.regionalCases,
+        competitors: data.hospitals.filter(h => !targetCodes.has(h.code) && getCompetency(h, service) >= item.level).length,
+        providers: data.hospitals.filter(h => getCompetency(h, service) >= item.level).length,
+        poolCases: item.externalCases,
+        addCases: item.direction === 'tambah' ? item.externalCases * pctFor(0, item) / 100 : 0,
+        lossCases: item.direction === 'kurang' ? item.targetCases * pctFor(0, item) / 100 : 0
+      })),
       baselineCases,
       baselineIna,
       baselineIdrg,
@@ -7425,6 +7434,62 @@ document.getElementById("globalSimulationSlide").innerHTML = `
             <td data-col="srv-nt-rp" style="${cell}font-weight:800;color:${deltaIncome >= 0 ? '#46ae7e' : '#cc0000'};"><span style="font-family: monospace; font-size: 11px;">${deltaIncome >= 0 ? "▲ " : "▼ "}</span>${formatTableMoney(Math.abs(deltaIncome))}</td>
             <td data-col="srv-nt-rppct" style="${cell}font-weight:800;color:${deltaIncome >= 0 ? '#46ae7e' : '#cc0000'};"><span style="font-family: monospace; font-size: 11px;">${deltaIncome >= 0 ? "▲ " : "▼ "}</span>${decimalFormatter.format(Math.abs(deltaIncomePct))}%</td></tr>`;
         }).join('')}</tbody></table></div>`;
+  }
+
+  function renderServiceInsights(target, service, competency, simulation) {
+    const key = JSON.stringify([activeDatasetKey, target.code, service]);
+    const capacity = window.serviceInsightCapacities?.[key] ?? null;
+    const levels = simulation.insightLevels;
+    const insight = window.ServiceInsights.evaluate({ competency, levels, simulation, capacity });
+    const names = { 1: 'Dasar', 2: 'Madya', 3: 'Utama', 4: 'Paripurna' };
+    const current = levels.find(x => x.level === competency);
+    const next = levels.find(x => x.level === competency + 1);
+    const money = n => `${decimalFormatter.format(Math.abs(n) / 1e9)} M`;
+    const pct = n => n === null ? 'persentase tidak tersedia karena baseline nol' : formatPercent(Math.abs(n));
+    const pool = levels.reduce((sum, x) => sum + x.poolCases, 0);
+    const regionalEvidence = current
+      ? `Eksisting <b>${names[competency]}</b>: <b>${formatNumber(current.regionalCases)} kasus regional</b>, <b>${formatNumber(current.competitors)} RS kompetitor mampu melayani</b>.`
+      : 'Kompetensi eksisting layanan belum ditetapkan.';
+    let opportunity = {
+      title: `Perkuat kompetensi ${names[competency] || 'eksisting'}`, tone: 'green',
+      evidence: `${regionalEvidence} Pool eligible masuk <b>${formatNumber(pool)} kasus</b>; simulasi tambahan <b>${formatNumber(simulation.addCases)} kasus</b>.`,
+      action: 'Optimalkan mutu, kapasitas, dan alur rujukan sesuai peluang kasus regional.'
+    };
+    if (insight.opportunity === 'upgrade') opportunity = {
+      title: `Evaluasi peningkatan ke ${names[competency + 1]}`, tone: 'amber',
+      evidence: `${regionalEvidence} Jenjang ${names[competency + 1]}: <b>${formatNumber(next.regionalCases)} kasus</b> dengan <b>${formatNumber(next.providers)} RS mampu melayani</b>.`,
+      action: `Evaluasi SDM dan sarpras untuk jenjang berikutnya; indikator beban per penyedia lebih tinggi atau belum ada penyedia. Pool eligible pada kompetensi saat ini ${formatNumber(pool)} kasus, bukan proyeksi setelah naik kompetensi.`
+    };
+    if (insight.opportunity === 'unknown') opportunity = { title: 'Verifikasi kompetensi layanan', tone: 'amber', evidence: regionalEvidence, action: 'Lengkapi data kompetensi sebelum menentukan arah pengembangan layanan.' };
+    if (insight.opportunity === 'no-data') opportunity = { title: 'Verifikasi kebutuhan regional', tone: 'amber', evidence: regionalEvidence, action: 'Belum ada kasus regional tercatat pada layanan ini; verifikasi kelengkapan data sebelum ekspansi.' };
+    if (insight.opportunity === 'optimize') { opportunity.title = `Optimalkan layanan ${names[competency]}`; opportunity.tone = 'amber'; opportunity.action = 'Simulasi belum menghasilkan tambahan kasus. Tinjau pool eligible dan asumsi persentase sebelum memprioritaskan ekspansi.'; }
+    if (insight.opportunity === 'paripurna') { opportunity.title = 'Pertahankan kompetensi Paripurna'; opportunity.action = 'Perkuat rujukan kompleks dan sesuaikan kapasitas dengan kebutuhan regional serta potensi kasus masuk.'; }
+    const readinessMap = {
+      verify: ['Verifikasi kesiapan kapasitas', 'amber', 'Verifikasi kecukupan SDM, ruang, alat, dan logistik. Siapkan rencana lonjakan jika kenaikan melampaui kapasitas.'],
+      surge: ['Proyeksi melampaui kapasitas', 'red', 'Siapkan antisipasi lonjakan: tambahan SDM/shift, ruang dan alat, logistik, serta koordinasi rujukan regional.'],
+      within: ['Dalam kapasitas tambahan terisi', 'green', 'Sesuaikan jadwal SDM, penggunaan ruang dan alat, serta bahan medis; verifikasi kesesuaian kompetensi dan kompleksitas kasus.'],
+      complex: ['Siapkan layanan kasus kompleks', 'amber', 'Total kasus tidak naik, tetapi kasus Utama/Paripurna bertambah. Verifikasi SDM kompeten, ruang, alat, dan logistik khusus.'],
+      decline: ['Sesuaikan kapasitas layanan', 'amber', 'Sesuaikan alokasi SDM dan pemanfaatan sarpras, serta perkuat alur rujukan dengan tetap menjaga kesiapan dan mutu.'],
+      stable: ['Pertahankan kesiapan layanan', 'green', 'Pertahankan kesiapan SDM dan sarpras; pantau perubahan komposisi kasus serta kebutuhan rujukan.'
+      ]
+    };
+    const readiness = readinessMap[insight.readiness];
+    const delta = insight.caseDelta;
+    const caseEvidence = `Kasus ${delta > 0 ? 'naik' : delta < 0 ? 'turun' : 'tetap'} <b>${formatNumber(Math.abs(delta))} (${pct(insight.casePct)})</b> selama periode data.${insight.complexGrowth > 0 ? ` Tambahan bersih pada level kompleks yang meningkat: <b>${formatNumber(insight.complexGrowth)} kasus</b>.` : ''} ${capacity === null ? 'Kapasitas tambahan belum diisi.' : `Kapasitas tambahan terisi <b>${formatNumber(capacity)} kasus</b>.`}`;
+    const income = insight.incomeDelta;
+    const incomeTitle = income < 0 ? 'Perlu evaluasi efisiensi' : income > 0 ? 'Jaga efisiensi & mutu' : 'Pendapatan tetap';
+    const incomeEvidence = `Pendapatan pasca iDRG & RBKP ${income < 0 ? 'turun' : income > 0 ? 'naik' : 'tetap'} <b>Rp${money(income)} (${pct(insight.incomePct)})</b> dibanding INACBG${income < 0 && delta > 0 ? ', meskipun kasus meningkat' : ''}.`;
+    const incomeAction = income < 0 ? 'Telaah biaya per kasus, komposisi layanan, dan kebutuhan sumber daya tanpa mengurangi mutu. Penurunan pendapatan bukan dasar tunggal penurunan kompetensi.' : 'Jaga efisiensi dan mutu; sesuaikan kebutuhan sumber daya dengan beban kasus. Perubahan pendapatan belum menunjukkan laba karena biaya belum dihitung.';
+    const card = (heading, title, tone, evidence, action, extra = '') => `<article class="service-insight-card"><h3>${heading}</h3><strong class="insight-status insight-${tone}">${title}</strong><p>${evidence}</p><p><b>Tindak lanjut:</b> ${action}</p>${extra}</article>`;
+    return `<section class="service-insights" aria-label="Insight dan rekomendasi layanan">
+      <h2>Insight &amp; Rekomendasi Layanan</h2>
+      <div class="service-insight-grid">
+        ${card('Kompetensi & Peluang Regional', opportunity.title, opportunity.tone, opportunity.evidence, opportunity.action)}
+        ${card('Kesiapan SDM & Sarpras', readiness[0], readiness[1], caseEvidence, readiness[2], `<label class="service-capacity-label">Kapasitas tambahan kasus / periode data<input class="service-capacity-input" data-service="${escapeHtml(service)}" aria-label="Kapasitas tambahan kasus ${escapeHtml(service)} selama periode data" type="number" min="0" step="1" placeholder="Belum diisi" value="${capacity === null ? '' : capacity}"></label><small>Isi sisa kapasitas yang dapat ditangani, bukan kapasitas total. Tersimpan selama sesi halaman ini.</small>`)}
+        ${card('Pendapatan & Efisiensi', incomeTitle, income < 0 ? 'red' : 'green', incomeEvidence, incomeAction)}
+      </div>
+      <details class="service-insight-method"><summary>Dasar rekomendasi</summary><p>Regional mengikuti data/filter aktif. Kompetitor mampu melayani dihitung dari RS di luar target dengan kompetensi ≥ level kasus. Indikator peningkatan membandingkan kasus regional per penyedia yang mampu melayani pada jenjang berikutnya dengan jenjang eksisting; ini indikator perencanaan, bukan kapasitas aktual atau keputusan akreditasi. Pool eligible mengikuti sumber tambahan pada simulasi dan tidak sama dengan semua kasus regional. Kesiapan volume membandingkan tambahan bersih dengan kapasitas tambahan yang diisi untuk periode 15 Okt 2025–14 Juni 2026; kompleksitas, kebutuhan per shift, serta puncak kedatangan tetap perlu diverifikasi.</p></details>
+    </section>`;
   }
 
   function renderDynamicServiceSlides() {
@@ -7745,12 +7810,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
               </tbody>
             </table>
             ${serviceTable}
-            <div class="service-recommendations">
-              <strong>Rekomendasi</strong>
-              <div><b>Kompetensi Layanan RS:</b><br>Evaluasi peningkatan / penurunan / mempertahankan kompetensi layanan RS saat ini: <b>${escapeHtml(levelNames[targetCompetency] || 'Belum ditetapkan')}</b>.</div>
-              <div><b>Kesiapan Kenaikan / Penurunan Kasus:</b><br>${caseDelta === 0 ? 'Jumlah kasus tetap; pertahankan kesiapan layanan RS.' : `Perhatikan kesiapan RS dalam merespons ${caseDelta > 0 ? 'kenaikan' : 'penurunan'} kasus sebesar ${formatPercent(casePct)}.`}</div>
-              <div><b>Efisiensi Layanan RS:</b><br>${incomeDelta < 0 ? 'Pendapatan pasca iDRG & RBKP lebih rendah dari INACBG. RS didorong melakukan efisiensi pada layanan ini.' : 'Pertahankan efisiensi dan mutu layanan seiring hasil pendapatan pasca iDRG & RBKP.'}</div>
-            </div>
+            ${renderServiceInsights(target, service, targetCompetency, simulation)}
           </div>
         </section>
       `;
@@ -7921,6 +7981,16 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         } else {
           state.serviceScenarios[srv][idx][field] = val;
         }
+        renderAll();
+      });
+    });
+    container.querySelectorAll('.service-capacity-input').forEach(input => {
+      input.addEventListener('change', event => {
+        const raw = event.target.value.trim();
+        const value = raw === '' ? null : Number(raw);
+        const key = JSON.stringify([activeDatasetKey, target.code, event.target.dataset.service]);
+        window.serviceInsightCapacities = window.serviceInsightCapacities || {};
+        window.serviceInsightCapacities[key] = value !== null && Number.isFinite(value) && value >= 0 ? value : null;
         renderAll();
       });
     });
