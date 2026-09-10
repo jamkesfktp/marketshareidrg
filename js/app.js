@@ -401,6 +401,20 @@
     return 0;
   }
 
+  function canServeLevel(competency, level) {
+    return level >= 1 && level <= 4 && competency >= 1 && competency <= 4 && (competency === level || competency === level + 1);
+  }
+
+  function competitionFootnote(service, targetComp, levelData, overrides = {}) {
+    const eligible = levelData.filter(item => canServeLevel(targetComp, item.level));
+    const details = eligible.map(item => {
+      const levels = severityRanks.filter(level => canServeLevel(level, item.level)).map(level => levelNames[level]).join(' + ');
+      return levelNames[item.level] + ': RS ' + levels + ' = ' + formatNumber(item.competitors) + ' kompetitor; share alami 100 ÷ (' + item.competitors + ' + 1) = ' + (100 / (item.competitors + 1)).toFixed(2).replace('.', ',') + '%';
+    }).join('; ');
+    const manual = Object.values(overrides).some(row => Object.values(row || {}).some(Number.isFinite));
+    return 'Asumsi simulasi: RS dapat melayani level kompetensinya dan satu tingkat di bawahnya. Layanan ' + formatService(service) + ', target ' + levelNames[targetComp] + '. ' + details + '. Mengikuti filter regional aktif; seluruh RS target dikecualikan dari kompetitor. Satu RS dapat bersaing di dua level; jumlah antarlevel bukan jumlah RS unik. Pool tambahan hanya kasus pada RS di luar kemampuan tersebut, bukan perpindahan pasien yang pasti. ' + (manual ? 'Persentase manual aktif; hasil menggunakan input yang ditampilkan.' : window.dynamicMarketAddMode === 'flat' ? 'Mode flat aktif: tambahan dimulai dari 50%, kemudian ditambah faktor skenario.' : 'Persentase tambahan mengikuti share alami dan faktor skenario.') + ' Pengurangan default 100% untuk kasus di luar kemampuan target dan dapat diedit.';
+  }
+
   function getLevelRules(competency, serviceName = "") {
     if (competency === 0 && serviceName.toLowerCase().includes('forensik')) {
       return { tambah: [1], kurang: [2, 3, 4] };
@@ -433,7 +447,7 @@
     const baselinePct = {};
     rules.tambah.forEach(lvl => {
       const lvlComp = target
-        ? data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) === lvl).length
+        ? data.hospitals.filter(h => h.code !== target.code && canServeLevel(getCompetency(h, service), lvl)).length
         : 0;
       // Jika ada kompetitor: market share alami = 100/(kompetitor+1)
       // Jika tidak ada kompetitor, RS target menjadi satu-satunya penyedia eligible.
@@ -1810,7 +1824,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
 
     const rules = getLevelRules(targetComp, service);
     const targetCodes = new Set(selectedTargets.map((hospital) => hospital.code));
-    const sourceRelationLabel = "RS kompetensi selain level kasus";
+    const sourceRelationLabel = "RS di luar kemampuan level kasus";
     const additionSourceHospitals = data.hospitals.filter((hospital) => {
       if (targetCodes.has(hospital.code)) return false;
       return true;
@@ -1830,8 +1844,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       const targetMetric = severityMetric(targetSrv, level);
       const direction = rules.tambah.includes(level) ? "tambah" : (rules.kurang.includes(level) ? "kurang" : "netral");
       const sourceHospitals = direction === "tambah"
-        ? additionSourceHospitals.filter((hospital) => getCompetency(hospital, service) !== level && (severityMetric(hospital.services?.[service], level)[CASES] || 0) > 0)
-        : data.hospitals.filter((hospital) => !targetCodes.has(hospital.code) && getCompetency(hospital, service) >= level);
+        ? additionSourceHospitals.filter((hospital) => !canServeLevel(getCompetency(hospital, service), level) && (severityMetric(hospital.services?.[service], level)[CASES] || 0) > 0)
+        : data.hospitals.filter((hospital) => !targetCodes.has(hospital.code) && canServeLevel(getCompetency(hospital, service), level));
       const sourceMetric = sourceHospitals.reduce((total, hospital) => {
         const metric = severityMetric(hospital.services?.[service], level);
         total[CASES] += metric[CASES] || 0;
@@ -1839,7 +1853,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         total[IDRG] += metric[IDRG] || 0;
         return total;
       }, createZeroMetric());
-      const competitors = data.hospitals.filter((hospital) => !targetCodes.has(hospital.code) && getCompetency(hospital, service) === level).length;
+      const competitors = data.hospitals.filter((hospital) => !targetCodes.has(hospital.code) && canServeLevel(getCompetency(hospital, service), level)).length;
       const naturalShare = competitors > 0 ? 100 / (competitors + 1) : (direction === "tambah" ? 100 : 0);
       const poolIna = direction === "tambah" ? sourceMetric[INA] || 0 : targetMetric[INA] || 0;
       const poolIdrg = direction === "tambah" ? sourceMetric[IDRG] || 0 : targetMetric[IDRG] || 0;
@@ -2013,10 +2027,9 @@ document.getElementById("globalSimulationSlide").innerHTML = `
               <td data-col="nt-kasus" style="border:1px solid #1e293b;padding:6px;font-weight:900;color:${deltaCases >= 0 ? "#059669" : "#e11d48"};">${deltaCases >= 0 ? "▲ " : "▼ "}${formatNumber(Math.abs(Math.round(deltaCases)))}</td><td data-col="nt-kasuspct" style="border:1px solid #1e293b;padding:6px;font-weight:900;color:${deltaCases >= 0 ? "#059669" : "#e11d48"};">${deltaCases >= 0 ? "▲ " : "▼ "}${decimalFormatter.format(Math.abs(deltaCasesPct))}%</td><td data-col="nt-rp" style="border:1px solid #1e293b;padding:6px;font-weight:900;color:${deltaIna >= 0 ? "#059669" : "#e11d48"};">${deltaIna >= 0 ? "▲ " : "▼ "}${formatTableMoney(Math.abs(deltaIna))}</td><td data-col="nt-rppct" style="border:1px solid #1e293b;padding:6px;font-weight:900;color:${deltaIna >= 0 ? "#059669" : "#e11d48"};">${deltaIna >= 0 ? "▲ " : "▼ "}${decimalFormatter.format(Math.abs(deltaInaPct))}%</td>
             </tr>`;
           }).join("")}</tbody>
+          <tfoot><tr><td colspan="14" class="competition-footnote" style="padding:8px;text-align:left;white-space:normal;line-height:1.5;">${escapeHtml(competitionFootnote(service, targetComp, levelData, overrides))}</td></tr></tfoot>
         </table>
-      </div>
-      <div style="margin-top:7px;padding:6px 9px;border-radius:7px;background:#ffffff;color:#1e40af;font-size:10px;font-weight:650;">Sumber tambahan aktif: <b>${sourceRelationLabel}</b>. Persentase tambah dan kurang dihitung dari natural share per level: 100 ÷ (RS sumber eligible + 1 RS target), kemudian disesuaikan faktor skenario dan dapat diedit.</div>`;
-
+      </div>`;
     container.querySelector("#dynamicMarketServiceSelect")?.addEventListener("change", (event) => {
       window.dynamicMarketService = event.target.value;
       renderDynamicMarketShareSlide();
@@ -2053,7 +2066,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           datasetLabel: DATASET_PERIODS[activeDatasetKey]?.label || activeDatasetKey,
           tariffLabel: TARIFF_SCENARIOS[state.activeTariffScenario]?.label || state.activeTariffScenario,
           filterDescription: filters,
-          sourceRelationLabel
+          sourceRelationLabel,
+          competitionNote: competitionFootnote(service, targetComp, levelData, overrides)
         });
         button.textContent = "✓ Terunduh";
       } catch (error) {
@@ -7216,7 +7230,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const rules = getLevelRules(targetComp, service);
     const targetSrv = target.services?.[service] || { total: createZeroMetric(), severity: {} };
     const regionalSrv = data.regional?.services?.[service] || { total: createZeroMetric(), severity: {} };
-    const sourceRelationLabel = "RS Kompetensi Selain Level Kasus";
+    const sourceRelationLabel = "RS di luar kemampuan level kasus";
     const additionSourceHospitals = data.hospitals.filter((hospital) => {
       if (targetCodes.has(hospital.code)) return false;
       return true;
@@ -7226,8 +7240,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       const regionalMetric = severityMetric(regionalSrv, level);
       const direction = rules.tambah.includes(level) ? "tambah" : (rules.kurang.includes(level) ? "kurang" : "netral");
       const sourceHospitals = direction === "tambah"
-        ? additionSourceHospitals.filter((hospital) => getCompetency(hospital, service) !== level && (severityMetric(hospital.services?.[service], level)[CASES] || 0) > 0)
-        : data.hospitals.filter((hospital) => hospital.code !== target.code && getCompetency(hospital, service) >= level);
+        ? additionSourceHospitals.filter((hospital) => !canServeLevel(getCompetency(hospital, service), level) && (severityMetric(hospital.services?.[service], level)[CASES] || 0) > 0)
+        : data.hospitals.filter((hospital) => !targetCodes.has(hospital.code) && canServeLevel(getCompetency(hospital, service), level));
       const sourceMetric = sourceHospitals.reduce((total, hospital) => {
         const metric = severityMetric(hospital.services?.[service], level);
         total[CASES] += metric[CASES] || 0;
@@ -7235,12 +7249,13 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         total[IDRG] += metric[IDRG] || 0;
         return total;
       }, createZeroMetric());
-      const competitors = data.hospitals.filter((hospital) => !targetCodes.has(hospital.code) && getCompetency(hospital, service) === level).length;
+      const competitors = data.hospitals.filter((hospital) => !targetCodes.has(hospital.code) && canServeLevel(getCompetency(hospital, service), level)).length;
       const poolIna = direction === "tambah" ? sourceMetric[INA] || 0 : targetMetric[INA] || 0;
       const poolIdrg = direction === "tambah" ? sourceMetric[IDRG] || 0 : targetMetric[IDRG] || 0;
       return {
         level,
         direction,
+        competitors,
         naturalShare: competitors > 0 ? 100 / (competitors + 1) : (direction === "tambah" ? 100 : 0),
         targetCases: targetMetric[CASES] || 0,
         targetIna: targetMetric[INA] || 0,
@@ -7330,8 +7345,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       insightLevels: levelData.map(item => ({
         level: item.level,
         regionalCases: item.regionalCases,
-        competitors: data.hospitals.filter(h => !targetCodes.has(h.code) && getCompetency(h, service) >= item.level).length,
-        providers: data.hospitals.filter(h => getCompetency(h, service) >= item.level).length,
+        competitors: data.hospitals.filter(h => !targetCodes.has(h.code) && canServeLevel(getCompetency(h, service), item.level)).length,
+        providers: data.hospitals.filter(h => canServeLevel(getCompetency(h, service), item.level)).length,
         poolCases: item.externalCases,
         addCases: item.direction === 'tambah' ? item.externalCases * pctFor(0, item) / 100 : 0,
         lossCases: item.direction === 'kurang' ? item.targetCases * pctFor(0, item) / 100 : 0
@@ -7376,14 +7391,12 @@ document.getElementById("globalSimulationSlide").innerHTML = `
             <td data-col="srv-nt-kasuspct" style="${cell}font-weight:800;color:${deltaCases >= 0 ? '#46ae7e' : '#cc0000'};"><span style="font-family: monospace; font-size: 11px;">${deltaCases >= 0 ? "▲ " : "▼ "}</span>${decimalFormatter.format(Math.abs(deltaCasesPct))}%</td>
             <td data-col="srv-nt-rp" style="${cell}font-weight:800;color:${deltaIncome >= 0 ? '#46ae7e' : '#cc0000'};"><span style="font-family: monospace; font-size: 11px;">${deltaIncome >= 0 ? "▲ " : "▼ "}</span>${formatTableMoney(Math.abs(deltaIncome))}</td>
             <td data-col="srv-nt-rppct" style="${cell}font-weight:800;color:${deltaIncome >= 0 ? '#46ae7e' : '#cc0000'};"><span style="font-family: monospace; font-size: 11px;">${deltaIncome >= 0 ? "▲ " : "▼ "}</span>${decimalFormatter.format(Math.abs(deltaIncomePct))}%</td></tr>`;
-        }).join('')}</tbody></table></div>`;
+        }).join('')}</tbody><tfoot><tr><td colspan="13" class="competition-footnote" style="padding:8px;text-align:left;font-size:11px;line-height:1.5;color:#334155;white-space:normal;">${escapeHtml(competitionFootnote(service, targetComp, levelData, overrides))}</td></tr></tfoot></table></div>`;
   }
 
   function renderServiceInsights(target, service, competency, simulation) {
-    const key = JSON.stringify([activeDatasetKey, target.code, service]);
-    const capacity = window.serviceInsightCapacities?.[key] ?? null;
     const levels = simulation.insightLevels;
-    const insight = window.ServiceInsights.evaluate({ competency, levels, simulation, capacity });
+    const insight = window.ServiceInsights.evaluate({ competency, levels, simulation });
     const names = { 1: 'Dasar', 2: 'Madya', 3: 'Utama', 4: 'Paripurna' };
     const current = levels.find(x => x.level === competency);
     const next = levels.find(x => x.level === competency + 1);
@@ -7408,9 +7421,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     if (insight.opportunity === 'optimize') { opportunity.title = `Optimalkan layanan ${names[competency]}`; opportunity.tone = 'amber'; opportunity.action = 'Simulasi belum menghasilkan tambahan kasus. Tinjau pool eligible dan asumsi persentase sebelum memprioritaskan ekspansi.'; }
     if (insight.opportunity === 'paripurna') { opportunity.title = 'Pertahankan kompetensi Paripurna'; opportunity.action = 'Perkuat rujukan kompleks dan sesuaikan kapasitas dengan kebutuhan regional serta potensi kasus masuk.'; }
     const readinessMap = {
-      verify: ['Verifikasi kesiapan kapasitas', 'amber', 'Verifikasi kecukupan SDM, ruang, alat, dan logistik. Siapkan rencana lonjakan jika kenaikan melampaui kapasitas.'],
-      surge: ['Proyeksi melampaui kapasitas', 'red', 'Siapkan antisipasi lonjakan: tambahan SDM/shift, ruang dan alat, logistik, serta koordinasi rujukan regional.'],
-      within: ['Dalam kapasitas tambahan terisi', 'green', 'Sesuaikan jadwal SDM, penggunaan ruang dan alat, serta bahan medis; verifikasi kesesuaian kompetensi dan kompleksitas kasus.'],
+      growth: ['Siapkan peningkatan volume layanan', 'amber', 'Rencanakan penyesuaian SDM dan jadwal pelayanan, penggunaan ruang dan alat, serta kebutuhan logistik mengikuti tambahan kasus hasil simulasi.'],
+      'growth-complex': ['Siapkan peningkatan volume & kasus kompleks', 'amber', 'Rencanakan SDM dan jadwal pelayanan untuk kenaikan volume, serta prioritaskan kompetensi tenaga, ruang, alat, dan logistik untuk tambahan kasus Utama/Paripurna hasil simulasi.'],
       complex: ['Siapkan layanan kasus kompleks', 'amber', 'Total kasus tidak naik, tetapi kasus Utama/Paripurna bertambah. Verifikasi SDM kompeten, ruang, alat, dan logistik khusus.'],
       decline: ['Sesuaikan kapasitas layanan', 'amber', 'Sesuaikan alokasi SDM dan pemanfaatan sarpras, serta perkuat alur rujukan dengan tetap menjaga kesiapan dan mutu.'],
       stable: ['Pertahankan kesiapan layanan', 'green', 'Pertahankan kesiapan SDM dan sarpras; pantau perubahan komposisi kasus serta kebutuhan rujukan.'
@@ -7418,7 +7430,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     };
     const readiness = readinessMap[insight.readiness];
     const delta = insight.caseDelta;
-    const caseEvidence = `Kasus ${delta > 0 ? 'naik' : delta < 0 ? 'turun' : 'tetap'} <b>${formatNumber(Math.abs(delta))} (${pct(insight.casePct)})</b> selama periode data.${insight.complexGrowth > 0 ? ` Tambahan bersih pada level kompleks yang meningkat: <b>${formatNumber(insight.complexGrowth)} kasus</b>.` : ''} ${capacity === null ? 'Kapasitas tambahan belum diisi.' : `Kapasitas tambahan terisi <b>${formatNumber(capacity)} kasus</b>.`}`;
+    const caseEvidence = `Kasus ${delta > 0 ? 'naik' : delta < 0 ? 'turun' : 'tetap'} <b>${formatNumber(Math.abs(delta))} (${pct(insight.casePct)})</b> selama periode data.${insight.complexGrowth > 0 ? ` Tambahan bersih pada level kompleks yang meningkat: <b>${formatNumber(insight.complexGrowth)} kasus</b>.` : ''}`;
     const income = insight.incomeDelta;
     const incomeTitle = income < 0 ? 'Perlu evaluasi efisiensi' : income > 0 ? 'Jaga efisiensi & mutu' : 'Pendapatan tetap';
     const incomeEvidence = `Pendapatan pasca iDRG & RBKP ${income < 0 ? 'turun' : income > 0 ? 'naik' : 'tetap'} <b>Rp${money(income)} (${pct(insight.incomePct)})</b> dibanding INACBG${income < 0 && delta > 0 ? ', meskipun kasus meningkat' : ''}.`;
@@ -7428,10 +7440,10 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       <h2>Insight &amp; Rekomendasi Layanan</h2>
       <div class="service-insight-grid">
         ${card('Kompetensi & Peluang Regional', opportunity.title, opportunity.tone, opportunity.evidence, opportunity.action)}
-        ${card('Kesiapan SDM & Sarpras', readiness[0], readiness[1], caseEvidence, readiness[2], `<label class="service-capacity-label">Kapasitas tambahan kasus / periode data<input class="service-capacity-input" data-service="${escapeHtml(service)}" aria-label="Kapasitas tambahan kasus ${escapeHtml(service)} selama periode data" type="number" min="0" step="1" placeholder="Belum diisi" value="${capacity === null ? '' : capacity}"></label><small>Isi sisa kapasitas yang dapat ditangani, bukan kapasitas total. Tersimpan selama sesi halaman ini.</small>`)}
+        ${card('Kesiapan SDM & Sarpras', readiness[0], readiness[1], caseEvidence, readiness[2])}
         ${card('Pendapatan & Efisiensi', incomeTitle, income < 0 ? 'red' : 'green', incomeEvidence, incomeAction)}
       </div>
-      <details class="service-insight-method"><summary>Dasar rekomendasi</summary><p>Regional mengikuti data/filter aktif. Kompetitor mampu melayani dihitung dari RS di luar target dengan kompetensi ≥ level kasus. Indikator peningkatan membandingkan kasus regional per penyedia yang mampu melayani pada jenjang berikutnya dengan jenjang eksisting; ini indikator perencanaan, bukan kapasitas aktual atau keputusan akreditasi. Pool eligible mengikuti sumber tambahan pada simulasi dan tidak sama dengan semua kasus regional. Kesiapan volume membandingkan tambahan bersih dengan kapasitas tambahan yang diisi untuk periode 15 Okt 2025–14 Juni 2026; kompleksitas, kebutuhan per shift, serta puncak kedatangan tetap perlu diverifikasi.</p></details>
+      <details class="service-insight-method"><summary>Dasar rekomendasi</summary><p>Regional mengikuti data/filter aktif. Kompetitor mampu melayani dihitung dari RS di luar target dengan kompetensi selevel atau satu tingkat di atas level kasus. Indikator peningkatan membandingkan kasus regional per penyedia yang mampu melayani pada jenjang berikutnya dengan jenjang eksisting; ini indikator perencanaan, bukan kapasitas aktual atau keputusan akreditasi. Pool eligible mengikuti sumber tambahan pada simulasi dan tidak sama dengan semua kasus regional. Rekomendasi SDM dan sarpras mengikuti perubahan jumlah kasus dan tambahan bersih pada level Utama/Paripurna dari hasil simulasi aktif selama periode dataset terpilih. Rekomendasi ini menunjukkan arah kebutuhan sumber daya; jumlah tenaga, ruang, dan alat tidak dihitung dari simulasi kasus saja.</p></details>
     </section>`;
   }
 
@@ -7942,16 +7954,6 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         } else {
           state.serviceScenarios[srv][idx][field] = val;
         }
-        renderAll();
-      });
-    });
-    container.querySelectorAll('.service-capacity-input').forEach(input => {
-      input.addEventListener('change', event => {
-        const raw = event.target.value.trim();
-        const value = raw === '' ? null : Number(raw);
-        const key = JSON.stringify([activeDatasetKey, target.code, event.target.dataset.service]);
-        window.serviceInsightCapacities = window.serviceInsightCapacities || {};
-        window.serviceInsightCapacities[key] = value !== null && Number.isFinite(value) && value >= 0 ? value : null;
         renderAll();
       });
     });

@@ -13,7 +13,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
   <link rel="icon" href="data:,">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Simulator Market Share Regional Rumah Sakit</title>
-  <link rel="stylesheet" href="css/style.css?v=20260909-insights">
+  <link rel="stylesheet" href="css/style.css?v=20260910-simulation-insights">
 </head>
 <body class="simulator-app app-booting">
   <div id="appBootScreen" class="app-boot-screen" role="status" aria-live="polite" aria-label="Menyiapkan aplikasi">
@@ -519,13 +519,13 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
   <script src="js/export-gslides.js?v=202608180005"></script>
   <script src="js/audit-excel.js?v=202608180005"></script>
   <script src="js/global-sim-excel.js?v=202608210836"></script>
-  <script src="js/dynamic-market-excel.js?v=202608242600"></script>
+  <script src="js/dynamic-market-excel.js?v=20260910-simulation-insights"></script>
   <script src="js/idrg-map-data.js?v=202608282330"></script>
   <script src="js/scatter-2025-data.js?v=20260908"></script>
   <script src="js/scatter-af10-data.js?v=20260908"></script>
-  <script src="js/service-insights.js?v=20260909-insights"></script>
-  <script src="js/table-copy.js?v=20260909-selection-copy"></script>
-  <script src="js/app.js?v=20260909-selection-copy"></script>
+  <script src="js/service-insights.js?v=20260910-simulation-insights"></script>
+  <script src="js/table-copy.js?v=20260909-copy-colors"></script>
+  <script src="js/app.js?v=20260910-simulation-insights"></script>
 </body>
 </html>
 
