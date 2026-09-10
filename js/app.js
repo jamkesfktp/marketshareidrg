@@ -7554,7 +7554,12 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     let html = "";
     
     availableServices.forEach((service, idx) => {
-      const targetCompetency = getCompetency(target, service);
+      const actualCompetency = getCompetency(target, service);
+      const targetCompetency = getSimulationCompetency(target, service);
+      const scenarioTarget = {
+        ...target,
+        services: { ...target.services, [service]: { ...(target.services?.[service] || {}), competency: targetCompetency } }
+      };
       // Hitung kompetitor (RS lain yang punya kompetensi >= targetCompetency)
       const competitorsList = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) === Math.max(1, targetCompetency));
       const competitors = competitorsList.length;
@@ -7596,7 +7601,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       
       // Hitung Persentase Default
       if (!state.serviceScenarios[service] || state.serviceScenarios[service].length === 0) {
-        state.serviceScenarios[service] = generateDefaultServiceScenarios(service, target, targetCompetency);
+        state.serviceScenarios[service] = generateDefaultServiceScenarios(service, scenarioTarget, targetCompetency);
       }
       
       const getSumValidLevels = (svcData) => {
