@@ -80,11 +80,11 @@
       ["Skenario tarif", tariffLabel], ["Filter regional", filterDescription], ["Tanggal ekspor", new Date().toLocaleString("id-ID")],
       [], ["Ketentuan audit", "Penjelasan"],
       ["Sumber kasus tambah", sourceRelationLabel],
-      ["Matriks sumber", "Dasar: RS Madya, Utama, Paripurna; Madya: RS Dasar, Utama, Paripurna; Utama: RS Dasar, Madya, Paripurna; Paripurna: RS Dasar, Madya, Utama. RS dengan kompetensi sama tidak menjadi sumber."],
-      ["Kasus pengurang", "Menggunakan natural share per level berdasarkan jumlah RS sumber eligible dan dapat diedit untuk sensitivitas."],
-      ["Natural share", "100 / (jumlah RS sumber eligible sesuai matriks kompetensi + 1 RS target), lalu dibulatkan ke atas tanpa desimal."],
+      ["Matriks sumber", "Kasus pada RS yang tidak mampu melayani level kasus: kompetensi RS bukan selevel dan bukan satu tingkat di atasnya."],
+      ["Kasus pengurang", "Default 100% kasus di luar kemampuan target; dapat diedit untuk sensitivitas."],
+      ["Natural share", "100 / (jumlah RS kompetitor selevel atau satu tingkat di atas level kasus + 1 RS target)."],
       ["Area input", "Kolom Persentase Simulasi pada sheet 03_Parameter dapat diedit untuk audit sensitivitas."],
-      [], ["Urutan penelusuran", "01_Eksisting → 02_Driver_Pasar → 03_Parameter → 04_Hasil → 05_Rekonsiliasi"]
+      ["Catatan kompetitor dinamis", context.competitionNote || ""], ["Urutan penelusuran", "01_Eksisting → 02_Driver_Pasar → 03_Parameter → 04_Hasil → 05_Rekonsiliasi"]
     ];
     const guide = append(guideRows, "00_Petunjuk", "KERTAS KERJA AUDIT SIMULASI MARKET SHARE DINAMIS", "F", [25, 85, 12, 12, 12, 12], 2);
     styleRange(XLSX, guide, "A3:B18", { fill: COLORS.white });
@@ -113,7 +113,7 @@
       ...levelData.map((item) => [levelNames[item.level], item.direction.toUpperCase(), item.regionalCases, item.targetCases, item.targetIna, item.targetIdrg,
         item.direction === "tambah" ? item.externalCases : item.targetCases,
         item.poolIna, item.poolIdrg, item.tariffDelta, item.tariffDeltaPct / 100,
-        item.competitors, item.direction !== "netral" ? Math.ceil(item.naturalShare) / 100 : 0])
+        item.competitors, item.direction !== "netral" ? item.naturalShare / 100 : 0])
     ];
     const driver = append(driverRows, "02_Driver_Pasar", "DRIVER PASAR DAN SUMBER KASUS", "M", [15, 14, 18, 18, 20, 20, 18, 20, 20, 22, 16, 20, 18], 3);
     styleRange(XLSX, driver, "A4:M7", { fill: COLORS.white });
@@ -135,7 +135,7 @@
         const poolCases = item.direction === "tambah" ? item.externalCases : item.direction === "kurang" ? item.targetCases : 0;
         const poolIdrg = item.direction === "tambah" ? item.externalIdrg : item.direction === "kurang" ? item.targetIdrg : 0;
         parameterRows.push([scenarioIndex + 1, scenario.name, scenario.factor, levelNames[item.level], item.direction.toUpperCase(),
-          formulaCell(`${quote("02_Driver_Pasar")}!M${driverRow}`, Math.ceil(item.naturalShare) / 100, "0%"),
+          formulaCell(`${quote("02_Driver_Pasar")}!M${driverRow}`, item.naturalShare / 100, "0%"),
           { t: "n", v: pct, z: "0%" },
           formulaCell(`${quote("02_Driver_Pasar")}!G${driverRow}`, poolCases, "#,##0"),
           formulaCell(`${quote("02_Driver_Pasar")}!H${driverRow}`, poolIdrg, '"Rp" #,##0'),

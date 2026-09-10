@@ -2,7 +2,8 @@ const assert = require('node:assert/strict');
 require('../js/service-insights.js');
 const base={competency:2,levels:[1,2,3,4].map(level=>({level,regionalCases:100,providers:5,addCases:0,lossCases:0})),simulation:{baselineCases:100,baselineIna:1000,projectedCases:120,projectedIdrg:900,addCases:20},capacity:null};
 const run=o=>globalThis.ServiceInsights.evaluate({...base,...o});
-for(const [capacity,expected] of [[null,'verify'],[0,'surge'],[19,'surge'],[20,'within'],[NaN,'verify']])assert.equal(run({capacity}).readiness,expected);
+for(const capacity of [null,0,19,20,NaN]) assert.equal(run({capacity}).readiness,'growth');
+assert.equal(run({levels:base.levels.map(x=>({...x,addCases:x.level===3?10:0}))}).readiness,'growth-complex');
 assert.equal(run({competency:0}).opportunity,'unknown');
 assert.equal(run({competency:4}).opportunity,'paripurna');
 assert.equal(run({}).opportunity,'maintain');
@@ -16,4 +17,4 @@ assert.equal(run({simulation:{...base.simulation,projectedCases:100}}).readiness
 const zero=run({simulation:{...base.simulation,baselineCases:0,baselineIna:0}});
 assert.equal(zero.casePct,null);assert.equal(zero.incomePct,null);
 assert.equal(run({}).incomeDelta,-100);
-console.log('18 insight assertions passed');
+console.log('Simulation-based insight assertions passed');
