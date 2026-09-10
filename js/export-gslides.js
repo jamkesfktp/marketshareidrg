@@ -1584,6 +1584,19 @@
     var INA = appState.INA !== undefined ? appState.INA : 1;
     var IDRG = appState.IDRG !== undefined ? appState.IDRG : (appState.REVENUE !== undefined ? appState.REVENUE : 2);
 
+    // Apply per-service competency simulation without mutating the source dataset.
+    // This keeps native Google Slides consistent with the on-screen simulator and Excel audit.
+    var competencyOverrides = (appState.state && appState.state.competencyOverrides) || {};
+    if (target.services && Object.keys(competencyOverrides).length) {
+      var simulatedServices = Object.assign({}, target.services);
+      Object.keys(competencyOverrides).forEach(function (service) {
+        simulatedServices[service] = Object.assign({}, simulatedServices[service] || {}, {
+          competency: Number(competencyOverrides[service])
+        });
+      });
+      target = Object.assign({}, target, { services: simulatedServices });
+    }
+
     // Polyfill scenarios just for export to prevent crash
     function ensureScenarios(service, targetCompetency) {
       if (!appState.state.serviceScenarios) appState.state.serviceScenarios = {};
