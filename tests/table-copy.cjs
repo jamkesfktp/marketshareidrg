@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
-const dom = new JSDOM('<table><tr><th rowspan="2" style="background:red">Kasus</th><th colspan="2">Persentase<button>copy</button></th></tr><tr><th>Tambah</th><th>Kurang</th></tr><tr><td>42</td><td style="background:yellow"><label><span>U</span><span><input value="10">%</span></label><label><span>P</span><span><input value="0">%</span></label></td><td><input value="100">%</td></tr></table><button id="copy">Salin</button>', { runScripts:'outside-only' });
+const dom = new JSDOM('<table style="color:rgb(0, 0, 0)"><tr><th rowspan="2" style="background:red">Kasus</th><th colspan="2">Persentase<button>copy</button></th></tr><tr><th>Tambah</th><th>Kurang</th></tr><tr><td>42</td><td style="background:yellow"><label><span>U</span><span><input value="10">%</span></label><label><span>P</span><span><input value="0">%</span></label></td><td><input value="100">%</td></tr></table><button id="copy">Salin</button>', { runScripts:'outside-only' });
 const w = dom.window;
 w.eval(fs.readFileSync('js/table-copy.js','utf8'));
 const table=w.document.querySelector('table');
