@@ -524,7 +524,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
   <script src="js/scatter-2025-data.js?v=20260908"></script>
   <script src="js/scatter-af10-data.js?v=20260908"></script>
   <script src="js/service-insights.js?v=20260910-action-recommendations"></script>
-  <script src="js/table-copy.js?v=20260909-copy-colors"></script>
+  <script src="js/table-copy.js?v=20260910-no-highlight"></script>
   <script src="js/app.js?v=20260910-action-recommendations"></script>
 </body>
 </html>
