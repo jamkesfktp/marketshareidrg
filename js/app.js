@@ -156,6 +156,7 @@
       retention: { 1: 50, 2: 50, 3: 100, 4: 100 },
     },
     overrides: {},
+    competencyOverrides: {},
     competencyUpgrade: { service: "ALL", targetLevel: 2, captureMultiplier: 100, retention: 100 },
   };
   updateActiveTariff(state.activeTariffScenario);
@@ -428,6 +429,13 @@
       case 4: return { tambah: [3, 4], kurang: [1, 2] };
       default: return { tambah: [], kurang: [] };
     }
+  }
+
+  function getSimulationCompetency(hospital, service) {
+    const actual = getCompetency(hospital, service);
+    if (!hospital || hospital.code !== targetHospital()?.code) return actual;
+    const override = Number(state.competencyOverrides?.[service]);
+    return Number.isInteger(override) && override >= 0 && override <= 4 ? override : actual;
   }
 
   function generateDefaultServiceScenarios(service, targetHospitalObj, competencyVal) {
@@ -1910,7 +1918,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         : data.services.find((service) => getCompetency(target, service) > 0) || data.services[0];
     }
     const service = window.dynamicMarketService;
-    const targetComp = getCompetency(target, service);
+    const targetComp = getSimulationCompetency(target, service);
     const targetSrv = target.services?.[service];
     const regionalSrv = data.regional?.services?.[service] || { total: createZeroMetric(), severity: {} };
 
@@ -7159,7 +7167,12 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     let tableDataRows = [];
 
     availableServices.forEach((service) => {
-      const targetCompetency = getCompetency(target, service);
+      const actualCompetency = getCompetency(target, service);
+      const targetCompetency = getSimulationCompetency(target, service);
+      const scenarioTarget = {
+        ...target,
+        services: { ...target.services, [service]: { ...(target.services?.[service] || {}), competency: targetCompetency } }
+      };
       
       
       const targetSvc = target.services[service];
@@ -7176,10 +7189,10 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       const utamaCompetitors = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= 4).length;
 
       if (!state.serviceScenarios[service] || state.serviceScenarios[service].length === 0) {
-        state.serviceScenarios[service] = generateDefaultServiceScenarios(service, target, targetCompetency);
+        state.serviceScenarios[service] = generateDefaultServiceScenarios(service, scenarioTarget, targetCompetency);
       }
 
-      const calcResult = window.computeServiceScenarios(service, target, data, state, CASES, INA, IDRG, severityMetric, getLevelRules,
+      const calcResult = window.computeServiceScenarios(service, scenarioTarget, data, state, CASES, INA, IDRG, severityMetric, getLevelRules,
         window.getSimMode ? window.getSimMode() : 'regional_all', getCompetency);
       const scnEvals = calcResult.scnEvals;
       const scenarios = state.serviceScenarios[service];
@@ -7624,7 +7637,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       const existingIdrg = targetKasusArr[IDRG] || 0;
       
       const calcResult = window.computeServiceScenarios(
-        service, target, data, state, CASES, INA, IDRG, severityMetric, getLevelRules,
+        service, scenarioTarget, data, state, CASES, INA, IDRG, severityMetric, getLevelRules,
         window.getSimMode ? window.getSimMode() : 'regional_all', getCompetency
       );
       
@@ -7837,7 +7850,15 @@ document.getElementById("globalSimulationSlide").innerHTML = `
               <div><strong>Persentase:</strong><b>${targetExistingService[INA] ? signed(revenueDelta, formatPercent(Math.abs(revenueDelta / targetExistingService[INA]))) : '—'}</b><span>Dari Pendapatan INACBG</span></div>
             </div>
             <table class="service-competency-table">
-              <thead><tr><th>Kompetensi RS</th><th colspan="5">${escapeHtml(levelNames[targetCompetency] || 'Belum ditetapkan')}</th></tr>
+              <thead><tr><th>Kompetensi RS</th><th colspan="5">
+                <label style="display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;">
+                  <span>Simulasi:</span>
+                  <select class="service-competency-select" data-service="${escapeHtml(service)}" style="min-width:180px;padding:6px 10px;border:1.5px solid #0f766e;border-radius:7px;background:#fff;color:#0f172a;font-weight:800;cursor:pointer;">
+                    ${[0, 1, 2, 3, 4].map((level) => `<option value="${level}" ${level === targetCompetency ? 'selected' : ''}>${escapeHtml(levelNames[level] || 'Belum ditetapkan')}</option>`).join('')}
+                  </select>
+                  ${targetCompetency !== actualCompetency ? `<span style="font-size:11px;font-weight:700;opacity:.9;">Aktual: ${escapeHtml(levelNames[actualCompetency] || 'Belum ditetapkan')}</span>` : ''}
+                </label>
+              </th></tr>
               <tr><th>/</th><th>Dasar</th><th>Madya</th><th>Utama</th><th>Paripurna</th><th>Total</th></tr></thead>
               <tbody>
                 <tr><th>Jumlah RS Kompetitor</th>${counts.map(n => `<td>${formatNumber(n)}</td>`).join('')}<td>${formatNumber(counts.reduce((a,b) => a+b,0))}</td></tr>
@@ -7880,7 +7901,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           const rowNetCasesPct = row.baselineCases ? rowNetCases / row.baselineCases : 0;
           const rowNetRevenue = row.projectedIdrg - row.baselineIna;
           const rowNetRevenuePct = row.baselineIna ? rowNetRevenue / row.baselineIna : 0;
-          const competency = getCompetency(target, row.service);
+          const competency = getSimulationCompetency(target, row.service);
           
           const netCasesColor = rowNetCases >= 0 ? '#059669' : '#e11d48';
           const netRevenueColor = rowNetRevenue >= 0 ? '#059669' : '#e11d48';
@@ -8005,6 +8026,21 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         `;
       }
       container.innerHTML = html;
+
+    container.querySelectorAll('.service-competency-select').forEach((select) => {
+      select.addEventListener('change', (event) => {
+        const service = event.target.dataset.service;
+        const level = Number(event.target.value);
+        const actual = getCompetency(target, service);
+        state.competencyOverrides = state.competencyOverrides || {};
+        if (level === actual) delete state.competencyOverrides[service];
+        else state.competencyOverrides[service] = level;
+        delete state.serviceScenarios[service];
+        const key = `${activeDatasetKey}|${target.code}|${service}`;
+        if (window.dynamicMarketOverrides) delete window.dynamicMarketOverrides[key];
+        renderAll();
+      });
+    });
     
     container.querySelectorAll('.dynamic-scenario-input').forEach(input => {
       input.addEventListener('change', (e) => {
@@ -10631,7 +10667,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         },
         helpers: {
           isMuhammadiyahHospital,
-          getCompetency,
+          getCompetency: getSimulationCompetency,
           formatService
         }
       });
@@ -10686,7 +10722,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       severityRanks,
       levelNames,
       formatService,
-      getCompetency,
+      getCompetency: getSimulationCompetency,
       severityMetric,
       getLevelRules,
     });
@@ -10808,4 +10844,3 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       window.setTimeout(() => bootScreen?.remove(), 260);
     });
   });
-
