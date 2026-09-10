@@ -192,6 +192,52 @@
     });
   }
 
+  function buildCompetencyUpgradeSlides(pptx, appState) {
+    if (!window.CompetencyUpgrade) return;
+    var target = appState.target || {}, data = appState.data || {}, services = appState.services || [];
+    var CASES = appState.CASES, INA = appState.INA, IDRG = appState.IDRG;
+    var settings = (appState.state && appState.state.competencyUpgrade) || { service: "ALL", targetLevel: 2, captureMultiplier: 100, retention: 100 };
+    var chosenService = settings.service !== "ALL" ? settings.service : (services.find(function (service) { return getCompetency(target, service) === 1; }) || services[0]);
+    function simulate(service, level) {
+      return window.CompetencyUpgrade.simulateUpgrade({
+        service: service, target: target, hospitals: data.hospitals || [], regionalService: data.regional && data.regional.services && data.regional.services[service],
+        targetCompetency: getCompetency(target, service), targetLevel: Math.max(getCompetency(target, service), level),
+        captureMultiplier: (settings.captureMultiplier || 0) / 100, retentionRate: (settings.retention || 0) / 100,
+        getCompetency: getCompetency, severityMetric: severityMetric, casesIndex: CASES, inaIndex: INA, idrgIndex: IDRG
+      });
+    }
+    var comparison = [Math.max(1, getCompetency(target, chosenService)), 2, 3, 4].filter(function (v, i, a) { return a.indexOf(v) === i; }).sort().map(function (level) { return simulate(chosenService, level); });
+    var recap = services.map(function (service) { return simulate(service, Number(settings.targetLevel) || 2); });
+    var totalExistingCases = recap.reduce(function (s, r) { return s + (r.existing[CASES] || 0); }, 0);
+    var totalExistingIna = recap.reduce(function (s, r) { return s + (r.existing[INA] || 0); }, 0);
+    var totalProjectedCases = recap.reduce(function (s, r) { return s + (r.projected[CASES] || 0); }, 0);
+    var totalProjectedIdrg = recap.reduce(function (s, r) { return s + (r.projected[IDRG] || 0); }, 0);
+    var slide = pptx.addSlide();
+    addSlideHeader(slide, "Simulasi Peningkatan Kompetensi", "Perbandingan kompetensi saat ini, Madya, Utama, dan Paripurna", appState.dateStr, "24 Layanan");
+    addKpiStrip(slide, [
+      { lbl: "RS TARGET", val: target.name || "RS Target", valSize: 9, color: C.slate },
+      { lbl: "TARGET REKAP", val: levelName(Number(settings.targetLevel) || 2), color: C.blue },
+      { lbl: "PROYEKSI KASUS", val: num(totalProjectedCases), sub: signed(totalProjectedCases - totalExistingCases) + " vs eksisting", color: C.purple },
+      { lbl: "PROYEKSI iDRG", val: moneyM(totalProjectedIdrg), sub: signedMoneyM(totalProjectedIdrg - totalExistingIna) + " vs INA-CBG", color: C.emerald }
+    ], 0.78, 0.78);
+    slide.addText("Perbandingan " + chosenService, { x: 0.35, y: 1.72, w: 12.6, h: 0.28, fontSize: 12, bold: true, color: C.tealD, fontFace: "Century Gothic" });
+    var compRows = [[hCell("Kompetensi"), hCell("Proyeksi kasus"), hCell("Captured"), hCell("Proyeksi iDRG"), hCell("Selisih vs INA")]].concat(comparison.map(function (r) {
+      return [dCell(levelName(r.targetLevel) + (r.targetLevel === r.targetCompetency ? " (saat ini)" : ""), { bold: true }), dCell(num(r.projected[CASES])), dCell("+" + num(r.captured[CASES]), { color: C.emerald }), dCell(moneyM(r.projected[IDRG])), dCell(signedMoneyM(r.deltaIdrgVsIna), { color: r.deltaIdrgVsIna >= 0 ? C.emerald : C.red })];
+    }));
+    slide.addTable(compRows, { x: 0.35, y: 2.05, w: 12.6, h: 1.45, border: { type: "solid", color: C.mgray, pt: 0.5 }, rowH: 0.28, margin: 0.04, fontFace: "Century Gothic" });
+    slide.addText("Asumsi: capture " + settings.captureMultiplier + "% dari share natural. Retensi kasus eligible " + settings.retention + "%. Share natural = 1 ÷ (kompetitor eligible + RS target).", { x: 0.35, y: 3.62, w: 12.6, h: 0.32, fontSize: 7.5, color: C.slateL, fontFace: "Century Gothic" });
+
+    [recap.slice(0, 12), recap.slice(12, 24)].forEach(function (part, partIndex) {
+      var detail = pptx.addSlide();
+      addSlideHeader(detail, "Rekap Peningkatan Kompetensi 24 Layanan", "Bagian " + (partIndex + 1) + " dari 2. Target " + levelName(Number(settings.targetLevel) || 2), appState.dateStr, "Google Slides Ready");
+      var rows = [[hCell("No"), hCell("Layanan"), hCell("Saat ini"), hCell("Target"), hCell("Eksisting"), hCell("Proyeksi"), hCell("Selisih kasus"), hCell("Selisih Rp vs INA")]].concat(part.map(function (r, i) {
+        return [dCell(String(partIndex * 12 + i + 1)), dCell(r.service, { align: "left", bold: true }), dCell(shortLevelName(r.targetCompetency)), dCell(shortLevelName(r.targetLevel), { bold: true }), dCell(num(r.existing[CASES])), dCell(num(r.projected[CASES]), { bold: true }), dCell(signed(r.deltaCases), { color: r.deltaCases >= 0 ? C.emerald : C.red }), dCell(signedMoneyM(r.deltaIdrgVsIna), { color: r.deltaIdrgVsIna >= 0 ? C.emerald : C.red })];
+      }));
+      detail.addTable(rows, { x: 0.3, y: 0.86, w: 12.73, h: 5.95, colW: [0.45, 3.45, 0.75, 0.75, 1.25, 1.25, 1.35, 2.05], border: { type: "solid", color: C.mgray, pt: 0.5 }, rowH: 0.42, margin: 0.04, fontFace: "Century Gothic" });
+      detail.addText("Hasil berubah otomatis mengikuti RS target, wilayah, periode data, skenario tarif, target kompetensi, capture, dan retensi yang aktif saat ekspor.", { x: 0.35, y: 7.0, w: 12.6, h: 0.22, fontSize: 6.5, color: C.slateL, fontFace: "Century Gothic" });
+    });
+  }
+
   /* ══════════════════════════════════════════════════════════════
      SLIDE 1: COVER SLIDE
   ══════════════════════════════════════════════════════════════ */
@@ -1631,6 +1677,9 @@
 
     /* 11. Slide 16: Pemetaan Kompetensi ICD */
     buildIcdCompetencySlide(pptx, appStateWithIdx);
+
+    /* 11B. Simulasi upgrade kompetensi dan rekap 24 layanan */
+    buildCompetencyUpgradeSlides(pptx, appStateWithIdx);
 
     /* 12. Slide 17: Rekap Seluruh Layanan (Rentang) */
     buildRecapSlide(pptx, appStateWithIdx);

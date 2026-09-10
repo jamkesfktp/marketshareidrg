@@ -156,6 +156,7 @@
       retention: { 1: 50, 2: 50, 3: 100, 4: 100 },
     },
     overrides: {},
+    competencyUpgrade: { service: "ALL", targetLevel: 2, captureMultiplier: 100, retention: 100 },
   };
   updateActiveTariff(state.activeTariffScenario);
 
@@ -611,6 +612,16 @@
         <article class="existing-report-kpi kpi-difference ${delta < 0 ? "is-loss" : "is-gain"}"><span>Selisih Pendapatan:</span><strong>${formatMoney(delta)}</strong><em>iDRG − INA-CBG</em></article>
         <article class="existing-report-kpi kpi-percentage ${delta < 0 ? "is-loss" : "is-gain"}"><span>Persentase:</span><strong>${formatPercent(deltaPercent)}</strong><em>Dari pendapatan INA-CBG</em></article>
       </div>
+      <div style="margin: 0px 0 12px 12px; font-size: 13px; font-weight: 500; display: flex; gap: 20px; color: #475569;">
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span style="display: inline-block; width: 14px; height: 14px; background-color: #fef08a; border: 1px solid #eab308; border-radius: 3px;"></span>
+          <span>Sesuai Kompetensi RS Target</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span style="display: inline-block; width: 14px; height: 14px; background-color: #fbcfe8; border: 1px solid #f472b6; border-radius: 3px;"></span>
+          <span>1 Tingkat di Bawah Kompetensi RS Target</span>
+        </div>
+      </div>
       <div class="existing-matrix-wrap">
         <table class="existing-matrix-table" aria-label="Kasus eksisting per layanan diurutkan berdasarkan persentase kasus terbesar">
           <thead>
@@ -622,7 +633,16 @@
               const item = target.services?.[service];
               const competency = getCompetency(target, service);
               const caseShare = target.total[CASES] ? total[CASES] / target.total[CASES] : 0;
-              return `<tr><td class="matrix-no">${index + 1}</td><td class="matrix-service">${escapeHtml(formatService(service))}</td><td class="matrix-competency">${levelNames[competency]}</td><td class="matrix-total matrix-summary num">${displayCases(total[CASES])}</td><td class="matrix-share matrix-summary num">${formatPercent(caseShare)}</td><td class="matrix-total-ina matrix-summary num">${displayMoney(total[INA])}</td><td class="matrix-total-idrg matrix-summary num">${displayMoney(total[IDRG])}</td>${severityRanks.map((rank) => { const value = severityMetric(item, rank); return `<td class="num">${displayCases(value[CASES])}</td><td class="num">${displayMoney(value[INA])}</td><td class="num">${displayMoney(value[IDRG])}</td>`; }).join("")}</tr>`;
+              return `<tr><td class="matrix-no">${index + 1}</td><td class="matrix-service">${escapeHtml(formatService(service))}</td><td class="matrix-competency">${levelNames[competency]}</td><td class="matrix-total matrix-summary num">${displayCases(total[CASES])}</td><td class="matrix-share matrix-summary num">${formatPercent(caseShare)}</td><td class="matrix-total-ina matrix-summary num">${displayMoney(total[INA])}</td><td class="matrix-total-idrg matrix-summary num">${displayMoney(total[IDRG])}</td>${severityRanks.map((rank) => {
+                const value = severityMetric(item, rank);
+                let cellStyle = "";
+                if (rank === competency) {
+                  cellStyle = ' style="background-color: #fef08a; color: #1e293b;"';
+                } else if (rank === competency - 1) {
+                  cellStyle = ' style="background-color: #fbcfe8; color: #1e293b;"';
+                }
+                return `<td class="num"${cellStyle}>${displayCases(value[CASES])}</td><td class="num"${cellStyle}>${displayMoney(value[INA])}</td><td class="num"${cellStyle}>${displayMoney(value[IDRG])}</td>`;
+              }).join("")}</tr>`;
             }).join("")}
           </tbody>
           <tfoot><tr><td></td><td colspan="2">Total D–M–U–P · ${formatNumber(unclassifiedCases)} kasus belum terklasifikasi</td><td class="matrix-total matrix-summary num">${formatNumber(target.total[CASES])}</td><td class="matrix-share matrix-summary num">100%</td><td class="matrix-total-ina matrix-summary num">${formatMatrixMoney(target.total[INA])}</td><td class="matrix-total-idrg matrix-summary num">${formatMatrixMoney(target.total[IDRG])}</td>${severityRanks.map((rank) => { const value = severityTotals[rank]; return `<td class="num">${formatNumber(value[CASES])}</td><td class="num">${formatMatrixMoney(value[INA])}</td><td class="num">${formatMatrixMoney(value[IDRG])}</td>`; }).join("")}</tr></tfoot>
@@ -760,6 +780,16 @@
         <article class="existing-report-kpi kpi-difference ${delta < 0 ? "is-loss" : "is-gain"}"><span>Selisih Regional:</span><strong>${formatMoney(delta)}</strong><em>iDRG - INA-CBG regional</em></article>
         <article class="existing-report-kpi kpi-percentage ${delta < 0 ? "is-loss" : "is-gain"}"><span>Persentase Regional:</span><strong>${formatPercent(deltaPercent)}</strong><em>Dari pendapatan INA-CBG regional</em></article>
       </div>
+      <div style="margin: 0px 0 12px 12px; font-size: 13px; font-weight: 500; display: flex; gap: 20px; color: #475569;">
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span style="display: inline-block; width: 14px; height: 14px; background-color: #fef08a; border: 1px solid #eab308; border-radius: 3px;"></span>
+          <span>Sesuai Kompetensi RS Target</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span style="display: inline-block; width: 14px; height: 14px; background-color: #fbcfe8; border: 1px solid #f472b6; border-radius: 3px;"></span>
+          <span>1 Tingkat di Bawah Kompetensi RS Target</span>
+        </div>
+      </div>
       <div class="existing-matrix-wrap">
         <table class="existing-matrix-table comparison-matrix-table" aria-label="Kasus Regional per layanan dan tingkat keparahan">
           <thead>
@@ -769,10 +799,18 @@
           <tbody>
             ${data.services.map((service, index) => {
               const item = regionalService(service);
+              const target = targetHospital();
+              const competency = getCompetency(target, service);
               
               const combinedCells = severityRanks.map(rank => {
                 const otherVal = severityMetric(item, rank);
-                return `<td class="num comparison-other" style="border-left: 2px solid #007b83;">${displayCases(otherVal[CASES])}</td><td class="num comparison-other">${displayMoney(otherVal[IDRG])}</td>`;
+                let bgStyle = "";
+                if (rank === competency) {
+                  bgStyle = " background-color: #fef08a; color: #1e293b;";
+                } else if (rank === competency - 1) {
+                  bgStyle = " background-color: #fbcfe8; color: #1e293b;";
+                }
+                return `<td class="num comparison-other" style="border-left: 2px solid #007b83;${bgStyle}">${displayCases(otherVal[CASES])}</td><td class="num comparison-other" style="${bgStyle}">${displayMoney(otherVal[IDRG])}</td>`;
               }).join("");
               
               const totalVal = item.total;
@@ -1780,6 +1818,76 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         window.competencyKurangScenarios[idx] = val;
         renderCompetencySimSlide();
       });
+    });
+  }
+
+  function computeCompetencyUpgradeRows(target, service, targetLevel, captureMultiplier, retention) {
+    const services = service === "ALL" ? data.services : [service];
+    return services.map((serviceName) => {
+      const current = getCompetency(target, serviceName);
+      return window.CompetencyUpgrade.simulateUpgrade({
+        service: serviceName, target, hospitals: data.hospitals,
+        regionalService: regionalService(serviceName), targetCompetency: current,
+        targetLevel: Math.max(current, targetLevel), captureMultiplier: captureMultiplier / 100,
+        retentionRate: retention / 100, getCompetency, severityMetric,
+        casesIndex: CASES, inaIndex: INA, idrgIndex: IDRG,
+      });
+    });
+  }
+
+  function renderCompetencyUpgradeSlide() {
+    const container = document.getElementById("competencyUpgradeSlide");
+    const target = targetHospital();
+    if (!container || !target || !window.CompetencyUpgrade) return;
+    const settings = state.competencyUpgrade;
+    if (settings.service !== "ALL" && !data.services.includes(settings.service)) settings.service = "ALL";
+    settings.targetLevel = Math.min(4, Math.max(1, Number(settings.targetLevel) || 2));
+    settings.captureMultiplier = Math.min(300, Math.max(0, Number(settings.captureMultiplier) || 0));
+    settings.retention = Math.min(100, Math.max(0, Number(settings.retention) || 0));
+    const selectedService = settings.service === "ALL" ? (data.services.find((service) => getCompetency(target, service) === 1) || data.services[0]) : settings.service;
+    const currentLevel = getCompetency(target, selectedService);
+    const comparisonLevels = [...new Set([Math.max(1, currentLevel), 2, 3, 4])].sort((a, b) => a - b);
+    const comparisons = comparisonLevels.map((level) => computeCompetencyUpgradeRows(target, selectedService, level, settings.captureMultiplier, settings.retention)[0]);
+    const recapRows = computeCompetencyUpgradeRows(target, "ALL", settings.targetLevel, settings.captureMultiplier, settings.retention);
+    const sum = (rows, field, index) => rows.reduce((total, row) => total + row[field][index], 0);
+    const baselineCases = sum(recapRows, "existing", CASES), baselineIna = sum(recapRows, "existing", INA);
+    const projectedCases = sum(recapRows, "projected", CASES), projectedIdrg = sum(recapRows, "projected", IDRG);
+    const deltaCases = projectedCases - baselineCases, deltaRevenue = projectedIdrg - baselineIna;
+    const signed = (value) => `${value >= 0 ? "+" : ""}${formatNumber(Math.round(value))}`;
+    const signedMoney = (value) => `${value >= 0 ? "+" : ""}${formatMoney(value)}`;
+    container.innerHTML = `
+      <div style="font-family:Arial,sans-serif;display:flex;flex-direction:column;gap:12px;min-height:100%;">
+        <div data-export-ui="true" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:9px;padding:10px 12px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:10px;">
+          <label style="font-size:11px;font-weight:800;color:#334155;">Layanan pembanding<br><select id="upgradeServiceSelect" style="width:100%;margin-top:4px;padding:7px;border:1px solid #94a3b8;border-radius:6px;background:#fff;font-weight:700;"><option value="ALL">Otomatis pilih layanan berkompetensi Dasar</option>${data.services.map((service) => `<option value="${escapeHtml(service)}" ${service === settings.service ? "selected" : ""}>${escapeHtml(formatService(service))}</option>`).join("")}</select></label>
+          <label style="font-size:11px;font-weight:800;color:#334155;">Target rekap 24 layanan<br><select id="upgradeTargetLevel" style="width:100%;margin-top:4px;padding:7px;border:1px solid #94a3b8;border-radius:6px;background:#fff;font-weight:700;">${[2,3,4].map((level) => `<option value="${level}" ${level === settings.targetLevel ? "selected" : ""}>${levelNames[level]}</option>`).join("")}</select></label>
+          <label style="font-size:11px;font-weight:800;color:#334155;">Faktor capture natural (%)<br><input id="upgradeCaptureMultiplier" type="number" min="0" max="300" step="10" value="${settings.captureMultiplier}" style="width:100%;box-sizing:border-box;margin-top:4px;padding:7px;border:1px solid #94a3b8;border-radius:6px;font-weight:700;"></label>
+          <label style="font-size:11px;font-weight:800;color:#334155;">Retensi kasus eligible (%)<br><input id="upgradeRetention" type="number" min="0" max="100" step="5" value="${settings.retention}" style="width:100%;box-sizing:border-box;margin-top:4px;padding:7px;border:1px solid #94a3b8;border-radius:6px;font-weight:700;"></label>
+          <button id="upgradeExcelBtn" type="button" style="grid-column:4;justify-self:end;border:1px solid #16a34a;background:#f0fdf4;color:#166534;border-radius:6px;padding:6px 10px;font-size:10.5px;font-weight:800;cursor:pointer;">📥 Kertas Kerja Excel</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:9px;">
+          <div style="padding:10px 12px;background:#f8fafc;border-left:4px solid #334155;"><div style="font-size:10px;font-weight:800;color:#64748b;">RS TARGET</div><div style="font-size:15px;font-weight:900;color:#0f172a;margin-top:3px;">${escapeHtml(target.name)}</div><div style="font-size:10px;color:#64748b;">${escapeHtml(formatService(selectedService))} · ${levelNames[currentLevel] || "Tidak Kompeten"}</div></div>
+          <div style="padding:10px 12px;background:#eff6ff;border-left:4px solid #2563eb;"><div style="font-size:10px;font-weight:800;color:#1d4ed8;">PROYEKSI KASUS 24 LAYANAN</div><div style="font-size:20px;font-weight:900;color:#1e3a8a;">${formatNumber(projectedCases)}</div><div style="font-size:10px;color:${deltaCases >= 0 ? "#047857" : "#be123c"};font-weight:800;">${signed(deltaCases)} vs eksisting</div></div>
+          <div style="padding:10px 12px;background:#f0fdf4;border-left:4px solid #16a34a;"><div style="font-size:10px;font-weight:800;color:#15803d;">PROYEKSI PENDAPATAN iDRG</div><div style="font-size:20px;font-weight:900;color:#166534;">${formatMoney(projectedIdrg)}</div><div style="font-size:10px;color:${deltaRevenue >= 0 ? "#047857" : "#be123c"};font-weight:800;">${signedMoney(deltaRevenue)} vs INA-CBG</div></div>
+          <div style="padding:10px 12px;background:#fff7ed;border-left:4px solid #f97316;"><div style="font-size:10px;font-weight:800;color:#c2410c;">ASUMSI AKTIF</div><div style="font-size:16px;font-weight:900;color:#9a3412;">Target ${levelNames[settings.targetLevel]}</div><div style="font-size:10px;color:#7c2d12;">Capture ${settings.captureMultiplier}% dari share natural · retensi ${settings.retention}%</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1.05fr 1.55fr;gap:12px;min-height:0;">
+          <div style="border:1px solid #cbd5e1;border-radius:8px;overflow:hidden;"><div style="padding:8px 10px;background:#0f766e;color:#fff;font-weight:900;font-size:13px;">Perbandingan ${escapeHtml(formatService(selectedService))}</div><table style="width:100%;border-collapse:collapse;font-size:11px;"><thead><tr style="background:#e2e8f0;"><th style="padding:6px;text-align:left;">Kompetensi</th><th>Proyeksi kasus</th><th>Captured</th><th>Proyeksi iDRG</th><th>Δ vs INA</th></tr></thead><tbody>${comparisons.map((row) => `<tr style="border-top:1px solid #e2e8f0;background:${row.targetLevel === settings.targetLevel ? "#ecfdf5" : "#fff"};"><td style="padding:7px;font-weight:900;">${levelNames[row.targetLevel]}${row.targetLevel === currentLevel ? " (saat ini)" : ""}</td><td style="text-align:right;padding:7px;font-weight:800;">${formatNumber(row.projected[CASES])}</td><td style="text-align:right;padding:7px;color:#047857;font-weight:800;">+${formatNumber(Math.round(row.captured[CASES]))}</td><td style="text-align:right;padding:7px;">${formatMoney(row.projected[IDRG])}</td><td style="text-align:right;padding:7px;color:${row.deltaIdrgVsIna >= 0 ? "#047857" : "#be123c"};font-weight:800;">${signedMoney(row.deltaIdrgVsIna)}</td></tr>`).join("")}</tbody></table><div style="padding:8px 10px;background:#f8fafc;font-size:9.5px;color:#475569;line-height:1.35;">Share natural = 1 ÷ (RS kompetitor eligible + RS target). Kompetensi melayani levelnya dan satu tingkat di bawahnya.</div></div>
+          <div style="border:1px solid #cbd5e1;border-radius:8px;overflow:hidden;"><div style="padding:8px 10px;background:#2563eb;color:#fff;font-weight:900;font-size:13px;display:flex;justify-content:space-between;"><span>Rekap 24 layanan pada target ${levelNames[settings.targetLevel]}</span><span>${recapRows.length}/24 layanan</span></div><div style="max-height:365px;overflow:auto;"><table style="width:100%;border-collapse:collapse;font-size:10px;"><thead style="position:sticky;top:0;background:#dbeafe;"><tr><th style="padding:5px;text-align:left;">Layanan</th><th>Saat ini</th><th>Target</th><th>Eksisting</th><th>Proyeksi</th><th>Δ kasus</th><th>Δ Rp vs INA</th></tr></thead><tbody>${recapRows.map((row) => `<tr style="border-top:1px solid #e2e8f0;"><td style="padding:4px 6px;font-weight:700;">${escapeHtml(formatService(row.service))}</td><td style="text-align:center;">${shortLevelNames[row.targetCompetency] || "–"}</td><td style="text-align:center;font-weight:900;">${shortLevelNames[row.targetLevel]}</td><td style="text-align:right;">${formatNumber(row.existing[CASES])}</td><td style="text-align:right;font-weight:800;">${formatNumber(Math.round(row.projected[CASES]))}</td><td style="text-align:right;color:${row.deltaCases >= 0 ? "#047857" : "#be123c"};font-weight:800;">${signed(row.deltaCases)}</td><td style="text-align:right;color:${row.deltaIdrgVsIna >= 0 ? "#047857" : "#be123c"};font-weight:800;">${signedMoney(row.deltaIdrgVsIna)}</td></tr>`).join("")}</tbody></table></div></div>
+        </div>
+      </div>`;
+    const rerender = () => renderCompetencyUpgradeSlide();
+    container.querySelector("#upgradeServiceSelect")?.addEventListener("change", (event) => { settings.service = event.target.value; rerender(); });
+    container.querySelector("#upgradeTargetLevel")?.addEventListener("change", (event) => { settings.targetLevel = Number(event.target.value); rerender(); });
+    container.querySelector("#upgradeCaptureMultiplier")?.addEventListener("change", (event) => { settings.captureMultiplier = Number(event.target.value); rerender(); });
+    container.querySelector("#upgradeRetention")?.addEventListener("change", (event) => { settings.retention = Number(event.target.value); rerender(); });
+    container.querySelector("#upgradeExcelBtn")?.addEventListener("click", () => {
+      if (!window.CompetencyUpgradeExcel || !window.XLSX) return alert("Modul kertas kerja Excel belum tersedia.");
+      const datasetLabel = DATASET_PERIODS[activeDatasetKey]?.label || activeDatasetKey;
+      const tariffLabel = TARIFF_SCENARIOS[state.activeTariffScenario]?.label || state.activeTariffScenario;
+      const provinceFilters = [...document.querySelectorAll("#provDropdown input:checked")].map((input) => input.value);
+      const cityFilters = [...document.querySelectorAll("#cityDropdown input:checked")].map((input) => input.value);
+      const filterDesc = [provinceFilters.length ? `Provinsi: ${provinceFilters.join(", ")}` : "Semua provinsi", cityFilters.length ? `Kab/Kota: ${cityFilters.join(", ")}` : "Semua kab/kota"].join("; ");
+      window.CompetencyUpgradeExcel.exportWorkbook({ XLSX: window.XLSX, target, settings, levelNames, formatService, recapRows, comparisons, selectedService, datasetLabel, tariffLabel, filterDesc, CASES, INA, IDRG });
     });
   }
 
@@ -9023,6 +9131,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     renderRegionalCasesSlide();
     renderGlobalSimulationSlide();
     if(typeof renderCompetencySimSlide === "function") renderCompetencySimSlide();
+    renderCompetencyUpgradeSlide();
     renderDynamicMarketShareSlide();
     renderIdrgMapSlide();
     renderRegionalProfileSlide();
@@ -9909,7 +10018,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     sourceSlides.push(...allSlides.filter((slide) => slide.classList.contains("service-sim-slide")));
 
     // Rekap rentang dan rekap skenario logis selalu berada setelah semua tabel layanan.
-    appendStaticSlides(["18", "18-2", "18-3", "19", "19-2", "19-3"]);
+    appendStaticSlides(["6-2b", "18", "18-2", "18-3", "19", "19-2", "19-3"]);
     
     const target = targetHospital();
 
@@ -10699,8 +10808,4 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       window.setTimeout(() => bootScreen?.remove(), 260);
     });
   });
-
-
-
-
 
