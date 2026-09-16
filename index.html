@@ -166,17 +166,12 @@
             <div id="existingSlide" class="existing-report-content"></div>
           </section>
 
-          <section class="slide existing-detail-slide competency-table-slide" data-slide="6-2" id="competencyTableSlideSection" aria-labelledby="competencyTableSlideTitle" hidden>
-            <div class="existing-report-title" style="background-color: #38bdf8; display: flex; justify-content: space-between; align-items: center; position: relative;">
-              <div>
-                <h1 id="competencyTableSlideTitle" style="color: white; font-size: 22px; font-weight: 700; margin: 0; letter-spacing: 0.5px;">Simulasi Kasus Market Share</h1>
-                <p style="color: rgba(255,255,255,0.8); font-size: 13px; margin: 2px 0 0 0;">(Lintas Kompetensi Layanan)</p>
-              </div>
-              <div class="existing-period-badge" style="background-color: #e74c3c; color: white; border-radius: 99px; padding: 5px 14px; text-align: center; font-size: 12px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-                Data Mirroring Uji Coba iDRG<br><span style="font-weight: 400;">periode 15 Okt 2025 - 14 Juni 2026</span>
-              </div>
+          <section class="slide" data-slide="20" aria-labelledby="slide10Title" hidden>
+            <div class="slide-heading compact-heading">
+              <div><p class="eyebrow">Simulator seluruh layanan</p><h1 id="slide10Title">Capture Pasar Eksternal dan Retensi Kasus Eksisting</h1><p>Persentase global berlaku pada semua layanan kecuali layanan yang diberi override.</p></div>
+              <span class="slide-chip">Dinamis</span>
             </div>
-            <div id="competencyTableSlide" class="existing-report-content" style="display: block; padding: 16px 24px; height: calc(100% - 65px); overflow-y: auto; background-color: #ffffff;"></div>
+            <div id="simulatorSlide" class="slide-content"></div>
           </section>
 
           <section class="slide" data-slide="19" aria-labelledby="logicalRecapSlideTitle" hidden>
@@ -203,12 +198,27 @@
             <div id="logicalRecapSlide3" class="slide-content" style="overflow-y: auto; padding-top: 10px;"></div>
           </section>
 
-          <section class="slide" data-slide="22" aria-labelledby="slide12Title" hidden>
-            <div class="slide-heading">
-              <div><p class="eyebrow">Ringkasan hasil</p><h1 id="slide12Title">Dampak Skenario Terhadap RS Target</h1><p id="slide12Subtitle"></p></div>
-              <span class="slide-chip">Proyeksi</span>
+          <section class="slide existing-detail-slide" data-slide="22" aria-labelledby="slide12Title" hidden>
+            <div class="existing-report-title" style="background-color: #6fb293; padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; position: relative;">
+              <h1 id="slide12Title" style="color: white; font-size: 24px; font-weight: bold; margin: 0; letter-spacing: 0.5px;">Simulasi Market Share - 24 Kompetensi Layanan</h1>
+              <div class="existing-period-badge" style="background-color: #c43236; color: white; border-radius: 99px; padding: 6px 16px; text-align: center; font-size: 13px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.2); position: absolute; right: 24px; top: 50%; transform: translateY(-50%); line-height: 1.2;">
+                Data Mirroring Uji Coba iDRG<br><span style="font-weight: 400;">periode 15 Okt 2025 - 14 Juni 2026</span>
+              </div>
             </div>
-            <div id="summarySlide" class="slide-content"></div>
+            <div id="summarySlide" class="existing-report-content" style="padding: 0; height: calc(100% - 60px); overflow: hidden; background-color: #ffffff;"></div>
+          </section>
+
+          <section class="slide existing-detail-slide competency-table-slide" data-slide="6-2" id="competencyTableSlideSection" aria-labelledby="competencyTableSlideTitle" hidden>
+            <div class="existing-report-title" style="background-color: #38bdf8; display: flex; justify-content: space-between; align-items: center; position: relative;">
+              <div>
+                <h1 id="competencyTableSlideTitle" style="color: white; font-size: 22px; font-weight: 700; margin: 0; letter-spacing: 0.5px;">Simulasi Kasus Market Share</h1>
+                <p style="color: rgba(255,255,255,0.8); font-size: 13px; margin: 2px 0 0 0;">(Lintas Kompetensi Layanan)</p>
+              </div>
+              <div class="existing-period-badge" style="background-color: #e74c3c; color: white; border-radius: 99px; padding: 5px 14px; text-align: center; font-size: 12px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                Data Mirroring Uji Coba iDRG<br><span style="font-weight: 400;">periode 15 Okt 2025 - 14 Juni 2026</span>
+              </div>
+            </div>
+            <div id="competencyTableSlide" class="existing-report-content" style="display: block; padding: 16px 24px; height: calc(100% - 65px); overflow-y: auto; background-color: #ffffff;"></div>
           </section>
 
           <section class="slide existing-detail-slide target-summary-slide is-active" data-slide="0" aria-labelledby="summarySlideTitle">
@@ -438,14 +448,6 @@
               <span class="slide-chip">Rekap Rentang</span>
             </div>
             <div id="recapSlide3" class="slide-content" style="overflow-y: auto; padding-top: 10px;"></div>
-          </section>
-
-          <section class="slide" data-slide="20" aria-labelledby="slide10Title" hidden>
-            <div class="slide-heading compact-heading">
-              <div><p class="eyebrow">Simulator seluruh layanan</p><h1 id="slide10Title">Capture Pasar Eksternal dan Retensi Kasus Eksisting</h1><p>Persentase global berlaku pada semua layanan kecuali layanan yang diberi override.</p></div>
-              <span class="slide-chip">Dinamis</span>
-            </div>
-            <div id="simulatorSlide" class="slide-content"></div>
           </section>
 
           <section class="slide" data-slide="21" aria-labelledby="slide11Title" hidden>

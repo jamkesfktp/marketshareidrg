@@ -1577,6 +1577,111 @@
   /* ══════════════════════════════════════════════════════════════
      MASTER EXPORT GOOGLE SLIDES FUNCTION
   ══════════════════════════════════════════════════════════════ */
+  
+  function buildFinalSummarySlide(pptx, appState) {
+    var data = appState.data, target = appState.target || {}, CASES = appState.CASES, INA = appState.INA, IDRG = appState.IDRG;
+    var slide = pptx.addSlide();
+    slide.background = { color: "ffffff" };
+
+    // Header
+    slide.addShape("rect", { x: 0, y: 0, w: "100%", h: 0.9, fill: { color: "6fb293" } });
+    slide.addShape("rect", { x: 0, y: 0.9, w: "100%", h: 0.2, fill: { color: "e1a938" } });
+    slide.addText("Simulasi Market Share - 24 Kompetensi Layanan", {
+      x: 0.4, y: 0, w: 9, h: 0.9,
+      color: "ffffff", fontSize: 28, bold: true, valign: "middle", fontFace: "Plus Jakarta Sans"
+    });
+
+    slide.addShape("roundRect", {
+      x: 10, y: 0.1, w: 3.2, h: 0.7, r: 0.35,
+      fill: { color: "c43236" }
+    });
+    slide.addText("Data Mirroring Uji Coba iDRG\nperiode 15 Okt 2025 - 14 Juni 2026", {
+      x: 10, y: 0.1, w: 3.2, h: 0.7,
+      color: "ffffff", fontSize: 10, bold: true, align: "center", valign: "middle"
+    });
+
+    // Compute scenarios to get total values (similar to computeScenario in app.js)
+    var result = { existing: [0, 0, 0], projected: [0, 0, 0], delta: [0, 0, 0] };
+    if (window.computeScenario) {
+      result = window.computeScenario(); // This might fail if window is not available in export context in same way, but it's executed in browser.
+    } else {
+      // Fallback manual calculation if computeScenario is not globally accessible here
+      // But typically it is since it's in the same document
+      try {
+        result = computeScenario();
+      } catch(e) {}
+    }
+    
+    var existingCases = result.existing[CASES] || 0;
+    var projectedCases = result.projected[CASES] || 0;
+    var deltaCases = result.delta[CASES] || 0;
+    var pctCases = existingCases ? (deltaCases / existingCases) * 100 : 0;
+
+    var existingIna = result.existing[INA] || 0;
+    var projectedIdrg = result.projected[IDRG] || 0;
+    var deltaRev = projectedIdrg - existingIna;
+    var pctRev = existingIna ? (deltaRev / existingIna) * 100 : 0;
+
+    var fmtMoney = function(val) {
+      return (val / 1e9).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " M";
+    };
+    var fmtNum = function(val) {
+      return val.toLocaleString("id-ID");
+    };
+    var fmtPct = function(val) {
+      return val.toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "%";
+    };
+    var getSign = function(val) { return val > 0 ? "▲ " : val < 0 ? "▼ " : ""; };
+
+    // INA CBGs Box
+    slide.addShape("roundRect", { x: 1.0, y: 1.7, w: 4.5, h: 1.2, r: 0.2, fill: { color: "337073" }, line: { color: "90b8b8", pt: 3 } });
+    slide.addText("INA CBGs &\nRujukan Berjenjang", { x: 1.0, y: 1.7, w: 4.5, h: 1.2, color: "ffffff", fontSize: 22, bold: true, align: "center", valign: "middle" });
+    
+    // Arrow
+    slide.addShape("rightArrow", { x: 5.8, y: 1.9, w: 1.5, h: 0.8, fill: { color: "63b69e" } });
+    
+    // iDRG Box
+    slide.addShape("roundRect", { x: 7.6, y: 1.7, w: 4.5, h: 1.2, r: 0.2, fill: { color: "cedc3f" }, line: { color: "a8b433", pt: 3 } });
+    slide.addText("iDRG & RBKP", { x: 7.6, y: 1.7, w: 4.5, h: 1.2, color: "ffffff", fontSize: 24, bold: true, align: "center", valign: "middle" });
+
+    // --- KASUS SECTION ---
+    slide.addShape("roundRect", { x: 1.0, y: 3.4, w: 2.8, h: 0.6, r: 0.3, fill: { color: "337073" } });
+    slide.addText("Kasus", { x: 1.2, y: 3.4, w: 2.5, h: 0.6, color: "ffffff", fontSize: 18, bold: true, valign: "middle" });
+
+    var cy = 4.1, ch = 1.3, cw = 2.6, cx = 1.2;
+    var colorsCases = ["1a4e52", "63b69e", "68b6ad", "cedc3f"];
+    var labelsCases = ["Total Kasus", "Kenaikan Kasus", "Persentase", "Total Kasus"];
+    var valsCases = [fmtNum(existingCases), getSign(deltaCases) + fmtNum(Math.abs(deltaCases)), getSign(pctCases) + fmtPct(Math.abs(pctCases)), fmtNum(projectedCases)];
+    var valColorsCases = ["c0392b", "63b69e", "63b69e", "cedc3f"];
+
+    for (var i=0; i<4; i++) {
+      slide.addShape("chevron", { x: cx + (i * cw * 0.95), y: cy, w: cw, h: ch, fill: { color: "f5f5f5" } });
+      slide.addShape("chevron", { x: cx + (i * cw * 0.95), y: cy, w: cw, h: ch/2, fill: { color: colorsCases[i] } });
+      slide.addText(labelsCases[i], { x: cx + (i * cw * 0.95) + 0.1, y: cy, w: cw - 0.2, h: ch/2, color: "ffffff", fontSize: 14, bold: true, align: "center", valign: "middle" });
+      slide.addText(valsCases[i], { x: cx + (i * cw * 0.95) + 0.1, y: cy + ch/2, w: cw - 0.2, h: ch/2, color: valColorsCases[i], fontSize: 24, bold: true, align: "center", valign: "middle" });
+    }
+
+    // --- PENDAPATAN SECTION ---
+    slide.addShape("roundRect", { x: 1.0, y: 5.9, w: 2.8, h: 0.6, r: 0.3, fill: { color: "337073" } });
+    slide.addText("Pendapatan", { x: 1.2, y: 5.9, w: 2.5, h: 0.6, color: "ffffff", fontSize: 18, bold: true, valign: "middle" });
+
+    var py = 6.6;
+    var labelsRev = ["Pendapatan INA CBGs:", "Selisih Pendapatan:", "Persentase:", "Pendapatan iDRG:"];
+    var valsRev = [fmtMoney(existingIna), getSign(deltaRev) + fmtMoney(Math.abs(deltaRev)), getSign(pctRev) + fmtPct(Math.abs(pctRev)), fmtMoney(projectedIdrg)];
+    
+    for (var i=0; i<4; i++) {
+      slide.addShape("chevron", { x: cx + (i * cw * 0.95), y: py, w: cw, h: ch, fill: { color: "f5f5f5" } });
+      slide.addShape("chevron", { x: cx + (i * cw * 0.95), y: py, w: cw, h: ch/2, fill: { color: colorsCases[i] } });
+      slide.addText(labelsRev[i], { x: cx + (i * cw * 0.95) + 0.1, y: py, w: cw - 0.2, h: ch/2, color: "ffffff", fontSize: 13, bold: true, align: "center", valign: "middle" });
+      slide.addText(valsRev[i], { x: cx + (i * cw * 0.95) + 0.1, y: py + ch/2, w: cw - 0.2, h: ch/2, color: valColorsCases[i], fontSize: 24, bold: true, align: "center", valign: "middle" });
+    }
+
+    // Kemenkes Logo
+    try {
+      slide.addImage({ path: "img/logo-kemenkes.png", x: 11.5, y: 6.8, w: 1.5, h: 0.5, sizing: { type: "contain" } });
+    } catch(e) {}
+  }
+
   async function exportGoogleSlides(appState) {
     var data = appState.data, target = appState.target || {};
     var services = appState.services || [];
@@ -1647,63 +1752,25 @@
     var dateStr = new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" });
     var appStateWithIdx = Object.assign({}, appState, { CASES: CASES, INA: INA, IDRG: IDRG, dateStr: dateStr, services: availableServices });
 
-    /* 1. Cover Slide */
-    buildCoverSlide(pptx, appStateWithIdx);
-
-    /* 2. Slide 0: Ringkasan RS Target */
-    buildTargetSummarySlide(pptx, appStateWithIdx);
-
-    /* 3. Slide 1: Peta Sebaran RS */
-    buildMapSlide(pptx, appStateWithIdx);
-
-    /* 4. Slide 2: Kasus Eksisting per Layanan */
-    buildExistingSlide(pptx, appStateWithIdx);
-
-    /* 4. Slide 2: Potensi Pasar Regional */
-    buildRegionalSlide(pptx, appStateWithIdx);
-
-    /* 5. Slide 3: Analisis Addressable Market */
-    buildAddressableSlide(pptx, appStateWithIdx);
-
-    /* 6. Slide 4: Perbandingan RS Target vs Regional */
-    buildComparisonSlide(pptx, appStateWithIdx);
-
-    /* 7. Slide 5: Distribusi Kasus Regional per Layanan */
-    buildRegionalCasesSlide(pptx, appStateWithIdx);
-
-    /* 8. Slide 6: Profil Kapasitas & Agregat Regional */
+    /* 1. Profil & Kasus Regional */
     buildRegionalProfileSlide(pptx, appStateWithIdx);
 
-    /* 9. Slide Khusus Muhammadiyah (Jika relevan / ada RS Muhammadiyah) */
-    var isMhk = appState.helpers && appState.helpers.isMuhammadiyahHospital;
-    var hasMhk = (data.hospitals || []).some(function (h) {
-      return isMhk ? isMhk(h) : (h.name && (h.name.toUpperCase().includes("MUHAMMADIYAH") || h.name.toUpperCase().includes("AISYIYAH")));
-    });
-    if (appState.filters && appState.filters.isMuhammadiyahOnly || hasMhk) {
-      buildMuhammadiyahSlide(pptx, appStateWithIdx);
-    }
+    /* 2. Kasus Regional Per Layanan */
+    buildRegionalCasesSlide(pptx, appStateWithIdx);
 
-    /* 10. Slide 10-15: Mirroring Nasional */
-    if (appState.nationalMetrics) {
-      buildNationalMirroringSlides(pptx, appStateWithIdx);
-    }
+    /* 3. Kasus Eksisting Per Layanan */
+    buildExistingSlide(pptx, appStateWithIdx);
 
-    /* 11. Slide 16: Pemetaan Kompetensi ICD */
-    buildIcdCompetencySlide(pptx, appStateWithIdx);
-
-    /* 11B. Simulasi upgrade kompetensi dan rekap 24 layanan */
-    buildCompetencyUpgradeSlides(pptx, appStateWithIdx);
-
-    /* 12. Slide 17: Rekap Seluruh Layanan (Rentang) */
-    buildRecapSlide(pptx, appStateWithIdx);
-
-    /* 12B. Slide 17B: Rekap Skenario Paling Logis Seluruh Layanan */
-    buildLogicalRecapSlide(pptx, appStateWithIdx);
-
-    /* 13. Slide 18+: Dynamic Service Slides (Layanan aktif pada RS target) */
+    /* 4. Simulasi Market Share per layanan yang dirinci per slide khusus masing2 layanan */
     for (var i = 0; i < availableServices.length; i++) {
       buildServiceSlide(pptx, availableServices[i], appStateWithIdx);
     }
+
+    /* 5. Rekapitulasi simulasi (Bagian Akhir) */
+    buildLogicalRecapSlide(pptx, appStateWithIdx);
+
+    /* 6. Slide Pamungkas (Dampak Skenario) */
+    buildFinalSummarySlide(pptx, appStateWithIdx);
 
     var safeCode = ((target.code || target.name || "regional")).toLowerCase().replace(/[^a-z0-9]/gi, "_");
     var fileDateStr = new Date().toISOString().slice(0, 10);
