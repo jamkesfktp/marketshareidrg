@@ -455,6 +455,7 @@ body.enterprise-nav-collapsed .viewport-stage { margin-left: 0; }
 /* Fix flex layout for National Mirroring slides so footers and cards never overlap */
 .national-rawat-type-slide .existing-report-content,
 .national-spending-class-slide .existing-report-content,
+.national-hospital-spending-slide .existing-report-content,
 .national-rawat-inap-slide .existing-report-content,
 .national-severity-slide .existing-report-content,
 .national-rawat-jalan-slide .existing-report-content,
