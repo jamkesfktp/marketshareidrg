@@ -7232,7 +7232,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       }
     };
     
-    data.hospitals.filter(h => h.code !== target.code).forEach(h => {
+    data.hospitals.forEach(h => {
       processItem(h);
       if (h.services) {
         Object.values(h.services).forEach(s => processItem(s));
@@ -10339,22 +10339,35 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     try {
       if (document.fonts?.ready) await document.fonts.ready;
       const pngBlob = await nationalSlideToPngBlob(sourceSlide);
-      if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
-        throw new Error("Clipboard gambar memerlukan HTTPS atau localhost.");
+      
+      let copied = false;
+      if (navigator.clipboard?.write && typeof ClipboardItem !== "undefined") {
+        try {
+          await navigator.clipboard.write([new ClipboardItem({ "image/png": pngBlob })]);
+          copied = true;
+        } catch (e) {
+          console.warn("Clipboard write failed, falling back to download", e);
+        }
       }
-      await navigator.clipboard.write([new ClipboardItem({ "image/png": pngBlob })]);
-      if (button) button.textContent = "✓ Tersalin";
+      
+      if (!copied) {
+        // Fallback to download
+        const url = URL.createObjectURL(pngBlob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "slide_export.png";
+        a.click();
+        URL.revokeObjectURL(url);
+        if (button) button.textContent = "✓ Terunduh";
+      } else {
+        if (button) button.textContent = "✓ Tersalin";
+      }
+      setTimeout(() => { if(button) { button.disabled = false; button.textContent = originalLabel; } }, 2000);
     } catch (error) {
       console.error("Copy national slide image failed", error);
-      if (button) button.textContent = "Copy gagal";
-      window.alert(`Gagal menyalin gambar: ${error.message}`);
-    } finally {
-      window.setTimeout(() => {
-        if (button) {
-          button.disabled = false;
-          button.textContent = originalLabel;
-        }
-      }, 1800);
+      if (button) button.textContent = "Gagal";
+      window.alert(`Gagal membuat gambar: ${error.message}`);
+      setTimeout(() => { if(button) { button.disabled = false; button.textContent = originalLabel; } }, 2000);
     }
   };
 
