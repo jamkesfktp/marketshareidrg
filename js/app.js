@@ -3376,6 +3376,11 @@ document.getElementById("globalSimulationSlide").innerHTML = `
   function renderNationalHospitalSpendingSlide() {
     const container = document.getElementById("nationalHospitalSpendingSlide");
     if (!container) return;
+
+    const oldInput = container.querySelector("#hospitalSpendingSearch");
+    const isFocused = oldInput && oldInput === document.activeElement;
+    const cursor = isFocused ? [oldInput.selectionStart, oldInput.selectionEnd] : null;
+
     const ui = window.hospitalSpendingUi = { query: "", page: 0, sort: "totalDiff", direction: "desc", ...(window.hospitalSpendingUi || {}) };
     const rows = getActiveMirroringHospitals().map(hospitalSpendingRow);
     const query = ui.query.toLocaleLowerCase("id-ID").trim();
@@ -3390,7 +3395,16 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       container.innerHTML = `<div style="height:100%;min-height:0;display:flex;flex-direction:column;gap:9px;font-family:'Plus Jakarta Sans',sans-serif;"><div style="display:flex;align-items:center;gap:10px;"><div style="font-size:14px;font-weight:850;color:#0f766e;flex:1;">Rincian spending per rumah sakit <span style="font-size:11px;color:#64748b;font-weight:650;">${formatNumber(filtered.length)} RS – sesuai filter aktif</span></div><input id="hospitalSpendingSearch" value="${escapeHtml(ui.query)}" placeholder="Cari kode, nama, atau kab/kota..." style="width:290px;padding:7px 10px;border:1px solid #94a3b8;border-radius:7px;font-size:11px;"><button id="hospitalSpendingExcel" type="button" style="border:0;background:#15803d;color:#fff;border-radius:7px;padding:8px 12px;font-size:11px;font-weight:800;cursor:pointer;">↓ Download Excel</button><button id="hospitalSpendingDRGExcel" type="button" style="border:0;background:#0369a1;color:#fff;border-radius:7px;padding:8px 12px;font-size:11px;font-weight:800;cursor:pointer;">↓ Tarik Detail DRG</button></div><div style="flex:1;min-height:0;overflow:auto;border:1px solid #cbd5e1;border-radius:9px;"><table style="border-collapse:collapse;width:100%;font-size:10px;white-space:nowrap;"><thead style="position:sticky;top:0;z-index:2;color:#fff;text-align:center;"><tr style="background:#0f766e;"><th rowspan="2">${head("Kode RS", "code")}</th><th rowspan="2">${head("Nama RS", "name")}</th><th rowspan="2">${head("Kab/Kota", "city")}</th><th rowspan="2">${head("Provinsi", "province")}</th><th rowspan="2">${head("Kelas RS", "hospitalClass")}</th><th rowspan="2">${head("Kepemilikan", "ownership")}</th><th rowspan="2">${head("Regional", "regional")}</th><th colspan="3" style="background:#0369a1">Total Kasus</th><th colspan="3" style="background:#15803d">Tarif INA-CBG (Rp Miliar)</th><th colspan="3" style="background:#7c3aed">Tarif iDRG (Rp Miliar)</th><th colspan="3" style="background:#b45309">Selisih (Rp Miliar)</th><th colspan="3" style="background:#be185d">Perubahan (%)</th></tr><tr style="background:#134e4a;">${["rjCases", "riCases", "totalCases", "rjIna", "riIna", "totalIna", "rjIdrg", "riIdrg", "totalIdrg", "rjDiff", "riDiff", "totalDiff", "rjPct", "riPct", "totalPct"].map((key, i) => `<th>${head(["Rawat Jalan", "Rawat Inap", "RJ & RI"][i % 3], key)}</th>`).join("")}</tr></thead><tbody>${shown.map((r, i) => `<tr style="background:${i % 2 ? "#f8fafc" : "#fff"};"><td>${escapeHtml(r.code)}</td><td style="font-weight:750;max-width:280px;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(r.name)}</td><td>${escapeHtml(r.city)}</td><td>${escapeHtml(r.province)}</td><td>${escapeHtml(r.hospitalClass)}</td><td>${escapeHtml(r.ownership)}</td><td>${escapeHtml(r.regional)}</td><td>${formatNumber(r.rjCases)}</td><td>${formatNumber(r.riCases)}</td><td style="font-weight:800">${formatNumber(r.totalCases)}</td>${moneyCells(r, "", "ina")}${moneyCells(r, "", "idrg")}${moneyCells(r, "", "diff")}${moneyCells(r, "", "pct")}</tr>`).join("") || `<tr><td colspan="22" style="padding:22px;text-align:center;color:#64748b;">Tidak ada rumah sakit sesuai pencarian.</td></tr>`}</tbody></table></div><div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#475569;"><span>Menampilkan ${filtered.length ? ui.page * pageSize + 1 : 0}–${Math.min((ui.page + 1) * pageSize, filtered.length)} dari ${formatNumber(filtered.length)} RS</span><span style="display:flex;gap:6px;align-items:center;"><button id="hospitalSpendingPrev" ${ui.page === 0 ? "disabled" : ""}>← Sebelumnya</button><b>Halaman ${ui.page + 1}/${pages}</b><button id="hospitalSpendingNext" ${ui.page >= pages - 1 ? "disabled" : ""}>Berikutnya →</button></span></div></div>`;
       container.querySelectorAll("th,td").forEach(cell => { cell.style.padding = "6px 7px"; cell.style.borderBottom = "1px solid #e2e8f0"; });
       container.querySelectorAll("[data-sort]").forEach(button => button.addEventListener("click", () => { const key = button.dataset.sort; ui.direction = ui.sort === key && ui.direction === "desc" ? "asc" : "desc"; ui.sort = key; ui.page = 0; renderNationalHospitalSpendingSlide(); }));
-      container.querySelector("#hospitalSpendingSearch")?.addEventListener("input", event => { ui.query = event.target.value; ui.page = 0; renderNationalHospitalSpendingSlide(); });
+      
+      const newSearchInput = container.querySelector("#hospitalSpendingSearch");
+      if (newSearchInput) {
+          newSearchInput.addEventListener("input", event => { ui.query = event.target.value; ui.page = 0; renderNationalHospitalSpendingSlide(); });
+          if (isFocused) {
+              newSearchInput.focus();
+              newSearchInput.setSelectionRange(cursor[0], cursor[1]);
+          }
+      }
+      
       container.querySelector("#hospitalSpendingPrev")?.addEventListener("click", () => { ui.page--; renderNationalHospitalSpendingSlide(); });
       container.querySelector("#hospitalSpendingNext")?.addEventListener("click", () => { ui.page++; renderNationalHospitalSpendingSlide(); });
       container.querySelector("#hospitalSpendingExcel")?.addEventListener("click", () => { try { exportHospitalSpendingExcel(filtered); } catch (error) { alert(error.message || "Excel gagal dibuat."); } });
@@ -9343,10 +9357,14 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       button.addEventListener("click", () => {
         state.selectedService = button.dataset.service;
         state.selectedSeverity = getCompetency(targetHospital(), state.selectedService) || 1;
-        state.activeSlide = 4;
         renderCompetitionSlide();
         renderSimulatorSlide();
-        showSlide(4);
+        const slides = [...document.querySelectorAll(".slide")];
+        const targetIndex = slides.findIndex(s => s.dataset.slide === "4" || s.id === "addressableSlide");
+        if (targetIndex >= 0) {
+            state.activeSlide = targetIndex;
+            showSlide(targetIndex);
+        }
       });
     });
   }
@@ -9448,7 +9466,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     document.getElementById("slideCounter").textContent = `${state.activeSlide + 1} / ${slides.length}`;
     document.querySelectorAll(".slide-dot").forEach((dot, dotIndex) => dot.classList.toggle("is-active", dotIndex === state.activeSlide));
     autoFitSlideTitles();
-    if (state.activeSlide === 1 && mapInstance) {
+    const currentSlide = slides[state.activeSlide];
+    if (currentSlide && currentSlide.classList.contains("map-detail-slide") && mapInstance) {
       setTimeout(() => mapInstance.invalidateSize(), 50);
     }
   }
