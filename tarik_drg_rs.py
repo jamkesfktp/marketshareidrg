@@ -3,12 +3,28 @@ import os
 import sys
 
 def main():
-    input_csv = r'D:\KERJAAN PUSBIKES\Analisis Ujicoba\UJICOBA IDRG FIX\spending_okt_jun_v3_gabungan.csv'
-    output_csv = 'data/Tarikan_DRG_RS.csv'
+    print("=== ALAT TARIK DETAIL DRG ===")
+    print("1. Dataset Okt 2023 - Jun 2024 (Default: D:\\KERJAAN PUSBIKES\\Analisis Ujicoba\\UJICOBA IDRG FIX\\spending_okt_jun_v3_gabungan.csv)")
+    print("2. Masukkan path (lokasi) file dataset secara manual (misal untuk Jan-Des 2025)")
+    
+    pilihan = input("Pilih opsi (1/2) [Default: 1]: ").strip()
+    
+    if pilihan == '2':
+        input_csv = input("Masukkan path lengkap file CSV-nya: ").strip()
+        # Hilangkan tanda kutip jika user drag-and-drop file ke terminal
+        if input_csv.startswith('"') and input_csv.endswith('"'):
+            input_csv = input_csv[1:-1]
+        
+        # Buat nama output berdasarkan nama file input
+        base_name = os.path.basename(input_csv).replace('.csv', '')
+        output_csv = f'data/Tarikan_DRG_{base_name}.csv'
+    else:
+        input_csv = r'D:\KERJAAN PUSBIKES\Analisis Ujicoba\UJICOBA IDRG FIX\spending_okt_jun_v3_gabungan.csv'
+        output_csv = 'data/Tarikan_DRG_RS_Okt_Jun.csv'
     
     if not os.path.exists(input_csv):
-        print(f"File {input_csv} tidak ditemukan.")
-        print("Pastikan path file CSV sumber sudah benar.")
+        print(f"\n[ERROR] File tidak ditemukan di: {input_csv}")
+        print("Pastikan file CSV mentah tersebut ada di komputer ini.")
         return
 
     print(f"Membaca data dari {input_csv} ...")
