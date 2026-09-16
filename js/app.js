@@ -6464,49 +6464,82 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     attachCompetitionEvents();
   }
 
-  function renderSummarySlide() {
+    function renderSummarySlide() {
     const slide = document.getElementById("summarySlide");
     if (!slide) return;
     const target = targetHospital();
     if (!target) return;
     const result = computeScenario();
-    const sorted = [...result.serviceRows].sort((a, b) => b.delta[CASES] - a.delta[CASES]);
-    const gains = sorted.filter((row) => row.delta[CASES] > 0).slice(0, 5);
-    const losses = sorted.filter((row) => row.delta[CASES] < 0).sort((a, b) => a.delta[CASES] - b.delta[CASES]).slice(0, 5);
-    const overrideCount = Object.values(state.overrides).filter((item) => item.enabled).length;
-    const caseShareBefore = target.total[CASES] / data.regional.total[CASES];
-    const caseShareAfter = result.projected[CASES] / data.regional.total[CASES];
-    const subtitleEl = document.getElementById("slide9Subtitle") || document.getElementById("slide8Subtitle");
-    if (subtitleEl) subtitleEl.textContent = `${target.name} · seluruh layanan · parameter dapat diubah pada slide simulator.`;
-    const ranked = (rows, emptyText) => rows.length
-      ? rows.map((row, index) => `<div class="ranked-row"><span class="rank-number">${index + 1}</span><span>${escapeHtml(formatService(row.service))}</span><strong class="${deltaClass(row.delta[CASES])}">${formatSignedNumber(row.delta[CASES])}</strong></div>`).join("")
-      : `<div class="empty-state"><div><strong>${emptyText}</strong><span>Ubah parameter simulasi untuk melihat dampak.</span></div></div>`;
+    
+    const existingCases = result.existing[CASES];
+    const projectedCases = result.projected[CASES];
+    const deltaCases = result.delta[CASES];
+    const pctCases = existingCases ? (deltaCases / existingCases) * 100 : 0;
+    
+    const existingIna = result.existing[INA];
+    const projectedIdrg = result.projected[IDRG];
+    const deltaRev = projectedIdrg - existingIna;
+    const pctRev = existingIna ? (deltaRev / existingIna) * 100 : 0;
+    
+    const fmtSign = val => val > 0 ? "▲" : val < 0 ? "▼" : "";
+    
     slide.innerHTML = `
-      <div class="summary-layout">
-        <article class="panel summary-hero">
-          <h2>Proyeksi total kasus ${escapeHtml(target.name)}</h2>
-          <div class="summary-big"><span>Setelah skenario</span><strong>${formatNumber(result.projected[CASES])}</strong><em>${formatSignedNumber(result.delta[CASES])} kasus terhadap baseline · market share ${formatPercent(caseShareBefore)} → ${formatPercent(caseShareAfter)}</em></div>
-          <div class="summary-mini-grid">
-            <div class="summary-mini"><span>Eksisting</span><strong>${formatNumber(result.existing[CASES])}</strong></div>
-            <div class="summary-mini"><span>Captured</span><strong>${formatNumber(result.captured[CASES])}</strong></div>
-            <div class="summary-mini"><span>Proyeksi iDRG</span><strong>${formatMoney(result.projected[IDRG])}</strong></div>
-            <div class="summary-mini"><span>Δ iDRG</span><strong>${formatMoney(result.delta[IDRG])}</strong></div>
+      <div style="display:flex; flex-direction:column; gap:20px; padding: 20px 40px; font-family:'Plus Jakarta Sans', sans-serif; background: #f8fafc; height: 100%;">
+        
+        <div style="display:flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 20px;">
+          <div style="background: #2f6f74; color: #fff; padding: 12px 30px; border-radius: 10px; font-size: 20px; font-weight: 800; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 350px;">
+            INA CBGs &amp;<br>Rujukan Berjenjang
           </div>
-        </article>
-        <div class="summary-right">
-          <article class="panel"><div class="panel-heading"><h2>Layanan dengan penambahan terbesar</h2><span>Δ kasus</span></div><div class="ranked-list">${ranked(gains, "Belum ada penambahan kasus")}</div></article>
-          <article class="panel"><div class="panel-heading"><h2>Asumsi dan risiko volume</h2><span>${overrideCount} override aktif</span></div>
-          <div class="two-column">
-              <div class="ranked-list">${ranked(losses, "Tidak ada layanan yang berkurang")}</div>
-              <div class="assumption-summary">${severityRanks.map((rank) => `<div><span>${levelNames[rank]}</span><strong>Capture ${state.globalRates.capture[rank]}% · Retensi ${state.globalRates.retention[rank]}%</strong></div>`).join("")}</div>
-            </div>
-            <p class="source-note">Proyeksi mempertahankan kasus tanpa klasifikasi ICD pada baseline. Layanan yang tidak memiliki kompetensi target tidak menerima capture dan kasus di atas kompetensi tidak dipertahankan.</p>
-          </article>
+          
+          <div style="color: #66b595; font-size: 60px; font-weight: bold; line-height: 1;">
+            ➔
+          </div>
+          
+          <div style="background: #ced54f; color: #fff; padding: 12px 30px; border-radius: 10px; font-size: 24px; font-weight: 800; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 350px; display: flex; align-items: center; justify-content: center; height: 60px;">
+            iDRG &amp; RBKP
+          </div>
         </div>
-      </div>`;
+        
+        <!-- KASUS -->
+        <div style="position: relative; margin-bottom: 30px;">
+          <div style="background: #2f6f74; color: white; padding: 8px 20px; border-radius: 20px 20px 0 0; width: 200px; font-size: 18px; font-weight: bold; position: absolute; top: -30px; left: 0;">
+            Kasus
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; background: #fff; border-radius: 0 10px 10px 10px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center;">
+            <div style="background: #215155; color: white; padding: 10px; font-weight: bold; font-size: 15px;">Total Kasus</div>
+            <div style="background: #50b094; color: white; padding: 10px; font-weight: bold; font-size: 15px;">Kenaikan Kasus</div>
+            <div style="background: #5db9ae; color: white; padding: 10px; font-weight: bold; font-size: 15px;">Persentase</div>
+            <div style="background: #dbdc48; color: white; padding: 10px; font-weight: bold; font-size: 15px;">Total Kasus</div>
+            
+            <div style="padding: 20px; font-size: 32px; font-weight: 900; color: #b73239;">${formatNumber(existingCases)}</div>
+            <div style="padding: 20px; font-size: 32px; font-weight: 900; color: #6db194;">${fmtSign(deltaCases)} ${formatNumber(Math.abs(deltaCases))}</div>
+            <div style="padding: 20px; font-size: 32px; font-weight: 900; color: #69b6ad;">${fmtSign(pctCases)} ${formatNumber(Math.abs(pctCases), 2)}%</div>
+            <div style="padding: 20px; font-size: 32px; font-weight: 900; color: #c4ba47;">${formatNumber(projectedCases)}</div>
+          </div>
+        </div>
+
+        <!-- PENDAPATAN -->
+        <div style="position: relative;">
+          <div style="background: #2f6f74; color: white; padding: 8px 20px; border-radius: 20px 20px 0 0; width: 200px; font-size: 18px; font-weight: bold; position: absolute; top: -30px; left: 0;">
+            Pendapatan
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; background: #fff; border-radius: 0 10px 10px 10px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center;">
+            <div style="background: #215155; color: white; padding: 10px; font-weight: bold; font-size: 15px;">Pendapatan INA CBGs:</div>
+            <div style="background: #50b094; color: white; padding: 10px; font-weight: bold; font-size: 15px;">Selisih Pendapatan:</div>
+            <div style="background: #5db9ae; color: white; padding: 10px; font-weight: bold; font-size: 15px;">Persentase:</div>
+            <div style="background: #dbdc48; color: white; padding: 10px; font-weight: bold; font-size: 15px;">Pendapatan iDRG:</div>
+            
+            <div style="padding: 20px; font-size: 32px; font-weight: 900; color: #b73239;">${formatNumber(existingIna / 1e9, 2)} M</div>
+            <div style="padding: 20px; font-size: 32px; font-weight: 900; color: #6db194;">${fmtSign(deltaRev)} ${formatNumber(Math.abs(deltaRev) / 1e9, 2)} M</div>
+            <div style="padding: 20px; font-size: 32px; font-weight: 900; color: #69b6ad;">${fmtSign(pctRev)} ${formatNumber(Math.abs(pctRev), 2)}%</div>
+            <div style="padding: 20px; font-size: 32px; font-weight: 900; color: #c4ba47;">${formatNumber(projectedIdrg / 1e9, 2)} M</div>
+          </div>
+        </div>
+        
+      </div>
+    `;
   }
 
-  // --- SLIDE: RENTANG SKENARIO SELURUH LAYANAN ---
   function renderRecapSlide() {
     const container = document.getElementById("recapSlide");
     if (!container) return;
@@ -10181,14 +10214,13 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       if (slide) sourceSlides.push(slide);
     });
 
-    appendStaticSlides(["0", "2", "5", "6", "7", "16"]);
+    appendStaticSlides(["7", "6", "2"]);
 
-    // Ambil seluruh tabel simulasi berdasarkan kelasnya. Nomor data-slide tidak
-    // boleh dipakai karena dahulu bertabrakan dengan nomor slide statis 9–22.
+    // Ambil seluruh tabel simulasi berdasarkan kelasnya
     sourceSlides.push(...allSlides.filter((slide) => slide.classList.contains("service-sim-slide")));
 
     // Rekap rentang dan rekap skenario logis selalu berada setelah semua tabel layanan.
-    appendStaticSlides(["6-2b", "18", "18-2", "18-3", "19", "19-2", "19-3"]);
+    appendStaticSlides(["18", "18-2", "18-3", "19", "19-2", "19-3", "22"]);
     
     const target = targetHospital();
 
