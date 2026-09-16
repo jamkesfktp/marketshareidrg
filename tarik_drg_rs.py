@@ -4,22 +4,24 @@ import sys
 
 def main():
     print("=== ALAT TARIK DETAIL DRG ===")
-    print("1. Dataset Okt 2023 - Jun 2024 (Default: D:\\KERJAAN PUSBIKES\\Analisis Ujicoba\\UJICOBA IDRG FIX\\spending_okt_jun_v3_gabungan.csv)")
-    print("2. Masukkan path (lokasi) file dataset secara manual (misal untuk Jan-Des 2025)")
+    print("1. Dataset Okt 2023 - Jun 2024 (CSV raw data)")
+    print("2. Dataset Jan - Des 2025 (C:\\Backup Riki\\Drive D\\KERJAAN PUSBIKES\\Analisis Ujicoba\\UJICOBA IDRG FIX\\spending_jan_des_v11_gabungan.csv)")
+    print("3. Masukkan path (lokasi) file dataset secara manual")
     
-    pilihan = input("Pilih opsi (1/2) [Default: 1]: ").strip()
+    pilihan = input("Pilih opsi (1/2/3) [Default: 1]: ").strip()
     
-    if pilihan == '2':
+    if pilihan == '3':
         input_csv = input("Masukkan path lengkap file CSV-nya: ").strip()
-        # Hilangkan tanda kutip jika user drag-and-drop file ke terminal
         if input_csv.startswith('"') and input_csv.endswith('"'):
             input_csv = input_csv[1:-1]
-        
-        # Buat nama output berdasarkan nama file input
         base_name = os.path.basename(input_csv).replace('.csv', '')
         output_csv = f'data/Tarikan_DRG_{base_name}.csv'
+    elif pilihan == '2':
+        input_csv = r'C:\Backup Riki\Drive D\KERJAAN PUSBIKES\Analisis Ujicoba\UJICOBA IDRG FIX\spending_jan_des_v11_gabungan.csv'
+        output_csv = 'data/Tarikan_DRG_RS_Jan_Des_2025.csv'
     else:
-        input_csv = r'D:\KERJAAN PUSBIKES\Analisis Ujicoba\UJICOBA IDRG FIX\spending_okt_jun_v3_gabungan.csv'
+        # Default option 1
+        input_csv = r'C:\Backup Riki\Drive D\KERJAAN PUSBIKES\Analisis Ujicoba\UJICOBA IDRG FIX\spending_okt_jun_v3_gabungan.csv'
         output_csv = 'data/Tarikan_DRG_RS_Okt_Jun.csv'
     
     if not os.path.exists(input_csv):
