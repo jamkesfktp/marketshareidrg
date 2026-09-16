@@ -7691,7 +7691,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       if (stack) {
         // Tabel simulasi per layanan harus dibaca lebih dahulu sebelum rekap total.
         // Sisipkan tepat di depan slide rekap, bukan di ujung seluruh presentasi.
-        const recapSection = stack.querySelector('[data-slide="18"]');
+        const recapSection = stack.querySelector('[data-slide="19"]');
         stack.insertBefore(container, recapSection || null);
       } else {
         return;
