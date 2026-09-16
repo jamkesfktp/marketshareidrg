@@ -17445,6 +17445,7 @@
 
   var html2canvasExports = requireHtml2canvas();
   var html2canvas = /*@__PURE__*/getDefaultExportFromCjs(html2canvasExports);
+  window.html2canvas = html2canvas;
 
   var opentype$1 = {exports: {}};
 
