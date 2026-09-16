@@ -3297,6 +3297,22 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     D: { 4: [0.04555842, 0.3723, 0.395], 3: [0.09527512, 0.61612735, 0.6732], 2: [0.17937517, 0.56135706, 0.6148], 1: [0.04377, 0.3779, 0.3986] }
   };
 
+  function hospitalRegional(province) {
+    const p = String(province || "").toUpperCase();
+    if (/ACEH|SUMATERA|RIAU|JAMBI|BENGKULU|LAMPUNG|BANGKA|KEPULAUAN RIAU/.test(p)) return "Sumatera";
+    if (/JAWA|BANTEN|BALI|DKI/.test(p)) return "Jawa & Bali";
+    if (/KALIMANTAN/.test(p)) return "Kalimantan";
+    if (/SULAWESI/.test(p)) return "Sulawesi";
+    if (/NUSA TENGGARA|MALUKU|PAPUA/.test(p)) return "Nusa Tenggara, Maluku & Papua";
+    return "Lainnya";
+  }
+
+  function hospitalOwnership(hospital) {
+    if (hospital.ownership) return hospital.ownership;
+    // Dataset agregat tidak memuat atribut kepemilikan; klasifikasi ini hanya untuk tampilan ringkas.
+    return /^(RSUD|RSUP|RSJ\b|RSP\b|RSK\b)/i.test(String(hospital.name || "")) ? "Pemerintah" : "Swasta";
+  }
+
   function hospitalSpendingRow(hospital) {
     const cls = String(hospital.class || "D").trim().toUpperCase();
     const ratiosByLevel = HOSPITAL_SPENDING_RATIOS[cls] || HOSPITAL_SPENDING_RATIOS.D;
@@ -3314,6 +3330,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const rj = [total[0] - ri[0], total[1] - ri[1], total[2] - ri[2]];
     const values = {
       code: hospital.code || "-", name: hospital.name || "-", city: hospital.city || "-", hospitalClass: cls,
+      ownership: hospitalOwnership(hospital), regional: hospitalRegional(hospital.province),
       rjCases: rj[0], riCases: ri[0], totalCases: total[0],
       rjIna: rj[1], riIna: ri[1], totalIna: total[1],
       rjIdrg: rj[2], riIdrg: ri[2], totalIdrg: total[2],
@@ -3328,26 +3345,26 @@ document.getElementById("globalSimulationSlide").innerHTML = `
   function exportHospitalSpendingExcel(rows) {
     if (!window.XLSX?.utils) throw new Error("Library Excel belum tersedia.");
     const XLSX = window.XLSX;
-    const header1 = ["Kode RS", "Nama RS", "Kab/Kota", "Total Kasus", "", "", "Tarif INA-CBG (Rp Miliar)", "", "", "Tarif iDRG (Rp Miliar)", "", "", "Selisih (Rp Miliar)", "", "", "Perubahan (%)", "", ""];
-    const header2 = ["", "", "", "Rawat Jalan", "Rawat Inap", "Rawat Jalan & Rawat Inap", "Rawat Jalan", "Rawat Inap", "Rawat Jalan & Rawat Inap", "Rawat Jalan", "Rawat Inap", "Rawat Jalan & Rawat Inap", "Rawat Jalan", "Rawat Inap", "Rawat Jalan & Rawat Inap", "Rawat Jalan", "Rawat Inap", "Rawat Jalan & Rawat Inap"];
-    const body = rows.map((r) => [r.code, r.name, r.city, r.rjCases, r.riCases, r.totalCases, r.rjIna / 1e9, r.riIna / 1e9, r.totalIna / 1e9, r.rjIdrg / 1e9, r.riIdrg / 1e9, r.totalIdrg / 1e9, r.rjDiff / 1e9, r.riDiff / 1e9, r.totalDiff / 1e9, r.rjPct, r.riPct, r.totalPct]);
+    const header1 = ["Kode RS", "Nama RS", "Kab/Kota", "Kelas RS", "Kepemilikan", "Regional", "Total Kasus", "", "", "Tarif INA-CBG (Rp Miliar)", "", "", "Tarif iDRG (Rp Miliar)", "", "", "Selisih (Rp Miliar)", "", "", "Perubahan (%)", "", ""];
+    const header2 = ["", "", "", "", "", "", "Rawat Jalan", "Rawat Inap", "Rawat Jalan & Rawat Inap", "Rawat Jalan", "Rawat Inap", "Rawat Jalan & Rawat Inap", "Rawat Jalan", "Rawat Inap", "Rawat Jalan & Rawat Inap", "Rawat Jalan", "Rawat Inap", "Rawat Jalan & Rawat Inap", "Rawat Jalan", "Rawat Inap", "Rawat Jalan & Rawat Inap"];
+    const body = rows.map((r) => [r.code, r.name, r.city, r.hospitalClass, r.ownership, r.regional, r.rjCases, r.riCases, r.totalCases, r.rjIna / 1e9, r.riIna / 1e9, r.totalIna / 1e9, r.rjIdrg / 1e9, r.riIdrg / 1e9, r.totalIdrg / 1e9, r.rjDiff / 1e9, r.riDiff / 1e9, r.totalDiff / 1e9, r.rjPct, r.riPct, r.totalPct]);
     const ws = XLSX.utils.aoa_to_sheet([["SPENDING iDRG PER RUMAH SAKIT"], ["Periode dan skenario tarif mengikuti filter aktif pada dashboard"], [], header1, header2, ...body]);
-    ws["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 17 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: 17 } }, ...[0, 1, 2].map(c => ({ s: { r: 3, c }, e: { r: 4, c } })), ...[3, 6, 9, 12, 15].map(c => ({ s: { r: 3, c }, e: { r: 3, c: c + 2 } }))];
-    ws["!cols"] = [14, 42, 22, ...Array(15).fill(18)].map(wch => ({ wch }));
-    ws["!freeze"] = { xSplit: 3, ySplit: 5 };
-    for (let c = 0; c < 18; c++) {
+    ws["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 20 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: 20 } }, ...[0, 1, 2, 3, 4, 5].map(c => ({ s: { r: 3, c }, e: { r: 4, c } })), ...[6, 9, 12, 15, 18].map(c => ({ s: { r: 3, c }, e: { r: 3, c: c + 2 } }))];
+    ws["!cols"] = [14, 42, 22, 11, 16, 28, ...Array(15).fill(18)].map(wch => ({ wch }));
+    ws["!freeze"] = { xSplit: 6, ySplit: 5 };
+    for (let c = 0; c < 21; c++) {
       ["A1", "A2"].forEach(ref => { if (ws[ref]) ws[ref].s = { font: { bold: true, color: { rgb: "FFFFFF" }, sz: ref === "A1" ? 15 : 10 }, fill: { fgColor: { rgb: ref === "A1" ? "0F766E" : "0D9488" } }, alignment: { vertical: "center" } }; });
-      [3, 4].forEach(row => { const ref = XLSX.utils.encode_cell({ r: row, c }); if (ws[ref]) ws[ref].s = { font: { bold: true, color: { rgb: "FFFFFF" }, sz: 9 }, fill: { fgColor: { rgb: c < 3 ? "115E59" : c < 6 ? "0369A1" : c < 9 ? "15803D" : c < 12 ? "7C3AED" : c < 15 ? "B45309" : "BE185D" } }, alignment: { horizontal: "center", vertical: "center", wrapText: true } }; });
+      [3, 4].forEach(row => { const ref = XLSX.utils.encode_cell({ r: row, c }); if (ws[ref]) ws[ref].s = { font: { bold: true, color: { rgb: "FFFFFF" }, sz: 9 }, fill: { fgColor: { rgb: c < 6 ? "115E59" : c < 9 ? "0369A1" : c < 12 ? "15803D" : c < 15 ? "7C3AED" : c < 18 ? "B45309" : "BE185D" } }, alignment: { horizontal: "center", vertical: "center", wrapText: true } }; });
     }
     for (let row = 5; row < body.length + 5; row++) for (let c = 0; c < 18; c++) {
       const cell = ws[XLSX.utils.encode_cell({ r: row, c })];
       if (!cell) continue;
-      cell.s = cell.s || {}; cell.s.alignment = { horizontal: c < 3 ? "left" : "right", vertical: "center" };
-      if (c >= 3 && c <= 5) cell.z = "#,##0";
-      if (c >= 6 && c <= 14) cell.z = '#,##0.000;[Red]-#,##0.000';
-      if (c >= 15) cell.z = '0.00%;[Red]-0.00%';
+      cell.s = cell.s || {}; cell.s.alignment = { horizontal: c < 6 ? "left" : "right", vertical: "center" };
+      if (c >= 6 && c <= 8) cell.z = "#,##0";
+      if (c >= 9 && c <= 17) cell.z = '#,##0.000;[Red]-#,##0.000';
+      if (c >= 18) cell.z = '0.00%;[Red]-0.00%';
     }
-    ws["!autofilter"] = { ref: `A5:R${body.length + 5}` };
+    ws["!autofilter"] = { ref: `A5:U${body.length + 5}` };
     const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Spending per RS");
     XLSX.writeFile(wb, `Spending_iDRG_per_RS_${activeDatasetKey}_${new Date().toISOString().slice(0, 10)}.xlsx`, { compression: true });
   }
@@ -3366,7 +3383,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const pct = v => `${v >= 0 ? "+" : ""}${(v * 100).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
     const head = (label, key) => `<button type="button" data-sort="${key}" style="border:0;background:transparent;color:inherit;font:inherit;font-weight:800;cursor:pointer;padding:0;white-space:nowrap;">${label} ${ui.sort === key ? (ui.direction === "asc" ? "↑" : "↓") : "↕"}</button>`;
     const moneyCells = (r, prefix, kind) => ["rj", "ri", "total"].map(p => `<td>${kind === "pct" ? pct(r[`${p}Pct`]) : kind === "diff" ? money(r[`${p}Diff`]) : kind === "ina" ? money(r[`${p}Ina`]) : money(r[`${p}Idrg`])}</td>`).join("");
-    container.innerHTML = `<div style="height:100%;display:flex;flex-direction:column;gap:9px;font-family:'Plus Jakarta Sans',sans-serif;"><div style="display:flex;align-items:center;gap:10px;"><div style="font-size:14px;font-weight:850;color:#0f766e;flex:1;">Rincian spending per rumah sakit <span style="font-size:11px;color:#64748b;font-weight:650;">${formatNumber(filtered.length)} RS · sesuai filter aktif</span></div><input id="hospitalSpendingSearch" value="${escapeHtml(ui.query)}" placeholder="Cari kode, nama, atau kab/kota…" style="width:290px;padding:7px 10px;border:1px solid #94a3b8;border-radius:7px;font-size:11px;"><button id="hospitalSpendingExcel" type="button" style="border:0;background:#15803d;color:#fff;border-radius:7px;padding:8px 12px;font-size:11px;font-weight:800;cursor:pointer;">⬇ Download Excel</button></div><div style="flex:1;min-height:0;overflow:auto;border:1px solid #cbd5e1;border-radius:9px;"><table style="border-collapse:collapse;width:100%;font-size:10px;white-space:nowrap;"><thead style="position:sticky;top:0;z-index:2;color:#fff;text-align:center;"><tr style="background:#0f766e;"><th rowspan="2">${head("Kode RS", "code")}</th><th rowspan="2">${head("Nama RS", "name")}</th><th rowspan="2">${head("Kab/Kota", "city")}</th><th colspan="3" style="background:#0369a1">Total Kasus</th><th colspan="3" style="background:#15803d">Tarif INA-CBG (Rp Miliar)</th><th colspan="3" style="background:#7c3aed">Tarif iDRG (Rp Miliar)</th><th colspan="3" style="background:#b45309">Selisih (Rp Miliar)</th><th colspan="3" style="background:#be185d">Perubahan (%)</th></tr><tr style="background:#134e4a;">${["rjCases", "riCases", "totalCases", "rjIna", "riIna", "totalIna", "rjIdrg", "riIdrg", "totalIdrg", "rjDiff", "riDiff", "totalDiff", "rjPct", "riPct", "totalPct"].map((key, i) => `<th>${head(["Rawat Jalan", "Rawat Inap", "RJ & RI"][i % 3], key)}</th>`).join("")}</tr></thead><tbody>${shown.map((r, i) => `<tr style="background:${i % 2 ? "#f8fafc" : "#fff"};"><td>${escapeHtml(r.code)}</td><td style="font-weight:750;max-width:280px;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(r.name)}</td><td>${escapeHtml(r.city)}</td><td>${formatNumber(r.rjCases)}</td><td>${formatNumber(r.riCases)}</td><td style="font-weight:800">${formatNumber(r.totalCases)}</td>${moneyCells(r, "", "ina")}${moneyCells(r, "", "idrg")}${moneyCells(r, "", "diff")}${moneyCells(r, "", "pct")}</tr>`).join("") || `<tr><td colspan="18" style="padding:22px;text-align:center;color:#64748b;">Tidak ada rumah sakit sesuai pencarian.</td></tr>`}</tbody></table></div><div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#475569;"><span>Menampilkan ${filtered.length ? ui.page * pageSize + 1 : 0}–${Math.min((ui.page + 1) * pageSize, filtered.length)} dari ${formatNumber(filtered.length)} RS</span><span style="display:flex;gap:6px;align-items:center;"><button id="hospitalSpendingPrev" ${ui.page === 0 ? "disabled" : ""}>← Sebelumnya</button><b>Halaman ${ui.page + 1}/${pages}</b><button id="hospitalSpendingNext" ${ui.page >= pages - 1 ? "disabled" : ""}>Berikutnya →</button></span></div></div>`;
+    container.innerHTML = `<div style="height:100%;min-height:0;display:flex;flex-direction:column;gap:9px;font-family:'Plus Jakarta Sans',sans-serif;"><div style="display:flex;align-items:center;gap:10px;"><div style="font-size:14px;font-weight:850;color:#0f766e;flex:1;">Rincian spending per rumah sakit <span style="font-size:11px;color:#64748b;font-weight:650;">${formatNumber(filtered.length)} RS · sesuai filter aktif</span></div><input id="hospitalSpendingSearch" value="${escapeHtml(ui.query)}" placeholder="Cari kode, nama, atau kab/kota…" style="width:290px;padding:7px 10px;border:1px solid #94a3b8;border-radius:7px;font-size:11px;"><button id="hospitalSpendingExcel" type="button" style="border:0;background:#15803d;color:#fff;border-radius:7px;padding:8px 12px;font-size:11px;font-weight:800;cursor:pointer;">⬇ Download Excel</button></div><div style="flex:1;min-height:0;overflow:auto;border:1px solid #cbd5e1;border-radius:9px;"><table style="border-collapse:collapse;width:100%;font-size:10px;white-space:nowrap;"><thead style="position:sticky;top:0;z-index:2;color:#fff;text-align:center;"><tr style="background:#0f766e;"><th rowspan="2">${head("Kode RS", "code")}</th><th rowspan="2">${head("Nama RS", "name")}</th><th rowspan="2">${head("Kab/Kota", "city")}</th><th rowspan="2">${head("Kelas RS", "hospitalClass")}</th><th rowspan="2">${head("Kepemilikan", "ownership")}</th><th rowspan="2">${head("Regional", "regional")}</th><th colspan="3" style="background:#0369a1">Total Kasus</th><th colspan="3" style="background:#15803d">Tarif INA-CBG (Rp Miliar)</th><th colspan="3" style="background:#7c3aed">Tarif iDRG (Rp Miliar)</th><th colspan="3" style="background:#b45309">Selisih (Rp Miliar)</th><th colspan="3" style="background:#be185d">Perubahan (%)</th></tr><tr style="background:#134e4a;">${["rjCases", "riCases", "totalCases", "rjIna", "riIna", "totalIna", "rjIdrg", "riIdrg", "totalIdrg", "rjDiff", "riDiff", "totalDiff", "rjPct", "riPct", "totalPct"].map((key, i) => `<th>${head(["Rawat Jalan", "Rawat Inap", "RJ & RI"][i % 3], key)}</th>`).join("")}</tr></thead><tbody>${shown.map((r, i) => `<tr style="background:${i % 2 ? "#f8fafc" : "#fff"};"><td>${escapeHtml(r.code)}</td><td style="font-weight:750;max-width:280px;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(r.name)}</td><td>${escapeHtml(r.city)}</td><td>${escapeHtml(r.hospitalClass)}</td><td>${escapeHtml(r.ownership)}</td><td>${escapeHtml(r.regional)}</td><td>${formatNumber(r.rjCases)}</td><td>${formatNumber(r.riCases)}</td><td style="font-weight:800">${formatNumber(r.totalCases)}</td>${moneyCells(r, "", "ina")}${moneyCells(r, "", "idrg")}${moneyCells(r, "", "diff")}${moneyCells(r, "", "pct")}</tr>`).join("") || `<tr><td colspan="21" style="padding:22px;text-align:center;color:#64748b;">Tidak ada rumah sakit sesuai pencarian.</td></tr>`}</tbody></table></div><div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#475569;"><span>Menampilkan ${filtered.length ? ui.page * pageSize + 1 : 0}–${Math.min((ui.page + 1) * pageSize, filtered.length)} dari ${formatNumber(filtered.length)} RS</span><span style="display:flex;gap:6px;align-items:center;"><button id="hospitalSpendingPrev" ${ui.page === 0 ? "disabled" : ""}>← Sebelumnya</button><b>Halaman ${ui.page + 1}/${pages}</b><button id="hospitalSpendingNext" ${ui.page >= pages - 1 ? "disabled" : ""}>Berikutnya →</button></span></div></div>`;
     container.querySelectorAll("th,td").forEach(cell => { cell.style.padding = "6px 7px"; cell.style.borderBottom = "1px solid #e2e8f0"; });
     container.querySelectorAll("[data-sort]").forEach(button => button.addEventListener("click", () => { const key = button.dataset.sort; ui.direction = ui.sort === key && ui.direction === "desc" ? "asc" : "desc"; ui.sort = key; ui.page = 0; renderNationalHospitalSpendingSlide(); }));
     container.querySelector("#hospitalSpendingSearch")?.addEventListener("input", event => { ui.query = event.target.value; ui.page = 0; renderNationalHospitalSpendingSlide(); });
