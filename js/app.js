@@ -7691,7 +7691,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       if (stack) {
         // Tabel simulasi per layanan harus dibaca lebih dahulu sebelum rekap total.
         // Sisipkan tepat di depan slide rekap, bukan di ujung seluruh presentasi.
-        const recapSection = stack.querySelector('[data-slide="19"]');
+        const recapSection = stack.querySelector('[data-slide="22"]');
         stack.insertBefore(container, recapSection || null);
       } else {
         return;
@@ -10220,7 +10220,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     sourceSlides.push(...allSlides.filter((slide) => slide.classList.contains("service-sim-slide")));
 
     // Rekap rentang dan rekap skenario logis selalu berada setelah semua tabel layanan.
-    appendStaticSlides(["18", "18-2", "18-3", "19", "19-2", "19-3", "22"]);
+    appendStaticSlides(["22"]);
     
     const target = targetHospital();
 

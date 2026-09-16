@@ -1767,7 +1767,7 @@
     }
 
     /* 5. Rekapitulasi simulasi (Bagian Akhir) */
-    buildLogicalRecapSlide(pptx, appStateWithIdx);
+    // buildLogicalRecapSlide(pptx, appStateWithIdx);
 
     /* 6. Slide Pamungkas (Dampak Skenario) */
     buildFinalSummarySlide(pptx, appStateWithIdx);
