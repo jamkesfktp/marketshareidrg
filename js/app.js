@@ -2599,6 +2599,11 @@ document.getElementById("globalSimulationSlide").innerHTML = `
                       <td style="padding: 7px 12px; text-align: right; font-variant-numeric: tabular-nums;">${r.pct.toFixed(2).replace('.', ',')}%</td>
                     </tr>
                   `).join('')}
+                  <tr style="background: #16a085; color: #ffffff; font-weight: 800; font-size: 13px;">
+                    <td style="padding: 7px 12px; border-right: 1px solid rgba(255,255,255,0.2);">TOTAL KASUS</td>
+                    <td style="padding: 7px 12px; text-align: right; border-right: 1px solid rgba(255,255,255,0.2); font-variant-numeric: tabular-nums;">${formatNumber(totalCases)}</td>
+                    <td style="padding: 7px 12px; text-align: right; font-variant-numeric: tabular-nums;">100,00%</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
