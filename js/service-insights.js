@@ -100,13 +100,25 @@
       var absDelta = Math.abs(insight.caseDelta);
       var pctStr = insight.casePct !== null ? ' (+'+fmtPct(insight.casePct*100)+'%)' : '';
       
+      var upgradeMsg = '';
+      if (insight.opportunity === 'upgrade') {
+        var nextComp = competency + 1;
+        var nextName = names[nextComp] || '';
+        upgradeMsg = ' Pertimbangkan juga peningkatan kompetensi ke ' + nextName + ' untuk menjangkau kasus dengan margin lebih baik.';
+      }
+
       if (insight.incomeDelta < 0) {
         var absIncome = Math.abs(insight.incomeDelta);
         var fmtMoneyM = function(n) { return (n/1000000).toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' M'; };
+        
+        if (insight.opportunity === 'upgrade') {
+          return 'Peningkatan kompetensi ke ' + names[competency + 1] + ' sangat disarankan! Peningkatan beban layanan ' + UP + ' ' + fmt(absDelta) + ' kasus' + pctStr + ' saat ini berisiko membebani RS akibat potensi penurunan pendapatan ' + DOWN + ' ' + fmtMoneyM(absIncome) + ', sehingga upgrade kompetensi dapat membuka peluang tarif yang lebih sesuai.';
+        }
+        
         return 'Perketat kendali mutu dan biaya (efisiensi layanan) serta evaluasi clinical pathway. Peningkatan beban layanan ' + UP + ' ' + fmt(absDelta) + ' kasus' + pctStr + ' berisiko membebani RS karena diiringi potensi penurunan total pendapatan ' + DOWN + ' ' + fmtMoneyM(absIncome) + '.';
       }
 
-      return 'Perhatikan kesiapan SDM, sarpras, dan logistik RS dalam merespons kenaikan pasien '+UP+' '+fmt(absDelta)+' kasus'+pctStr;
+      return 'Perhatikan kesiapan SDM, sarpras, dan logistik RS dalam merespons kenaikan pasien '+UP+' '+fmt(absDelta)+' kasus'+pctStr + '.' + upgradeMsg;
     }
 
     // Case 3: Paripurna RS under-utilizing available regional cases
@@ -131,7 +143,7 @@
       }
     }
 
-    // Case 5: Upgrade opportunity
+    // Case 5: Upgrade opportunity (Fallback if caseDelta == 0)
     if (insight.opportunity === 'upgrade') {
       var nextComp  = competency + 1;
       var nextName  = names[nextComp]  || '';
@@ -152,7 +164,10 @@
 
     // Case 6: Case decline
     if (insight.caseDelta < 0) {
-      return 'Sesuaikan alokasi SDM dan sarpras layanan '+service+' dengan penurunan pasien '+fmt(Math.abs(insight.caseDelta))+' kasus; pertimbangkan efisiensi biaya tetap.';
+      if (insight.opportunity === 'upgrade') {
+        return 'Pertimbangkan peningkatan kompetensi ke ' + names[competency + 1] + ' untuk mengkompensasi potensi penurunan pasien ' + DOWN + ' ' + fmt(Math.abs(insight.caseDelta)) + ' kasus pada level saat ini.';
+      }
+      return 'Sesuaikan alokasi SDM dan sarpras layanan '+service+' dengan penurunan pasien '+DOWN+' '+fmt(Math.abs(insight.caseDelta))+' kasus; pertimbangkan efisiensi biaya tetap.';
     }
 
     // Case 7: Zero cases but regional pool exists
