@@ -112,7 +112,7 @@
         var fmtMoneyM = function(n) { return (n/1000000).toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' M'; };
         
         if (insight.opportunity === 'upgrade') {
-          return 'Peningkatan kompetensi ke ' + names[competency + 1] + ' sangat disarankan! Peningkatan beban layanan ' + UP + ' ' + fmt(absDelta) + ' kasus' + pctStr + ' saat ini berisiko membebani RS akibat potensi penurunan pendapatan ' + DOWN + ' ' + fmtMoneyM(absIncome) + ', sehingga upgrade kompetensi dapat membuka peluang tarif yang lebih sesuai.';
+          return 'Peningkatan kompetensi ke ' + names[competency + 1] + ' sangat disarankan! Peningkatan beban layanan ' + UP + ' ' + fmt(absDelta) + ' kasus' + pctStr + ' saat ini berisiko membebani RS akibat potensi penurunan pendapatan ' + DOWN + ' ' + fmtMoneyM(absIncome) + ', sehingga upgrade kompetensi dapat membuka peluang kenaikan pendapatan.';
         }
         
         return 'Perketat kendali mutu dan biaya (efisiensi layanan) serta evaluasi clinical pathway. Peningkatan beban layanan ' + UP + ' ' + fmt(absDelta) + ' kasus' + pctStr + ' berisiko membebani RS karena diiringi potensi penurunan total pendapatan ' + DOWN + ' ' + fmtMoneyM(absIncome) + '.';
