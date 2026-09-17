@@ -8069,11 +8069,11 @@ document.getElementById("globalSimulationSlide").innerHTML = `
               <div style="display:flex;align-items:center;justify-content:center;text-align:center;background-color:#0f766e;color:#fff;font-size:13px;font-weight:900;padding:10px;width:110px;min-width:110px;max-width:110px;box-sizing:border-box;line-height:1.3;flex-shrink:0;border-right:4px solid #087c7e;margin-left:10px;">Penerapan<br>iDRG+KRIS<br>+RBKP</div>
             </div>
 
-            <div class="service-rekbar">
-              <div class="service-rekbar-label">Rekomendasi</div>
-              <div class="service-rekbar-text">${escapeHtml(window.ServiceInsights.recommendation(formatService(service), targetCompetency, window.dynamicSimRecap[window.dynamicSimRecap.length - 1]))}</div>
-              <div class="service-rekbar-logo-wrap">
-                <img src="img/logo-kemenkes.png" alt="Kemenkes" class="service-rekbar-logo">
+            <div style="display:flex;align-items:stretch;gap:0;margin-top:10px;background:#fff;border:1px solid #cbd5e1;border-radius:0;min-height:80px;width:100%;box-sizing:border-box;">
+              <div style="flex-shrink:0;background:#0f766e;color:#cc0000;font-size:16px;font-weight:900;padding:14px 18px;text-align:center;line-height:1.25;display:flex;align-items:center;justify-content:center;width:130px;min-width:130px;max-width:130px;box-sizing:border-box;">Rekomendasi</div>
+              <div style="flex:1;font-size:26px;font-weight:900;color:#0f766e;padding:12px 20px;line-height:1.3;white-space:pre-line;display:flex;align-items:center;">${escapeHtml(window.ServiceInsights.recommendation(formatService(service), targetCompetency, window.dynamicSimRecap[window.dynamicSimRecap.length - 1]))}</div>
+              <div style="flex-shrink:0;display:flex;align-items:center;justify-content:center;padding:8px 18px;background:#fff;">
+                <img src="img/logo-kemenkes.png" alt="Kemenkes" style="width:120px;height:auto;object-fit:contain;">
               </div>
             </div>
 
