@@ -7673,7 +7673,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
             <td data-col="srv-nt-kasuspct" style="${cell}font-weight:800;color:${deltaCases >= 0 ? '#46ae7e' : '#cc0000'};"><span style="font-family: monospace; font-size: 11px;">${deltaCases >= 0 ? "▲ " : "▼ "}</span>${decimalFormatter.format(Math.abs(deltaCasesPct))}%</td>
             <td data-col="srv-nt-rp" style="${cell}font-weight:800;color:${deltaIncome >= 0 ? '#46ae7e' : '#cc0000'};"><span style="font-family: monospace; font-size: 11px;">${deltaIncome >= 0 ? "▲ " : "▼ "}</span>${formatTableMoney(Math.abs(deltaIncome))}</td>
             <td data-col="srv-nt-rppct" style="${cell}font-weight:800;color:${deltaIncome >= 0 ? '#46ae7e' : '#cc0000'};"><span style="font-family: monospace; font-size: 11px;">${deltaIncome >= 0 ? "▲ " : "▼ "}</span>${decimalFormatter.format(Math.abs(deltaIncomePct))}%</td></tr>`;
-        }).join('')}</tbody><tfoot><tr><td colspan="13" class="competition-footnote" style="padding:8px;text-align:left;font-size:11px;line-height:1.5;color:#334155;white-space:normal;"><b>REKOMENDASI</b>${window.ServiceInsights.recommendations(formatService(service), targetComp, window.dynamicSimRecap[window.dynamicSimRecap.length - 1]).map(text => `<p style="margin:7px 0;font-weight:700;">${escapeHtml(text)}</p>`).join("")}</td></tr></tfoot></table></div>`;
+        }).join('')}</tbody></table></div>`;
   }
 
   function renderServiceInsights(target, service, competency, simulation) {

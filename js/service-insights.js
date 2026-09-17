@@ -101,7 +101,7 @@
     if (insight.caseDelta > 0) {
       var absDelta = Math.abs(insight.caseDelta);
       var pctStr = insight.casePct !== null ? ' (+'+fmtPct(insight.casePct*100)+'%)' : '';
-      return 'Perhatikan kesiapan SDM, sarpras, dan logistik RS dalam merespons kenaikan pasien ▲ '+fmt(absDelta)+' kasus'+pctStr;
+      return 'Perhatikan kesiapan SDM, sarpras, dan logistik RS dalam merespons kenaikan pasien \u25b2 '+fmt(absDelta)+' kasus'+pctStr;
     }
 
     // ── Case 3: Paripurna RS under-utilizing available regional cases ────────
