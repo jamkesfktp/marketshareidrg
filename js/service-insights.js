@@ -109,7 +109,14 @@
 
       if (insight.incomeDelta < 0) {
         var absIncome = Math.abs(insight.incomeDelta);
-        var fmtMoneyM = function(n) { return (n/1000000).toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' M'; };
+        var fmtMoneyM = function(n) { 
+          var inMilyar = n / 1e9;
+          if (Math.abs(n) >= 1e9) {
+            return inMilyar.toLocaleString('id-ID', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' M';
+          } else {
+            return inMilyar.toLocaleString('id-ID', {minimumFractionDigits:3, maximumFractionDigits:3}) + ' M';
+          }
+        };
         
         if (insight.opportunity === 'upgrade') {
           return 'Peningkatan kompetensi ke ' + names[competency + 1] + ' sangat disarankan! Peningkatan beban layanan ' + UP + ' ' + fmt(absDelta) + ' kasus' + pctStr + ' saat ini berisiko membebani RS akibat potensi penurunan pendapatan ' + DOWN + ' ' + fmtMoneyM(absIncome) + ', sehingga upgrade kompetensi dapat membuka peluang kenaikan pendapatan.';
