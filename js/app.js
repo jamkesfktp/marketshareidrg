@@ -7646,7 +7646,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       projectedIdrg: results[0].projectedIdrg
     });
 
-    return `<div class="service-result-table"><button type="button" onclick="copyFullTable(this)" style="margin-bottom:6px;padding:5px 10px;border:1px solid #0f766e;background:white;color:#0f766e;border-radius:4px;cursor:pointer;font-size:12px;">Salin tabel · Century Gothic 8 pt</button><table style="width:100%;border-collapse:collapse;border:1px solid #1e293b;text-align:center;font-size:10px;">
+    return `<div class="service-result-table"><button type="button" data-html2canvas-ignore="true" onclick="copyFullTable(this)" style="margin-bottom:6px;padding:5px 10px;border:1px solid #0f766e;background:white;color:#0f766e;border-radius:4px;cursor:pointer;font-size:12px;">Salin tabel \u2014 Century Gothic 8 pt</button><table style="width:100%;border-collapse:collapse;border:1px solid #1e293b;text-align:center;font-size:10px;">
         <thead><tr>
           <th rowspan="2" style="border:1px solid #fff;padding:5px;background:#334155;color:#fff;">Eksisting Kasus &amp; Pendapatan<br>(Rp M)</th>
           <th colspan="3" style="border:1px solid #fff;padding:5px;background:#46ae7e;color:#fff;">Tambahan Kasus ${competencyLevelLabel}</th>
@@ -8002,25 +8002,25 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       const signed = (value, formatted) => `<span class="${value < 0 ? 'service-negative' : 'service-positive'}">${value < 0 ? '▼' : value > 0 ? '▲' : ''} ${formatted}</span>`;
       html += `
         <section class="slide service-sim-slide service-reference" data-slide="service-${idx + 1}" aria-labelledby="dynamicSlide${idx}Title">
-          <header class="service-report-header">
-            <h1 id="dynamicSlide${idx}Title">Simulasi Market Share - ${escapeHtml(service)}</h1>
-            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
-              <div class="service-period">Data Mirroring Uji Coba iDRG<br>periode 15 Okt 2025 - 14 Juni 2026</div>
-              <div style="background:#087c7e;color:#fff;font-size:12px;font-weight:800;padding:5px 14px;border-radius:5px;text-align:center;line-height:1.3;">Mirroring Inacbg dg<br>iDRG+KRIS</div>
-            </div>
-          </header>
-          <div class="slide-content service-report-content">
-
-            <div style="display:flex;gap:0;align-items:stretch;margin-bottom:10px;">
-              <div class="service-summary" style="flex:1;min-width:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;">
-                <div style="background-color:#f5f5f5;padding:14px 16px;display:flex;flex-direction:column;gap:4px;min-width:0;border-radius:2px;"><strong style="font-size:14px;color:#333;font-weight:700;">Total Kasus:</strong><b style="font-size:38px;font-weight:800;line-height:1.2;color:#128c89;white-space:nowrap;">${formatNumber(targetKasus)}</b><span style="font-size:13px;color:#777;font-weight:500;">Jumlah kasus eklaim</span></div>
-                <div style="background-color:#f5f5f5;padding:14px 16px;display:flex;flex-direction:column;gap:4px;min-width:0;border-radius:2px;"><strong style="font-size:14px;color:#333;font-weight:700;">Pendapatan INA CBGs:</strong><b style="font-size:38px;font-weight:800;line-height:1.2;color:#d97706;white-space:nowrap;">${formatMoneyM(targetExistingService[INA])}</b><span style="font-size:13px;color:#777;font-weight:500;">Dari data 8 bulan</span></div>
-                <div style="background-color:#f5f5f5;padding:14px 16px;display:flex;flex-direction:column;gap:4px;min-width:0;border-radius:2px;"><strong style="font-size:14px;color:#333;font-weight:700;">Pendapatan iDRG:</strong><b style="font-size:38px;font-weight:800;line-height:1.2;color:#bba62b;white-space:nowrap;">${formatMoneyM(targetExistingService[IDRG])}</b><span style="font-size:13px;color:#777;font-weight:500;">Klaim uji coba iDRG</span></div>
-                <div style="background-color:#f5f5f5;padding:14px 16px;display:flex;flex-direction:column;gap:4px;min-width:0;border-radius:2px;"><strong style="font-size:14px;color:#333;font-weight:700;">Selisih Pendapatan:</strong><b style="font-size:38px;font-weight:800;line-height:1.2;white-space:nowrap;">${signed(revenueDelta, formatMoneyM(Math.abs(revenueDelta)))}</b><span style="font-size:13px;color:#777;font-weight:500;">iDRG - INA CBGs</span></div>
-                <div style="background-color:#f5f5f5;padding:14px 16px;display:flex;flex-direction:column;gap:4px;min-width:0;border-radius:2px;"><strong style="font-size:14px;color:#333;font-weight:700;">Persentase:</strong><b style="font-size:38px;font-weight:800;line-height:1.2;white-space:nowrap;">${targetExistingService[INA] ? signed(revenueDelta, formatPercent(Math.abs(revenueDelta / targetExistingService[INA]))) : '\u2014'}</b><span style="font-size:13px;color:#777;font-weight:500;">Dari Pendapatan INACBG</span></div>
+            <header class="service-report-header">
+              <h1 id="dynamicSlide${idx}Title">Simulasi Market Share - ${escapeHtml(service)}</h1>
+              <div style="text-align:right;flex-shrink:0;min-width:260px;">
+                <div class="service-period" style="display:inline-block;white-space:nowrap;margin-bottom:6px;">Data Mirroring Uji Coba iDRG<br>periode 15 Okt 2025 - 14 Juni 2026</div><br>
+                <div style="display:inline-block;background:#087c7e;color:#fff;font-size:12px;font-weight:800;padding:5px 14px;border-radius:5px;text-align:center;line-height:1.3;white-space:nowrap;">Mirroring Inacbg dg<br>iDRG+KRIS</div>
               </div>
-              <div style="display:flex;align-items:center;justify-content:center;text-align:center;background-color:#0f766e;color:#fff;font-size:13px;font-weight:900;padding:10px;min-width:110px;line-height:1.3;flex-shrink:0;border-right:4px solid #087c7e;margin-left:10px;">Mirorring<br>Inacbg dg<br>iDRG+KRIS</div>
-            </div>
+            </header>
+            <div class="slide-content service-report-content">
+  
+              <div style="display:flex;gap:0;align-items:stretch;margin-bottom:10px;width:100%;box-sizing:border-box;">
+                <div class="service-summary" style="flex:1;display:flex;flex-wrap:nowrap;gap:10px;min-width:0;width:calc(100% - 130px);">
+                  <div style="flex:1;width:19%;box-sizing:border-box;background-color:#f5f5f5;padding:14px 16px;display:flex;flex-direction:column;gap:4px;border-radius:2px;"><strong style="font-size:14px;color:#333;font-weight:700;">Total Kasus:</strong><b style="font-size:38px;font-weight:800;line-height:1.2;color:#128c89;white-space:nowrap;">${formatNumber(targetKasus)}</b><span style="font-size:13px;color:#777;font-weight:500;">Jumlah kasus eklaim</span></div>
+                  <div style="flex:1;width:19%;box-sizing:border-box;background-color:#f5f5f5;padding:14px 16px;display:flex;flex-direction:column;gap:4px;border-radius:2px;"><strong style="font-size:14px;color:#333;font-weight:700;">Pendapatan INA CBGs:</strong><b style="font-size:38px;font-weight:800;line-height:1.2;color:#d97706;white-space:nowrap;">${formatMoneyM(targetExistingService[INA])}</b><span style="font-size:13px;color:#777;font-weight:500;">Dari data 8 bulan</span></div>
+                  <div style="flex:1;width:19%;box-sizing:border-box;background-color:#f5f5f5;padding:14px 16px;display:flex;flex-direction:column;gap:4px;border-radius:2px;"><strong style="font-size:14px;color:#333;font-weight:700;">Pendapatan iDRG:</strong><b style="font-size:38px;font-weight:800;line-height:1.2;color:#bba62b;white-space:nowrap;">${formatMoneyM(targetExistingService[IDRG])}</b><span style="font-size:13px;color:#777;font-weight:500;">Klaim uji coba iDRG</span></div>
+                  <div style="flex:1;width:19%;box-sizing:border-box;background-color:#f5f5f5;padding:14px 16px;display:flex;flex-direction:column;gap:4px;border-radius:2px;"><strong style="font-size:14px;color:#333;font-weight:700;">Selisih Pendapatan:</strong><b style="font-size:38px;font-weight:800;line-height:1.2;white-space:nowrap;">${signed(revenueDelta, formatMoneyM(Math.abs(revenueDelta)))}</b><span style="font-size:13px;color:#777;font-weight:500;">iDRG - INA CBGs</span></div>
+                  <div style="flex:1;width:19%;box-sizing:border-box;background-color:#f5f5f5;padding:14px 16px;display:flex;flex-direction:column;gap:4px;border-radius:2px;"><strong style="font-size:14px;color:#333;font-weight:700;">Persentase:</strong><b style="font-size:38px;font-weight:800;line-height:1.2;white-space:nowrap;">${targetExistingService[INA] ? signed(revenueDelta, formatPercent(Math.abs(revenueDelta / targetExistingService[INA]))) : '\u2014'}</b><span style="font-size:13px;color:#777;font-weight:500;">Dari Pendapatan INACBG</span></div>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:center;text-align:center;background-color:#0f766e;color:#fff;font-size:13px;font-weight:900;padding:10px;width:110px;min-width:110px;max-width:110px;box-sizing:border-box;line-height:1.3;flex-shrink:0;border-right:4px solid #087c7e;margin-left:10px;">Mirorring<br>Inacbg dg<br>iDRG+KRIS</div>
+              </div>
 
             ${(() => {
               const rules = getLevelRules(targetCompetency, service);
@@ -8066,7 +8066,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
 
             <div style="display:flex;gap:0;align-items:stretch;">
               <div style="flex:1;min-width:0;">${serviceTable}</div>
-              <div style="display:flex;align-items:center;justify-content:center;text-align:center;background-color:#0f766e;color:#fff;font-size:13px;font-weight:900;padding:10px;min-width:110px;line-height:1.3;flex-shrink:0;border-right:4px solid #087c7e;margin-left:10px;">Penerapan<br>iDRG+KRIS<br>+RBKP</div>
+              <div style="display:flex;align-items:center;justify-content:center;text-align:center;background-color:#0f766e;color:#fff;font-size:13px;font-weight:900;padding:10px;width:110px;min-width:110px;max-width:110px;box-sizing:border-box;line-height:1.3;flex-shrink:0;border-right:4px solid #087c7e;margin-left:10px;">Penerapan<br>iDRG+KRIS<br>+RBKP</div>
             </div>
 
             <div class="service-rekbar">
