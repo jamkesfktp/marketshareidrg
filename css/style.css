@@ -1607,14 +1607,14 @@ body.simulator-app {
 
 /* Per-service report matching the compact market-share reference. */
 .slide.service-reference { padding: 0 !important; background: #fff; }
-.service-report-header { background: #16afaa; border-bottom: 9px solid #ccd32d; min-height: 78px; padding: 12px 28px; display:flex; align-items:center; justify-content:space-between; gap:20px; }
+.service-report-header { background: #0f766e; border-bottom: 9px solid #ccd32d; min-height: 78px; padding: 12px 28px; display:flex; align-items:center; justify-content:space-between; gap:20px; }
 .service-report-header h1 { margin:0; color:white; font-size:28px; line-height:1.2; }
 .service-period { flex-shrink:0; border-radius:40px; background:#c00; color:white; padding:7px 18px; font-size:14px; font-weight:750; line-height:1.25; }
 .service-reference .service-report-content { padding:16px 38px 20px; height:calc(100% - 78px); overflow:auto; }
-.service-summary { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; margin-bottom:20px; }
-.service-summary > div { background:#efefef; padding:14px 13px; display:flex; flex-direction:column; gap:7px; min-width:0; }
+.service-summary { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; margin-bottom:0; }
+.service-summary > div { background:#fff; padding:14px 13px; display:flex; flex-direction:column; gap:7px; min-width:0; border:1px solid #e2e8f0; border-radius:6px; box-shadow:0 1px 4px rgba(0,0,0,.07); }
 .service-summary strong { font-size:17px; color:#383838; }
-.service-summary b { font-size:30px; line-height:1.2; color:#087c7e; white-space:nowrap; }
+.service-summary b { font-size:34px; line-height:1.2; color:#087c7e; white-space:nowrap; }
 .service-summary > div:nth-child(2) b { color:#df8834; }
 .service-summary > div:nth-child(3) b { color:#b8b52b; }
 .service-summary > div > span { font-size:15px; color:#525252; }
@@ -1660,8 +1660,11 @@ body.simulator-app {
 @media(max-width:800px) { .service-insight-grid { grid-template-columns:1fr; } }
 
 /* -- Recommendation bottom bar (matches reference slide design) -- */
-.service-rekbar { display:flex; align-items:center; gap:0; margin-top:10px; background:#e8f5f0; border:1px solid #b0d8cc; border-radius:4px; overflow:hidden; min-height:56px; }
-.service-rekbar-label { flex-shrink:0; background:#c00; color:#fff; font-size:13px; font-weight:900; padding:10px 14px; writing-mode:horizontal-tb; text-align:center; line-height:1.25; align-self:stretch; display:flex; align-items:center; justify-content:center; border-right:2px solid #a00; min-width:90px; }
-.service-rekbar-text { flex:1; font-size:17px; font-weight:800; color:#0f172a; padding:10px 18px; line-height:1.4; white-space:pre-line; }
-.service-rekbar-logo { flex-shrink:0; height:52px; width:auto; object-fit:contain; padding:4px 12px 4px 6px; opacity:0.92; }
-@media(max-width:700px) { .service-rekbar { flex-wrap:wrap; } .service-rekbar-text { font-size:14px; } }
+.service-rekbar { display:flex; align-items:center; gap:0; margin-top:10px; background:#0f766e; border-radius:6px; overflow:hidden; min-height:80px; }
+.service-rekbar-label { flex-shrink:0; background:#cc0000; color:#fff; font-size:15px; font-weight:900; font-style:italic; padding:14px 18px; writing-mode:horizontal-tb; text-align:center; line-height:1.25; align-self:stretch; display:flex; align-items:center; justify-content:center; min-width:110px; }
+.service-rekbar-text { flex:1; font-size:26px; font-weight:900; color:#fff; padding:12px 20px; line-height:1.3; white-space:pre-line; }
+.service-rekbar-logo-wrap { flex-shrink:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:8px 16px 8px 8px; gap:4px; }
+.service-rekbar-logo { height:48px; width:auto; object-fit:contain; filter:brightness(0) invert(1); }
+.service-rekbar-logo-label { color:#fff; font-size:13px; font-weight:900; letter-spacing:0.5px; }
+@media(max-width:700px) { .service-rekbar { flex-wrap:wrap; } .service-rekbar-text { font-size:18px; } }
+
