@@ -7996,15 +7996,18 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       const caseDelta = simulation.projectedCases - simulation.baselineCases;
       const incomeDelta = simulation.projectedIdrg - simulation.baselineIna;
       const casePct = simulation.baselineCases ? Math.abs(caseDelta / simulation.baselineCases) : 0;
-      const counts = [1, 2, 3, 4].map(level => data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) === level).length);
+      const counts = [1, 2, 3, 4].map(level => data.hospitals.filter(h => h.code !== target.code && canServeLevel(getCompetency(h, service), level)).length);
       const regionalMetrics = [1, 2, 3, 4].map(level => severityMetric(data.regional.services[service], level));
       const revenueDelta = targetExistingService[IDRG] - targetExistingService[INA];
       const signed = (value, formatted) => `<span class="${value < 0 ? 'service-negative' : 'service-positive'}">${value < 0 ? '▼' : value > 0 ? '▲' : ''} ${formatted}</span>`;
       html += `
         <section class="slide service-sim-slide service-reference" data-slide="service-${idx + 1}" aria-labelledby="dynamicSlide${idx}Title">
           <header class="service-report-header">
-            <h1 id="dynamicSlide${idx}Title">Simulasi Kasus Market Share - ${escapeHtml(service)}</h1>
-            <div class="service-period">Data Mirroring Uji Coba iDRG<br>periode 15 Okt 2025 - 14 Juni 2026</div>
+            <h1 id="dynamicSlide${idx}Title">Simulasi Market Share - ${escapeHtml(service)}</h1>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
+              <div class="service-period">Data Mirroring Uji Coba iDRG<br>periode 15 Okt 2025 - 14 Juni 2026</div>
+              <div style="background:#087c7e;color:#fff;font-size:12px;font-weight:800;padding:5px 14px;border-radius:5px;text-align:center;line-height:1.3;">Mirroring Inacbg dg<br>iDRG+KRIS</div>
+            </div>
           </header>
           <div class="slide-content service-report-content">
             <div class="service-summary">
@@ -8024,15 +8027,65 @@ document.getElementById("globalSimulationSlide").innerHTML = `
                   ${targetCompetency !== actualCompetency ? `<span style="font-size:11px;font-weight:700;opacity:.9;">Aktual: ${escapeHtml(levelNames[actualCompetency] || 'Belum ditetapkan')}</span>` : ''}
                 </label>
               </th></tr>
-              <tr><th>/</th><th>Dasar</th><th>Madya</th><th>Utama</th><th>Paripurna</th><th>Total</th></tr></thead>
+              ${(() => {
+                const rules = getLevelRules(targetCompetency, service);
+                // Which RS competency levels can serve each case level (canServeLevel)
+                const serveLabels = {
+                  1: 'RS Dasar & Madya',
+                  2: 'RS Madya & Utama',
+                  3: 'RS Utama & Paripurna',
+                  4: 'RS Paripurna'
+                };
+                const colBg = (lvl) => rules.tambah.includes(lvl)
+                  ? 'background:#e8f5e9;color:#15803d;'
+                  : rules.kurang.includes(lvl)
+                    ? 'background:#fff0f0;color:#be123c;'
+                    : '';
+                const colLabel = (lvl) => rules.tambah.includes(lvl)
+                  ? `<div style="font-size:9px;font-weight:700;color:#15803d;margin-top:2px;">▲ Tambah</div>`
+                  : rules.kurang.includes(lvl)
+                    ? `<div style="font-size:9px;font-weight:700;color:#be123c;margin-top:2px;">▼ Kurang</div>`
+                    : `<div style="font-size:9px;color:#94a3b8;margin-top:2px;">—</div>`;
+                return `<tr>
+                  <th style="font-size:11px;color:#64748b;">Kasus Level</th>
+                  ${[1,2,3,4].map(lvl => `<th style="font-size:11px;${colBg(lvl)}">
+                    <div style="font-weight:800;">${levelNames[lvl]}</div>
+                    <div style="font-size:9px;font-weight:500;color:#64748b;margin-top:1px;">${serveLabels[lvl]}</div>
+                    ${colLabel(lvl)}
+                  </th>`).join('')}
+                  <th>Total</th>
+                </tr>`;
+              })()}
+              </thead>
               <tbody>
-                <tr><th>Jumlah RS Kompetitor</th>${counts.map(n => `<td>${formatNumber(n)}</td>`).join('')}<td>${formatNumber(counts.reduce((a,b) => a+b,0))}</td></tr>
-                <tr><th>Jumlah Kasus Regional</th>${regionalMetrics.map(m => `<td>${formatNumber(m[CASES])}</td>`).join('')}<td>${formatNumber(regionalKasus)}</td></tr>
-                <tr><th>Spending iDRG Regional</th>${regionalMetrics.map(m => `<td>${formatMoneyM(m[IDRG])}</td>`).join('')}<td>${formatMoneyM(regionalExistingService[IDRG])}</td></tr>
+                <tr><th>Jumlah RS Kompetitor</th>${[1,2,3,4].map((lvl, i) => {
+                  const rules = getLevelRules(targetCompetency, service);
+                  const bg = rules.tambah.includes(lvl) ? 'background:#f0fdf4;font-weight:900;color:#15803d;' : rules.kurang.includes(lvl) ? 'background:#fff5f5;font-weight:900;color:#be123c;' : '';
+                  return `<td style="${bg}">${formatNumber(counts[i])}</td>`;
+                }).join('')}<td>${formatNumber(data.hospitals.filter(h => h.code !== target.code && [1,2,3,4].some(lvl => canServeLevel(getCompetency(h, service), lvl))).length)}</td></tr>
+                <tr><th>Jumlah Kasus Regional</th>${regionalMetrics.map((m, i) => {
+                  const lvl = i + 1;
+                  const rules = getLevelRules(targetCompetency, service);
+                  const bg = rules.tambah.includes(lvl) ? 'background:#f0fdf4;font-weight:900;color:#15803d;' : rules.kurang.includes(lvl) ? 'background:#fff5f5;font-weight:900;color:#be123c;' : '';
+                  return `<td style="${bg}">${formatNumber(m[CASES])}</td>`;
+                }).join('')}<td>${formatNumber(regionalKasus)}</td></tr>
+                <tr><th>Spending iDRG Regional</th>${regionalMetrics.map((m, i) => {
+                  const lvl = i + 1;
+                  const rules = getLevelRules(targetCompetency, service);
+                  const bg = rules.tambah.includes(lvl) ? 'background:#f0fdf4;' : rules.kurang.includes(lvl) ? 'background:#fff5f5;' : '';
+                  return `<td style="${bg}">${formatMoneyM(m[IDRG])}</td>`;
+                }).join('')}<td>${formatMoneyM(regionalExistingService[IDRG])}</td></tr>
               </tbody>
             </table>
-            ${serviceTable}
-            ${renderServiceInsights(target, service, targetCompetency, simulation)}
+            <div style="display:flex;gap:0;align-items:stretch;">
+              <div style="flex:1;min-width:0;">${serviceTable}</div>
+              <div style="display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);background:#087c7e;color:#fff;font-size:13px;font-weight:900;padding:10px 6px;min-width:38px;letter-spacing:1px;white-space:nowrap;border-left:3px solid #ccd32d;">Penerapan iDRG+KRIS+RBKP</div>
+            </div>
+            <div class="service-rekbar">
+              <div class="service-rekbar-label">Rekomendasi</div>
+              <div class="service-rekbar-text">${escapeHtml(window.ServiceInsights.recommendation(formatService(service), targetCompetency, window.dynamicSimRecap[window.dynamicSimRecap.length - 1]))}</div>
+              <img src="img/logo-kemenkes.png" alt="Kemenkes" class="service-rekbar-logo">
+            </div>
           </div>
         </section>
       `;
