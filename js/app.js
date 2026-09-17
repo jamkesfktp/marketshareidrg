@@ -8004,7 +8004,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         <section class="slide service-sim-slide service-reference" data-slide="service-${idx + 1}" aria-labelledby="dynamicSlide${idx}Title">
             <header class="service-report-header">
               <h1 id="dynamicSlide${idx}Title">Simulasi Market Share - ${escapeHtml(service)}</h1>
-              <div style="text-align:right;flex-shrink:0;min-width:260px;">
+              <div style="text-align:right;flex-shrink:0;min-width:290px;">
                 <div class="service-period" style="display:inline-block;white-space:nowrap;margin-bottom:6px;">Data Mirroring Uji Coba iDRG<br>periode 15 Okt 2025 - 14 Juni 2026</div><br>
                 <div style="display:inline-block;background:#087c7e;color:#fff;font-size:12px;font-weight:800;padding:5px 14px;border-radius:5px;text-align:center;line-height:1.3;white-space:nowrap;">Mirroring Inacbg dg<br>iDRG+KRIS</div>
               </div>
@@ -8012,14 +8012,14 @@ document.getElementById("globalSimulationSlide").innerHTML = `
             <div class="slide-content service-report-content">
   
               <div style="display:flex;gap:0;align-items:stretch;margin-bottom:10px;width:100%;box-sizing:border-box;">
-                <div class="service-summary" style="flex:1;display:flex;flex-wrap:nowrap;gap:10px;min-width:0;width:calc(100% - 130px);">
+                <div class="service-summary" style="flex:1;display:flex;flex-wrap:nowrap;gap:10px;min-width:0;width:calc(100% - 150px);">
                   <div style="flex:1;width:19%;box-sizing:border-box;background-color:#f5f5f5;padding:14px 16px;display:flex;flex-direction:column;gap:4px;border-radius:2px;"><strong style="font-size:14px;color:#333;font-weight:700;">Total Kasus:</strong><b style="font-size:38px;font-weight:800;line-height:1.2;color:#128c89;white-space:nowrap;">${formatNumber(targetKasus)}</b><span style="font-size:13px;color:#777;font-weight:500;">Jumlah kasus eklaim</span></div>
                   <div style="flex:1;width:19%;box-sizing:border-box;background-color:#f5f5f5;padding:14px 16px;display:flex;flex-direction:column;gap:4px;border-radius:2px;"><strong style="font-size:14px;color:#333;font-weight:700;">Pendapatan INA CBGs:</strong><b style="font-size:38px;font-weight:800;line-height:1.2;color:#d97706;white-space:nowrap;">${formatMoneyM(targetExistingService[INA])}</b><span style="font-size:13px;color:#777;font-weight:500;">Dari data 8 bulan</span></div>
                   <div style="flex:1;width:19%;box-sizing:border-box;background-color:#f5f5f5;padding:14px 16px;display:flex;flex-direction:column;gap:4px;border-radius:2px;"><strong style="font-size:14px;color:#333;font-weight:700;">Pendapatan iDRG:</strong><b style="font-size:38px;font-weight:800;line-height:1.2;color:#bba62b;white-space:nowrap;">${formatMoneyM(targetExistingService[IDRG])}</b><span style="font-size:13px;color:#777;font-weight:500;">Klaim uji coba iDRG</span></div>
                   <div style="flex:1;width:19%;box-sizing:border-box;background-color:#f5f5f5;padding:14px 16px;display:flex;flex-direction:column;gap:4px;border-radius:2px;"><strong style="font-size:14px;color:#333;font-weight:700;">Selisih Pendapatan:</strong><b style="font-size:38px;font-weight:800;line-height:1.2;white-space:nowrap;">${signed(revenueDelta, formatMoneyM(Math.abs(revenueDelta)))}</b><span style="font-size:13px;color:#777;font-weight:500;">iDRG - INA CBGs</span></div>
                   <div style="flex:1;width:19%;box-sizing:border-box;background-color:#f5f5f5;padding:14px 16px;display:flex;flex-direction:column;gap:4px;border-radius:2px;"><strong style="font-size:14px;color:#333;font-weight:700;">Persentase:</strong><b style="font-size:38px;font-weight:800;line-height:1.2;white-space:nowrap;">${targetExistingService[INA] ? signed(revenueDelta, formatPercent(Math.abs(revenueDelta / targetExistingService[INA]))) : '\u2014'}</b><span style="font-size:13px;color:#777;font-weight:500;">Dari Pendapatan INACBG</span></div>
                 </div>
-                <div style="display:flex;align-items:center;justify-content:center;text-align:center;background-color:#0f766e;color:#fff;font-size:13px;font-weight:900;padding:10px;width:110px;min-width:110px;max-width:110px;box-sizing:border-box;line-height:1.3;flex-shrink:0;border-right:4px solid #087c7e;margin-left:10px;">Mirorring<br>Inacbg dg<br>iDRG+KRIS</div>
+                <div style="display:flex;align-items:center;justify-content:center;text-align:center;background-color:#0f766e;color:#fff;font-size:13px;font-weight:900;padding:10px;width:140px;min-width:140px;max-width:140px;box-sizing:border-box;line-height:1.3;flex-shrink:0;border-right:4px solid #087c7e;margin-left:10px;">Mirorring<br>Inacbg dg<br>iDRG+KRIS</div>
               </div>
 
             ${(() => {
@@ -8066,11 +8066,11 @@ document.getElementById("globalSimulationSlide").innerHTML = `
 
             <div style="display:flex;gap:0;align-items:stretch;">
               <div style="flex:1;min-width:0;">${serviceTable}</div>
-              <div style="display:flex;align-items:center;justify-content:center;text-align:center;background-color:#0f766e;color:#fff;font-size:13px;font-weight:900;padding:10px;width:110px;min-width:110px;max-width:110px;box-sizing:border-box;line-height:1.3;flex-shrink:0;border-right:4px solid #087c7e;margin-left:10px;">Penerapan<br>iDRG+KRIS<br>+RBKP</div>
+              <div style="display:flex;align-items:center;justify-content:center;text-align:center;background-color:#0f766e;color:#fff;font-size:13px;font-weight:900;padding:10px;width:140px;min-width:140px;max-width:140px;box-sizing:border-box;line-height:1.3;flex-shrink:0;border-right:4px solid #087c7e;margin-left:10px;">Penerapan<br>iDRG+KRIS<br>+RBKP</div>
             </div>
 
             <div style="display:flex;align-items:stretch;gap:0;margin-top:10px;background:#fff;border:1px solid #cbd5e1;border-radius:0;min-height:80px;width:100%;box-sizing:border-box;">
-              <div style="flex-shrink:0;background:#0f766e;color:#cc0000;font-size:16px;font-weight:900;padding:14px 18px;text-align:center;line-height:1.25;display:flex;align-items:center;justify-content:center;width:130px;min-width:130px;max-width:130px;box-sizing:border-box;">Rekomendasi</div>
+              <div style="flex-shrink:0;background:#0f766e;color:#cc0000;font-size:16px;font-weight:900;padding:14px 18px;text-align:center;line-height:1.25;display:flex;align-items:center;justify-content:center;width:160px;min-width:160px;max-width:160px;box-sizing:border-box;">Rekomendasi</div>
               <div style="flex:1;font-size:26px;font-weight:900;color:#0f766e;padding:12px 20px;line-height:1.3;white-space:pre-line;display:flex;align-items:center;">${escapeHtml(window.ServiceInsights.recommendation(formatService(service), targetCompetency, window.dynamicSimRecap[window.dynamicSimRecap.length - 1]))}</div>
               <div style="flex-shrink:0;display:flex;align-items:center;justify-content:center;padding:8px 18px;background:#fff;">
                 <img src="img/logo-kemenkes.png" alt="Kemenkes" style="width:120px;height:auto;object-fit:contain;">
