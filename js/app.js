@@ -8014,12 +8014,12 @@ document.getElementById("globalSimulationSlide").innerHTML = `
             <div style="display:flex;gap:0;align-items:stretch;margin-bottom:10px;">
               <div class="service-summary" style="flex:1;min-width:0;">
                 <div><strong>Total Kasus:</strong><b>${formatNumber(targetKasus)}</b><span>Jumlah kasus eklaim</span></div>
-                <div><strong>Pendapatan INA CBGs:</strong><b style="color:#d97706;">${formatMoneyM(targetExistingService[INA])}</b><span>Dari data 8 bulan</span></div>
-                <div><strong>Pendapatan iDRG:</strong><b style="color:#d97706;">${formatMoneyM(targetExistingService[IDRG])}</b><span>Klaim uji coba iDRG</span></div>
+                <div><strong>Pendapatan INA CBGs:</strong><b>${formatMoneyM(targetExistingService[INA])}</b><span>Dari data 8 bulan</span></div>
+                <div><strong>Pendapatan iDRG:</strong><b>${formatMoneyM(targetExistingService[IDRG])}</b><span>Klaim uji coba iDRG</span></div>
                 <div><strong>Selisih Pendapatan:</strong><b>${signed(revenueDelta, formatMoneyM(Math.abs(revenueDelta)))}</b><span>iDRG - INA CBGs</span></div>
                 <div><strong>Persentase:</strong><b>${targetExistingService[INA] ? signed(revenueDelta, formatPercent(Math.abs(revenueDelta / targetExistingService[INA]))) : '\u2014'}</b><span>Dari Pendapatan INACBG</span></div>
               </div>
-              <div style="display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);background:#0f766e;color:#fff;font-size:12px;font-weight:900;padding:10px 7px;min-width:36px;letter-spacing:1px;white-space:nowrap;border-left:3px solid #ccd32d;flex-shrink:0;">Mirorring Inacbg dg iDRG+KRIS</div>
+              <div style="display:flex;align-items:center;justify-content:center;text-align:center;background:#0f766e;color:#fff;font-size:13px;font-weight:900;padding:10px;min-width:110px;line-height:1.3;flex-shrink:0;border-right:4px solid #087c7e;margin-left:10px;">Mirorring<br>Inacbg dg<br>iDRG+KRIS</div>
             </div>
 
             ${(() => {
@@ -8066,7 +8066,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
 
             <div style="display:flex;gap:0;align-items:stretch;">
               <div style="flex:1;min-width:0;">${serviceTable}</div>
-              <div style="display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);background:#0f766e;color:#fff;font-size:12px;font-weight:900;padding:10px 7px;min-width:36px;letter-spacing:1px;white-space:nowrap;border-left:3px solid #ccd32d;flex-shrink:0;">Penerapan iDRG+KRIS+RBKP</div>
+              <div style="display:flex;align-items:center;justify-content:center;text-align:center;background:#0f766e;color:#fff;font-size:13px;font-weight:900;padding:10px;min-width:110px;line-height:1.3;flex-shrink:0;border-right:4px solid #087c7e;margin-left:10px;">Penerapan<br>iDRG+KRIS<br>+RBKP</div>
             </div>
 
             <div class="service-rekbar">
