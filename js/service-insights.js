@@ -99,6 +99,13 @@
     if (insight.caseDelta > 0) {
       var absDelta = Math.abs(insight.caseDelta);
       var pctStr = insight.casePct !== null ? ' (+'+fmtPct(insight.casePct*100)+'%)' : '';
+      
+      if (insight.incomeDelta < 0) {
+        var absIncome = Math.abs(insight.incomeDelta);
+        var fmtMoneyM = function(n) { return (n/1000000).toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' M'; };
+        return 'Perketat kendali mutu dan biaya (efisiensi layanan) serta evaluasi clinical pathway. Peningkatan beban layanan ' + UP + ' ' + fmt(absDelta) + ' kasus' + pctStr + ' berisiko membebani RS karena diiringi potensi penurunan total pendapatan ' + DOWN + ' ' + fmtMoneyM(absIncome) + '.';
+      }
+
       return 'Perhatikan kesiapan SDM, sarpras, dan logistik RS dalam merespons kenaikan pasien '+UP+' '+fmt(absDelta)+' kasus'+pctStr;
     }
 
