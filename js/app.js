@@ -1216,7 +1216,7 @@
             <div style="display:flex; align-items:center; justify-content:center; gap:4px; margin-top:6px;">
               <input type="number" min="0" max="100" step="0.01" value="${pctDisplay}" 
                 class="global-sim-input" data-idx="${idx}"
-                style="width:52px; padding:3px 4px; text-align:center; border:1.5px solid #94a3b8; border-radius:5px; font-size:13px; font-weight:700; color:#0f172a; background:#fff;">
+                style="width:52px; padding:3px 4px; text-align:center; border:1.5px solid #94a3b8; border-radius:5px; font-size:13px; font-weight:700; color:#0f172a; background-color:#fff;">
               <span style="font-size:11px; color:#64748b;">%</span>
             </div>
           </td>
@@ -1235,7 +1235,7 @@
             <div style="display:flex; align-items:center; justify-content:center; gap:4px; margin-bottom:6px;">
               <input type="number" min="0" max="100" step="0.01" value="${kurangPctDisplay}" 
                 class="global-sim-kurang-input" data-idx="${idx}"
-                style="width:52px; padding:3px 4px; text-align:center; border:1px solid #fca5a5; border-radius:5px; font-size:13px; font-weight:700; color:#b91c1c; background:#fff;">
+                style="width:52px; padding:3px 4px; text-align:center; border:1px solid #fca5a5; border-radius:5px; font-size:13px; font-weight:700; color:#b91c1c; background-color:#fff;">
               <span style="font-size:11px; color:#b91c1c;">%</span>
             </div>
             <div style="font-size:16px; font-weight:700; color:#ea580c;">▼ ${formatNumber(kurangKasus)}</div>
@@ -1866,8 +1866,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     container.innerHTML = `
       <div style="font-family:Arial,sans-serif;display:flex;flex-direction:column;gap:12px;min-height:100%;">
         <div data-export-ui="true" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:9px;padding:10px 12px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:10px;">
-          <label style="font-size:11px;font-weight:800;color:#334155;">Layanan pembanding<br><select id="upgradeServiceSelect" style="width:100%;margin-top:4px;padding:7px;border:1px solid #94a3b8;border-radius:6px;background:#fff;font-weight:700;"><option value="ALL">Otomatis pilih layanan berkompetensi Dasar</option>${data.services.map((service) => `<option value="${escapeHtml(service)}" ${service === settings.service ? "selected" : ""}>${escapeHtml(formatService(service))}</option>`).join("")}</select></label>
-          <label style="font-size:11px;font-weight:800;color:#334155;">Target rekap 24 layanan<br><select id="upgradeTargetLevel" style="width:100%;margin-top:4px;padding:7px;border:1px solid #94a3b8;border-radius:6px;background:#fff;font-weight:700;">${[2,3,4].map((level) => `<option value="${level}" ${level === settings.targetLevel ? "selected" : ""}>${levelNames[level]}</option>`).join("")}</select></label>
+          <label style="font-size:11px;font-weight:800;color:#334155;">Layanan pembanding<br><select id="upgradeServiceSelect" style="width:100%;margin-top:4px;padding:7px;border:1px solid #94a3b8;border-radius:6px;background-color:#fff;font-weight:700;"><option value="ALL">Otomatis pilih layanan berkompetensi Dasar</option>${data.services.map((service) => `<option value="${escapeHtml(service)}" ${service === settings.service ? "selected" : ""}>${escapeHtml(formatService(service))}</option>`).join("")}</select></label>
+          <label style="font-size:11px;font-weight:800;color:#334155;">Target rekap 24 layanan<br><select id="upgradeTargetLevel" style="width:100%;margin-top:4px;padding:7px;border:1px solid #94a3b8;border-radius:6px;background-color:#fff;font-weight:700;">${[2,3,4].map((level) => `<option value="${level}" ${level === settings.targetLevel ? "selected" : ""}>${levelNames[level]}</option>`).join("")}</select></label>
           <label style="font-size:11px;font-weight:800;color:#334155;">Faktor capture natural (%)<br><input id="upgradeCaptureMultiplier" type="number" min="0" max="300" step="10" value="${settings.captureMultiplier}" style="width:100%;box-sizing:border-box;margin-top:4px;padding:7px;border:1px solid #94a3b8;border-radius:6px;font-weight:700;"></label>
           <label style="font-size:11px;font-weight:800;color:#334155;">Retensi kasus eligible (%)<br><input id="upgradeRetention" type="number" min="0" max="100" step="5" value="${settings.retention}" style="width:100%;box-sizing:border-box;margin-top:4px;padding:7px;border:1px solid #94a3b8;border-radius:6px;font-weight:700;"></label>
           <button id="upgradeExcelBtn" type="button" style="grid-column:4;justify-self:end;border:1px solid #16a34a;background:#f0fdf4;color:#166534;border-radius:6px;padding:6px 10px;font-size:10.5px;font-weight:800;cursor:pointer;">📥 Kertas Kerja Excel</button>
@@ -1879,7 +1879,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           <div style="padding:10px 12px;background:#fff7ed;border-left:4px solid #f97316;"><div style="font-size:10px;font-weight:800;color:#c2410c;">ASUMSI AKTIF</div><div style="font-size:16px;font-weight:900;color:#9a3412;">Target ${levelNames[settings.targetLevel]}</div><div style="font-size:10px;color:#7c2d12;">Capture ${settings.captureMultiplier}% dari share natural · retensi ${settings.retention}%</div></div>
         </div>
         <div style="display:grid;grid-template-columns:1.05fr 1.55fr;gap:12px;min-height:0;">
-          <div style="border:1px solid #cbd5e1;border-radius:8px;overflow:hidden;"><div style="padding:8px 10px;background:#0f766e;color:#fff;font-weight:900;font-size:13px;">Perbandingan ${escapeHtml(formatService(selectedService))}</div><table style="width:100%;border-collapse:collapse;font-size:11px;"><thead><tr style="background:#e2e8f0;"><th style="padding:6px;text-align:left;">Kompetensi</th><th>Proyeksi kasus</th><th>Captured</th><th>Proyeksi iDRG</th><th>Δ vs INA</th></tr></thead><tbody>${comparisons.map((row) => `<tr style="border-top:1px solid #e2e8f0;background:${row.targetLevel === settings.targetLevel ? "#ecfdf5" : "#fff"};"><td style="padding:7px;font-weight:900;">${levelNames[row.targetLevel]}${row.targetLevel === currentLevel ? " (saat ini)" : ""}</td><td style="text-align:right;padding:7px;font-weight:800;">${formatNumber(row.projected[CASES])}</td><td style="text-align:right;padding:7px;color:#047857;font-weight:800;">+${formatNumber(Math.round(row.captured[CASES]))}</td><td style="text-align:right;padding:7px;">${formatMoney(row.projected[IDRG])}</td><td style="text-align:right;padding:7px;color:${row.deltaIdrgVsIna >= 0 ? "#047857" : "#be123c"};font-weight:800;">${signedMoney(row.deltaIdrgVsIna)}</td></tr>`).join("")}</tbody></table><div style="padding:8px 10px;background:#f8fafc;font-size:9.5px;color:#475569;line-height:1.35;">Share natural = 1 ÷ (RS kompetitor eligible + RS target). Kompetensi melayani levelnya dan satu tingkat di bawahnya.</div></div>
+          <div style="border:1px solid #cbd5e1;border-radius:8px;overflow:hidden;"><div style="padding:8px 10px;background-color:#0f766e;color:#fff;font-weight:900;font-size:13px;">Perbandingan ${escapeHtml(formatService(selectedService))}</div><table style="width:100%;border-collapse:collapse;font-size:11px;"><thead><tr style="background:#e2e8f0;"><th style="padding:6px;text-align:left;">Kompetensi</th><th>Proyeksi kasus</th><th>Captured</th><th>Proyeksi iDRG</th><th>Δ vs INA</th></tr></thead><tbody>${comparisons.map((row) => `<tr style="border-top:1px solid #e2e8f0;background:${row.targetLevel === settings.targetLevel ? "#ecfdf5" : "#fff"};"><td style="padding:7px;font-weight:900;">${levelNames[row.targetLevel]}${row.targetLevel === currentLevel ? " (saat ini)" : ""}</td><td style="text-align:right;padding:7px;font-weight:800;">${formatNumber(row.projected[CASES])}</td><td style="text-align:right;padding:7px;color:#047857;font-weight:800;">+${formatNumber(Math.round(row.captured[CASES]))}</td><td style="text-align:right;padding:7px;">${formatMoney(row.projected[IDRG])}</td><td style="text-align:right;padding:7px;color:${row.deltaIdrgVsIna >= 0 ? "#047857" : "#be123c"};font-weight:800;">${signedMoney(row.deltaIdrgVsIna)}</td></tr>`).join("")}</tbody></table><div style="padding:8px 10px;background:#f8fafc;font-size:9.5px;color:#475569;line-height:1.35;">Share natural = 1 ÷ (RS kompetitor eligible + RS target). Kompetensi melayani levelnya dan satu tingkat di bawahnya.</div></div>
           <div style="border:1px solid #cbd5e1;border-radius:8px;overflow:hidden;"><div style="padding:8px 10px;background:#2563eb;color:#fff;font-weight:900;font-size:13px;display:flex;justify-content:space-between;"><span>Rekap 24 layanan pada target ${levelNames[settings.targetLevel]}</span><span>${recapRows.length}/24 layanan</span></div><div style="max-height:365px;overflow:auto;"><table style="width:100%;border-collapse:collapse;font-size:10px;"><thead style="position:sticky;top:0;background:#dbeafe;"><tr><th style="padding:5px;text-align:left;">Layanan</th><th>Saat ini</th><th>Target</th><th>Eksisting</th><th>Proyeksi</th><th>Δ kasus</th><th>Δ Rp vs INA</th></tr></thead><tbody>${recapRows.map((row) => `<tr style="border-top:1px solid #e2e8f0;"><td style="padding:4px 6px;font-weight:700;">${escapeHtml(formatService(row.service))}</td><td style="text-align:center;">${shortLevelNames[row.targetCompetency] || "–"}</td><td style="text-align:center;font-weight:900;">${shortLevelNames[row.targetLevel]}</td><td style="text-align:right;">${formatNumber(row.existing[CASES])}</td><td style="text-align:right;font-weight:800;">${formatNumber(Math.round(row.projected[CASES]))}</td><td style="text-align:right;color:${row.deltaCases >= 0 ? "#047857" : "#be123c"};font-weight:800;">${signed(row.deltaCases)}</td><td style="text-align:right;color:${row.deltaIdrgVsIna >= 0 ? "#047857" : "#be123c"};font-weight:800;">${signedMoney(row.deltaIdrgVsIna)}</td></tr>`).join("")}</tbody></table></div></div>
         </div>
       </div>`;
@@ -1953,7 +1953,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const competitorListHtml = severityRanks.map((level) => {
       const [color, background] = competitorColors[level];
       const hospitals = competitorGroups[level];
-      return `<section style="min-width:0;border:1px solid #e2e8f0;border-radius:7px;overflow:hidden;background:#fff;"><header style="padding:5px 7px;background:${background};color:${color};font-size:10px;font-weight:900;">${levelNames[level]} · ${formatNumber(hospitals.length)} RS</header><div style="max-height:150px;overflow:auto;padding:4px 7px;">${hospitals.length ? hospitals.map((hospital, index) => `<div style="padding:3px 0;border-bottom:1px solid #f1f5f9;font-size:9px;line-height:1.25;color:#334155;"><b>${index + 1}. ${escapeHtml(hospital.name)}</b><br><span style="color:#64748b;">${escapeHtml(hospital.city || "—")} · ${escapeHtml(hospital.code || "—")}</span></div>`).join("") : '<span style="font-size:9px;color:#94a3b8;">Tidak ada RS</span>'}</div></section>`;
+      return `<section style="min-width:0;border:1px solid #e2e8f0;border-radius:7px;overflow:hidden;background-color:#fff;"><header style="padding:5px 7px;background:${background};color:${color};font-size:10px;font-weight:900;">${levelNames[level]} · ${formatNumber(hospitals.length)} RS</header><div style="max-height:150px;overflow:auto;padding:4px 7px;">${hospitals.length ? hospitals.map((hospital, index) => `<div style="padding:3px 0;border-bottom:1px solid #f1f5f9;font-size:9px;line-height:1.25;color:#334155;"><b>${index + 1}. ${escapeHtml(hospital.name)}</b><br><span style="color:#64748b;">${escapeHtml(hospital.city || "—")} · ${escapeHtml(hospital.code || "—")}</span></div>`).join("") : '<span style="font-size:9px;color:#94a3b8;">Tidak ada RS</span>'}</div></section>`;
     }).join("");
     const levelData = severityRanks.map((level) => {
       const regionalMetric = severityMetric(regionalSrv, level);
@@ -2060,22 +2060,22 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         <button type="button" onclick="copyFullTable(this)" style="background:#2563eb;color:#fff;border:none;padding:5px 12px;border-radius:5px;font-weight:bold;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:6px;"><span style="font-size:14px;">??</span> Copy Seluruh Tabel (untuk Excel / PPT)</button>
         <div style="display:flex;align-items:center;gap:9px;min-width:0;">
           <label style="font-size:11px;font-weight:900;color:#5b21b6;white-space:nowrap;">LAYANAN</label>
-          <select id="dynamicMarketServiceSelect" style="min-width:420px;max-width:660px;padding:6px 9px;border:1.5px solid #7c3aed;border-radius:7px;background:#fff;font-size:12px;font-weight:750;color:#312e81;">
+          <select id="dynamicMarketServiceSelect" style="min-width:420px;max-width:660px;padding:6px 9px;border:1.5px solid #7c3aed;border-radius:7px;background-color:#fff;font-size:12px;font-weight:750;color:#312e81;">
             ${data.services.map((item) => `<option value="${escapeHtml(item)}" ${item === service ? "selected" : ""}>${escapeHtml(formatService(item))}</option>`).join("")}
           </select>
           <span style="padding:5px 9px;border-radius:999px;background:#7c3aed;color:#fff;font-size:11px;font-weight:900;white-space:nowrap;">Target: ${levelNames[targetComp]}</span>
           <div class="dynamic-source-control" style="display:flex;align-items:center;gap:6px;font-size:10px;font-weight:900;color:#5b21b6;white-space:nowrap;">SUMBER TAMBAHAN
-            <span style="padding:6px 9px;border:1.5px solid #7c3aed;border-radius:7px;background:#fff;color:#312e81;font-size:11px;">${sourceRelationLabel}</span>
+            <span style="padding:6px 9px;border:1.5px solid #7c3aed;border-radius:7px;background-color:#fff;color:#312e81;font-size:11px;">${sourceRelationLabel}</span>
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:6px;">
           <span style="font-size:10.5px;color:#64748b;font-weight:700;">${escapeHtml(target.name)}</span>
           <button id="dynamicMarketExcelBtn" type="button" style="border:1px solid #16a34a;background:#f0fdf4;color:#166534;border-radius:6px;padding:5px 9px;font-size:10.5px;font-weight:800;cursor:pointer;white-space:nowrap;">📥 Kertas Kerja Excel</button>
-          <button id="dynamicMarketResetBtn" type="button" style="border:1px solid #c4b5fd;background:#fff;color:#6d28d9;border-radius:6px;padding:5px 9px;font-size:10.5px;font-weight:800;cursor:pointer;white-space:nowrap;">↻ Hitung Ulang Otomatis</button>
+          <button id="dynamicMarketResetBtn" type="button" style="border:1px solid #c4b5fd;background-color:#fff;color:#6d28d9;border-radius:6px;padding:5px 9px;font-size:10.5px;font-weight:800;cursor:pointer;white-space:nowrap;">↻ Hitung Ulang Otomatis</button>
         </div>
       </div>
 
-      <details style="margin-bottom:9px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;overflow:hidden;">
+      <details style="margin-bottom:9px;border:1px solid #cbd5e1;border-radius:8px;background-color:#fff;overflow:hidden;">
         <summary style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 10px;cursor:pointer;background:#f8fafc;list-style:none;">
           <span style="font-size:10.5px;font-weight:900;color:#334155;">RS KOMPETITOR REGIONAL · ${escapeHtml(formatService(service))}</span>
           <span style="display:flex;align-items:center;gap:6px;font-size:9.5px;font-weight:850;">
@@ -2114,7 +2114,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         <table class="dynamic-scenario-table" style="width:100%;border-collapse:collapse;border:1px solid #1e293b;text-align:center;font-size:11px;">
           <thead style="background:#38bdf8;color:white;">
             <tr>
-              <th rowspan="2" style="border:1px solid #1e293b;padding:7px;background:#0f766e;">Skenario</th>
+              <th rowspan="2" style="border:1px solid #1e293b;padding:7px;background-color:#0f766e;">Skenario</th>
               <th rowspan="2" style="border:1px solid #1e293b;padding:7px;background:#334155;">Kasus Eksisting</th>
               <th colspan="3" style="border:1px solid #1e293b;padding:7px;background:#059669;">Tambahan Kasus ${competencyLevelLabel} dari ${sourceRelationLabel}</th>
               <th colspan="3" style="border:1px solid #1e293b;padding:7px;background:#e11d48;">Pengurangan Kasus ${lossLevelLabel} di Luar Kompetensi Target</th>
@@ -2371,8 +2371,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       return;
     }
     root.innerHTML = `
-      <div style="height:100%;display:flex;flex-direction:column;background:#fff;overflow:hidden;">
-        <div style="padding:12px 20px;border-top:5px solid #111;background:#fff;display:flex;align-items:center;justify-content:space-between;gap:15px;">
+      <div style="height:100%;display:flex;flex-direction:column;background-color:#fff;overflow:hidden;">
+        <div style="padding:12px 20px;border-top:5px solid #111;background-color:#fff;display:flex;align-items:center;justify-content:space-between;gap:15px;">
           <div style="display:flex;align-items:center;gap:12px;"><button id="idrgMapBack" type="button">← Ringkasan</button><div><h1 id="idrgMapSlideTitle" style="margin:0;font-size:27px;color:#55b5ae;font-weight:900;">PETA REKLASIFIKASI <span style="color:#d4c83f;">INA-CBG → iDRG</span></h1><div style="font-size:11px;color:#64748b;margin-top:2px;">Pemetaan kode, severity, volume kasus, dan perbandingan tarif resmi</div></div></div>
           <div style="display:flex;gap:7px;align-items:end;flex-wrap:wrap;justify-content:flex-end;">
             <label style="font-size:9px;font-weight:900;color:#475569;">24 KELOMPOK LAYANAN<br><select id="idrgMapService" style="width:245px;padding:6px;border:1px solid #94a3b8;border-radius:6px;font-weight:750;"><option value="ALL" ${ui.service === "ALL" ? "selected" : ""}>ALL Layanan</option>${services.map((s) => `<option ${s === ui.service ? "selected" : ""}>${escapeHtml(s)}</option>`).join("")}</select></label>
@@ -2564,7 +2564,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         <!-- Right: Summary and Tables -->
         <div class="regional-profile-main" style="display:flex;flex-direction:column;gap:10px;height:100%;min-height:0;">
           <!-- Top KPI Card -->
-          <div style="background:#fff;border:1px solid #dbe3ea;border-radius:14px;padding:12px 14px;box-shadow:0 5px 16px rgba(15,23,42,.05);">
+          <div style="background-color:#fff;border:1px solid #dbe3ea;border-radius:14px;padding:12px 14px;box-shadow:0 5px 16px rgba(15,23,42,.05);">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:9px;">
               <div><div style="font-size:11px;font-weight:900;color:#64748b;letter-spacing:.08em;">PROFIL REGIONAL AKTIF</div><div style="font-size:10px;color:#94a3b8;margin-top:2px;">Ringkasan wilayah dan fasilitas kesehatan</div></div>
               <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;">
@@ -2640,7 +2640,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
 
           <!-- Dynamic Regional Insights -->
           <div style="display:grid;grid-template-columns:112px repeat(3,minmax(0,1fr));border:1px solid #bae6e8;border-radius:10px;overflow:hidden;background:#f0fdfa;box-shadow:0 2px 7px rgba(15,118,110,.05);flex:0 0 auto;">
-            <div style="padding:9px 10px;background:#0f766e;color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;"><span style="font-size:19px;">💡</span><strong style="font-size:10px;letter-spacing:.08em;margin-top:2px;">INSIGHT REGIONAL</strong></div>
+            <div style="padding:9px 10px;background-color:#0f766e;color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;"><span style="font-size:19px;">💡</span><strong style="font-size:10px;letter-spacing:.08em;margin-top:2px;">INSIGHT REGIONAL</strong></div>
             <div style="padding:8px 10px;border-right:1px solid #ccfbf1;"><div style="font-size:9px;font-weight:900;color:#0f766e;margin-bottom:3px;">KOMPOSISI KASUS</div><div style="font-size:10.5px;color:#475569;line-height:1.3;">Kasus <b style="color:#0f172a;">${dominantSeverity.name}</b> paling dominan: <b>${formatNumber(dominantSeverity.cases)}</b> (${dominantSeverity.pct.toFixed(2).replace('.', ',')}%).</div></div>
             <div style="padding:8px 10px;border-right:1px solid #ccfbf1;"><div style="font-size:9px;font-weight:900;color:#0f766e;margin-bottom:3px;">KONSENTRASI PASAR</div><div style="font-size:10.5px;color:#475569;line-height:1.3;">Top 5 RS menguasai <b style="color:#0f172a;">${topFiveShare.toFixed(2).replace('.', ',')}%</b> kasus${topHospital ? `; tertinggi ${escapeHtml(topHospital.name)} (${formatNumber(topHospital.total[CASES])})` : ''}.</div></div>
             <div style="padding:8px 10px;"><div style="font-size:9px;font-weight:900;color:#0f766e;margin-bottom:3px;">PELUANG PENDAPATAN</div><div style="font-size:10.5px;color:#475569;line-height:1.3;">iDRG ${idrgGap >= 0 ? 'memberi potensi kenaikan' : 'lebih rendah'} <b style="color:${idrgGap >= 0 ? '#15803d' : '#b91c1c'};">${idrgGap >= 0 ? '+' : '−'}Rp ${formatMoneyUnit(Math.abs(idrgGap))}</b> (${idrgGap >= 0 ? '+' : '−'}${Math.abs(idrgGapPct).toFixed(2).replace('.', ',')}%).</div></div>
@@ -3395,9 +3395,9 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const shown = filtered.slice(ui.page * pageSize, (ui.page + 1) * pageSize);
     const money = v => formatTableMoney(v);
     const pct = v => `${v >= 0 ? "+" : ""}${(v * 100).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
-    const head = (label, key) => `<button type="button" data-sort="${key}" style="border:0;background:transparent;color:inherit;font:inherit;font-weight:800;cursor:pointer;padding:0;white-space:nowrap;">${label} ${ui.sort === key ? (ui.direction === "asc" ? "↑" : "↓") : "↕"}</button>`;
+    const head = (label, key) => `<button type="button" data-sort="${key}" style="border:0;background-color:transparent;color:inherit;font:inherit;font-weight:800;cursor:pointer;padding:0;white-space:nowrap;">${label} ${ui.sort === key ? (ui.direction === "asc" ? "↑" : "↓") : "↕"}</button>`;
     const moneyCells = (r, prefix, kind) => ["rj", "ri", "total"].map(p => `<td>${kind === "pct" ? pct(r[`${p}Pct`]) : kind === "diff" ? money(r[`${p}Diff`]) : kind === "ina" ? money(r[`${p}Ina`]) : money(r[`${p}Idrg`])}</td>`).join("");
-      container.innerHTML = `<div style="height:100%;min-height:0;display:flex;flex-direction:column;gap:9px;font-family:'Plus Jakarta Sans',sans-serif;"><div style="display:flex;align-items:center;gap:10px;"><div style="font-size:14px;font-weight:850;color:#0f766e;flex:1;">Rincian spending per rumah sakit <span style="font-size:11px;color:#64748b;font-weight:650;">${formatNumber(filtered.length)} RS – sesuai filter aktif</span></div><input id="hospitalSpendingSearch" value="${escapeHtml(ui.query)}" placeholder="Cari kode, nama, atau kab/kota..." style="width:290px;padding:7px 10px;border:1px solid #94a3b8;border-radius:7px;font-size:11px;"><button id="hospitalSpendingExcel" type="button" style="border:0;background:#15803d;color:#fff;border-radius:7px;padding:8px 12px;font-size:11px;font-weight:800;cursor:pointer;">↓ Download Excel</button><button id="hospitalSpendingDRGExcel" type="button" style="border:0;background:#0369a1;color:#fff;border-radius:7px;padding:8px 12px;font-size:11px;font-weight:800;cursor:pointer;">↓ Tarik Detail DRG</button></div><div style="flex:1;min-height:0;overflow:auto;border:1px solid #cbd5e1;border-radius:9px;"><table style="border-collapse:collapse;width:100%;font-size:10px;white-space:nowrap;"><thead style="position:sticky;top:0;z-index:2;color:#fff;text-align:center;"><tr style="background:#0f766e;"><th rowspan="2">${head("Kode RS", "code")}</th><th rowspan="2">${head("Nama RS", "name")}</th><th rowspan="2">${head("Kab/Kota", "city")}</th><th rowspan="2">${head("Provinsi", "province")}</th><th rowspan="2">${head("Kelas RS", "hospitalClass")}</th><th rowspan="2">${head("Kepemilikan", "ownership")}</th><th rowspan="2">${head("Regional", "regional")}</th><th colspan="3" style="background:#0369a1">Total Kasus</th><th colspan="3" style="background:#15803d">Tarif INA-CBG (Rp Miliar)</th><th colspan="3" style="background:#7c3aed">Tarif iDRG (Rp Miliar)</th><th colspan="3" style="background:#b45309">Selisih (Rp Miliar)</th><th colspan="3" style="background:#be185d">Perubahan (%)</th></tr><tr style="background:#134e4a;">${["rjCases", "riCases", "totalCases", "rjIna", "riIna", "totalIna", "rjIdrg", "riIdrg", "totalIdrg", "rjDiff", "riDiff", "totalDiff", "rjPct", "riPct", "totalPct"].map((key, i) => `<th>${head(["Rawat Jalan", "Rawat Inap", "RJ & RI"][i % 3], key)}</th>`).join("")}</tr></thead><tbody>${shown.map((r, i) => `<tr style="background:${i % 2 ? "#f8fafc" : "#fff"};"><td>${escapeHtml(r.code)}</td><td style="font-weight:750;max-width:280px;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(r.name)}</td><td>${escapeHtml(r.city)}</td><td>${escapeHtml(r.province)}</td><td>${escapeHtml(r.hospitalClass)}</td><td>${escapeHtml(r.ownership)}</td><td>${escapeHtml(r.regional)}</td><td>${formatNumber(r.rjCases)}</td><td>${formatNumber(r.riCases)}</td><td style="font-weight:800">${formatNumber(r.totalCases)}</td>${moneyCells(r, "", "ina")}${moneyCells(r, "", "idrg")}${moneyCells(r, "", "diff")}${moneyCells(r, "", "pct")}</tr>`).join("") || `<tr><td colspan="22" style="padding:22px;text-align:center;color:#64748b;">Tidak ada rumah sakit sesuai pencarian.</td></tr>`}</tbody></table></div><div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#475569;"><span>Menampilkan ${filtered.length ? ui.page * pageSize + 1 : 0}–${Math.min((ui.page + 1) * pageSize, filtered.length)} dari ${formatNumber(filtered.length)} RS</span><span style="display:flex;gap:6px;align-items:center;"><button id="hospitalSpendingPrev" ${ui.page === 0 ? "disabled" : ""}>← Sebelumnya</button><b>Halaman ${ui.page + 1}/${pages}</b><button id="hospitalSpendingNext" ${ui.page >= pages - 1 ? "disabled" : ""}>Berikutnya →</button></span></div></div>`;
+      container.innerHTML = `<div style="height:100%;min-height:0;display:flex;flex-direction:column;gap:9px;font-family:'Plus Jakarta Sans',sans-serif;"><div style="display:flex;align-items:center;gap:10px;"><div style="font-size:14px;font-weight:850;color:#0f766e;flex:1;">Rincian spending per rumah sakit <span style="font-size:11px;color:#64748b;font-weight:650;">${formatNumber(filtered.length)} RS – sesuai filter aktif</span></div><input id="hospitalSpendingSearch" value="${escapeHtml(ui.query)}" placeholder="Cari kode, nama, atau kab/kota..." style="width:290px;padding:7px 10px;border:1px solid #94a3b8;border-radius:7px;font-size:11px;"><button id="hospitalSpendingExcel" type="button" style="border:0;background:#15803d;color:#fff;border-radius:7px;padding:8px 12px;font-size:11px;font-weight:800;cursor:pointer;">↓ Download Excel</button><button id="hospitalSpendingDRGExcel" type="button" style="border:0;background:#0369a1;color:#fff;border-radius:7px;padding:8px 12px;font-size:11px;font-weight:800;cursor:pointer;">↓ Tarik Detail DRG</button></div><div style="flex:1;min-height:0;overflow:auto;border:1px solid #cbd5e1;border-radius:9px;"><table style="border-collapse:collapse;width:100%;font-size:10px;white-space:nowrap;"><thead style="position:sticky;top:0;z-index:2;color:#fff;text-align:center;"><tr style="background-color:#0f766e;"><th rowspan="2">${head("Kode RS", "code")}</th><th rowspan="2">${head("Nama RS", "name")}</th><th rowspan="2">${head("Kab/Kota", "city")}</th><th rowspan="2">${head("Provinsi", "province")}</th><th rowspan="2">${head("Kelas RS", "hospitalClass")}</th><th rowspan="2">${head("Kepemilikan", "ownership")}</th><th rowspan="2">${head("Regional", "regional")}</th><th colspan="3" style="background:#0369a1">Total Kasus</th><th colspan="3" style="background:#15803d">Tarif INA-CBG (Rp Miliar)</th><th colspan="3" style="background:#7c3aed">Tarif iDRG (Rp Miliar)</th><th colspan="3" style="background:#b45309">Selisih (Rp Miliar)</th><th colspan="3" style="background:#be185d">Perubahan (%)</th></tr><tr style="background:#134e4a;">${["rjCases", "riCases", "totalCases", "rjIna", "riIna", "totalIna", "rjIdrg", "riIdrg", "totalIdrg", "rjDiff", "riDiff", "totalDiff", "rjPct", "riPct", "totalPct"].map((key, i) => `<th>${head(["Rawat Jalan", "Rawat Inap", "RJ & RI"][i % 3], key)}</th>`).join("")}</tr></thead><tbody>${shown.map((r, i) => `<tr style="background:${i % 2 ? "#f8fafc" : "#fff"};"><td>${escapeHtml(r.code)}</td><td style="font-weight:750;max-width:280px;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(r.name)}</td><td>${escapeHtml(r.city)}</td><td>${escapeHtml(r.province)}</td><td>${escapeHtml(r.hospitalClass)}</td><td>${escapeHtml(r.ownership)}</td><td>${escapeHtml(r.regional)}</td><td>${formatNumber(r.rjCases)}</td><td>${formatNumber(r.riCases)}</td><td style="font-weight:800">${formatNumber(r.totalCases)}</td>${moneyCells(r, "", "ina")}${moneyCells(r, "", "idrg")}${moneyCells(r, "", "diff")}${moneyCells(r, "", "pct")}</tr>`).join("") || `<tr><td colspan="22" style="padding:22px;text-align:center;color:#64748b;">Tidak ada rumah sakit sesuai pencarian.</td></tr>`}</tbody></table></div><div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#475569;"><span>Menampilkan ${filtered.length ? ui.page * pageSize + 1 : 0}–${Math.min((ui.page + 1) * pageSize, filtered.length)} dari ${formatNumber(filtered.length)} RS</span><span style="display:flex;gap:6px;align-items:center;"><button id="hospitalSpendingPrev" ${ui.page === 0 ? "disabled" : ""}>← Sebelumnya</button><b>Halaman ${ui.page + 1}/${pages}</b><button id="hospitalSpendingNext" ${ui.page >= pages - 1 ? "disabled" : ""}>Berikutnya →</button></span></div></div>`;
       container.querySelectorAll("th,td").forEach(cell => { cell.style.padding = "6px 7px"; cell.style.borderBottom = "1px solid #e2e8f0"; });
       container.querySelectorAll("[data-sort]").forEach(button => button.addEventListener("click", () => { const key = button.dataset.sort; ui.direction = ui.sort === key && ui.direction === "desc" ? "asc" : "desc"; ui.sort = key; ui.page = 0; renderNationalHospitalSpendingSlide(); }));
       
@@ -7664,7 +7664,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           const deltaIncome = result.projectedIdrg - baselineIna;
           const deltaIncomePct = baselineIna > 0 ? deltaIncome / baselineIna * 100 : 0;
           const cell = 'border:1px solid #cbd5e1;padding:4px;';
-          return `<tr style="background:#fff;">
+          return `<tr style="background-color:#fff;">
             <td style="${cell}background:#f8fafc;min-width:175px;text-align:left;font-size:10px;line-height:1.45;"><div style="font-size:12px;font-weight:900;color:#0f172a;border-bottom:1px solid #cbd5e1;padding-bottom:3px;margin-bottom:3px;">Total Kasus: ${formatNumber(baselineCases)}</div>${levelData.map((item) => `<div style="font-weight:${rules.tambah.includes(item.level) ? '900' : '400'};color:${rules.tambah.includes(item.level) ? '#0f172a' : '#64748b'};">${shortLevelNames[item.level]}: ${formatNumber(item.targetCases)} (${formatTableMoney(item.targetIdrg)})</div>`).join('')}<div style="font-weight:800;color:#16aa98;border-top:1px solid #e2e8f0;margin-top:3px;padding-top:3px;text-align:center;">iDRG: ${formatTableMoney(baselineIdrg)}</div></td>
             <td data-col="srv-tb-pct" style="${cell}min-width:92px;color:#15803d;font-weight:700;">${pctInputs(result.scenarioIndex, "tambah")}</td><td data-col="srv-tb-kasus" style="${cell}font-weight:800;">${formatNumber(Math.round(result.addCases))}</td><td data-col="srv-tb-rp" style="${cell}font-weight:800;color:#46ae7e;">▲ ${formatTableMoney(result.addIdrg)}</td>
             <td data-col="srv-kr-pct" style="${cell}min-width:92px;color:#be123c;font-weight:700;">${pctInputs(0, "kurang")}</td><td data-col="srv-kr-kasus" style="${cell}font-weight:800;">${formatNumber(Math.round(result.lossCases))}</td><td data-col="srv-kr-rp" style="${cell}font-weight:800;color:#cc0000;">▼ ${formatTableMoney(result.lossIdrg)}</td>
@@ -8012,53 +8012,53 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           <div class="slide-content service-report-content">
 
             <div style="display:flex;gap:0;align-items:stretch;margin-bottom:10px;">
-              <div class="service-summary" style="flex:1;min-width:0;">
-                <div><strong>Total Kasus:</strong><b>${formatNumber(targetKasus)}</b><span>Jumlah kasus eklaim</span></div>
-                <div><strong>Pendapatan INA CBGs:</strong><b>${formatMoneyM(targetExistingService[INA])}</b><span>Dari data 8 bulan</span></div>
-                <div><strong>Pendapatan iDRG:</strong><b>${formatMoneyM(targetExistingService[IDRG])}</b><span>Klaim uji coba iDRG</span></div>
-                <div><strong>Selisih Pendapatan:</strong><b>${signed(revenueDelta, formatMoneyM(Math.abs(revenueDelta)))}</b><span>iDRG - INA CBGs</span></div>
-                <div><strong>Persentase:</strong><b>${targetExistingService[INA] ? signed(revenueDelta, formatPercent(Math.abs(revenueDelta / targetExistingService[INA]))) : '\u2014'}</b><span>Dari Pendapatan INACBG</span></div>
+              <div class="service-summary" style="flex:1;min-width:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;">
+                <div style="background-color:#f5f5f5;padding:14px 16px;display:flex;flex-direction:column;gap:4px;min-width:0;border-radius:2px;"><strong style="font-size:14px;color:#333;font-weight:700;">Total Kasus:</strong><b style="font-size:38px;font-weight:800;line-height:1.2;color:#128c89;white-space:nowrap;">${formatNumber(targetKasus)}</b><span style="font-size:13px;color:#777;font-weight:500;">Jumlah kasus eklaim</span></div>
+                <div style="background-color:#f5f5f5;padding:14px 16px;display:flex;flex-direction:column;gap:4px;min-width:0;border-radius:2px;"><strong style="font-size:14px;color:#333;font-weight:700;">Pendapatan INA CBGs:</strong><b style="font-size:38px;font-weight:800;line-height:1.2;color:#d97706;white-space:nowrap;">${formatMoneyM(targetExistingService[INA])}</b><span style="font-size:13px;color:#777;font-weight:500;">Dari data 8 bulan</span></div>
+                <div style="background-color:#f5f5f5;padding:14px 16px;display:flex;flex-direction:column;gap:4px;min-width:0;border-radius:2px;"><strong style="font-size:14px;color:#333;font-weight:700;">Pendapatan iDRG:</strong><b style="font-size:38px;font-weight:800;line-height:1.2;color:#bba62b;white-space:nowrap;">${formatMoneyM(targetExistingService[IDRG])}</b><span style="font-size:13px;color:#777;font-weight:500;">Klaim uji coba iDRG</span></div>
+                <div style="background-color:#f5f5f5;padding:14px 16px;display:flex;flex-direction:column;gap:4px;min-width:0;border-radius:2px;"><strong style="font-size:14px;color:#333;font-weight:700;">Selisih Pendapatan:</strong><b style="font-size:38px;font-weight:800;line-height:1.2;white-space:nowrap;">${signed(revenueDelta, formatMoneyM(Math.abs(revenueDelta)))}</b><span style="font-size:13px;color:#777;font-weight:500;">iDRG - INA CBGs</span></div>
+                <div style="background-color:#f5f5f5;padding:14px 16px;display:flex;flex-direction:column;gap:4px;min-width:0;border-radius:2px;"><strong style="font-size:14px;color:#333;font-weight:700;">Persentase:</strong><b style="font-size:38px;font-weight:800;line-height:1.2;white-space:nowrap;">${targetExistingService[INA] ? signed(revenueDelta, formatPercent(Math.abs(revenueDelta / targetExistingService[INA]))) : '\u2014'}</b><span style="font-size:13px;color:#777;font-weight:500;">Dari Pendapatan INACBG</span></div>
               </div>
-              <div style="display:flex;align-items:center;justify-content:center;text-align:center;background:#0f766e;color:#fff;font-size:13px;font-weight:900;padding:10px;min-width:110px;line-height:1.3;flex-shrink:0;border-right:4px solid #087c7e;margin-left:10px;">Mirorring<br>Inacbg dg<br>iDRG+KRIS</div>
+              <div style="display:flex;align-items:center;justify-content:center;text-align:center;background-color:#0f766e;color:#fff;font-size:13px;font-weight:900;padding:10px;min-width:110px;line-height:1.3;flex-shrink:0;border-right:4px solid #087c7e;margin-left:10px;">Mirorring<br>Inacbg dg<br>iDRG+KRIS</div>
             </div>
 
             ${(() => {
               const rules = getLevelRules(targetCompetency, service);
               const thStyle = (lvl) => rules.tambah.includes(lvl) ? 'color:#ff5555;font-weight:900;' : 'color:#fff;font-weight:700;';
-              const tdStyle = (lvl) => rules.tambah.includes(lvl) ? 'background:#fffbcc;font-weight:700;text-align:center;' : 'text-align:center;background:#fff;';
+              const tdStyle = (lvl) => rules.tambah.includes(lvl) ? 'background-color:#fffbcc;font-weight:700;text-align:center;' : 'text-align:center;background-color:#fff;';
               const uniqueTotal = data.hospitals.filter(h => h.code !== target.code && [1,2,3,4].some(lvl => canServeLevel(getCompetency(h, service), lvl))).length;
               return `<table class="service-competency-table" style="margin-bottom:8px;">
                 <thead>
                   <tr>
-                    <th style="background:#0f766e;color:#fff;font-weight:900;text-align:left;padding:7px 10px;">Kompetensi RS</th>
-                    <th colspan="5" style="background:#0f766e;color:#fff;font-weight:900;padding:7px 10px;">
-                      <select class="service-competency-select" data-service="${escapeHtml(service)}" style="background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,0.6);border-radius:5px;padding:3px 8px;font-weight:900;font-size:14px;cursor:pointer;outline:none;">
-                        ${[0,1,2,3,4].map(l => `<option value="${l}" ${l===targetCompetency?'selected':''} style="background:#0f766e;color:#fff;">${escapeHtml(levelNames[l]||'Belum ditetapkan')}</option>`).join('')}
+                    <th style="background-color:#0f766e;color:#fff;font-weight:900;text-align:left;padding:7px 10px;">Kompetensi RS</th>
+                    <th colspan="5" style="background-color:#0f766e;color:#fff;font-weight:900;padding:7px 10px;">
+                      <select class="service-competency-select" data-service="${escapeHtml(service)}" style="background-color:transparent;color:#fff;border:1.5px solid rgba(255,255,255,0.6);border-radius:5px;padding:3px 8px;font-weight:900;font-size:14px;cursor:pointer;outline:none;">
+                        ${[0,1,2,3,4].map(l => `<option value="${l}" ${l===targetCompetency?'selected':''} style="background-color:#0f766e;color:#fff;">${escapeHtml(levelNames[l]||'Belum ditetapkan')}</option>`).join('')}
                       </select>
                       ${targetCompetency !== actualCompetency ? `<span style="font-size:11px;opacity:.85;margin-left:8px;">Aktual: ${escapeHtml(levelNames[actualCompetency]||'-')}</span>` : ''}
                     </th>
                   </tr>
                   <tr>
-                    <th style="background:#1e7e6e;color:#fff;padding:5px 8px;">/</th>
-                    ${[1,2,3,4].map(lvl => `<th style="background:#1e7e6e;${thStyle(lvl)}padding:5px 8px;text-align:center;">${levelNames[lvl]}</th>`).join('')}
-                    <th style="background:#1e7e6e;color:#fff;font-weight:700;padding:5px 8px;text-align:center;">Total</th>
+                    <th style="background-color:#1e7e6e;color:#fff;padding:5px 8px;">/</th>
+                    ${[1,2,3,4].map(lvl => `<th style="background-color:#1e7e6e;${thStyle(lvl)}padding:5px 8px;text-align:center;">${levelNames[lvl]}</th>`).join('')}
+                    <th style="background-color:#1e7e6e;color:#fff;font-weight:700;padding:5px 8px;text-align:center;">Total</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <th style="text-align:left;font-weight:700;padding:4px 10px;background:#fff;">Jumlah RS Kompetitor</th>
+                    <th style="text-align:left;font-weight:700;padding:4px 10px;background-color:#fff;">Jumlah RS Kompetitor</th>
                     ${counts.map((n,i) => `<td style="${tdStyle(i+1)}">${formatNumber(n)}</td>`).join('')}
-                    <td style="text-align:center;background:#fff;">${formatNumber(uniqueTotal)}</td>
+                    <td style="text-align:center;background-color:#fff;">${formatNumber(uniqueTotal)}</td>
                   </tr>
                   <tr>
-                    <th style="text-align:left;font-weight:700;padding:4px 10px;background:#fff;">Jumlah Kasus Regional</th>
+                    <th style="text-align:left;font-weight:700;padding:4px 10px;background-color:#fff;">Jumlah Kasus Regional</th>
                     ${regionalMetrics.map((m,i) => `<td style="${tdStyle(i+1)}">${formatNumber(m[CASES])}</td>`).join('')}
-                    <td style="text-align:center;background:#fff;">${formatNumber(regionalKasus)}</td>
+                    <td style="text-align:center;background-color:#fff;">${formatNumber(regionalKasus)}</td>
                   </tr>
                   <tr>
-                    <th style="text-align:left;font-weight:700;padding:4px 10px;background:#fff;">Spending iDRG Regional</th>
+                    <th style="text-align:left;font-weight:700;padding:4px 10px;background-color:#fff;">Spending iDRG Regional</th>
                     ${regionalMetrics.map((m,i) => `<td style="${tdStyle(i+1)}">${formatMoneyM(m[IDRG])}</td>`).join('')}
-                    <td style="text-align:center;background:#fff;">${formatMoneyM(regionalExistingService[IDRG])}</td>
+                    <td style="text-align:center;background-color:#fff;">${formatMoneyM(regionalExistingService[IDRG])}</td>
                   </tr>
                 </tbody>
               </table>`;
@@ -8066,7 +8066,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
 
             <div style="display:flex;gap:0;align-items:stretch;">
               <div style="flex:1;min-width:0;">${serviceTable}</div>
-              <div style="display:flex;align-items:center;justify-content:center;text-align:center;background:#0f766e;color:#fff;font-size:13px;font-weight:900;padding:10px;min-width:110px;line-height:1.3;flex-shrink:0;border-right:4px solid #087c7e;margin-left:10px;">Penerapan<br>iDRG+KRIS<br>+RBKP</div>
+              <div style="display:flex;align-items:center;justify-content:center;text-align:center;background-color:#0f766e;color:#fff;font-size:13px;font-weight:900;padding:10px;min-width:110px;line-height:1.3;flex-shrink:0;border-right:4px solid #087c7e;margin-left:10px;">Penerapan<br>iDRG+KRIS<br>+RBKP</div>
             </div>
 
             <div class="service-rekbar">
@@ -10504,9 +10504,9 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     if (!sourceSlide) return;
     const originalLabel = button?.textContent || "⬡ DOM → PPTX";
     const exportStage = document.createElement("div");
-    exportStage.style.cssText = "position:absolute;left:-100000px;top:0;width:1920px;height:1080px;background:#fff;";
+    exportStage.style.cssText = "position:absolute;left:-100000px;top:0;width:1920px;height:1080px;background-color:#fff;";
     const page = document.createElement("section");
-    page.style.cssText = "position:relative;width:1920px;height:1080px;overflow:hidden;background:#fff;";
+    page.style.cssText = "position:relative;width:1920px;height:1080px;overflow:hidden;background-color:#fff;";
     page.dataset.pptxNotes = "Simulasi Nasional / Data Mirroring iDRG";
     page.appendChild(prepareNationalSlideClone(sourceSlide));
     exportStage.appendChild(page);
