@@ -8010,110 +8010,22 @@ document.getElementById("globalSimulationSlide").innerHTML = `
             </div>
           </header>
           <div class="slide-content service-report-content">
-            <div class="service-summary">
-              <div><strong>Total Kasus:</strong><b>${formatNumber(targetKasus)}</b><span>Jumlah kasus eklaim</span></div>
-              <div><strong>Pendapatan INA CBGs:</strong><b>${formatMoneyM(targetExistingService[INA])}</b><span>Dari data 8 bulan</span></div>
-              <div><strong>Pendapatan iDRG:</strong><b>${formatMoneyM(targetExistingService[IDRG])}</b><span>Klaim uji coba iDRG</span></div>
-              <div><strong>Selisih Pendapatan:</strong><b>${signed(revenueDelta, formatMoneyM(Math.abs(revenueDelta)))}</b><span>iDRG - INA CBGs</span></div>
-              <div><strong>Persentase:</strong><b>${targetExistingService[INA] ? signed(revenueDelta, formatPercent(Math.abs(revenueDelta / targetExistingService[INA]))) : '—'}</b><span>Dari Pendapatan INACBG</span></div>
-            </div>
-            <table class="service-competency-table">
-              <thead><tr><th>Kompetensi RS</th><th colspan="5">
-                <label style="display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;">
-                  <span>Simulasi:</span>
-                  <select class="service-competency-select" data-service="${escapeHtml(service)}" style="min-width:180px;padding:6px 10px;border:1.5px solid #0f766e;border-radius:7px;background:#fff;color:#0f172a;font-weight:800;cursor:pointer;">
-                    ${[0, 1, 2, 3, 4].map((level) => `<option value="${level}" ${level === targetCompetency ? 'selected' : ''}>${escapeHtml(levelNames[level] || 'Belum ditetapkan')}</option>`).join('')}
-                  </select>
-                  ${targetCompetency !== actualCompetency ? `<span style="font-size:11px;font-weight:700;opacity:.9;">Aktual: ${escapeHtml(levelNames[actualCompetency] || 'Belum ditetapkan')}</span>` : ''}
-                </label>
-              </th></tr>
-              ${(() => {
-                const rules = getLevelRules(targetCompetency, service);
-                // Which RS competency levels can serve each case level (canServeLevel)
-                const serveLabels = {
-                  1: 'RS Dasar & Madya',
-                  2: 'RS Madya & Utama',
-                  3: 'RS Utama & Paripurna',
-                  4: 'RS Paripurna'
-                };
-                const colBg = (lvl) => rules.tambah.includes(lvl)
-                  ? 'background:#e8f5e9;color:#15803d;'
-                  : rules.kurang.includes(lvl)
-                    ? 'background:#fff0f0;color:#be123c;'
-                    : '';
-                const colLabel = (lvl) => rules.tambah.includes(lvl)
-                  ? `<div style="font-size:9px;font-weight:700;color:#15803d;margin-top:2px;">▲ Tambah</div>`
-                  : rules.kurang.includes(lvl)
-                    ? `<div style="font-size:9px;font-weight:700;color:#be123c;margin-top:2px;">▼ Kurang</div>`
-                    : `<div style="font-size:9px;color:#94a3b8;margin-top:2px;">—</div>`;
-                return `<tr>
-                  <th style="font-size:11px;color:#64748b;">Kasus Level</th>
-                  ${[1,2,3,4].map(lvl => `<th style="font-size:11px;${colBg(lvl)}">
-                    <div style="font-weight:800;">${levelNames[lvl]}</div>
-                    <div style="font-size:9px;font-weight:500;color:#64748b;margin-top:1px;">${serveLabels[lvl]}</div>
-                    ${colLabel(lvl)}
-                  </th>`).join('')}
-                  <th>Total</th>
-                </tr>`;
-              })()}
-              </thead>
-              <tbody>
-                <tr><th>Jumlah RS Kompetitor</th>${[1,2,3,4].map((lvl, i) => {
-                  const rules = getLevelRules(targetCompetency, service);
-                  const bg = rules.tambah.includes(lvl) ? 'background:#f0fdf4;font-weight:900;color:#15803d;' : rules.kurang.includes(lvl) ? 'background:#fff5f5;font-weight:900;color:#be123c;' : '';
-                  return `<td style="${bg}">${formatNumber(counts[i])}</td>`;
-                }).join('')}<td>${formatNumber(data.hospitals.filter(h => h.code !== target.code && [1,2,3,4].some(lvl => canServeLevel(getCompetency(h, service), lvl))).length)}</td></tr>
-                <tr><th>Jumlah Kasus Regional</th>${regionalMetrics.map((m, i) => {
-                  const lvl = i + 1;
-                  const rules = getLevelRules(targetCompetency, service);
-                  const bg = rules.tambah.includes(lvl) ? 'background:#f0fdf4;font-weight:900;color:#15803d;' : rules.kurang.includes(lvl) ? 'background:#fff5f5;font-weight:900;color:#be123c;' : '';
-                  return `<td style="${bg}">${formatNumber(m[CASES])}</td>`;
-                }).join('')}<td>${formatNumber(regionalKasus)}</td></tr>
-                <tr><th>Spending iDRG Regional</th>${regionalMetrics.map((m, i) => {
-                  const lvl = i + 1;
 
-            <%-- ① SUMMARY + sidebar "Mirorring" --%>
             <div style="display:flex;gap:0;align-items:stretch;margin-bottom:10px;">
               <div class="service-summary" style="flex:1;min-width:0;">
-                <div>
-                  <strong>Total Kasus:</strong>
-                  <b>${formatNumber(targetKasus)}</b>
-                  <span>Jumlah kasus eklaim</span>
-                </div>
-                <div>
-                  <strong>Pendapatan INA CBGs:</strong>
-                  <b style="color:#d97706;">${formatMoneyM(targetExistingService[INA])}</b>
-                  <span>Dari data 8 bulan</span>
-                </div>
-                <div>
-                  <strong>Pendapatan iDRG:</strong>
-                  <b style="color:#d97706;">${formatMoneyM(targetExistingService[IDRG])}</b>
-                  <span>Klaim uji coba iDRG</span>
-                </div>
-                <div>
-                  <strong>Selisih Pendapatan:</strong>
-                  <b>${signed(revenueDelta, formatMoneyM(Math.abs(revenueDelta)))}</b>
-                  <span>iDRG - INA CBGs</span>
-                </div>
-                <div>
-                  <strong>Persentase:</strong>
-                  <b>${targetExistingService[INA] ? signed(revenueDelta, formatPercent(Math.abs(revenueDelta / targetExistingService[INA]))) : '\u2014'}</b>
-                  <span>Dari Pendapatan INACBG</span>
-                </div>
+                <div><strong>Total Kasus:</strong><b>${formatNumber(targetKasus)}</b><span>Jumlah kasus eklaim</span></div>
+                <div><strong>Pendapatan INA CBGs:</strong><b style="color:#d97706;">${formatMoneyM(targetExistingService[INA])}</b><span>Dari data 8 bulan</span></div>
+                <div><strong>Pendapatan iDRG:</strong><b style="color:#d97706;">${formatMoneyM(targetExistingService[IDRG])}</b><span>Klaim uji coba iDRG</span></div>
+                <div><strong>Selisih Pendapatan:</strong><b>${signed(revenueDelta, formatMoneyM(Math.abs(revenueDelta)))}</b><span>iDRG - INA CBGs</span></div>
+                <div><strong>Persentase:</strong><b>${targetExistingService[INA] ? signed(revenueDelta, formatPercent(Math.abs(revenueDelta / targetExistingService[INA]))) : '\u2014'}</b><span>Dari Pendapatan INACBG</span></div>
               </div>
               <div style="display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);background:#0f766e;color:#fff;font-size:12px;font-weight:900;padding:10px 7px;min-width:36px;letter-spacing:1px;white-space:nowrap;border-left:3px solid #ccd32d;flex-shrink:0;">Mirorring Inacbg dg iDRG+KRIS</div>
             </div>
 
-            <%-- ② TABEL KOMPETITOR --%>
             ${(() => {
               const rules = getLevelRules(targetCompetency, service);
-              // kolom "tambah" = teks merah bold (RS bisa layani level ini)
-              const thStyle = (lvl) => rules.tambah.includes(lvl)
-                ? 'color:#cc0000;font-weight:900;'
-                : 'color:#fff;font-weight:700;';
-              const tdStyle = (lvl) => rules.tambah.includes(lvl)
-                ? 'font-weight:900;color:#cc0000;'
-                : '';
+              const thStyle = (lvl) => rules.tambah.includes(lvl) ? 'color:#cc0000;font-weight:900;' : 'color:#fff;font-weight:700;';
+              const tdStyle = (lvl) => rules.tambah.includes(lvl) ? 'font-weight:900;color:#cc0000;' : '';
               const uniqueTotal = data.hospitals.filter(h => h.code !== target.code && [1,2,3,4].some(lvl => canServeLevel(getCompetency(h, service), lvl))).length;
               return `<table class="service-competency-table" style="margin-bottom:8px;">
                 <thead>
@@ -8152,13 +8064,11 @@ document.getElementById("globalSimulationSlide").innerHTML = `
               </table>`;
             })()}
 
-            <%-- ③ TABEL SIMULASI + sidebar "Penerapan iDRG" --%>
             <div style="display:flex;gap:0;align-items:stretch;">
               <div style="flex:1;min-width:0;">${serviceTable}</div>
               <div style="display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);background:#0f766e;color:#fff;font-size:12px;font-weight:900;padding:10px 7px;min-width:36px;letter-spacing:1px;white-space:nowrap;border-left:3px solid #ccd32d;flex-shrink:0;">Penerapan iDRG+KRIS+RBKP</div>
             </div>
 
-            <%-- ④ BAR REKOMENDASI --%>
             <div class="service-rekbar">
               <div class="service-rekbar-label">Rekomendasi</div>
               <div class="service-rekbar-text">${escapeHtml(window.ServiceInsights.recommendation(formatService(service), targetCompetency, window.dynamicSimRecap[window.dynamicSimRecap.length - 1]))}</div>
