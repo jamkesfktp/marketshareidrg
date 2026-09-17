@@ -65,10 +65,10 @@
    * Generate ONE concise, data-driven recommendation for the slide bottom bar.
    *
    * Competency serving rules (RS melayani level kompetensinya + satu tingkat di bawah):
-   *   Paripurna (4) → tambah kasus level 3+4, kurang level 1+2
-   *   Utama     (3) → tambah kasus level 2+3, kurang level 1+4
-   *   Madya     (2) → tambah kasus level 1+2, kurang level 3+4
-   *   Dasar     (1) → tambah kasus level 1,   kurang level 2+3+4
+   *   Paripurna (4) -> tambah kasus level 3+4, kurang level 1+2
+   *   Utama     (3) -> tambah kasus level 2+3, kurang level 1+4
+   *   Madya     (2) -> tambah kasus level 1+2, kurang level 3+4
+   *   Dasar     (1) -> tambah kasus level 1,   kurang level 2+3+4
    */
   function recommendation(service, competency, simulation) {
     var insight = evaluate({competency:competency, simulation:simulation, levels:simulation.insightLevels||[]});
@@ -76,12 +76,9 @@
     var fmt     = function(n){ return Math.round(n).toLocaleString('id-ID'); };
     var fmtPct  = function(n){ return n.toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2}); };
     var names   = {1:'Dasar',2:'Madya',3:'Utama',4:'Paripurna'};
+    var UP   = '\u25b2'; // triangle up
+    var DOWN = '\u25bc'; // triangle down
 
-    // Level-kasus yang dilayani RS ini (sesuai kompetensi)
-    var serveLevels = SERVE_LEVELS[competency] || [];
-    var loseLevels  = LOSE_LEVELS[competency]  || [];
-
-    // Helper: jumlah kasus regional untuk level tertentu
     function regionalFor(lvl) {
       var l = levels.find(function(x){ return x.level===lvl; });
       return l ? (l.regionalCases||0) : 0;
@@ -91,20 +88,21 @@
       return l ? (l.competitors||0) : 0;
     }
 
-    // ── Case 1: Zero baseline (no cases at all for this service) ────────────
     var totalRegional = levels.reduce(function(s,x){ return s+(x.regionalCases||0); }, 0);
+
+    // Case 1: Zero cases at all
     if (simulation.baselineCases === 0 && simulation.projectedCases === 0) {
       return 'Sejauh ini tidak ada kasus '+service+' sehingga perlu dipertimbangkan untuk melakukan efisiensi pada sisi fixed cost serta realokasi SDM (bukan dokter) untuk mendukung layanan yang akan mengalami lonjakan pasien cukup tinggi.';
     }
 
-    // ── Case 2: Significant case growth ─────────────────────────────────────
+    // Case 2: Significant case growth
     if (insight.caseDelta > 0) {
       var absDelta = Math.abs(insight.caseDelta);
       var pctStr = insight.casePct !== null ? ' (+'+fmtPct(insight.casePct*100)+'%)' : '';
-      return 'Perhatikan kesiapan SDM, sarpras, dan logistik RS dalam merespons kenaikan pasien \u25b2 '+fmt(absDelta)+' kasus'+pctStr;
+      return 'Perhatikan kesiapan SDM, sarpras, dan logistik RS dalam merespons kenaikan pasien '+UP+' '+fmt(absDelta)+' kasus'+pctStr;
     }
 
-    // ── Case 3: Paripurna RS under-utilizing available regional cases ────────
+    // Case 3: Paripurna RS under-utilizing available regional cases
     if (competency === 4) {
       var lvl4 = levels.find(function(x){ return x.level===4; });
       var lvl3 = levels.find(function(x){ return x.level===3; });
@@ -117,7 +115,7 @@
       }
     }
 
-    // ── Case 4: Utama RS under-utilizing available Madya+Utama cases ────────
+    // Case 4: Utama RS under-utilizing available Madya+Utama cases
     if (competency === 3) {
       var reg3u = regionalFor(3), reg2u = regionalFor(2);
       var comp3u = competitorsFor(3), comp2u = competitorsFor(2);
@@ -126,7 +124,7 @@
       }
     }
 
-    // ── Case 5: Upgrade opportunity (no/few competitors at next level) ───────
+    // Case 5: Upgrade opportunity
     if (insight.opportunity === 'upgrade') {
       var nextComp  = competency + 1;
       var nextName  = names[nextComp]  || '';
@@ -137,7 +135,6 @@
       var regCurr   = regionalFor(competency);
 
       if (compNext === 0 && compCurr === 0) {
-        // Tidak ada pesaing di level sekarang maupun level atas
         return 'Untuk layanan '+service+', RS berpeluang meningkatkan kompetensinya ke '+nextName+' (hanya '+compNext+' pesaing) atau setidaknya '+currName+' (belum ada pesaing) dengan jumlah pasien yang cukup tinggi baik di '+currName+' ('+fmt(regCurr)+' kasus) maupun '+nextName+' ('+fmt(regNext)+' kasus).\nLayanan '+service+' RS dengan level saat ini melayani pasien sangat sedikit ('+fmt(simulation.baselineCases)+') dibandingkan potensi yang ada.';
       }
       if (compNext === 0) {
@@ -146,22 +143,23 @@
       return 'Prioritaskan persiapan peningkatan kompetensi layanan '+service+' menjadi '+nextName+' berdasarkan kebutuhan '+fmt(regNext)+' kasus regional per penyedia, disertai pemenuhan SDM dan sarpras.';
     }
 
-    // ── Case 6: Case decline ─────────────────────────────────────────────────
+    // Case 6: Case decline
     if (insight.caseDelta < 0) {
       return 'Sesuaikan alokasi SDM dan sarpras layanan '+service+' dengan penurunan pasien '+fmt(Math.abs(insight.caseDelta))+' kasus; pertimbangkan efisiensi biaya tetap.';
     }
 
-    // ── Case 7: Zero cases but there is regional pool ───────────────────────
+    // Case 7: Zero cases but regional pool exists
     if (simulation.baselineCases === 0 && totalRegional > 0) {
       return 'Sejauh ini tidak ada kasus '+service+' sehingga perlu dipertimbangkan untuk melakukan efisiensi pada sisi fixed cost serta realokasi SDM (bukan dokter) untuk mendukung layanan yang akan mengalami lonjakan pasien cukup tinggi.';
     }
 
-    // ── Case 8: Default — optimize at current competency ────────────────────
-    var serveLvlNames = serveLevels.map(function(l){ return names[l]||''; }).join(' dan ');
+    // Case 8: Default - optimize at current competency
+    var serveLvls = SERVE_LEVELS[competency] || [];
+    var serveLvlNames = serveLvls.map(function(l){ return names[l]||''; }).join(' dan ');
     return 'Optimalkan layanan '+service+' pada kompetensi '+(names[competency]||'-')+' untuk menangani proyeksi pasien sesuai hasil simulasi (melayani kasus level '+serveLvlNames+').';
   }
 
-  /** Legacy multi-line array version — kept for backward compatibility */
+  /** Legacy multi-line array version - kept for backward compatibility */
   function recommendations(service, competency, simulation) {
     return [recommendation(service, competency, simulation)];
   }
