@@ -8024,6 +8024,8095 @@ document.getElementById("globalSimulationSlide").innerHTML = `
 
             ${(() => {
               const rules = getLevelRules(targetCompetency, service);
+              const thStyle = (lvl) => rules.tambah.includes(lvl) ? 'color:#ff5555;font-weight:900;' : 'color:#fff;font-weight:700;';
+              const tdStyle = (lvl) => rules.tambah.includes(lvl) ? 'background:#fffbcc;font-weight:700;text-align:center;' : 'text-align:center;background:#fff;';
+              const uniqueTotal = data.hospitals.filter(h => h.code !== target.code && [1,2,3,4].some(lvl => canServeLevel(getCompetency(h, service), lvl))).length;
+              return `<table class="service-competency-table" style="margin-bottom:8px;">
+                <thead>
+                  <tr>
+                    <th style="background:#0f766e;color:#fff;font-weight:900;text-align:left;padding:7px 10px;">Kompetensi RS</th>
+                    <th colspan="5" style="background:#0f766e;color:#fff;font-weight:900;padding:7px 10px;">
+                      <select class="service-competency-select" data-service="${escapeHtml(service)}" style="background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,0.6);border-radius:5px;padding:3px 8px;font-weight:900;font-size:14px;cursor:pointer;outline:none;">
+                        ${[0,1,2,3,4].map(l => `<option value="${l}" ${l===targetCompetency?'selected':''} style="background:#0f766e;color:#fff;">${escapeHtml(levelNames[l]||'Belum ditetapkan')}</option>`).join('')}
+                      </select>
+                      ${targetCompetency !== actualCompetency ? `<span style="font-size:11px;opacity:.85;margin-left:8px;">Aktual: ${escapeHtml(levelNames[actualCompetency]||'-')}</span>` : ''}
+                    </th>
+                  </tr>
+                  <tr>
+                    <th style="background:#1e7e6e;color:#fff;padding:5px 8px;">/</th>
+                    ${[1,2,3,4].map(lvl => `<th style="background:#1e7e6e;${thStyle(lvl)}padding:5px 8px;">${levelNames[lvl]}</th>`).join('')}
+                    <th style="background:#1e7e6e;color:#fff;font-weight:700;padding:5px 8px;text-align:center;">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th style="text-align:left;font-weight:700;padding:4px 10px;background:#fff;">Jumlah RS Kompetitor</th>
+                    ${counts.map((n,i) => `<td style="${tdStyle(i+1)}">${formatNumber(n)}</td>`).join('')}
+                    <td style="text-align:center;background:#fff;">${formatNumber(uniqueTotal)}</td>
+                  </tr>
+                  <tr>
+                    <th style="text-align:left;font-weight:700;padding:4px 10px;background:#fff;">Jumlah Kasus Regional</th>
+                    ${regionalMetrics.map((m,i) => `<td style="${tdStyle(i+1)}">${formatNumber(m[CASES])}</td>`).join('')}
+                    <td style="text-align:center;background:#fff;">${formatNumber(regionalKasus)}</td>
+                  </tr>
+                  <tr>
+                    <th style="text-align:left;font-weight:700;padding:4px 10px;background:#fff;">Spending iDRG Regional</th>
+                    ${regionalMetrics.map((m,i) => `<td style="${tdStyle(i+1)}">${formatMoneyM(m[IDRG])}</td>`).join('')}
+                    <td style="text-align:center;background:#fff;">${formatMoneyM(regionalExistingService[IDRG])}</td>
+                  </tr>
+                </tbody>
+              </table>`;
+            })()}
+
+            <div style="display:flex;gap:0;align-items:stretch;">
+              <div style="flex:1;min-width:0;">${serviceTable}</div>
+              <div style="display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);background:#0f766e;color:#fff;font-size:12px;font-weight:900;padding:10px 7px;min-width:36px;letter-spacing:1px;white-space:nowrap;border-left:3px solid #ccd32d;flex-shrink:0;">Penerapan iDRG+KRIS+RBKP</div>
+            </div>
+
+            <div class="service-rekbar">
+              <div class="service-rekbar-label">Rekomendasi</div>
+              <div class="service-rekbar-text">${escapeHtml(window.ServiceInsights.recommendation(formatService(service), targetCompetency, window.dynamicSimRecap[window.dynamicSimRecap.length - 1]))}</div>
+              <div class="service-rekbar-logo-wrap">
+                <img src="img/logo-kemenkes.png" alt="Kemenkes" class="service-rekbar-logo">
+                </div>
+            </div>
+
+          </div>
+        </section>
+      `;
+    });
+    
+
+      if (window.dynamicSimRecap && window.dynamicSimRecap.length > 0) {
+        let tEksKasus = 0, tEksIna = 0, tEksIdrg = 0;
+        let tTambKasus = 0, tTambIdrg = 0;
+        let tKurangKasus = 0, tKurangIdr
+tor() {
+  "use strict";
+
+  const allDatasets = window.marketSimulatorDatasets || { "okt_jun": window.marketSimulatorData };
+  let activeDatasetKey = "okt_jun";
+  let originalData = allDatasets[activeDatasetKey] || window.marketSimulatorData;
+  let data = allDatasets[activeDatasetKey] || window.marketSimulatorData;
+  if (!data) throw new Error("Dataset simulator tidak tersedia.");
+
+  if (data.services && !data.services.includes('FORENSIK DAN MEDIKOLEGAL')) {
+    data.services.push('FORENSIK DAN MEDIKOLEGAL');
+    data.services.sort();
+  }
+
+  const CASES = 0;
+  const INA = 1;
+  let IDRG = 2;
+  let REVENUE = 2;
+  const severityRanks = [1, 2, 3, 4];
+  const levelNames = { 0: "Tidak Kompeten", 1: "Dasar", 2: "Madya", 3: "Utama", 4: "Paripurna" };
+  const shortLevelNames = { 1: "D", 2: "M", 3: "U", 4: "P" };
+
+  window.copyColData = function(btn, colId) {
+    const source = window.TableCopy.prepare(btn.closest('table'));
+    const table = document.createElement('table');
+    source.querySelectorAll('td[data-col="' + colId + '"]').forEach(cell => {
+      const row = table.insertRow();
+      const copy = cell.cloneNode(true);
+      copy.removeAttribute('rowspan'); copy.removeAttribute('colspan');
+      const originals = cell.querySelectorAll('input');
+      copy.querySelectorAll('input').forEach((input, index) => { input.value = originals[index].value; });
+      row.append(copy);
+    });
+    return window.TableCopy.copy(btn, table);
+  };
+
+  window.copyFullTable = function(btn) {
+    const table = btn.closest('.service-result-table')?.querySelector('table') || btn.parentElement.nextElementSibling?.querySelector('table');
+    return window.TableCopy.copy(btn, table);
+  };
+
+  const DATASET_PERIODS = {
+    "okt_jun": {
+      key: "okt_jun",
+      label: "Uji Coba Okt 2025 - Jun 2026 (8 Bulan - 111,76 Jt Kasus)",
+      chip: "Uji Coba Okt 2025 - Jun 2026 (8 Bulan)",
+      desc: "Master CSV: spending_okt_jun_v3_gabungan.csv"
+    },
+    "jan_des": {
+      key: "jan_des",
+      label: "Data Tahun 2025 (Jan - Des / 12 Bulan)",
+      chip: "Data Tahun 2025 (Jan - Des)",
+      desc: "Master CSV: spending_jan_des_v11_gabungan.csv"
+    }
+  };
+
+  const TARIFF_SCENARIOS = {
+    "1370_full": { index: 2, label: "iDRG 1370 - AF + AFreg + AFkep", chip: "iDRG 1370 (AF + AFreg + AFkep)", desc: "Model 1.370 DRG dengan penyesuaian AF + AFreg + AFkep" },
+    "1370_afreg": { index: 3, label: "iDRG 1370 - AF + AFreg", chip: "iDRG 1370 (AF + AFreg)", desc: "Model 1.370 DRG dengan penyesuaian AF + AFreg" },
+    "1370_af": { index: 4, label: "iDRG 1370 - AF Saja", chip: "iDRG 1370 (AF Saja)", desc: "Model 1.370 DRG dengan penyesuaian AF saja" },
+    "1370_noaf": { index: 5, label: "iDRG 1370 - Tanpa AF (Base)", chip: "iDRG 1370 (Tanpa AF)", desc: "Tarif dasar iDRG 1.370 tanpa penyesuaian AF" },
+    "1370_juknis": { index: 6, label: "iDRG 1370 - Juknis Top-Up", chip: "iDRG 1370 (Juknis Top-Up)", desc: "Model 1.370 DRG skema Juknis Top-Up" },
+    "1363_full": { index: 7, label: "iDRG 1363 - AF + AFreg + AFkep (Default)", chip: "iDRG 1363 (AF + AFreg + AFkep)", desc: "Model 1.363 DRG dengan penyesuaian AF + AFreg + AFkep" },
+    "1363_af": { index: 8, label: "iDRG 1363 - AF Saja (Tarif 2025)", chip: "iDRG 1363 (AF Saja)", desc: "Tarif iDRG 1.363 tahun 2025 dengan penyesuaian AF saja" }
+  };
+  const DEFAULT_TARIFF_BY_DATASET = { "okt_jun": "1370_af", "jan_des": "1363_af" };
+
+  function updateActiveTariff(scenarioKey) {
+    const resolvedKey = TARIFF_SCENARIOS[scenarioKey] ? scenarioKey : (DEFAULT_TARIFF_BY_DATASET[activeDatasetKey] || "1370_af");
+    const sc = TARIFF_SCENARIOS[resolvedKey];
+    state.activeTariffScenario = resolvedKey;
+    IDRG = sc.index;
+    REVENUE = sc.index;
+
+    const labelEl = document.getElementById("activeTariffLabel");
+    if (labelEl) labelEl.textContent = sc.chip;
+
+    const descEl = document.getElementById("tariffScenarioDesc");
+    if (descEl) descEl.textContent = sc.desc;
+
+    const selectEl = document.getElementById("tariffScenarioSelect");
+    if (selectEl && selectEl.value !== resolvedKey) selectEl.value = resolvedKey;
+  }
+
+  function switchDatasetPeriod(datasetKey) {
+    if (!allDatasets[datasetKey]) return;
+    activeDatasetKey = datasetKey;
+    state.activeDataset = datasetKey;
+    originalData = allDatasets[datasetKey];
+    data = allDatasets[datasetKey];
+
+    if (data && data.services && !data.services.includes('FORENSIK DAN MEDIKOLEGAL')) {
+      data.services.push('FORENSIK DAN MEDIKOLEGAL');
+      data.services.sort();
+    }
+
+    const pInfo = DATASET_PERIODS[datasetKey] || DATASET_PERIODS["okt_jun"];
+    const periodLabelEl = document.getElementById("activePeriodLabel");
+    if (periodLabelEl) periodLabelEl.textContent = pInfo.chip;
+
+    const periodDescEl = document.getElementById("datasetPeriodDesc");
+    if (periodDescEl) periodDescEl.textContent = pInfo.desc;
+
+    const periodSelectEl = document.getElementById("datasetPeriodSelect");
+    if (periodSelectEl && periodSelectEl.value !== datasetKey) periodSelectEl.value = datasetKey;
+
+    // Tarif otomatis mengikuti generasi iDRG pada periode sumber data.
+    updateActiveTariff(DEFAULT_TARIFF_BY_DATASET[datasetKey]);
+
+    updateDataState();
+    populateFilters(true);
+    populateHospitalSelector();
+    
+  document.getElementById('globalSimServiceSelect')?.addEventListener('change', () => {
+    if(typeof renderGlobalSimulationSlide === "function") renderGlobalSimulationSlide();
+    if(typeof renderCompetencySimSlide === "function") renderCompetencySimSlide();
+    if(typeof renderRecapSlide === "function") renderRecapSlide();
+    if(typeof renderLogicalRecapSlide === "function") renderLogicalRecapSlide();
+  });
+
+  renderAll();
+  }
+  
+  let hospitalByCode = new Map();
+  let hospitalClassCounts = {};
+  let dataStateVersion = 0;
+  let targetAggregateCache = { codesRef: null, version: -1, value: null };
+  
+  function updateDataState() {
+    hospitalByCode = new Map(data.hospitals.map((hospital) => [hospital.code, hospital]));
+    hospitalClassCounts = ["A", "B", "C", "D"].reduce((counts, className) => {
+      counts[className] = data.hospitals.filter((hospital) => String(hospital.class || "").trim().toUpperCase() === className).length;
+      return counts;
+    }, {});
+    dataStateVersion += 1;
+    targetAggregateCache = { codesRef: null, version: -1, value: null };
+  }
+  updateDataState();
+  
+  const defaultTarget = hospitalByCode.has(data.meta.defaultTargetCode)
+    ? data.meta.defaultTargetCode
+    : (data.hospitals.length > 0 ? data.hospitals[0].code : "");
+
+  const state = {
+    targetCode: defaultTarget,
+    targetCodes: defaultTarget ? [defaultTarget] : [],
+    activeSlide: 0,
+    activeTariffScenario: DEFAULT_TARIFF_BY_DATASET[activeDatasetKey],
+    selectedService: data.services.includes("JIWA") ? "JIWA" : data.services[0],
+    selectedSeverity: 4,
+    targetShare: 50,
+    scenarios: [100, 75, 50, 25, 15, 0].map(val => ({ tambah: val, kurang: val })),
+    serviceScenarios: {},
+    globalRates: {
+      capture: { 1: 0, 2: 0, 3: 20, 4: 20 },
+      retention: { 1: 50, 2: 50, 3: 100, 4: 100 },
+    },
+    overrides: {},
+    competencyOverrides: {},
+    competencyUpgrade: { service: "ALL", targetLevel: 2, captureMultiplier: 100, retention: 100 },
+  };
+  updateActiveTariff(state.activeTariffScenario);
+
+  let liveRenderTimer = null;
+  function scheduleLiveRender(render, delay = 280) {
+    window.clearTimeout(liveRenderTimer);
+    liveRenderTimer = window.setTimeout(() => {
+      liveRenderTimer = null;
+      render();
+    }, delay);
+  }
+
+  function flushLiveRender(render) {
+    window.clearTimeout(liveRenderTimer);
+    liveRenderTimer = null;
+    render();
+  }
+
+  const numberFormatter = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 0 });
+  const decimalFormatter = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const compactFormatter = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  const escapeHtml = (value) => String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+
+  const VECTOR_LENGTH = 9;
+  const createZeroMetric = () => Array(VECTOR_LENGTH).fill(0);
+
+  function addVectors(target, source) {
+    if (!source) return;
+    const len = Math.max(target.length, source.length, VECTOR_LENGTH);
+    for (let i = 0; i < len; i++) {
+      target[i] = (target[i] || 0) + (source[i] || 0);
+    }
+  }
+
+  const metric = (value) => {
+    if (!Array.isArray(value)) return createZeroMetric();
+    if (value.length < VECTOR_LENGTH) {
+      const res = createZeroMetric();
+      for (let i = 0; i < value.length; i++) res[i] = value[i] || 0;
+      return res;
+    }
+    return value;
+  };
+  const severityMetric = (container, rank) => metric(container?.severity?.[rank]);
+  const addMetrics = (left, right) => {
+    const l = metric(left);
+    const r = metric(right);
+    const len = Math.max(l.length, r.length, VECTOR_LENGTH);
+    const res = new Array(len);
+    for (let i = 0; i < len; i++) {
+      res[i] = (l[i] || 0) + (r[i] || 0);
+    }
+    return res;
+  };
+  const subtractMetrics = (left, right) => {
+    const l = metric(left);
+    const r = metric(right);
+    const len = Math.max(l.length, r.length, VECTOR_LENGTH);
+    const res = new Array(len);
+    for (let i = 0; i < len; i++) {
+      res[i] = Math.max((l[i] || 0) - (r[i] || 0), 0);
+    }
+    return res;
+  };
+  const multiplyMetric = (value, factor) => {
+    const v = metric(value);
+    return v.map((item) => item * factor);
+  };
+  const sumMetrics = (values) => {
+    if (!values || !values.length) return createZeroMetric();
+    return values.reduce(addMetrics, createZeroMetric());
+  };
+
+  const formatNumber = (value) => numberFormatter.format(Math.round(Number(value) || 0));
+  const formatSignedNumber = (value) => {
+    const numeric = Math.round(Number(value) || 0);
+    if (numeric === 0) return "0";
+    return `${numeric > 0 ? "+" : "−"}${formatNumber(Math.abs(numeric))}`;
+  };
+  const formatMoney = (value) => {
+    const numeric = Number(value) || 0;
+    const absolute = Math.abs(numeric);
+    const sign = numeric < 0 ? "-" : "";
+    const inMilyar = absolute / 1e9;
+    let formatted;
+    if (absolute >= 1e9) {
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(inMilyar);
+    } else {
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(inMilyar);
+    }
+    return `${sign}${formatted} M`;
+  };
+  const formatMatrixMoney = (value) => {const numeric = Number(value) || 0;const absolute = Math.abs(numeric);const sign = numeric < 0 ? "-" : "";const inMilyar = absolute / 1e9;let formatted;if (absolute >= 1e9) {
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(inMilyar);
+    } else {
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(inMilyar);
+    }return sign + formatted;};
+  const formatPercent = (value) => `${decimalFormatter.format((Number(value) || 0) * 100)}%`;
+
+  const serviceAliases = {
+    "ALERGI IMUNOLOGI DAN RHEUMATOLOGI": "Alergi, Imunologi & Rheumatologi",
+    "ENDOKRIN, NUTRISI DAN METABOLIK": "Endokrin, Nutrisi & Metabolik",
+    "GIGI DAN MULUT": "Gigi & Mulut",
+    "IBU DAN GINEKOLOGI": "Ibu & Ginekologi",
+    "INFEKSI DAN PARASIT": "Infeksi & Parasit",
+    "JANTUNG DAN PEMBULUH DARAH": "Jantung & Pembuluh Darah",
+    "KULIT & PENYAKIT KELAMIN": "Kulit & Penyakit Kelamin",
+    "LUKA BAKAR": "Luka Bakar",
+    "MUSCULOSKELETAL DAN JARINGAN LUNAK": "Muskuloskeletal & Jaringan Lunak",
+    "PARU DAN PERNAFASAN": "Paru & Pernafasan",
+    "PENCERNAAN DAN HEPATOBILIER": "Pencernaan & Hepatobilier",
+    "REKONSTRUKSI DAN ESTETIKA": "Rekonstruksi & Estetika",
+    "SARAF/ NEUROSCIENCE": "Saraf / Neuroscience",
+    "URO NEFRO": "Uro Nefro",
+  };
+  const formatService = (service) => serviceAliases[service] || service
+    .toLocaleLowerCase("id-ID")
+    .replace(/(^|\s|\/)([a-z])/g, (_, prefix, letter) => `${prefix}${letter.toUpperCase()}`);
+
+  function getTargetHospitals() {
+    if (!state.targetCodes || state.targetCodes.length === 0) {
+      if (state.targetCode && hospitalByCode.has(state.targetCode)) {
+        return [hospitalByCode.get(state.targetCode)];
+      }
+      return data.hospitals.length > 0 ? [data.hospitals[0]] : [];
+    }
+    const list = state.targetCodes.map(code => hospitalByCode.get(code)).filter(Boolean);
+    return list.length > 0 ? list : (data.hospitals.length > 0 ? [data.hospitals[0]] : []);
+  }
+
+  function targetHospital() {
+    const codesRef = state.targetCodes;
+    if (
+      Array.isArray(codesRef) &&
+      codesRef.length > 1 &&
+      targetAggregateCache.codesRef === codesRef &&
+      targetAggregateCache.version === dataStateVersion
+    ) {
+      return targetAggregateCache.value;
+    }
+
+    const list = getTargetHospitals();
+    if (list.length === 0) return null;
+    if (list.length === 1) return list[0];
+
+    const total = createZeroMetric();
+    const unclassified = createZeroMetric();
+    const severity = { 1: createZeroMetric(), 2: createZeroMetric(), 3: createZeroMetric(), 4: createZeroMetric() };
+    const services = {};
+    const uniqueCities = new Set();
+    const uniqueProvs = new Set();
+    const uniqueClasses = new Set();
+
+    for (const h of list) {
+      if (h.city) uniqueCities.add(h.city);
+      if (h.province) uniqueProvs.add(h.province);
+      if (h.class) uniqueClasses.add(h.class);
+
+      if (h.total) {
+        addVectors(total, h.total);
+      }
+      if (h.unclassified) {
+        addVectors(unclassified, h.unclassified);
+      }
+
+      if (h.severity) {
+        for (const lvl in h.severity) {
+          if (!severity[lvl]) severity[lvl] = createZeroMetric();
+          addVectors(severity[lvl], h.severity[lvl]);
+        }
+      }
+
+      if (h.services) {
+        for (const svc in h.services) {
+          if (!services[svc]) {
+            services[svc] = {
+              competency: 0,
+              total: createZeroMetric(),
+              unclassified: createZeroMetric(),
+              severity: { 1: createZeroMetric(), 2: createZeroMetric(), 3: createZeroMetric(), 4: createZeroMetric() }
+            };
+          }
+          const hs = h.services[svc];
+          const aggS = services[svc];
+          if (hs.total) {
+            addVectors(aggS.total, hs.total);
+          }
+          if (hs.unclassified) {
+            addVectors(aggS.unclassified, hs.unclassified);
+          }
+          if (hs.severity) {
+            for (const lvl in hs.severity) {
+              if (!aggS.severity[lvl]) aggS.severity[lvl] = createZeroMetric();
+              addVectors(aggS.severity[lvl], hs.severity[lvl]);
+            }
+          }
+          const comp = getCompetency(h, svc);
+          if (comp > aggS.competency) aggS.competency = comp;
+        }
+      }
+    }
+
+    const isAll = list.length === data.hospitals.length;
+    const name = isAll 
+      ? `Semua RS (${list.length} RS Terpilih)` 
+      : `${list.length} RS Target Terpilih`;
+    const city = uniqueCities.size === 1 ? [...uniqueCities][0] : `${uniqueCities.size} Kab/Kota`;
+    const province = uniqueProvs.size === 1 ? [...uniqueProvs][0] : `${uniqueProvs.size} Provinsi`;
+    const className = uniqueClasses.size === 1 ? [...uniqueClasses][0] : "Gabungan";
+
+    const aggregate = {
+      code: "MULTI",
+      name,
+      city,
+      province,
+      class: className,
+      type: "Gabungan",
+      total,
+      unclassified,
+      severity,
+      services,
+      isMultiTarget: true,
+      targetCount: list.length,
+      targetCodes: list.map(h => h.code)
+    };
+    targetAggregateCache = { codesRef, version: dataStateVersion, value: aggregate };
+    return aggregate;
+  }
+
+  const targetService = (service) => targetHospital()?.services?.[service] || null;
+  const regionalService = (service) => data.regional.services[service] || { total: [0, 0, 0], severity: {} };
+  function getCompetency(hospital, service) {
+    if (!hospital || !hospital.services || !hospital.services[service]) return 0;
+    const s = hospital.services[service];
+    if (typeof s.competency === "number") return s.competency;
+    if (s.competency) return Number(s.competency) || 0;
+    return 0;
+  }
+
+  function canServeLevel(competency, level) {
+    return level >= 1 && level <= 4 && competency >= 1 && competency <= 4 && (competency === level || competency === level + 1);
+  }
+
+  function competitionFootnote(service, targetComp, levelData, overrides = {}) {
+    const eligible = levelData.filter(item => canServeLevel(targetComp, item.level));
+    const details = eligible.map(item => {
+      const levels = severityRanks.filter(level => canServeLevel(level, item.level)).map(level => levelNames[level]).join(' + ');
+      return levelNames[item.level] + ': RS ' + levels + ' = ' + formatNumber(item.competitors) + ' kompetitor; share alami 100 ÷ (' + item.competitors + ' + 1) = ' + (100 / (item.competitors + 1)).toFixed(2).replace('.', ',') + '%';
+    }).join('; ');
+    const manual = Object.values(overrides).some(row => Object.values(row || {}).some(Number.isFinite));
+    return 'Asumsi simulasi: RS dapat melayani level kompetensinya dan satu tingkat di bawahnya. Layanan ' + formatService(service) + ', target ' + levelNames[targetComp] + '. ' + details + '. Mengikuti filter regional aktif; seluruh RS target dikecualikan dari kompetitor. Satu RS dapat bersaing di dua level; jumlah antarlevel bukan jumlah RS unik. Pool tambahan hanya kasus pada RS di luar kemampuan tersebut, bukan perpindahan pasien yang pasti. ' + (manual ? 'Persentase manual aktif; hasil menggunakan input yang ditampilkan.' : window.dynamicMarketAddMode === 'flat' ? 'Mode flat aktif: tambahan dimulai dari 50%, kemudian ditambah faktor skenario.' : 'Persentase tambahan mengikuti share alami dan faktor skenario.') + ' Pengurangan default 100% untuk kasus di luar kemampuan target dan dapat diedit.';
+  }
+
+  function getLevelRules(competency, serviceName = "") {
+    if (competency === 0 && serviceName.toLowerCase().includes('forensik')) {
+      return { tambah: [1], kurang: [2, 3, 4] };
+    }
+    switch (competency) {
+      case 0: return { tambah: [], kurang: [1, 2, 3, 4] };
+      case 1: return { tambah: [1], kurang: [2, 3, 4] };
+      case 2: return { tambah: [1, 2], kurang: [3, 4] };
+      case 3: return { tambah: [2, 3], kurang: [1, 4] };
+      case 4: return { tambah: [3, 4], kurang: [1, 2] };
+      default: return { tambah: [], kurang: [] };
+    }
+  }
+
+  function getSimulationCompetency(hospital, service) {
+    const actual = getCompetency(hospital, service);
+    if (!hospital || hospital.code !== targetHospital()?.code) return actual;
+    const override = Number(state.competencyOverrides?.[service]);
+    return Number.isInteger(override) && override >= 0 && override <= 4 ? override : actual;
+  }
+
+  function generateDefaultServiceScenarios(service, targetHospitalObj, competencyVal) {
+    const target = targetHospitalObj || targetHospital();
+    const targetComp = (competencyVal !== undefined) ? competencyVal : (target ? getCompetency(target, service) : 0);
+    const rules = getLevelRules(targetComp, service);
+    
+    // Hitung baseline market share alami per level (100 / (n_kompetitor + 1))
+    // Skenario 1 = Baseline  : % tambah = market share alami dari regional pool
+    // Skenario 2 = Konservatif: baseline + 2%
+    // Skenario 3 = Moderat    : baseline + 5%
+    // Skenario 4 = Optimistik : baseline + 10%
+    // Skenario 5 = Agresif    : baseline + 15%
+    // Skenario 6 = Maksimum   : 100% (ambil semua potensi)
+    const additions = [0, 2, 5, 10, 15, null]; // null = 100%
+    
+    // Hitung baseline % per level tambah
+    const baselinePct = {};
+    rules.tambah.forEach(lvl => {
+      const lvlComp = target
+        ? data.hospitals.filter(h => h.code !== target.code && canServeLevel(getCompetency(h, service), lvl)).length
+        : 0;
+      // Jika ada kompetitor: market share alami = 100/(kompetitor+1)
+      // Jika tidak ada kompetitor, RS target menjadi satu-satunya penyedia eligible.
+      baselinePct[lvl] = lvlComp > 0 ? parseFloat((100 / (lvlComp + 1)).toFixed(1)) : 100;
+    });
+    
+    return Array(6).fill().map((_, i) => {
+      const scn = {};
+      const addVal = additions[i];
+      
+      rules.tambah.forEach(lvl => {
+        if (addVal === null) {
+          scn["tambah_" + lvl] = 100; // Skenario 6: Maksimum
+        } else {
+          scn["tambah_" + lvl] = parseFloat(Math.min(100, baselinePct[lvl] + addVal).toFixed(1));
+        }
+      });
+      
+      rules.kurang.forEach(lvl => {
+        scn["kurang_" + lvl] = 100;
+      });
+      return scn;
+    });
+  }
+  const overrideFor = (service) => state.overrides[service];
+  const rateFor = (service, type, rank) => {
+    const override = overrideFor(service);
+    return override?.enabled ? override[type][rank] : state.globalRates[type][rank];
+  };
+
+  function computeAddressable() {
+    const target = targetHospital();
+    const rows = data.services.map((service) => {
+      const targetItem = target?.services?.[service];
+      const regionalItem = regionalService(service);
+      const competency = getCompetency(target, service);
+      const eligibleRegional = sumMetrics(
+        severityRanks
+          .filter((rank) => rank <= competency)
+          .map((rank) => severityMetric(regionalItem, rank)),
+      );
+      const eligibleExisting = sumMetrics(
+        severityRanks
+          .filter((rank) => rank <= competency)
+          .map((rank) => severityMetric(targetItem, rank)),
+      );
+      const external = subtractMetrics(eligibleRegional, eligibleExisting);
+      const competitors = competency
+        ? data.hospitals.filter((hospital) => hospital.code !== target.code && getCompetency(hospital, service) === competency).length
+        : 0;
+      return { service, competency, eligibleRegional, eligibleExisting, external, competitors };
+    });
+    return {
+      rows,
+      eligibleRegional: sumMetrics(rows.map((row) => row.eligibleRegional)),
+      eligibleExisting: sumMetrics(rows.map((row) => row.eligibleExisting)),
+      external: sumMetrics(rows.map((row) => row.external)),
+      mappedServices: rows.filter((row) => row.competency > 0).length,
+    };
+  }
+
+  function computeScenario() {
+    const target = targetHospital();
+    const serviceRows = data.services.map((service) => {
+      const targetItem = target?.services?.[service];
+      const regionalItem = regionalService(service);
+      const competency = getCompetency(target, service);
+      let projected = metric(targetItem?.unclassified);
+      let retained = metric(targetItem?.unclassified);
+      let captured = [0, 0, 0];
+
+      const severities = severityRanks.map((rank) => {
+        const existing = severityMetric(targetItem, rank);
+        const regional = severityMetric(regionalItem, rank);
+        const external = subtractMetrics(regional, existing);
+        const capable = competency >= rank;
+        const captureRate = rateFor(service, "capture", rank) / 100;
+        const retentionRate = rateFor(service, "retention", rank) / 100;
+        const retainedMetric = capable ? multiplyMetric(existing, retentionRate) : [0, 0, 0];
+        const capturedMetric = capable ? multiplyMetric(external, captureRate) : [0, 0, 0];
+        const projectedMetric = addMetrics(retainedMetric, capturedMetric);
+        projected = addMetrics(projected, projectedMetric);
+        retained = addMetrics(retained, retainedMetric);
+        captured = addMetrics(captured, capturedMetric);
+        return {
+          rank,
+          capable,
+          existing,
+          regional,
+          external,
+          captureRate,
+          retentionRate,
+          retained: retainedMetric,
+          captured: capturedMetric,
+          projected: projectedMetric,
+        };
+      });
+
+      const existing = metric(targetItem?.total);
+      const delta = projected.map((value, index) => value - existing[index]);
+      return { service, competency, existing, projected, retained, captured, delta, severities };
+    });
+
+    const existing = metric(target?.total);
+    const projected = sumMetrics(serviceRows.map((row) => row.projected));
+    const captured = sumMetrics(serviceRows.map((row) => row.captured));
+    const retained = sumMetrics(serviceRows.map((row) => row.retained));
+    const delta = projected.map((value, index) => value - existing[index]);
+    return { serviceRows, existing, projected, captured, retained, delta };
+  }
+
+  function competitorsFor(service, rank) {
+    const target = targetHospital();
+    const targetCompetency = getCompetency(target, service);
+    const minimumCompetency = Math.max(targetCompetency, rank);
+    const regional = severityMetric(regionalService(service), rank);
+    const targetExisting = severityMetric(target?.services?.[service], rank);
+    const rows = data.hospitals
+      .filter((hospital) => hospital.code !== target?.code && getCompetency(hospital, service) === minimumCompetency)
+      .map((hospital) => {
+        const existing = severityMetric(hospital.services?.[service], rank);
+        return {
+          hospital,
+          competency: getCompetency(hospital, service),
+          existing,
+          share: regional[CASES] ? existing[CASES] / regional[CASES] : 0,
+        };
+      })
+      .sort((a, b) => b.existing[CASES] - a.existing[CASES]);
+    const competitorHeld = sumMetrics(rows.map((row) => row.existing));
+    const external = subtractMetrics(regional, targetExisting);
+    const outsideCapable = subtractMetrics(external, competitorHeld);
+    return { regional, targetExisting, external, rows, competitorHeld, outsideCapable, targetCompetency, minimumCompetency };
+  }
+
+  const levelBadge = (rank) => `<span class="level-badge level-${rank}">${escapeHtml(levelNames[rank])}</span>`;
+  const capabilityCells = (competency) => `<span class="capability-cells">${severityRanks.map((rank) =>
+    `<span class="capability-cell ${rank <= competency ? "is-capable" : ""}">${shortLevelNames[rank]}</span>`).join("")}</span>`;
+  const deltaClass = (value) => value > 0 ? "delta-positive" : value < 0 ? "delta-negative" : "delta-neutral";
+
+  function renderExistingSlide() {
+    const target = targetHospital();
+    const delta = target.total[IDRG] - target.total[INA];
+    const deltaPercent = target.total[INA] ? delta / target.total[INA] : 0;
+    const unclassifiedCases = state.excludeUnmapped ? 0 : metric(target.unclassified)[CASES];
+    const severityTotals = Object.fromEntries(severityRanks.map((rank) => [rank,
+      sumMetrics(data.services.map((service) => severityMetric(target.services?.[service], rank))),
+    ]));
+    const rankedServices = data.services
+      .map((service) => ({ service, total: metric(target.services?.[service]?.total) }))
+      .sort((a, b) => b.total[CASES] - a.total[CASES] || a.service.localeCompare(b.service));
+    const displayCases = (value) => value ? formatNumber(value) : "—";
+    const displayMoney = (value) => value ? formatMatrixMoney(value) : "—";
+
+    document.getElementById("slide1Title").textContent = `Kasus Eksisting Per Layanan - ${target.name}`;
+    document.getElementById("existingSlide").innerHTML = `
+      <div class="existing-report-kpis">
+        <article class="existing-report-kpi kpi-cases"><span>Total Kasus:</span><strong>${formatNumber(target.total[CASES])}</strong><em>Jumlah kasus eklaim</em></article>
+        <article class="existing-report-kpi kpi-ina"><span>Pendapatan INA-CBG:</span><strong>${formatMoney(target.total[INA])}</strong><em>${activeDatasetKey === "jan_des" ? "Data tahun 2025" : "Data uji coba 8 bulan"}</em></article>
+        <article class="existing-report-kpi kpi-idrg"><span>Pendapatan iDRG:</span><strong>${formatMoney(target.total[IDRG])}</strong><em>${TARIFF_SCENARIOS[state.activeTariffScenario]?.chip || "Tarif iDRG aktif"}</em></article>
+        <article class="existing-report-kpi kpi-difference ${delta < 0 ? "is-loss" : "is-gain"}"><span>Selisih Pendapatan:</span><strong>${formatMoney(delta)}</strong><em>iDRG − INA-CBG</em></article>
+        <article class="existing-report-kpi kpi-percentage ${delta < 0 ? "is-loss" : "is-gain"}"><span>Persentase:</span><strong>${formatPercent(deltaPercent)}</strong><em>Dari pendapatan INA-CBG</em></article>
+      </div>
+      <div style="margin: 0px 0 12px 12px; font-size: 13px; font-weight: 500; display: flex; gap: 20px; color: #475569;">
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span style="display: inline-block; width: 14px; height: 14px; background-color: #fef08a; border: 1px solid #eab308; border-radius: 3px;"></span>
+          <span>Sesuai Kompetensi RS Target</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span style="display: inline-block; width: 14px; height: 14px; background-color: #fbcfe8; border: 1px solid #f472b6; border-radius: 3px;"></span>
+          <span>1 Tingkat di Bawah Kompetensi RS Target</span>
+        </div>
+      </div>
+      <div class="existing-matrix-wrap">
+        <table class="existing-matrix-table" aria-label="Kasus eksisting per layanan diurutkan berdasarkan persentase kasus terbesar">
+          <thead>
+            <tr><th rowspan="2" class="matrix-no">No</th><th rowspan="2" class="matrix-service">Layanan RS</th><th rowspan="2" class="matrix-competency">Kompetensi</th><th rowspan="2" class="matrix-total matrix-summary">Total Kasus</th><th rowspan="2" class="matrix-share matrix-summary">% Kasus</th><th rowspan="2" class="matrix-total-ina matrix-summary">Total INA-CBG</th><th rowspan="2" class="matrix-total-idrg matrix-summary">Total iDRG</th>${severityRanks.map((rank) => `<th colspan="3">${levelNames[rank]}</th>`).join("")}</tr>
+            <tr>${severityRanks.map(() => `<th>Kasus</th><th>INA-CBG</th><th>iDRG</th>`).join("")}</tr>
+          </thead>
+          <tbody>
+            ${rankedServices.map(({ service, total }, index) => {
+              const item = target.services?.[service];
+              const competency = getCompetency(target, service);
+              const caseShare = target.total[CASES] ? total[CASES] / target.total[CASES] : 0;
+              return `<tr><td class="matrix-no">${index + 1}</td><td class="matrix-service">${escapeHtml(formatService(service))}</td><td class="matrix-competency">${levelNames[competency]}</td><td class="matrix-total matrix-summary num">${displayCases(total[CASES])}</td><td class="matrix-share matrix-summary num">${formatPercent(caseShare)}</td><td class="matrix-total-ina matrix-summary num">${displayMoney(total[INA])}</td><td class="matrix-total-idrg matrix-summary num">${displayMoney(total[IDRG])}</td>${severityRanks.map((rank) => {
+                const value = severityMetric(item, rank);
+                let cellStyle = "";
+                if (rank === competency) {
+                  cellStyle = ' style="background-color: #fef08a; color: #1e293b;"';
+                } else if (rank === competency - 1) {
+                  cellStyle = ' style="background-color: #fbcfe8; color: #1e293b;"';
+                }
+                return `<td class="num"${cellStyle}>${displayCases(value[CASES])}</td><td class="num"${cellStyle}>${displayMoney(value[INA])}</td><td class="num"${cellStyle}>${displayMoney(value[IDRG])}</td>`;
+              }).join("")}</tr>`;
+            }).join("")}
+          </tbody>
+          <tfoot><tr><td></td><td colspan="2">Total D–M–U–P · ${formatNumber(unclassifiedCases)} kasus belum terklasifikasi</td><td class="matrix-total matrix-summary num">${formatNumber(target.total[CASES])}</td><td class="matrix-share matrix-summary num">100%</td><td class="matrix-total-ina matrix-summary num">${formatMatrixMoney(target.total[INA])}</td><td class="matrix-total-idrg matrix-summary num">${formatMatrixMoney(target.total[IDRG])}</td>${severityRanks.map((rank) => { const value = severityTotals[rank]; return `<td class="num">${formatNumber(value[CASES])}</td><td class="num">${formatMatrixMoney(value[INA])}</td><td class="num">${formatMatrixMoney(value[IDRG])}</td>`; }).join("")}</tr></tfoot>
+        </table>
+      </div>`;
+  }
+
+  function renderRegionalSlide() {
+    const slide = document.getElementById("regionalSlide");
+    if (!slide) return;
+    const maxCases = Math.max(...severityRanks.map((rank) => severityMetric(data.regional, rank)[CASES]), 1);
+    const maxIdrg = Math.max(...severityRanks.map((rank) => severityMetric(data.regional, rank)[IDRG]), 1);
+    slide.innerHTML = `
+      <div class="kpi-grid">
+        <article class="kpi-card is-primary"><div class="kpi-label">Total kasus regional</div><div class="kpi-value">${formatNumber(data.regional.total[CASES])}</div><div class="kpi-note">363 rumah sakit pada sumber</div></article>
+        <article class="kpi-card"><div class="kpi-label">Pendapatan regional iDRG</div><div class="kpi-value">${formatMoney(data.regional.total[IDRG])}</div><div class="kpi-note">Skenario 2 workbook</div></article>
+        <article class="kpi-card"><div class="kpi-label">Layanan pada workbook</div><div class="kpi-value">${data.meta.sourceServiceCount || 23}/24</div><div class="kpi-note">Tidak tersedia: ${escapeHtml((data.meta.missingServices || []).join(", ") || "—")}</div></article>
+        <article class="kpi-card"><div class="kpi-label">Belum ada kompetensi ICD</div><div class="kpi-value">${formatNumber(data.meta.unclassifiedSeverityCases)}</div><div class="kpi-note">Ditampilkan terpisah dari D–M–U–P</div></article>
+      </div>
+      <div class="regional-layout">
+        <div class="regional-left">
+          <article class="panel"><div class="panel-heading"><h2>Distribusi kasus D–M–U–P</h2><span>Jumlah kasus</span></div><div class="severity-bars">
+            ${severityRanks.map((rank) => { const value = severityMetric(data.regional, rank)[CASES]; return `<div class="metric-bar-row"><span>${levelNames[rank]}</span><div class="bar-track"><div class="bar-fill level-${rank}" style="width:${(value / maxCases) * 100}%"></div></div><strong>${formatNumber(value)}</strong></div>`; }).join("")}
+          </div></article>
+          <article class="panel"><div class="panel-heading"><h2>Potensi pendapatan INACBG</h2><span>Menurut keparahan</span></div><div class="severity-bars">
+            ${severityRanks.map((rank) => { const value = severityMetric(data.regional, rank)[IDRG]; return `<div class="metric-bar-row"><span>${levelNames[rank]}</span><div class="bar-track"><div class="bar-fill level-${rank}" style="width:${(value / maxIdrg) * 100}%"></div></div><strong>${formatMoney(value)}</strong></div>`; }).join("")}
+          </div></article>
+          <article class="panel hospital-class-panel">
+            <div class="panel-heading"><h2>Sebaran kelas rumah sakit</h2><span>${formatNumber(data.hospitals.length)} RS unik</span></div>
+            <div class="hospital-class-grid">
+              ${["A", "B", "C", "D"].map((className) => `<div class="hospital-class-item"><span>Kelas ${className}</span><strong>${formatNumber(hospitalClassCounts[className])} RS</strong><em>${formatPercent(hospitalClassCounts[className] / data.hospitals.length)}</em></div>`).join("")}
+            </div>
+          </article>
+        </div>
+        <article class="panel">
+          <div class="panel-heading"><h2>Market regional berdasarkan layanan</h2><span>Kasus dan iDRG</span></div>
+          <div class="service-market-grid">
+            ${data.services.map((service) => { const item = regionalService(service); return `<div class="service-market-row"><span>${escapeHtml(formatService(service))}</span><strong>${formatNumber(item.total[CASES])}</strong><em>${formatMoney(item.total[IDRG])}</em></div>`; }).join("")}
+          </div>
+          <p class="source-note">Total regional direkonsiliasi dengan seluruh baris sumber. Kasus “0. Belum ada komp. ICD” masuk total layanan, namun tidak dimasukkan ke salah satu tingkat D–M–U–P.</p>
+        </article>
+      </div>`;
+  }
+
+  function renderAddressableSlide() {
+    const slide = document.getElementById("addressableSlide");
+    if (!slide) return;
+    const target = targetHospital();
+    const result = computeAddressable();
+    document.getElementById("slide3Subtitle").textContent = `Kompetensi ${target.name} menentukan tingkat keparahan yang mampu dilayani.`;
+    slide.innerHTML = `
+      <div class="kpi-grid addressable-kpis">
+        <article class="kpi-card is-primary"><div class="kpi-label">Addressable cases</div><div class="kpi-value">${formatNumber(result.eligibleRegional[CASES])}</div><div class="kpi-note">Kasus regional sesuai kemampuan target</div></article>
+        <article class="kpi-card"><div class="kpi-label">Addressable iDRG</div><div class="kpi-value">${formatMoney(result.eligibleRegional[IDRG])}</div><div class="kpi-note">Potensi nilai seluruh pool</div></article>
+        <article class="kpi-card"><div class="kpi-label">External available market</div><div class="kpi-value">${formatNumber(result.external[CASES])}</div><div class="kpi-note">RS target telah dikeluarkan</div></article>
+        <article class="kpi-card"><div class="kpi-label">Layanan Kompeten</div><div class="kpi-value">${result.mappedServices}/24</div><div class="kpi-note">Target memiliki strata &ge; Dasar</div></article>
+      </div>
+      <article class="panel addressable-table-panel">
+        <div class="table-wrap addressable-table-wrap"><table class="compact-table addressable-matrix-table"><colgroup><col class="addressable-service-col"><col class="addressable-competency-col"><col class="addressable-capability-col"><col class="addressable-number-col"><col class="addressable-number-col"><col class="addressable-number-col"><col class="addressable-money-col"><col class="addressable-competitor-col"></colgroup><thead><tr><th>Layanan</th><th>Kompetensi target</th><th>Keparahan yang mampu dilayani</th><th class="num">Kasus regional eligible</th><th class="num">Eksisting eligible</th><th class="num">External pool</th><th class="num">iDRG external</th><th class="num">Kompetitor setara</th></tr></thead><tbody>
+          ${result.rows.map((row) => `<tr class="${row.competency ? "" : "is-disabled"}"><td class="service-name">${escapeHtml(formatService(row.service))}</td><td>${levelBadge(row.competency)}</td><td>${capabilityCells(row.competency)}</td><td class="num">${formatNumber(row.eligibleRegional[CASES])}</td><td class="num">${formatNumber(row.eligibleExisting[CASES])}</td><td class="num">${formatNumber(row.external[CASES])}</td><td class="num">${formatTableMoney(row.external[IDRG])}</td><td class="num">${formatNumber(row.competitors)}</td></tr>`).join("")}
+        </tbody></table></div>
+      </article>`;
+  }
+
+  function renderComparisonSlide() {
+    const target = targetHospital();
+    const regionalTotal = metric(data.regional.total);
+    const delta = regionalTotal[IDRG] - regionalTotal[INA];
+    const deltaPercent = regionalTotal[INA] ? delta / regionalTotal[INA] : 0;
+    const targetSeverityTotals = Object.fromEntries(severityRanks.map((rank) => [rank,
+      sumMetrics(data.services.map((service) => severityMetric(target.services?.[service], rank))),
+    ]));
+    const otherSeverityTotals = Object.fromEntries(severityRanks.map((rank) => [rank,
+      subtractMetrics(severityMetric(data.regional, rank), targetSeverityTotals[rank]),
+    ]));
+    const displayCases = (value) => value ? formatNumber(value) : "—";
+    const displayMoney = (value) => value ? formatMatrixMoney(value) : "—";
+    const metricCells = (item, sideClass) => severityRanks.map((rank) => {
+      const value = item(rank);
+      const startClass = rank === 1 ? ` ${sideClass}-start` : "";
+      return `<td class="num ${sideClass}${startClass}">${displayCases(value[CASES])}</td><td class="num ${sideClass}">${displayMoney(value[IDRG])}</td>`;
+    }).join("");
+
+    document.getElementById("comparisonSlideTitle").textContent = `Kasus Target vs RS Lain Per Layanan - ${target.name}`;
+    document.getElementById("comparisonSlide").innerHTML = `
+      <div class="existing-report-kpis">
+        <article class="existing-report-kpi kpi-cases"><span>Total Kasus Regional:</span><strong>${formatNumber(regionalTotal[CASES])}</strong><em>Seluruh rumah sakit regional</em></article>
+        <article class="existing-report-kpi kpi-ina"><span>INA-CBG Regional:</span><strong>${formatMoney(regionalTotal[INA])}</strong><em>Pendapatan regional</em></article>
+        <article class="existing-report-kpi kpi-idrg"><span>iDRG Regional:</span><strong>${formatMoney(regionalTotal[IDRG])}</strong><em>Potensi pendapatan regional</em></article>
+        <article class="existing-report-kpi kpi-difference ${delta < 0 ? "is-loss" : "is-gain"}"><span>Selisih Regional:</span><strong>${formatMoney(delta)}</strong><em>iDRG - INA-CBG regional</em></article>
+        <article class="existing-report-kpi kpi-percentage ${delta < 0 ? "is-loss" : "is-gain"}"><span>Persentase Regional:</span><strong>${formatPercent(deltaPercent)}</strong><em>Dari pendapatan INA-CBG regional</em></article>
+      </div>
+      <div class="existing-matrix-wrap">
+        <table class="existing-matrix-table comparison-matrix-table" aria-label="Perbandingan kasus dan iDRG RS target dengan RS lainnya per layanan dan tingkat keparahan">
+          <thead>
+            <tr><th rowspan="2" class="matrix-no">No</th><th rowspan="2" class="matrix-service">Layanan RS</th><th rowspan="2" class="matrix-competency">Kompetensi</th>${severityRanks.map((rank) => `<th colspan="4" class="comparison-target-heading" style="border-left: 2px solid #007b83;">${levelNames[rank]}</th>`).join("")}</tr>
+            <tr>${severityRanks.map((rank) => `<th class="comparison-target" style="border-left: 2px solid #007b83;">Kasus RS</th><th class="comparison-other">Kasus Regional</th><th class="comparison-target">iDRG RS</th><th class="comparison-other">iDRG Regional</th>`).join("")}</tr>
+          </thead>
+          <tbody>
+            ${data.services.map((service, index) => {
+              const targetItem = target.services?.[service];
+              const competency = getCompetency(target, service);
+              
+              const combinedCells = severityRanks.map(rank => {
+                const targetVal = severityMetric(targetItem, rank);
+                const otherVal = subtractMetrics(severityMetric(regionalService(service), rank), severityMetric(targetItem, rank));
+                return `<td class="num comparison-target" style="border-left: 2px solid #007b83;">${displayCases(targetVal[CASES])}</td><td class="num comparison-other">${displayCases(otherVal[CASES])}</td><td class="num comparison-target">${displayMoney(targetVal[IDRG])}</td><td class="num comparison-other">${displayMoney(otherVal[IDRG])}</td>`;
+              }).join("");
+              
+              return `<tr><td class="matrix-no">${index + 1}</td><td class="matrix-service">${escapeHtml(formatService(service))}</td><td class="matrix-competency">${levelNames[competency]}</td>${combinedCells}</tr>`;
+            }).join("")}
+          </tbody>
+          <tfoot><tr><td></td><td colspan="2">Total D–M–U–P</td>${severityRanks.map(rank => {
+            const targetVal = targetSeverityTotals[rank];
+            const otherVal = otherSeverityTotals[rank];
+            return `<td class="num comparison-target" style="border-left: 2px solid #007b83;">${displayCases(targetVal[CASES])}</td><td class="num comparison-other">${displayCases(otherVal[CASES])}</td><td class="num comparison-target">${displayMoney(targetVal[IDRG])}</td><td class="num comparison-other">${displayMoney(otherVal[IDRG])}</td>`;
+          }).join("")}</tr></tfoot>
+        </table>
+      </div>`;
+  }
+
+  function renderRegionalCasesSlide() {
+    const regionalTotal = metric(data.regional.total);
+    const delta = regionalTotal[IDRG] - regionalTotal[INA];
+    const deltaPercent = regionalTotal[INA] ? delta / regionalTotal[INA] : 0;
+    const displayCases = (value) => value ? formatNumber(value) : "—";
+    const displayMoney = (value) => value ? formatMatrixMoney(value) : "—";
+
+    document.getElementById("regionalCasesSlideTitle").textContent = `Kasus Regional Per Layanan`;
+    document.getElementById("regionalCasesSlide").innerHTML = `
+      <div class="existing-report-kpis">
+        <article class="existing-report-kpi kpi-cases"><span>Total Kasus Regional:</span><strong>${formatNumber(regionalTotal[CASES])}</strong><em>Seluruh rumah sakit regional</em></article>
+        <article class="existing-report-kpi kpi-ina"><span>INA-CBG Regional:</span><strong>${formatMoney(regionalTotal[INA])}</strong><em>Pendapatan regional</em></article>
+        <article class="existing-report-kpi kpi-idrg"><span>iDRG Regional:</span><strong>${formatMoney(regionalTotal[IDRG])}</strong><em>Potensi pendapatan regional</em></article>
+        <article class="existing-report-kpi kpi-difference ${delta < 0 ? "is-loss" : "is-gain"}"><span>Selisih Regional:</span><strong>${formatMoney(delta)}</strong><em>iDRG - INA-CBG regional</em></article>
+        <article class="existing-report-kpi kpi-percentage ${delta < 0 ? "is-loss" : "is-gain"}"><span>Persentase Regional:</span><strong>${formatPercent(deltaPercent)}</strong><em>Dari pendapatan INA-CBG regional</em></article>
+      </div>
+      <div style="margin: 0px 0 12px 12px; font-size: 13px; font-weight: 500; display: flex; gap: 20px; color: #475569;">
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span style="display: inline-block; width: 14px; height: 14px; background-color: #fef08a; border: 1px solid #eab308; border-radius: 3px;"></span>
+          <span>Sesuai Kompetensi RS Target</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span style="display: inline-block; width: 14px; height: 14px; background-color: #fbcfe8; border: 1px solid #f472b6; border-radius: 3px;"></span>
+          <span>1 Tingkat di Bawah Kompetensi RS Target</span>
+        </div>
+      </div>
+      <div class="existing-matrix-wrap">
+        <table class="existing-matrix-table comparison-matrix-table" aria-label="Kasus Regional per layanan dan tingkat keparahan">
+          <thead>
+            <tr><th rowspan="2" class="matrix-no">No</th><th rowspan="2" class="matrix-service">Layanan RS</th>${severityRanks.map((rank) => `<th colspan="2" class="comparison-target-heading" style="border-left: 2px solid #007b83;">${levelNames[rank]}</th>`).join("")}<th colspan="2" class="comparison-target-heading" style="border-left: 2px solid #007b83;">Total Kasus Regional</th></tr>
+            <tr>${severityRanks.map((rank) => `<th class="comparison-other" style="border-left: 2px solid #007b83;">Kasus Regional</th><th class="comparison-other">iDRG Regional</th>`).join("")}<th class="comparison-other" style="border-left: 2px solid #007b83;">Total Kasus</th><th class="comparison-other">Total iDRG</th></tr>
+          </thead>
+          <tbody>
+            ${data.services.map((service, index) => {
+              const item = regionalService(service);
+              const target = targetHospital();
+              const competency = getCompetency(target, service);
+              
+              const combinedCells = severityRanks.map(rank => {
+                const otherVal = severityMetric(item, rank);
+                let bgStyle = "";
+                if (rank === competency) {
+                  bgStyle = " background-color: #fef08a; color: #1e293b;";
+                } else if (rank === competency - 1) {
+                  bgStyle = " background-color: #fbcfe8; color: #1e293b;";
+                }
+                return `<td class="num comparison-other" style="border-left: 2px solid #007b83;${bgStyle}">${displayCases(otherVal[CASES])}</td><td class="num comparison-other" style="${bgStyle}">${displayMoney(otherVal[IDRG])}</td>`;
+              }).join("");
+              
+              const totalVal = item.total;
+              const totalCells = `<td class="num comparison-other" style="border-left: 2px solid #007b83; font-weight: bold;">${displayCases(totalVal[CASES])}</td><td class="num comparison-other" style="font-weight: bold;">${displayMoney(totalVal[IDRG])}</td>`;
+
+              return `<tr><td class="matrix-no">${index + 1}</td><td class="matrix-service">${escapeHtml(formatService(service))}</td>${combinedCells}${totalCells}</tr>`;
+            }).join("")}
+          </tbody>
+          <tfoot><tr><td></td><td>Total D–M–U–P</td>${severityRanks.map(rank => {
+            const otherVal = severityMetric(data.regional, rank);
+            return `<td class="num comparison-other" style="border-left: 2px solid #007b83;">${displayCases(otherVal[CASES])}</td><td class="num comparison-other">${displayMoney(otherVal[IDRG])}</td>`;
+          }).join("")}<td class="num comparison-other" style="border-left: 2px solid #007b83;">${displayCases(regionalTotal[CASES])}</td><td class="num comparison-other">${displayMoney(regionalTotal[IDRG])}</td></tr></tfoot>
+        </table>
+      </div>`;
+  }
+
+  function renderGlobalSimulationSlide() {
+    const target = targetHospital();
+    if (!target) return;
+
+    const tambahMode = document.getElementById('globalSimTambahSelect') ? document.getElementById('globalSimTambahSelect').value : 'tambah_up';
+    const kurangMode = document.getElementById('globalSimKurangSelect') ? document.getElementById('globalSimKurangSelect').value : 'kurang_dm';
+    // Helper agar mode mudah diakses di helper function lain
+    if (!window.getSimTambahMode) {
+      window.getSimMode = () => document.getElementById('globalSimTambahSelect')?.value === 'tambah_dm' ? 'higher_tier' : 'regional_all';
+      window.getSimTambahMode = () => document.getElementById('globalSimTambahSelect')?.value || 'tambah_up';
+      window.getSimKurangMode = () => document.getElementById('globalSimKurangSelect')?.value || 'kurang_dm';
+    }
+    
+    const fmtM = formatTableMoney;
+
+    // Hitung Kondisi Eksisting Dinamis
+    const globalSimSelectVal = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
+    const targetServices = globalSimSelectVal === 'ALL' ? data.services : (data.services.includes(globalSimSelectVal) ? [globalSimSelectVal] : []);
+    
+    let eksistingKasus = 0;
+    let eksistingIna = 0;
+    let eksistingIdrg = 0;
+    
+    if (globalSimSelectVal === 'ALL') {
+      eksistingKasus = target.total[CASES] || 0;
+      eksistingIna = target.total[INA] || 0;
+      eksistingIdrg = target.total[IDRG] || 0;
+    } else {
+      targetServices.forEach(service => {
+        const srv = target.services[service];
+        if (srv) {
+          [1,2,3,4].forEach(rank => {
+            const metrics = severityMetric(srv, rank);
+            eksistingKasus += metrics[CASES] || 0;
+            eksistingIna += metrics[INA] || 0;
+            eksistingIdrg += metrics[IDRG] || 0;
+          });
+        }
+      });
+    }
+    
+    // Selisih Eksisting
+    const selisihPendapatan = eksistingIdrg - eksistingIna;
+    const persentaseSelisih = eksistingIna > 0 ? (selisihPendapatan / eksistingIna) : 0;
+    
+    // Hitung Potensi Serapan & Redistribusi berdasarkan Mode
+    let potensiSerapanKasus = 0;
+    let potensiSerapanIdrg = 0;
+    
+    let potensiRedistribusiKasus = 0;
+    let potensiRedistribusiIdrg = 0;
+
+    
+    let targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
+    
+    // Hitung competitorCount SEKARANG dari data.hospitals yang sudah difilter
+    let competitorCount = 0;
+    let compCountD = 0;
+    let compCountM = 0;
+    let compCountU = 0;
+    let compCountP = 0;
+    data.hospitals.filter(h => h.code !== target.code).forEach(h => {
+      if (h.code === target.code) return;
+      if (targetServiceSelect !== 'ALL') {
+        const hComp = getCompetency(h, targetServiceSelect);
+        if (hComp && hComp > 0) {
+          competitorCount++;
+          if (hComp === 1) compCountD++;
+          if (hComp === 2) compCountM++;
+          if (hComp === 3) compCountU++;
+          if (hComp === 4) compCountP++;
+        }
+      } else {
+        competitorCount++;
+        // Hitung semua kompetensi layanan (24 layanan) di RS ini
+        data.services.forEach(svc => {
+          const hComp = getCompetency(h, svc);
+          if (hComp === 1) compCountD++;
+          else if (hComp === 2) compCountM++;
+          else if (hComp === 3) compCountU++;
+          else if (hComp === 4) compCountP++;
+        });
+      }
+    });
+    
+    // Compute Regional Cases for the target service(s)
+    const activeServices = targetServiceSelect === 'ALL' ? data.services : (data.services.includes(targetServiceSelect) ? [targetServiceSelect] : []);
+    const regTotalD = {cases: 0, rp: 0};
+    const regTotalM = {cases: 0, rp: 0};
+    const regTotalU = {cases: 0, rp: 0};
+    const regTotalP = {cases: 0, rp: 0};
+    
+    activeServices.forEach(svc => {
+      const s = data.regional?.services?.[svc];
+      if (!s) return;
+      const sD = severityMetric(s, 1);
+      const sM = severityMetric(s, 2);
+      const sU = severityMetric(s, 3);
+      const sP = severityMetric(s, 4);
+      
+      regTotalD.cases += sD[CASES] || 0; regTotalD.rp += sD[IDRG] || 0;
+      regTotalM.cases += sM[CASES] || 0; regTotalM.rp += sM[IDRG] || 0;
+      regTotalU.cases += sU[CASES] || 0; regTotalU.rp += sU[IDRG] || 0;
+      regTotalP.cases += sP[CASES] || 0; regTotalP.rp += sP[IDRG] || 0;
+    });
+
+    (function(){
+      targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
+      const servicesToSimulate = targetServiceSelect === 'ALL' ? data.services : (data.services.includes(targetServiceSelect) ? [targetServiceSelect] : []);
+      
+      // Compute Competitor count for the badge
+      competitorCount = 0;
+      compCountD = 0;
+      compCountM = 0;
+      compCountU = 0;
+      compCountP = 0;
+      
+      data.hospitals.filter(h => h.code !== target.code).forEach(h => {
+        if (h.code === targetHospital()?.code) return;
+        
+        if (targetServiceSelect !== 'ALL') {
+          const hComp = getCompetency(h, targetServiceSelect);
+          if (hComp && hComp > 0) {
+            competitorCount++;
+            if (hComp === 1) compCountD++;
+            if (hComp === 2) compCountM++;
+            if (hComp === 3) compCountU++;
+            if (hComp === 4) compCountP++;
+          }
+        } else {
+          competitorCount++;
+          data.services.forEach(svc => {
+            const hComp = getCompetency(h, svc);
+            if (hComp === 1) compCountD++;
+            else if (hComp === 2) compCountM++;
+            else if (hComp === 3) compCountU++;
+            else if (hComp === 4) compCountP++;
+          });
+        }
+      });
+      
+      const compBadge = document.getElementById('globalSimCompetitorBadge');
+      const compVal = document.getElementById('globalSimCompetitorValue');
+      if (compBadge && compVal) {
+        if (targetServiceSelect === 'ALL') {
+          compBadge.querySelector('div').innerText = 'KOMPETENSI LAYANAN';
+          compVal.innerHTML = `${competitorCount}`;
+        } else {
+          compBadge.querySelector('div').innerText = 'KOMPETENSI LAYANAN';
+          compVal.innerHTML = `${competitorCount}`;
+        }
+      }
+      
+      return servicesToSimulate;
+    })().forEach(service => {
+      const srvReg = regionalService(service);
+      const srvTarget = target.services[service];
+      if (!srvReg || !srvTarget) return;
+
+      // --- PENAMBAH KASUS ---
+      if (tambahMode === 'tambah_cross_comp') {
+        data.hospitals.filter(h => h.code !== target.code).forEach(h => {
+          if (h.code === target.code) return;
+          const hCompetency = getCompetency(h, service);
+          if (!hCompetency || hCompetency === 0) return;
+
+          const hSrv = h.services[service];
+          if (hSrv) {
+            const hDasar = severityMetric(hSrv, 1);
+            const hMadya = severityMetric(hSrv, 2);
+            const hUtama = severityMetric(hSrv, 3);
+            const hParipurna = severityMetric(hSrv, 4);
+
+            if (hCompetency !== 1) {
+              potensiSerapanKasus += hDasar[CASES];
+              potensiSerapanIdrg += hDasar[IDRG];
+            }
+            if (hCompetency !== 2) {
+              potensiSerapanKasus += hMadya[CASES];
+              potensiSerapanIdrg += hMadya[IDRG];
+            }
+            if (hCompetency !== 3) {
+              potensiSerapanKasus += hUtama[CASES];
+              potensiSerapanIdrg += hUtama[IDRG];
+            }
+            if (hCompetency !== 4) {
+              potensiSerapanKasus += hParipurna[CASES];
+              potensiSerapanIdrg += hParipurna[IDRG];
+            }
+          }
+        });
+      } else if (tambahMode === 'tambah_up') {
+        const sRegUtama = severityMetric(srvReg, 3);
+        const sRegParipurna = severityMetric(srvReg, 4);
+        const sTargetUtama = severityMetric(srvTarget, 3);
+        const sTargetParipurna = severityMetric(srvTarget, 4);
+        
+        const sisaRegUtamaKasus = Math.max(0, sRegUtama[CASES] - sTargetUtama[CASES]);
+        const sisaRegUtamaIdrg = Math.max(0, sRegUtama[IDRG] - sTargetUtama[IDRG]);
+        const sisaRegParipurnaKasus = Math.max(0, sRegParipurna[CASES] - sTargetParipurna[CASES]);
+        const sisaRegParipurnaIdrg = Math.max(0, sRegParipurna[IDRG] - sTargetParipurna[IDRG]);
+        
+        potensiSerapanKasus += (sisaRegUtamaKasus + sisaRegParipurnaKasus);
+        potensiSerapanIdrg += (sisaRegUtamaIdrg + sisaRegParipurnaIdrg);
+      } else if (tambahMode === 'tambah_dm_reg') {
+        const sRegDasar = severityMetric(srvReg, 1);
+        const sRegMadya = severityMetric(srvReg, 2);
+        const sTargetDasar = severityMetric(srvTarget, 1);
+        const sTargetMadya = severityMetric(srvTarget, 2);
+        
+        const sisaRegDasarKasus = Math.max(0, sRegDasar[CASES] - sTargetDasar[CASES]);
+        const sisaRegDasarIdrg = Math.max(0, sRegDasar[IDRG] - sTargetDasar[IDRG]);
+        const sisaRegMadyaKasus = Math.max(0, sRegMadya[CASES] - sTargetMadya[CASES]);
+        const sisaRegMadyaIdrg = Math.max(0, sRegMadya[IDRG] - sTargetMadya[IDRG]);
+        
+        potensiSerapanKasus += (sisaRegDasarKasus + sisaRegMadyaKasus);
+        potensiSerapanIdrg += (sisaRegDasarIdrg + sisaRegMadyaIdrg);
+      } else if (tambahMode === 'tambah_mu_reg') {
+        const sRegMadyaX = severityMetric(srvReg, 2);
+        const sRegUtamaX = severityMetric(srvReg, 3);
+        const sTargetMadyaX = severityMetric(srvTarget, 2);
+        const sTargetUtamaX = severityMetric(srvTarget, 3);
+        potensiSerapanKasus += Math.max(0, sRegMadyaX[CASES] - sTargetMadyaX[CASES]) + Math.max(0, sRegUtamaX[CASES] - sTargetUtamaX[CASES]);
+        potensiSerapanIdrg += Math.max(0, sRegMadyaX[IDRG] - sTargetMadyaX[IDRG]) + Math.max(0, sRegUtamaX[IDRG] - sTargetUtamaX[IDRG]);
+      } else if (tambahMode === 'tambah_d_reg') {
+        const sRegDasarX = severityMetric(srvReg, 1);
+        const sTargetDasarX = severityMetric(srvTarget, 1);
+        potensiSerapanKasus += Math.max(0, sRegDasarX[CASES] - sTargetDasarX[CASES]);
+        potensiSerapanIdrg += Math.max(0, sRegDasarX[IDRG] - sTargetDasarX[IDRG]);
+      } else if (tambahMode === 'tambah_mu_higher') {
+        data.hospitals.filter(h => h.code !== target.code).forEach(h => {
+          if (h.code === target.code) return;
+          if (getCompetency(h, service) > getCompetency(target, service)) {
+            const hSrv = h.services[service];
+            if (hSrv) {
+              const hMadyaX = severityMetric(hSrv, 2);
+              const hUtamaX = severityMetric(hSrv, 3);
+              potensiSerapanKasus += (hMadyaX[CASES] || 0) + (hUtamaX[CASES] || 0);
+              potensiSerapanIdrg += (hMadyaX[IDRG] || 0) + (hUtamaX[IDRG] || 0);
+            }
+          }
+        });
+      } else if (tambahMode === 'tambah_d_higher') {
+        data.hospitals.filter(h => h.code !== target.code).forEach(h => {
+          if (h.code === target.code) return;
+          if (getCompetency(h, service) > getCompetency(target, service)) {
+            const hSrv = h.services[service];
+            if (hSrv) {
+              const hDasarX = severityMetric(hSrv, 1);
+              potensiSerapanKasus += (hDasarX[CASES] || 0);
+              potensiSerapanIdrg += (hDasarX[IDRG] || 0);
+            }
+          }
+        });
+      } else {
+        // Default: tambah_dm — Serap Dasar & Madya dari RS kompetensi lebih tinggi
+        data.hospitals.filter(h => h.code !== target.code).forEach(h => {
+          if (h.code === target.code) return;
+          const hCompetency = getCompetency(h, service);
+          const tCompetency = getCompetency(target, service);
+          if (hCompetency > tCompetency) {
+            const hSrv = h.services[service];
+            if (hSrv) {
+              const hDasar = severityMetric(hSrv, 1);
+              const hMadya = severityMetric(hSrv, 2);
+              potensiSerapanKasus += (hDasar[CASES] + hMadya[CASES]);
+              potensiSerapanIdrg += (hDasar[IDRG] + hMadya[IDRG]);
+            }
+          }
+        });
+      }
+
+      // --- PENGURANG KASUS ---
+      if (kurangMode === 'kurang_up') {
+        const sTargetUtama = severityMetric(srvTarget, 3);
+        const sTargetParipurna = severityMetric(srvTarget, 4);
+        potensiRedistribusiKasus += (sTargetUtama[CASES] + sTargetParipurna[CASES]);
+        potensiRedistribusiIdrg += (sTargetUtama[IDRG] + sTargetParipurna[IDRG]);
+      } else if (kurangMode === 'kurang_dp') {
+        const sTargetDasarK = severityMetric(srvTarget, 1);
+        const sTargetParipurnaK = severityMetric(srvTarget, 4);
+        potensiRedistribusiKasus += (sTargetDasarK[CASES] + sTargetParipurnaK[CASES]);
+        potensiRedistribusiIdrg += (sTargetDasarK[IDRG] + sTargetParipurnaK[IDRG]);
+      } else if (kurangMode === 'kurang_mup') {
+        const sTargetMadyaK = severityMetric(srvTarget, 2);
+        const sTargetUtamaK = severityMetric(srvTarget, 3);
+        const sTargetParipurnaK2 = severityMetric(srvTarget, 4);
+        potensiRedistribusiKasus += (sTargetMadyaK[CASES] + sTargetUtamaK[CASES] + sTargetParipurnaK2[CASES]);
+        potensiRedistribusiIdrg += (sTargetMadyaK[IDRG] + sTargetUtamaK[IDRG] + sTargetParipurnaK2[IDRG]);
+      } else {
+        // Default: kurang_dm — Lepas Dasar & Madya
+        const sTargetDasar = severityMetric(srvTarget, 1);
+        const sTargetMadya = severityMetric(srvTarget, 2);
+        potensiRedistribusiKasus += (sTargetDasar[CASES] + sTargetMadya[CASES]);
+        potensiRedistribusiIdrg += (sTargetDasar[IDRG] + sTargetMadya[IDRG]);
+      }
+    });
+    
+    // Inisialisasi default skenario jika belum ada
+    // Selalu hitung kompetitor untuk ditampilkan di UI
+    const targetH = target;
+    const regionalHospitals = data.hospitals.filter(h => {
+      if (h.id === targetH.id) return false;
+      return Object.keys(h.services || {}).length > 0;
+    });
+    const totalCompetitors = regionalHospitals.length;
+
+    // Inisialisasi default skenario jika belum ada
+    if (typeof window.globalSimScenarios === 'undefined' || window.globalSimScenarios === null) {
+      // Default: Market share alami = 1 / (N_kompetitor + 1)
+      const naturalShare = totalCompetitors > 0 ? (1 / (totalCompetitors + 1)) : 1;
+      
+      window.globalSimScenarios = [
+        1.0,           // Skenario 1: Optimistik — serap 100% potensi
+        naturalShare,  // Skenario 2: Proporsional — market share alami (1/(N+1))
+        naturalShare / 2 // Skenario 3: Konservatif — setengah dari market share alami
+      ];
+    }
+    
+    // Inisialisasi default skenario kurang jika belum ada
+    if (typeof window.globalSimKurangScenarios === 'undefined' || window.globalSimKurangScenarios === null) {
+      window.globalSimKurangScenarios = [1.0, 1.0, 1.0];
+    }
+    
+    // Hitung data Regional (diperlukan untuk scorecard)
+    const regionalKasus = data.regional.total[CASES] || 0;
+    const regionalIna = data.regional.total[INA] || 0;
+    const regionalIdrg = data.regional.total[IDRG] || 0;
+    const marketShareKasus = regionalKasus > 0 ? (eksistingKasus / regionalKasus) : 0;
+    const marketShareIdrg = regionalIdrg > 0 ? (eksistingIdrg / regionalIdrg) : 0;
+    const deltaIdrg = eksistingIdrg - eksistingIna;
+    const deltaPercentIdrg = eksistingIna > 0 ? (deltaIdrg / eksistingIna) : 0;
+
+    // EXPORT GLOBALLY FOR COMPETENCY SLIDE
+    window.globalSimPotentials = {
+      potensiSerapanKasus,
+      potensiSerapanIdrg,
+      potensiRedistribusiKasus,
+      potensiRedistribusiIdrg
+    };
+
+    let rowsHtml = '';
+
+    
+    window.globalSimScenarios.forEach((pct, idx) => {
+      const pctValue = pct; // Gunakan nilai mentah dari array (bisa desimal)
+      const pctDisplay = Number((pctValue * 100).toFixed(2));
+      
+      const kurangPctValue = window.globalSimKurangScenarios[idx] !== undefined ? window.globalSimKurangScenarios[idx] : 1.0;
+      const kurangPctDisplay = Number((kurangPctValue * 100).toFixed(2));
+      
+      const tambahKasus = Math.round(potensiSerapanKasus * pctValue);
+      const tambahIdrg = potensiSerapanIdrg * pctValue;
+      
+      const kurangKasus = Math.round(potensiRedistribusiKasus * kurangPctValue);
+      const kurangIdrg = potensiRedistribusiIdrg * kurangPctValue;
+      
+      const netKasus = tambahKasus - kurangKasus;
+      const netIdrg = tambahIdrg - kurangIdrg;
+      const pctThdEksisting = eksistingKasus > 0 ? (netKasus / eksistingKasus) : 0;
+      
+      const akhirIdrg = eksistingIdrg + netIdrg;
+      
+      // Input dinamis
+      const inputHtml = `<div style="display:flex; align-items:center; justify-content:center; gap:4px;">
+        <input type="number" min="0" max="100" step="0.01" value="${pctDisplay}" 
+          class="global-sim-input" data-idx="${idx}"
+          style="width:50px; padding:2px 4px; text-align:center; border:1px solid #94a3b8; border-radius:4px; font-size:12px; font-weight:bold; color:#0f172a;">
+        <span style="font-size:11px; color:#64748b; font-weight:normal;">%</span>
+      </div>`;
+      
+      const scnLabels = ['Optimistik', 'Proporsional', 'Konservatif'];
+      rowsHtml += `
+        <tr style="background-color: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'}; border-bottom: 2px solid #e2e8f0;">
+          <!-- Skenario -->
+          <td style="text-align:center; border:1px solid #e2e8f0; padding:14px 10px; font-weight:800; color:#0f172a; background:${idx === 0 ? '#eff6ff' : idx === 1 ? '#f0fdf4' : '#fff7ed'};">
+            Skenario ${idx + 1}<br>
+            <span style="font-size:11px; color:#64748b; font-weight:500;">${scnLabels[idx] || ''}</span><br>
+            <div style="display:flex; align-items:center; justify-content:center; gap:4px; margin-top:6px;">
+              <input type="number" min="0" max="100" step="0.01" value="${pctDisplay}" 
+                class="global-sim-input" data-idx="${idx}"
+                style="width:52px; padding:3px 4px; text-align:center; border:1.5px solid #94a3b8; border-radius:5px; font-size:13px; font-weight:700; color:#0f172a; background:#fff;">
+              <span style="font-size:11px; color:#64748b;">%</span>
+            </div>
+          </td>
+          <!-- Eksisting -->
+          <td style="text-align:center; border:1px solid #e2e8f0; padding:14px 10px; background:#f8fafc;">
+            <div style="font-size:16px; font-weight:700; color:#1e293b;">${formatNumber(eksistingKasus)}</div>
+            <div style="font-size:13px; font-weight:600; color:#64748b; margin-top:2px;">${fmtM(eksistingIdrg)}</div>
+          </td>
+          <!-- Tambah -->
+          <td style="text-align:center; border:1px solid #bbf7d0; padding:14px 10px; background:#f0fdf4;">
+            <div style="font-size:16px; font-weight:700; color:#059669;">▲ ${formatNumber(tambahKasus)}</div>
+            <div style="font-size:13px; font-weight:600; color:#16a34a; margin-top:2px;">▲ ${fmtM(tambahIdrg)}</div>
+          </td>
+          <!-- Kurang -->
+          <td style="text-align:center; border:1px solid #fecdd3; padding:14px 10px; background:#fff1f2;">
+            <div style="display:flex; align-items:center; justify-content:center; gap:4px; margin-bottom:6px;">
+              <input type="number" min="0" max="100" step="0.01" value="${kurangPctDisplay}" 
+                class="global-sim-kurang-input" data-idx="${idx}"
+                style="width:52px; padding:3px 4px; text-align:center; border:1px solid #fca5a5; border-radius:5px; font-size:13px; font-weight:700; color:#b91c1c; background:#fff;">
+              <span style="font-size:11px; color:#b91c1c;">%</span>
+            </div>
+            <div style="font-size:16px; font-weight:700; color:#ea580c;">▼ ${formatNumber(kurangKasus)}</div>
+            <div style="font-size:13px; font-weight:600; color:#dc2626; margin-top:2px;">▼ ${fmtM(kurangIdrg)}</div>
+          </td>
+          <!-- Net Kasus -->
+          <td style="text-align:center; border:1px solid #c7d2fe; padding:14px 10px; background:#eef2ff;">
+            <div style="font-size:16px; font-weight:800; color:${netKasus >= 0 ? '#15803d' : '#b91c1c'};">${netKasus >= 0 ? "▲ " : "▼ "}${formatNumber(Math.abs(netKasus))}</div>
+            <div style="font-size:12px; color:${pctThdEksisting >= 0 ? '#059669' : '#b91c1c'}; margin-top:2px; font-weight:600;">${pctThdEksisting > 0 ? '+' : ''}${formatPercent(pctThdEksisting)}</div>
+          </td>
+          <!-- Net Pendapatan -->
+          <td style="text-align:center; border:1px solid #c7d2fe; padding:14px 10px; background:#eef2ff;">
+            <div style="font-size:16px; font-weight:800; color:${netIdrg >= 0 ? '#15803d' : '#b91c1c'};">${netIdrg > 0 ? '+' : ''}${fmtM(netIdrg)}</div>
+          </td>
+          <!-- Pasca RBKP -->
+          <td style="text-align:center; border:1px solid #99f6e4; padding:14px 10px; background:#f0fdfa;">
+            <div style="font-size:18px; font-weight:900; color:#0f766e;">${fmtM(akhirIdrg)}</div>
+          </td>
+        </tr>
+      `;
+    });
+
+
+
+    // Hitung breakdown severity untuk RS Target (Kasus & Rp)
+    const targetTotalD = data.services.reduce((acc, svc) => {
+      const s = target.services[svc]; const sm = s ? severityMetric(s, 1) : null;
+      return { cases: acc.cases + (sm ? (sm[CASES] || 0) : 0), rp: acc.rp + (sm ? (sm[IDRG] || 0) : 0) };
+    }, {cases: 0, rp: 0});
+    const targetTotalM = data.services.reduce((acc, svc) => {
+      const s = target.services[svc]; const sm = s ? severityMetric(s, 2) : null;
+      return { cases: acc.cases + (sm ? (sm[CASES] || 0) : 0), rp: acc.rp + (sm ? (sm[IDRG] || 0) : 0) };
+    }, {cases: 0, rp: 0});
+    const targetTotalU = data.services.reduce((acc, svc) => {
+      const s = target.services[svc]; const sm = s ? severityMetric(s, 3) : null;
+      return { cases: acc.cases + (sm ? (sm[CASES] || 0) : 0), rp: acc.rp + (sm ? (sm[IDRG] || 0) : 0) };
+    }, {cases: 0, rp: 0});
+    const targetTotalP = data.services.reduce((acc, svc) => {
+      const s = target.services[svc]; const sm = s ? severityMetric(s, 4) : null;
+      return { cases: acc.cases + (sm ? (sm[CASES] || 0) : 0), rp: acc.rp + (sm ? (sm[IDRG] || 0) : 0) };
+    }, {cases: 0, rp: 0});
+
+    
+document.getElementById("globalSimulationSlide").innerHTML = `
+      <div style="display:flex; gap:0; margin-bottom:14px; border-radius:10px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.12); border:1px solid #e2e8f0;">
+        
+        <!-- Panel RS Target -->
+        <div style="flex:1; background:#ffffff; padding:14px 16px;">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
+            <div style="width:38px; height:38px; border-radius:8px; background:linear-gradient(135deg,#005a9e,#003e77); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+              <span style="font-size:18px;">🏥</span>
+            </div>
+            <div>
+              <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.5px;">EKSISTING</div>
+              <div style="font-size:13px; font-weight:800; color:#0f172a; line-height:1.1;">RUMAH SAKIT</div>
+            </div>
+            <div style="margin-left:auto; display:flex; gap:20px; align-items:center;">
+              <div style="text-align:right;">
+                <div style="font-size:11px; color:#64748b; font-weight:600;">Total Kasus</div>
+                <div style="font-size:22px; font-weight:900; color:#0f172a; line-height:1;">${formatNumber(eksistingKasus)}</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:11px; color:#64748b; font-weight:600;">Pendapatan INACBG</div>
+                <div style="font-size:22px; font-weight:900; color:#ca8a04; line-height:1;">${fmtM(eksistingIna)}</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:11px; color:#64748b; font-weight:600;">Pendapatan iDRG</div>
+                <div style="font-size:22px; font-weight:900; color:#0369a1; line-height:1;">${fmtM(eksistingIdrg)}</div>
+              </div>
+            </div>
+          </div>
+          <div style="border-top:1px solid #f1f5f9; padding-top:8px;">
+            <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:6px;">RINCIAN KASUS EKSISTING RS:</div>
+            <div style="display:flex; gap:16px;">
+              <div style="text-align:center; flex:1;"><div style="font-size:18px; font-weight:800; color:#0f766e; line-height:1;">${formatNumber(targetTotalD.cases)}</div><div style="font-size:11px; color:#115e59; font-weight:700; margin-top:2px;">${fmtM(targetTotalD.rp)}</div><div style="font-size:10px; color:#64748b; font-weight:600; margin-top:1px;">Dasar</div></div>
+              <div style="text-align:center; flex:1;"><div style="font-size:18px; font-weight:800; color:#0369a1; line-height:1;">${formatNumber(targetTotalM.cases)}</div><div style="font-size:11px; color:#075985; font-weight:700; margin-top:2px;">${fmtM(targetTotalM.rp)}</div><div style="font-size:10px; color:#64748b; font-weight:600; margin-top:1px;">Madya</div></div>
+              <div style="text-align:center; flex:1;"><div style="font-size:18px; font-weight:800; color:#7c3aed; line-height:1;">${formatNumber(targetTotalU.cases)}</div><div style="font-size:11px; color:#5b21b6; font-weight:700; margin-top:2px;">${fmtM(targetTotalU.rp)}</div><div style="font-size:10px; color:#64748b; font-weight:600; margin-top:1px;">Utama</div></div>
+              <div style="text-align:center; flex:1;"><div style="font-size:18px; font-weight:800; color:#be185d; line-height:1;">${formatNumber(targetTotalP.cases)}</div><div style="font-size:11px; color:#9d174d; font-weight:700; margin-top:2px;">${fmtM(targetTotalP.rp)}</div><div style="font-size:10px; color:#64748b; font-weight:600; margin-top:1px;">Paripurna</div></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- VS Divider -->
+        <div style="background:#e2e8f0; display:flex; align-items:center; justify-content:center; padding:0 10px; font-size:13px; font-weight:800; color:#94a3b8;">VS</div>
+        
+        <!-- Panel Regional -->
+        <div style="flex:1; background:#ffffff; padding:14px 16px; border-left:3px solid #0369a1;">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
+            <div style="width:38px; height:38px; border-radius:8px; background:linear-gradient(135deg,#1e40af,#1d4ed8); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+              <span style="font-size:18px;">🌐</span>
+            </div>
+            <div>
+              <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.5px;">EKSISTING</div>
+              <div style="font-size:13px; font-weight:800; color:#0f172a; line-height:1.1;">REGIONAL <span style="color:#0369a1; font-weight:700;">(${totalCompetitors + 1} RS)</span></div>
+            </div>
+            <div style="margin-left:auto; display:flex; gap:20px; align-items:center;">
+              <div style="text-align:right;">
+                <div style="font-size:11px; color:#64748b; font-weight:600;">Total Kasus</div>
+                <div style="font-size:22px; font-weight:900; color:#0f172a; line-height:1;">${formatNumber(regionalKasus)}</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:11px; color:#64748b; font-weight:600;">Pendapatan INACBG</div>
+                <div style="font-size:22px; font-weight:900; color:#b45309; line-height:1;">${fmtM(regionalIna)}</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:11px; color:#64748b; font-weight:600;">Pendapatan iDRG</div>
+                <div style="font-size:22px; font-weight:900; color:#0369a1; line-height:1;">${fmtM(regionalIdrg)}</div>
+              </div>
+            </div>
+            <!-- MARKET SHARE BADGE -->
+            <div style="background:linear-gradient(135deg,#16a34a,#15803d); border-radius:8px; padding:10px 14px; text-align:center; flex-shrink:0; margin-left:4px; min-width:90px;">
+              <div style="font-size:10px; font-weight:700; color:#bbf7d0; text-transform:uppercase; letter-spacing:0.4px;">MARKET<br>SHARE</div>
+              <div style="font-size:22px; font-weight:900; color:#ffffff; line-height:1.1;">${formatPercent(marketShareKasus)}</div>
+              <div style="font-size:10px; color:#bbf7d0; margin-top:2px;">Dari Total Kasus</div>
+            </div>
+          </div>
+          <div style="border-top:1px solid #bae6fd; padding-top:8px;">
+            <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:6px;">RINCIAN KASUS EKSISTING REGIONAL:</div>
+            <div style="display:flex; gap:16px;">
+              <div style="text-align:center; flex:1;"><div style="font-size:18px; font-weight:800; color:#0f766e; line-height:1;">${formatNumber(regTotalD.cases)}</div><div style="font-size:11px; color:#115e59; font-weight:700; margin-top:2px;">${fmtM(regTotalD.rp)}</div><div style="font-size:10px; color:#64748b; font-weight:600; margin-top:1px;">Dasar</div></div>
+              <div style="text-align:center; flex:1;"><div style="font-size:18px; font-weight:800; color:#0369a1; line-height:1;">${formatNumber(regTotalM.cases)}</div><div style="font-size:11px; color:#075985; font-weight:700; margin-top:2px;">${fmtM(regTotalM.rp)}</div><div style="font-size:10px; color:#64748b; font-weight:600; margin-top:1px;">Madya</div></div>
+              <div style="text-align:center; flex:1;"><div style="font-size:18px; font-weight:800; color:#7c3aed; line-height:1;">${formatNumber(regTotalU.cases)}</div><div style="font-size:11px; color:#5b21b6; font-weight:700; margin-top:2px;">${fmtM(regTotalU.rp)}</div><div style="font-size:10px; color:#64748b; font-weight:600; margin-top:1px;">Utama</div></div>
+              <div style="text-align:center; flex:1;"><div style="font-size:18px; font-weight:800; color:#be185d; line-height:1;">${formatNumber(regTotalP.cases)}</div><div style="font-size:11px; color:#9d174d; font-weight:700; margin-top:2px;">${fmtM(regTotalP.rp)}</div><div style="font-size:10px; color:#64748b; font-weight:600; margin-top:1px;">Paripurna</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- MODE AKTIF -->
+      <div style="margin-bottom: 10px; font-size: 12px; color: #475569; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+        <div style="width: 100%; margin-bottom: 5px; font-size: 12px; font-weight: 700; color: #0f172a; background: #f8fafc; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; line-height: 1.6;">
+          <div style="color: #be185d; display: flex; flex-direction: column; gap: 4px;">
+            <div style="font-size: 14px; font-weight: 800; color: #0f766e;">
+              Layanan: ${targetServiceSelect === 'ALL' ? 'Lintas Kompetensi Layanan (Semua)' : targetServiceSelect} 
+              ${targetServiceSelect !== 'ALL' ? ` | Kompetensi RS Target: <span style="color:#b91c1c;">${levelNames[getCompetency(targetHospital(), targetServiceSelect)] || 'Tidak Kompeten'}</span>` : ''}
+            </div>
+            <div>
+              Jumlah RS : ${competitorCount} &rarr; Kompetensi layanan : Dasar : ${compCountD}, Madya: ${compCountM}, Utama: ${compCountU}, Paripurna: ${compCountP}
+              <span style="font-size:10px; font-weight:normal; color:#64748b; margin-left:8px;">(Berdasarkan Update Kompetensi 3 September 2026)</span>
+            </div>
+          </div>
+          <div style="color: #0369a1;">Kasus Regional : ${formatNumber(regTotalD.cases + regTotalM.cases + regTotalU.cases + regTotalP.cases)} kasus &rarr; Dasar : ${formatNumber(regTotalD.cases)} Kasus (${formatMoneyUnit(regTotalD.rp)}), Madya: ${formatNumber(regTotalM.cases)} Kasus (${formatMoneyUnit(regTotalM.rp)}), Utama: ${formatNumber(regTotalU.cases)} Kasus (${formatMoneyUnit(regTotalU.rp)}), Paripurna: ${formatNumber(regTotalP.cases)} Kasus (${formatMoneyUnit(regTotalP.rp)})</div>
+        </div>
+        <span style="background:#e0f2fe; color:#0369a1; padding:3px 10px; border-radius:99px; font-weight:600;">
+          + ${tambahMode === 'tambah_up' ? 'Serap U/P dari Regional' : 'Serap D/M dari RS Kelas Lebih Tinggi'} 
+          | - ${kurangMode === 'kurang_dm' ? 'Lepas Dasar/Madya Eksisting' : 'Lepas Utama/Paripurna Eksisting'}
+        </span>
+        <span style="color:#94a3b8;">Potensi Tambah: <strong style="color:#059669;">${formatNumber(Math.round(potensiSerapanKasus))}</strong> kasus · Potensi Kurang: <strong style="color:#ea580c;">${formatNumber(Math.round(potensiRedistribusiKasus))}</strong> kasus</span>
+      </div>
+      
+      <!-- TABEL SIMULASI (SIMPLIFIED) -->
+      <div style="width: 100%; overflow-x: auto; padding-bottom: 10px;">
+        <table style="width: 100%; min-width: 800px; border-collapse: collapse; font-size: 14px; font-family: sans-serif; box-shadow:0 2px 6px rgba(0,0,0,0.08); border-radius:8px; overflow:hidden;">
+          <thead>
+            <tr style="background-color: #0f172a; color: white; text-align:center;">
+              <th style="padding:12px 10px; border:1px solid #334155; min-width:120px;">SKENARIO<br><span style="font-size:10px; font-weight:400; color:#94a3b8;">Atur % serapan</span></th>
+              <th style="padding:12px 10px; border:1px solid #334155; background-color:#1e293b;">EKSISTING<br><span style="font-size:10px; font-weight:400; color:#94a3b8;">Kasus / iDRG</span></th>
+              <th style="padding:12px 10px; border:1px solid #065f46; background-color:#059669; min-width:130px;">+ TAMBAH KASUS<br><span style="font-size:10px; font-weight:400;">Kasus / Pendapatan</span></th>
+              <th style="padding:12px 10px; border:1px solid #7c2d12; background-color:#ea580c; min-width:130px;">- KURANG KASUS<br><span style="font-size:10px; font-weight:400;">Atur % Redistribusi</span></th>
+              <th style="padding:12px 10px; border:1px solid #3730a3; background-color:#4f46e5; min-width:130px;">NET +/- KASUS<br><span style="font-size:10px; font-weight:400;">Kasus / % thd Eksisting</span></th>
+              <th style="padding:12px 10px; border:1px solid #3730a3; background-color:#4f46e5;">NET +/- PENDAPATAN<br><span style="font-size:10px; font-weight:400;">iDRG (M)</span></th>
+              <th style="padding:12px 10px; border:1px solid #134e4a; background-color:#0f766e; min-width:130px;">✅ PENDAPATAN<br>PASCA RBKP</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+        <p class="source-note" style="margin-top:12px; font-size:11px; padding: 0 10px 10px 10px; color: #475569;">
+          * <strong>Kurang Kasus (Redistribusi)</strong> dihitung dari estimasi kasus ${kurangMode === 'kurang_dm' ? 'Dasar & Madya' : 'Utama & Paripurna'} <strong>milik RS Eksisting (RS Target)</strong> yang diproyeksikan akan berpindah, sesuai proporsi Atur % Redistribusi.
+        </p>
+      </div>
+    `;
+
+    
+    // Attach event listeners to dynamic inputs
+    document.querySelectorAll('.global-sim-input').forEach(input => {
+      input.addEventListener('change', function() {
+        const idx = parseInt(this.getAttribute('data-idx'), 10);
+        let val = parseFloat(this.value);
+        if (isNaN(val)) val = 0;
+        if (val < 0) val = 0;
+        if (val > 100) val = 100;
+        
+        // Update global scenario value (convert back to decimal)
+        window.globalSimScenarios[idx] = val / 100;
+        
+        // Re-render slide to reflect new calculations
+        renderGlobalSimulationSlide();
+    if(typeof renderCompetencySimSlide === "function") renderCompetencySimSlide();
+      });
+    });
+
+    document.querySelectorAll('.global-sim-kurang-input').forEach(input => {
+      input.addEventListener('change', function() {
+        const idx = parseInt(this.getAttribute('data-idx'), 10);
+        let val = parseFloat(this.value);
+        if (isNaN(val)) val = 0;
+        if (val < 0) val = 0;
+        if (val > 100) val = 100;
+        
+        window.globalSimKurangScenarios[idx] = val / 100;
+        renderGlobalSimulationSlide();
+        if(typeof renderCompetencySimSlide === "function") renderCompetencySimSlide();
+      });
+    });
+  }  // end renderGlobalSimulationSlide
+
+
+  function renderCompetencySimSlide() {
+    const formatMoneyUnit = (val) => {
+    const numeric = Number(val) || 0;
+    const absolute = Math.abs(numeric);
+    const sign = numeric < 0 ? "-" : "";
+    const inMilyar = absolute / 1e9;
+    let formatted;
+    if (absolute >= 1e9) {
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(inMilyar);
+    } else {
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(inMilyar);
+    }
+    return `${sign}${formatted} M`;
+  };
+
+    const container = document.getElementById('competencyTableSlide');
+    if (!container) return;
+
+    const target = data.hospitals.find((h) => h.code === state.targetCode) || (data.hospitals.length ? data.hospitals[0] : null);
+    if (!target) {
+      container.innerHTML = '<div style="padding: 20px;">Target RS tidak ditemukan.</div>';
+      return;
+    }
+
+    if (!window.competencyKurangScenarios) {
+      window.competencyKurangScenarios = [100, 100, 100, 100];
+    }
+
+    const potentials = window.globalSimPotentials || {
+      potensiSerapanKasus: 0,
+      potensiSerapanIdrg: 0,
+      potensiRedistribusiKasus: 0,
+      potensiRedistribusiIdrg: 0
+    };
+    
+    let eksistingDM_Idrg = 0;
+    let eksistingUP_Idrg = 0;
+    
+    let kasusDasar = 0, kasusMadya = 0, kasusUtama = 0, kasusParipurna = 0;
+    let inaDasar = 0, inaMadya = 0, inaUtama = 0, inaParipurna = 0;
+    let idrgDasar = 0, idrgMadya = 0, idrgUtama = 0, idrgParipurna = 0;
+
+    
+    let competitorCount = 0;
+    let compCountD = 0;
+    let compCountM = 0;
+    let compCountU = 0;
+    let compCountP = 0;
+    let targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
+    
+    // Compute Regional Cases for the target service(s)
+    const activeServices = targetServiceSelect === 'ALL' ? data.services : (data.services.includes(targetServiceSelect) ? [targetServiceSelect] : []);
+    const regTotalD = {cases: 0, rp: 0};
+    const regTotalM = {cases: 0, rp: 0};
+    const regTotalU = {cases: 0, rp: 0};
+    const regTotalP = {cases: 0, rp: 0};
+    
+    activeServices.forEach(svc => {
+      const s = data.regional?.services?.[svc];
+      if (!s) return;
+      const sD = severityMetric(s, 1);
+      const sM = severityMetric(s, 2);
+      const sU = severityMetric(s, 3);
+      const sP = severityMetric(s, 4);
+      
+      regTotalD.cases += sD[CASES] || 0; regTotalD.rp += sD[IDRG] || 0;
+      regTotalM.cases += sM[CASES] || 0; regTotalM.rp += sM[IDRG] || 0;
+      regTotalU.cases += sU[CASES] || 0; regTotalU.rp += sU[IDRG] || 0;
+      regTotalP.cases += sP[CASES] || 0; regTotalP.rp += sP[IDRG] || 0;
+    });
+
+    (function(){
+      targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
+      const servicesToSimulate = targetServiceSelect === 'ALL' ? data.services : (data.services.includes(targetServiceSelect) ? [targetServiceSelect] : []);
+      
+      // Compute Competitor count for the badge
+      competitorCount = 0;
+      compCountD = 0;
+      compCountM = 0;
+      compCountU = 0;
+      compCountP = 0;
+      
+      data.hospitals.filter(h => h.code !== target.code).forEach(h => {
+        if (h.code === targetHospital()?.code) return;
+        
+        if (targetServiceSelect !== 'ALL') {
+          const hComp = getCompetency(h, targetServiceSelect);
+          if (hComp && hComp > 0) {
+            competitorCount++;
+            if (hComp === 1) compCountD++;
+            if (hComp === 2) compCountM++;
+            if (hComp === 3) compCountU++;
+            if (hComp === 4) compCountP++;
+          }
+        } else {
+          competitorCount++;
+          data.services.forEach(svc => {
+            const hComp = getCompetency(h, svc);
+            if (hComp === 1) compCountD++;
+            else if (hComp === 2) compCountM++;
+            else if (hComp === 3) compCountU++;
+            else if (hComp === 4) compCountP++;
+          });
+        }
+      });
+      
+      if (!window.competencySimScenariosHasInit || window.lastSimCompetitorCount !== competitorCount) {
+        const natural = competitorCount > 0 ? (100 / (competitorCount + 1)) : 100;
+        window.competencySimScenarios = [
+          Number(Math.min(100, natural).toFixed(1)),
+          Number(Math.min(100, natural + 2).toFixed(1)),
+          Number(Math.min(100, natural + 5).toFixed(1)),
+          Number(Math.min(100, natural + 10).toFixed(1))
+        ];
+        window.competencySimScenariosHasInit = true;
+        window.lastSimCompetitorCount = competitorCount;
+      }
+
+      const compBadge = document.getElementById('globalSimCompetitorBadge');
+      const compVal = document.getElementById('globalSimCompetitorValue');
+      if (compBadge && compVal) {
+        if (targetServiceSelect === 'ALL') {
+          compBadge.querySelector('div').innerText = 'KOMPETENSI LAYANAN';
+          compVal.innerHTML = `${competitorCount}`;
+        } else {
+          compBadge.querySelector('div').innerText = 'KOMPETENSI LAYANAN';
+          compVal.innerHTML = `${competitorCount}`;
+        }
+      }
+      
+      return servicesToSimulate;
+    })().forEach(service => {
+      const targetSrv = target.services[service];
+      if (!targetSrv) return;
+
+      const tDasar = severityMetric(targetSrv, 1);
+      const tMadya = severityMetric(targetSrv, 2);
+      const tUtama = severityMetric(targetSrv, 3);
+      const tParipurna = severityMetric(targetSrv, 4);
+
+      eksistingDM_Idrg += (tDasar[IDRG] || 0) + (tMadya[IDRG] || 0);
+      eksistingUP_Idrg += (tUtama[IDRG] || 0) + (tParipurna[IDRG] || 0);
+      
+      kasusDasar += tDasar[CASES] || 0;
+      kasusMadya += tMadya[CASES] || 0;
+      kasusUtama += tUtama[CASES] || 0;
+      kasusParipurna += tParipurna[CASES] || 0;
+
+      inaDasar += tDasar[INA] || 0;
+      inaMadya += tMadya[INA] || 0;
+      inaUtama += tUtama[INA] || 0;
+      inaParipurna += tParipurna[INA] || 0;
+
+      idrgDasar += tDasar[IDRG] || 0;
+      idrgMadya += tMadya[IDRG] || 0;
+      idrgUtama += tUtama[IDRG] || 0;
+      idrgParipurna += tParipurna[IDRG] || 0;
+    });
+
+    const targetTotalKasus = kasusDasar + kasusMadya + kasusUtama + kasusParipurna;
+    const targetInaTotal = inaDasar + inaMadya + inaUtama + inaParipurna;
+    const targetIdrgTotal = idrgDasar + idrgMadya + idrgUtama + idrgParipurna;
+    
+    const selisihPendapatan = targetIdrgTotal - targetInaTotal;
+    const pctSelisih = targetInaTotal > 0 ? (selisihPendapatan / targetInaTotal) * 100 : 0;
+    
+    // Dynamic Modes
+    const tambahMode = document.getElementById('globalSimTambahSelect')?.value || 'tambah_cross_comp';
+    const kurangMode = document.getElementById('globalSimKurangSelect')?.value || 'kurang_up';
+    
+    const isTambahUP = (tambahMode === 'tambah_up');
+    const isKurangDM = (kurangMode === 'kurang_dm');
+    const servedExistingLevels = targetServiceSelect === 'ALL'
+      ? severityRanks.filter((level) => data.services.some((service) => getLevelRules(getCompetency(target, service), service).tambah.includes(level)))
+      : getLevelRules(getCompetency(target, targetServiceSelect), targetServiceSelect).tambah;
+    const existingLevelValues = { 1: kasusDasar, 2: kasusMadya, 3: kasusUtama, 4: kasusParipurna };
+    const existingLevelIdrg = { 1: idrgDasar, 2: idrgMadya, 3: idrgUtama, 4: idrgParipurna };
+
+    
+    let headerTambahan = 'Tambahan Kasus Dasar & Madya';
+    if (tambahMode === 'tambah_up') headerTambahan = 'Tambahan Kasus';
+    else if (tambahMode === 'tambah_mu_reg' || tambahMode === 'tambah_mu_higher') headerTambahan = 'Tambahan Kasus Madya & Utama';
+    else if (tambahMode === 'tambah_d_reg' || tambahMode === 'tambah_d_higher') headerTambahan = 'Tambahan Kasus Dasar';
+    
+    let headerPengurangan = 'Pengurangan Kasus';
+    if (kurangMode === 'kurang_up') headerPengurangan = 'Pengurangan Kasus Utama & Paripurna';
+    else if (kurangMode === 'kurang_dp') headerPengurangan = 'Pengurangan Kasus Dasar & Paripurna';
+    else if (kurangMode === 'kurang_mup') headerPengurangan = 'Pengurangan Kasus Madya, Utama & Paripurna';
+    
+    const html = `
+      <div style="font-family: Arial, sans-serif; padding-top: 10px;">
+        
+        <!-- Summary Cards -->
+        <div style="display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 180px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; text-align: center;">
+            <div style="color: #64748b; font-size: 13px; font-weight: bold; margin-bottom: 5px;">Total Kasus:</div>
+            <div style="color: #be185d; font-size: 24px; font-weight: 900;">${formatNumber(targetTotalKasus)}</div>
+            <div style="margin-top: 8px; font-size: 10px; color: #475569; text-align: left; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; border-top: 1px solid #e2e8f0; padding-top: 6px;">
+              <div>D: <strong style="color: #0f172a;">${formatNumber(kasusDasar)}</strong></div>
+              <div>M: <strong style="color: #0f172a;">${formatNumber(kasusMadya)}</strong></div>
+              <div>U: <strong style="color: #0f172a;">${formatNumber(kasusUtama)}</strong></div>
+              <div>P: <strong style="color: #0f172a;">${formatNumber(kasusParipurna)}</strong></div>
+            </div>
+          </div>
+          <div style="flex: 1; min-width: 180px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; text-align: center;">
+            <div style="color: #64748b; font-size: 13px; font-weight: bold; margin-bottom: 5px;">Pendapatan INA:</div>
+            <div style="color: #c2410c; font-size: 24px; font-weight: 900;">${formatMoneyUnit(targetInaTotal)}</div>
+            <div style="margin-top: 8px; font-size: 10px; color: #475569; text-align: left; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; border-top: 1px solid #e2e8f0; padding-top: 6px;">
+              <div>D: <strong style="color: #0f172a;">${formatMoneyUnit(inaDasar)}</strong></div>
+              <div>M: <strong style="color: #0f172a;">${formatMoneyUnit(inaMadya)}</strong></div>
+              <div>U: <strong style="color: #0f172a;">${formatMoneyUnit(inaUtama)}</strong></div>
+              <div>P: <strong style="color: #0f172a;">${formatMoneyUnit(inaParipurna)}</strong></div>
+            </div>
+          </div>
+          <div style="flex: 1; min-width: 180px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; text-align: center;">
+            <div style="color: #64748b; font-size: 13px; font-weight: bold; margin-bottom: 5px;">Total iDRG Eksisting:</div>
+            <div style="color: #c2410c; font-size: 24px; font-weight: 900;">${formatMoneyUnit(targetIdrgTotal)}</div>
+            <div style="margin-top: 8px; font-size: 10px; color: #475569; text-align: left; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; border-top: 1px solid #e2e8f0; padding-top: 6px;">
+              <div>D: <strong style="color: #0f172a;">${formatMoneyUnit(idrgDasar)}</strong></div>
+              <div>M: <strong style="color: #0f172a;">${formatMoneyUnit(idrgMadya)}</strong></div>
+              <div>U: <strong style="color: #0f172a;">${formatMoneyUnit(idrgUtama)}</strong></div>
+              <div>P: <strong style="color: #0f172a;">${formatMoneyUnit(idrgParipurna)}</strong></div>
+            </div>
+          </div>
+          
+          <!-- Scorecard Selisih -->
+          <div style="flex: 1; min-width: 160px; background: ${selisihPendapatan >= 0 ? '#f0fdf4' : '#fef2f2'}; border: 1px solid ${selisihPendapatan >= 0 ? '#bbf7d0' : '#fecaca'}; padding: 12px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
+            <div style="color: #64748b; font-size: 13px; font-weight: bold; margin-bottom: 5px;">Selisih Pendapatan:</div>
+            <div style="color: ${selisihPendapatan >= 0 ? '#15803d' : '#b91c1c'}; font-size: 24px; font-weight: 900;">${selisihPendapatan >= 0 ? '+' : ''}${formatMoneyUnit(selisihPendapatan)}</div>
+            <div style="color: ${selisihPendapatan >= 0 ? '#15803d' : '#b91c1c'}; font-size: 14px; font-weight: bold; margin-top: 4px;">${selisihPendapatan >= 0 ? '+' : ''}${decimalFormatter.format(pctSelisih)}%</div>
+          </div>
+
+          <div style="flex: 1; min-width: 160px; background: #fdf2f8; border: 1px solid #fbcfe8; padding: 12px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
+            <div style="color: #be185d; font-size: 13px; font-weight: bold; margin-bottom: 5px;">Potensi Tambah Max:</div>
+            <div style="color: #059669; font-size: 24px; font-weight: 900;">${formatMoneyUnit(potentials.potensiSerapanIdrg)}</div>
+            <div style="color: #f43f5e; font-size: 11px; font-weight: 700; margin-top: 4px;">Filter Global Aktif</div>
+          </div>
+        </div>
+
+        <!-- Competitor Breakdown -->
+        <div style="width: 100%; margin-bottom: 5px; font-size: 12px; font-weight: 700; color: #0f172a; background: #f8fafc; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; line-height: 1.6;">
+          <div style="color: #be185d; display: flex; flex-direction: column; gap: 4px;">
+            <div style="font-size: 14px; font-weight: 800; color: #0f766e;">
+              Layanan: ${targetServiceSelect === 'ALL' ? 'Lintas Kompetensi Layanan (Semua)' : targetServiceSelect} 
+              ${targetServiceSelect !== 'ALL' ? ` | Kompetensi RS Target: <span style="color:#b91c1c;">${levelNames[getCompetency(targetHospital(), targetServiceSelect)] || 'Tidak Kompeten'}</span>` : ''}
+            </div>
+            <div>
+              Jumlah RS : ${competitorCount} &rarr; Kompetensi layanan : Dasar : ${compCountD}, Madya: ${compCountM}, Utama: ${compCountU}, Paripurna: ${compCountP}
+              <span style="font-size:10px; font-weight:normal; color:#64748b; margin-left:8px;">(Berdasarkan Update Kompetensi 3 September 2026)</span>
+            </div>
+          </div>
+          <div style="color: #0369a1;">Kasus Regional : ${formatNumber(regTotalD.cases + regTotalM.cases + regTotalU.cases + regTotalP.cases)} kasus &rarr; Dasar : ${formatNumber(regTotalD.cases)} Kasus (${formatMoneyUnit(regTotalD.rp)}), Madya: ${formatNumber(regTotalM.cases)} Kasus (${formatMoneyUnit(regTotalM.rp)}), Utama: ${formatNumber(regTotalU.cases)} Kasus (${formatMoneyUnit(regTotalU.rp)}), Paripurna: ${formatNumber(regTotalP.cases)} Kasus (${formatMoneyUnit(regTotalP.rp)})</div>
+        </div>
+
+        <!-- Table -->
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; border: 1px solid #1e293b; text-align: center; font-size: 13px;">
+            <thead style="background: #38bdf8; color: white;">
+              <tr>
+                <th rowspan="2" style="border: 1px solid #1e293b; padding: 8px; background: #0f766e;">Skenario</th>
+                <th rowspan="2" style="border: 1px solid #1e293b; padding: 8px; background: #334155;">Kasus Eksisting</th>
+                <th colspan="3" style="border: 1px solid #1e293b; padding: 8px; background: #059669;">${headerTambahan}</th>
+                <th colspan="3" style="border: 1px solid #1e293b; padding: 8px; background: #e11d48;">${headerPengurangan}</th>
+                <th rowspan="2" style="border: 1px solid #1e293b; padding: 8px; background: #0369a1;">Total Kasus Pasca RBKP</th>
+                <th rowspan="2" style="border: 1px solid #1e293b; padding: 8px; background: #047857;">Total Pendapatan Pasca iDRG & RBKP (Rp. M)</th>
+                <th colspan="4" style="border: 1px solid #1e293b; padding: 8px; background: #0d9488;">Net +/- Pasca iDRG & RBKP (vs INACBG)</th>
+              </tr>
+              <tr>
+                <th style="border: 1px solid #1e293b; padding: 8px; background: #10b981;">Persentase</th>
+                <th style="border: 1px solid #1e293b; padding: 8px; background: #10b981;">Jumlah Kasus</th>
+                <th style="border: 1px solid #1e293b; padding: 8px; background: #10b981;">Tambahan (Rp. M)</th>
+                <th style="border: 1px solid #1e293b; padding: 8px; background: #f43f5e;">Persentase</th>
+                <th style="border: 1px solid #1e293b; padding: 8px; background: #f43f5e;">Jumlah Kasus</th>
+                <th style="border: 1px solid #1e293b; padding: 8px; background: #f43f5e;">Pengurangan (Rp. M)</th>
+                <th style="border: 1px solid #1e293b; padding: 8px; background: #14b8a6;">+/- Kasus</th>
+                <th style="border: 1px solid #1e293b; padding: 8px; background: #14b8a6;">% thd total kasus</th>
+                <th style="border: 1px solid #1e293b; padding: 8px; background: #14b8a6;">+/- Pendapatan (Rp. M)</th>
+                <th style="border: 1px solid #1e293b; padding: 8px; background: #14b8a6;">% +/- Pendapatan</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${window.competencySimScenarios.map((pctTambah, idx) => {
+                const pctKurang = window.competencyKurangScenarios[idx];
+                
+                const tambahKasus = Math.round(potentials.potensiSerapanKasus * (pctTambah / 100));
+                const tambahIdrg = potentials.potensiSerapanIdrg * (pctTambah / 100);
+                
+                const kurangKasus = Math.round(potentials.potensiRedistribusiKasus * (pctKurang / 100));
+                const kurangIdrg = potentials.potensiRedistribusiIdrg * (pctKurang / 100);
+                
+                const netKasus = tambahKasus - kurangKasus;
+                const netKasusPct = targetTotalKasus > 0 ? (netKasus / targetTotalKasus) * 100 : 0;
+                const netIdrg = tambahIdrg - kurangIdrg; 
+                const totalKasus = targetTotalKasus + tambahKasus - kurangKasus;
+                
+                // Total Pasca RS Keseluruhan = Total Awal + Tambahan - Pengurangan
+                const totalPasca = targetIdrgTotal + netIdrg;
+                const selisihVsInacbg = totalPasca - targetInaTotal;
+                const pctSelisihVsInacbg = targetInaTotal > 0 ? (selisihVsInacbg / targetInaTotal) * 100 : 0;
+
+                return `
+                  <tr>
+                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold;">Skenario ${idx + 1}</td>
+                    
+                    <!-- Eksisting -->
+                    ${idx === 0 ? `
+                      <td rowspan="${window.competencySimScenarios.length}" style="border: 1px solid #1e293b; padding: 8px; background: #f8fafc;">
+                        <div style="font-size:12px;line-height:1.55;text-align:left;min-width:155px;">
+                          <div style="font-weight:900;font-size:13px;color:#0f172a;border-bottom:1px solid #cbd5e1;padding-bottom:3px;margin-bottom:3px;">Total Kasus: ${formatNumber(targetTotalKasus)}</div>
+                          ${severityRanks.map((level) => `<div style="font-weight:${servedExistingLevels.includes(level) ? '900' : '400'};color:${servedExistingLevels.includes(level) ? '#0f172a' : '#64748b'};">${shortLevelNames[level]}: ${formatNumber(existingLevelValues[level])} (${formatMoneyUnit(existingLevelIdrg[level])})</div>`).join('')}
+                          <div style="font-weight:800;color:#c2410c;border-top:1px solid #e2e8f0;margin-top:3px;padding-top:3px;">INA-CBG: ${formatMoneyUnit(targetInaTotal)}</div>
+                          <div style="font-weight:800;color:#0369a1;">iDRG: ${formatMoneyUnit(targetIdrgTotal)}</div>
+                        </div>
+                      </td>
+                    ` : ''}
+
+                    <!-- Tambahan -->
+                    <td style="border: 1px solid #1e293b; padding: 8px;">
+                      <div style="display:flex; align-items:center; justify-content:center;">
+                        <input type="number" class="comp-sim-tambah-pct-input" data-idx="${idx}" value="${pctTambah}" min="0" max="100" style="width: 45px; text-align: center; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px; font-weight: bold;">
+                        <span style="margin-left: 2px;">%</span>
+                      </div>
+                    </td>
+                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold;">${formatNumber(tambahKasus)}</td>
+                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: #059669;">▲ ${formatMoneyUnit(tambahIdrg)}</td>
+                    
+                    <!-- Pengurangan -->
+                    <td style="border: 1px solid #1e293b; padding: 8px;">
+                      <div style="display:flex; align-items:center; justify-content:center;">
+                        <input type="number" class="comp-sim-kurang-pct-input" data-idx="${idx}" value="${pctKurang}" min="0" max="100" style="width: 45px; text-align: center; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px; font-weight: bold;">
+                        <span style="margin-left: 2px;">%</span>
+                      </div>
+                    </td>
+                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold;">${formatNumber(kurangKasus)}</td>
+                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: #e11d48;">▼ ${formatMoneyUnit(kurangIdrg)}</td>
+                    
+                    <!-- Total Pasca -->
+                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; background: #eff6ff;">${formatNumber(totalKasus)}</td>
+                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; background: #f0fdf4;">${formatMoneyUnit(totalPasca)}</td>
+
+                    <!-- Net -->
+                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: ${netKasus >= 0 ? '#059669' : '#e11d48'}">${netKasus >= 0 ? '+' : ''}${formatNumber(netKasus)}</td>
+                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: ${netKasus >= 0 ? '#059669' : '#e11d48'}">${netKasus >= 0 ? '+' : ''}${decimalFormatter.format(netKasusPct)}%</td>
+                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: ${selisihVsInacbg >= 0 ? '#059669' : '#e11d48'}">${selisihVsInacbg >= 0 ? '+' : ''}${formatMoneyUnit(Math.abs(selisihVsInacbg))}</td>
+                    <td style="border: 1px solid #1e293b; padding: 8px; font-weight: bold; color: ${selisihVsInacbg >= 0 ? '#059669' : '#e11d48'}">${selisihVsInacbg >= 0 ? '+' : ''}${decimalFormatter.format(pctSelisihVsInacbg)}%</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+        
+        <div style="margin-top: 15px; font-size: 11px; color: #475569;">
+          <div style="margin-bottom: 4px;"><strong>Catatan:</strong> Tabel ini terhubung secara dinamis dengan pengaturan <em>Skenario Simulasi Global</em> di bilah samping.</div>
+          <div>* Total Pendapatan Pasca iDRG = Total iDRG Eksisting RS (${formatMoneyUnit(targetIdrgTotal)}) + Tambahan.</div>
+        </div>
+      </div>
+    `;
+
+    container.innerHTML = html;
+
+    container.querySelectorAll('.comp-sim-tambah-pct-input').forEach(input => {
+      input.addEventListener('change', function() {
+        const idx = parseInt(this.getAttribute('data-idx'), 10);
+        let val = parseFloat(this.value);
+        if (isNaN(val) || val < 0) val = 0;
+        if (val > 100) val = 100;
+        window.competencySimScenarios[idx] = val;
+        renderCompetencySimSlide();
+      });
+    });
+
+    container.querySelectorAll('.comp-sim-kurang-pct-input').forEach(input => {
+      input.addEventListener('change', function() {
+        const idx = parseInt(this.getAttribute('data-idx'), 10);
+        let val = parseFloat(this.value);
+        if (isNaN(val) || val < 0) val = 0;
+        if (val > 100) val = 100;
+        window.competencyKurangScenarios[idx] = val;
+        renderCompetencySimSlide();
+      });
+    });
+  }
+
+  function computeCompetencyUpgradeRows(target, service, targetLevel, captureMultiplier, retention) {
+    const services = service === "ALL" ? data.services : [service];
+    return services.map((serviceName) => {
+      const current = getCompetency(target, serviceName);
+      return window.CompetencyUpgrade.simulateUpgrade({
+        service: serviceName, target, hospitals: data.hospitals,
+        regionalService: regionalService(serviceName), targetCompetency: current,
+        targetLevel: Math.max(current, targetLevel), captureMultiplier: captureMultiplier / 100,
+        retentionRate: retention / 100, getCompetency, severityMetric,
+        casesIndex: CASES, inaIndex: INA, idrgIndex: IDRG,
+      });
+    });
+  }
+
+  function renderCompetencyUpgradeSlide() {
+    const container = document.getElementById("competencyUpgradeSlide");
+    const target = targetHospital();
+    if (!container || !target || !window.CompetencyUpgrade) return;
+    const settings = state.competencyUpgrade;
+    if (settings.service !== "ALL" && !data.services.includes(settings.service)) settings.service = "ALL";
+    settings.targetLevel = Math.min(4, Math.max(1, Number(settings.targetLevel) || 2));
+    settings.captureMultiplier = Math.min(300, Math.max(0, Number(settings.captureMultiplier) || 0));
+    settings.retention = Math.min(100, Math.max(0, Number(settings.retention) || 0));
+    const selectedService = settings.service === "ALL" ? (data.services.find((service) => getCompetency(target, service) === 1) || data.services[0]) : settings.service;
+    const currentLevel = getCompetency(target, selectedService);
+    const comparisonLevels = [...new Set([Math.max(1, currentLevel), 2, 3, 4])].sort((a, b) => a - b);
+    const comparisons = comparisonLevels.map((level) => computeCompetencyUpgradeRows(target, selectedService, level, settings.captureMultiplier, settings.retention)[0]);
+    const recapRows = computeCompetencyUpgradeRows(target, "ALL", settings.targetLevel, settings.captureMultiplier, settings.retention);
+    const sum = (rows, field, index) => rows.reduce((total, row) => total + row[field][index], 0);
+    const baselineCases = sum(recapRows, "existing", CASES), baselineIna = sum(recapRows, "existing", INA);
+    const projectedCases = sum(recapRows, "projected", CASES), projectedIdrg = sum(recapRows, "projected", IDRG);
+    const deltaCases = projectedCases - baselineCases, deltaRevenue = projectedIdrg - baselineIna;
+    const signed = (value) => `${value >= 0 ? "+" : ""}${formatNumber(Math.round(value))}`;
+    const signedMoney = (value) => `${value >= 0 ? "+" : ""}${formatMoney(value)}`;
+    container.innerHTML = `
+      <div style="font-family:Arial,sans-serif;display:flex;flex-direction:column;gap:12px;min-height:100%;">
+        <div data-export-ui="true" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:9px;padding:10px 12px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:10px;">
+          <label style="font-size:11px;font-weight:800;color:#334155;">Layanan pembanding<br><select id="upgradeServiceSelect" style="width:100%;margin-top:4px;padding:7px;border:1px solid #94a3b8;border-radius:6px;background:#fff;font-weight:700;"><option value="ALL">Otomatis pilih layanan berkompetensi Dasar</option>${data.services.map((service) => `<option value="${escapeHtml(service)}" ${service === settings.service ? "selected" : ""}>${escapeHtml(formatService(service))}</option>`).join("")}</select></label>
+          <label style="font-size:11px;font-weight:800;color:#334155;">Target rekap 24 layanan<br><select id="upgradeTargetLevel" style="width:100%;margin-top:4px;padding:7px;border:1px solid #94a3b8;border-radius:6px;background:#fff;font-weight:700;">${[2,3,4].map((level) => `<option value="${level}" ${level === settings.targetLevel ? "selected" : ""}>${levelNames[level]}</option>`).join("")}</select></label>
+          <label style="font-size:11px;font-weight:800;color:#334155;">Faktor capture natural (%)<br><input id="upgradeCaptureMultiplier" type="number" min="0" max="300" step="10" value="${settings.captureMultiplier}" style="width:100%;box-sizing:border-box;margin-top:4px;padding:7px;border:1px solid #94a3b8;border-radius:6px;font-weight:700;"></label>
+          <label style="font-size:11px;font-weight:800;color:#334155;">Retensi kasus eligible (%)<br><input id="upgradeRetention" type="number" min="0" max="100" step="5" value="${settings.retention}" style="width:100%;box-sizing:border-box;margin-top:4px;padding:7px;border:1px solid #94a3b8;border-radius:6px;font-weight:700;"></label>
+          <button id="upgradeExcelBtn" type="button" style="grid-column:4;justify-self:end;border:1px solid #16a34a;background:#f0fdf4;color:#166534;border-radius:6px;padding:6px 10px;font-size:10.5px;font-weight:800;cursor:pointer;">📥 Kertas Kerja Excel</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:9px;">
+          <div style="padding:10px 12px;background:#f8fafc;border-left:4px solid #334155;"><div style="font-size:10px;font-weight:800;color:#64748b;">RS TARGET</div><div style="font-size:15px;font-weight:900;color:#0f172a;margin-top:3px;">${escapeHtml(target.name)}</div><div style="font-size:10px;color:#64748b;">${escapeHtml(formatService(selectedService))} · ${levelNames[currentLevel] || "Tidak Kompeten"}</div></div>
+          <div style="padding:10px 12px;background:#eff6ff;border-left:4px solid #2563eb;"><div style="font-size:10px;font-weight:800;color:#1d4ed8;">PROYEKSI KASUS 24 LAYANAN</div><div style="font-size:20px;font-weight:900;color:#1e3a8a;">${formatNumber(projectedCases)}</div><div style="font-size:10px;color:${deltaCases >= 0 ? "#047857" : "#be123c"};font-weight:800;">${signed(deltaCases)} vs eksisting</div></div>
+          <div style="padding:10px 12px;background:#f0fdf4;border-left:4px solid #16a34a;"><div style="font-size:10px;font-weight:800;color:#15803d;">PROYEKSI PENDAPATAN iDRG</div><div style="font-size:20px;font-weight:900;color:#166534;">${formatMoney(projectedIdrg)}</div><div style="font-size:10px;color:${deltaRevenue >= 0 ? "#047857" : "#be123c"};font-weight:800;">${signedMoney(deltaRevenue)} vs INA-CBG</div></div>
+          <div style="padding:10px 12px;background:#fff7ed;border-left:4px solid #f97316;"><div style="font-size:10px;font-weight:800;color:#c2410c;">ASUMSI AKTIF</div><div style="font-size:16px;font-weight:900;color:#9a3412;">Target ${levelNames[settings.targetLevel]}</div><div style="font-size:10px;color:#7c2d12;">Capture ${settings.captureMultiplier}% dari share natural · retensi ${settings.retention}%</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1.05fr 1.55fr;gap:12px;min-height:0;">
+          <div style="border:1px solid #cbd5e1;border-radius:8px;overflow:hidden;"><div style="padding:8px 10px;background:#0f766e;color:#fff;font-weight:900;font-size:13px;">Perbandingan ${escapeHtml(formatService(selectedService))}</div><table style="width:100%;border-collapse:collapse;font-size:11px;"><thead><tr style="background:#e2e8f0;"><th style="padding:6px;text-align:left;">Kompetensi</th><th>Proyeksi kasus</th><th>Captured</th><th>Proyeksi iDRG</th><th>Δ vs INA</th></tr></thead><tbody>${comparisons.map((row) => `<tr style="border-top:1px solid #e2e8f0;background:${row.targetLevel === settings.targetLevel ? "#ecfdf5" : "#fff"};"><td style="padding:7px;font-weight:900;">${levelNames[row.targetLevel]}${row.targetLevel === currentLevel ? " (saat ini)" : ""}</td><td style="text-align:right;padding:7px;font-weight:800;">${formatNumber(row.projected[CASES])}</td><td style="text-align:right;padding:7px;color:#047857;font-weight:800;">+${formatNumber(Math.round(row.captured[CASES]))}</td><td style="text-align:right;padding:7px;">${formatMoney(row.projected[IDRG])}</td><td style="text-align:right;padding:7px;color:${row.deltaIdrgVsIna >= 0 ? "#047857" : "#be123c"};font-weight:800;">${signedMoney(row.deltaIdrgVsIna)}</td></tr>`).join("")}</tbody></table><div style="padding:8px 10px;background:#f8fafc;font-size:9.5px;color:#475569;line-height:1.35;">Share natural = 1 ÷ (RS kompetitor eligible + RS target). Kompetensi melayani levelnya dan satu tingkat di bawahnya.</div></div>
+          <div style="border:1px solid #cbd5e1;border-radius:8px;overflow:hidden;"><div style="padding:8px 10px;background:#2563eb;color:#fff;font-weight:900;font-size:13px;display:flex;justify-content:space-between;"><span>Rekap 24 layanan pada target ${levelNames[settings.targetLevel]}</span><span>${recapRows.length}/24 layanan</span></div><div style="max-height:365px;overflow:auto;"><table style="width:100%;border-collapse:collapse;font-size:10px;"><thead style="position:sticky;top:0;background:#dbeafe;"><tr><th style="padding:5px;text-align:left;">Layanan</th><th>Saat ini</th><th>Target</th><th>Eksisting</th><th>Proyeksi</th><th>Δ kasus</th><th>Δ Rp vs INA</th></tr></thead><tbody>${recapRows.map((row) => `<tr style="border-top:1px solid #e2e8f0;"><td style="padding:4px 6px;font-weight:700;">${escapeHtml(formatService(row.service))}</td><td style="text-align:center;">${shortLevelNames[row.targetCompetency] || "–"}</td><td style="text-align:center;font-weight:900;">${shortLevelNames[row.targetLevel]}</td><td style="text-align:right;">${formatNumber(row.existing[CASES])}</td><td style="text-align:right;font-weight:800;">${formatNumber(Math.round(row.projected[CASES]))}</td><td style="text-align:right;color:${row.deltaCases >= 0 ? "#047857" : "#be123c"};font-weight:800;">${signed(row.deltaCases)}</td><td style="text-align:right;color:${row.deltaIdrgVsIna >= 0 ? "#047857" : "#be123c"};font-weight:800;">${signedMoney(row.deltaIdrgVsIna)}</td></tr>`).join("")}</tbody></table></div></div>
+        </div>
+      </div>`;
+    const rerender = () => renderCompetencyUpgradeSlide();
+    container.querySelector("#upgradeServiceSelect")?.addEventListener("change", (event) => { settings.service = event.target.value; rerender(); });
+    container.querySelector("#upgradeTargetLevel")?.addEventListener("change", (event) => { settings.targetLevel = Number(event.target.value); rerender(); });
+    container.querySelector("#upgradeCaptureMultiplier")?.addEventListener("change", (event) => { settings.captureMultiplier = Number(event.target.value); rerender(); });
+    container.querySelector("#upgradeRetention")?.addEventListener("change", (event) => { settings.retention = Number(event.target.value); rerender(); });
+    container.querySelector("#upgradeExcelBtn")?.addEventListener("click", () => {
+      if (!window.CompetencyUpgradeExcel || !window.XLSX) return alert("Modul kertas kerja Excel belum tersedia.");
+      const datasetLabel = DATASET_PERIODS[activeDatasetKey]?.label || activeDatasetKey;
+      const tariffLabel = TARIFF_SCENARIOS[state.activeTariffScenario]?.label || state.activeTariffScenario;
+      const provinceFilters = [...document.querySelectorAll("#provDropdown input:checked")].map((input) => input.value);
+      const cityFilters = [...document.querySelectorAll("#cityDropdown input:checked")].map((input) => input.value);
+      const filterDesc = [provinceFilters.length ? `Provinsi: ${provinceFilters.join(", ")}` : "Semua provinsi", cityFilters.length ? `Kab/Kota: ${cityFilters.join(", ")}` : "Semua kab/kota"].join("; ");
+      window.CompetencyUpgradeExcel.exportWorkbook({ XLSX: window.XLSX, target, settings, levelNames, formatService, recapRows, comparisons, selectedService, datasetLabel, tariffLabel, filterDesc, CASES, INA, IDRG });
+    });
+  }
+
+  function renderDynamicMarketShareSlide() {
+    const container = document.getElementById("dynamicMarketShareSlide");
+    if (!container) return;
+    container.classList.add("dynamic-market-readable");
+
+    const selectedTargets = getTargetHospitals();
+    const target = selectedTargets[0] || null;
+    if (!target) {
+      container.innerHTML = '<div style="padding:24px;color:#b91c1c;font-weight:700;">RS target tidak tersedia.</div>';
+      return;
+    }
+
+    const globalService = document.getElementById("globalSimServiceSelect")?.value;
+    if (!window.dynamicMarketService || !data.services.includes(window.dynamicMarketService)) {
+      window.dynamicMarketService = globalService && globalService !== "ALL" && data.services.includes(globalService)
+        ? globalService
+        : data.services.find((service) => getCompetency(target, service) > 0) || data.services[0];
+    }
+    const service = window.dynamicMarketService;
+    const targetComp = getSimulationCompetency(target, service);
+    const targetSrv = target.services?.[service];
+    const regionalSrv = data.regional?.services?.[service] || { total: createZeroMetric(), severity: {} };
+
+    if (!targetSrv || targetComp <= 0) {
+      container.innerHTML = `
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+          <label style="font-size:12px;font-weight:800;color:#334155;">Layanan:</label>
+          <select id="dynamicMarketServiceSelect" style="min-width:420px;padding:7px 10px;border:1.5px solid #7c3aed;border-radius:7px;font-weight:700;">
+            ${data.services.map((item) => `<option value="${escapeHtml(item)}" ${item === service ? "selected" : ""}>${escapeHtml(formatService(item))}</option>`).join("")}
+          </select>
+        </div>
+        <div style="padding:24px;border:1px solid #fde68a;background:#fffbeb;border-radius:10px;color:#92400e;font-weight:700;">RS target tidak memiliki kompetensi pada layanan ini. Pilih layanan lain untuk menjalankan simulasi dinamis.</div>`;
+      container.querySelector("#dynamicMarketServiceSelect")?.addEventListener("change", (event) => {
+        window.dynamicMarketService = event.target.value;
+        renderDynamicMarketShareSlide();
+      });
+      return;
+    }
+
+    const rules = getLevelRules(targetComp, service);
+    const targetCodes = new Set(selectedTargets.map((hospital) => hospital.code));
+    const sourceRelationLabel = "RS di luar kemampuan level kasus";
+    const additionSourceHospitals = data.hospitals.filter((hospital) => {
+      if (targetCodes.has(hospital.code)) return false;
+      return true;
+    });
+    const competitorHospitals = data.hospitals
+      .filter((hospital) => !targetCodes.has(hospital.code) && getCompetency(hospital, service) > 0)
+      .sort((a, b) => String(a.name || "").localeCompare(String(b.name || ""), "id"));
+    const competitorGroups = Object.fromEntries(severityRanks.map((level) => [level, competitorHospitals.filter((hospital) => getCompetency(hospital, service) === level)]));
+    const competitorColors = { 1: ["#0f766e", "#f0fdfa"], 2: ["#a16207", "#fefce8"], 3: ["#c2410c", "#fff7ed"], 4: ["#7e22ce", "#faf5ff"] };
+    const competitorListHtml = severityRanks.map((level) => {
+      const [color, background] = competitorColors[level];
+      const hospitals = competitorGroups[level];
+      return `<section style="min-width:0;border:1px solid #e2e8f0;border-radius:7px;overflow:hidden;background:#fff;"><header style="padding:5px 7px;background:${background};color:${color};font-size:10px;font-weight:900;">${levelNames[level]} · ${formatNumber(hospitals.length)} RS</header><div style="max-height:150px;overflow:auto;padding:4px 7px;">${hospitals.length ? hospitals.map((hospital, index) => `<div style="padding:3px 0;border-bottom:1px solid #f1f5f9;font-size:9px;line-height:1.25;color:#334155;"><b>${index + 1}. ${escapeHtml(hospital.name)}</b><br><span style="color:#64748b;">${escapeHtml(hospital.city || "—")} · ${escapeHtml(hospital.code || "—")}</span></div>`).join("") : '<span style="font-size:9px;color:#94a3b8;">Tidak ada RS</span>'}</div></section>`;
+    }).join("");
+    const levelData = severityRanks.map((level) => {
+      const regionalMetric = severityMetric(regionalSrv, level);
+      const targetMetric = severityMetric(targetSrv, level);
+      const direction = rules.tambah.includes(level) ? "tambah" : (rules.kurang.includes(level) ? "kurang" : "netral");
+      const sourceHospitals = direction === "tambah"
+        ? additionSourceHospitals.filter((hospital) => !canServeLevel(getCompetency(hospital, service), level) && (severityMetric(hospital.services?.[service], level)[CASES] || 0) > 0)
+        : data.hospitals.filter((hospital) => !targetCodes.has(hospital.code) && canServeLevel(getCompetency(hospital, service), level));
+      const sourceMetric = sourceHospitals.reduce((total, hospital) => {
+        const metric = severityMetric(hospital.services?.[service], level);
+        total[CASES] += metric[CASES] || 0;
+        total[INA] += metric[INA] || 0;
+        total[IDRG] += metric[IDRG] || 0;
+        return total;
+      }, createZeroMetric());
+      const competitors = data.hospitals.filter((hospital) => !targetCodes.has(hospital.code) && canServeLevel(getCompetency(hospital, service), level)).length;
+      const naturalShare = competitors > 0 ? 100 / (competitors + 1) : (direction === "tambah" ? 100 : 0);
+      const poolIna = direction === "tambah" ? sourceMetric[INA] || 0 : targetMetric[INA] || 0;
+      const poolIdrg = direction === "tambah" ? sourceMetric[IDRG] || 0 : targetMetric[IDRG] || 0;
+      return {
+        level,
+        direction,
+        competitors,
+        naturalShare,
+        regionalCases: regionalMetric[CASES] || 0,
+        regionalIdrg: regionalMetric[IDRG] || 0,
+        targetCases: targetMetric[CASES] || 0,
+        targetIna: targetMetric[INA] || 0,
+        targetIdrg: targetMetric[IDRG] || 0,
+        externalCases: direction === "tambah" ? sourceMetric[CASES] : Math.max(0, (regionalMetric[CASES] || 0) - (targetMetric[CASES] || 0)),
+        externalIna: direction === "tambah" ? sourceMetric[INA] || 0 : 0,
+        externalIdrg: direction === "tambah" ? sourceMetric[IDRG] : Math.max(0, (regionalMetric[IDRG] || 0) - (targetMetric[IDRG] || 0)),
+        poolIna,
+        poolIdrg,
+        tariffDelta: poolIdrg - poolIna,
+        tariffDeltaPct: poolIna > 0 ? (poolIdrg - poolIna) / poolIna * 100 : 0
+      };
+    });
+
+    const baselineCases = levelData.reduce((sum, item) => sum + item.targetCases, 0);
+    const baselineIna = levelData.reduce((sum, item) => sum + item.targetIna, 0);
+    const baselineIdrg = levelData.reduce((sum, item) => sum + item.targetIdrg, 0);
+    const competencyExisting = levelData.filter((item) => rules.tambah.includes(item.level));
+    const competencyExistingCases = competencyExisting.reduce((sum, item) => sum + item.targetCases, 0);
+    const competencyExistingIna = competencyExisting.reduce((sum, item) => sum + item.targetIna, 0);
+    const competencyExistingIdrg = competencyExisting.reduce((sum, item) => sum + item.targetIdrg, 0);
+    const competencyLevelLabel = competencyExisting.map((item) => levelNames[item.level]).join(" & ") || levelNames[targetComp];
+    const lossLevelLabel = rules.kurang.map((level) => levelNames[level]).join(" & ") || "Di Luar Kompetensi";
+    const scenarioDefs = [
+      { name: "Baseline", add: 0 },
+      { name: "Konservatif (+5%)", add: 5 },
+      { name: "Moderat (+10%)", add: 10 },
+      { name: "Optimistik (+15%)", add: 15 },
+      { name: "Ekspansif (+20%)", add: 20 }
+    ];
+    const overrideKey = `${activeDatasetKey}|${target.code}|${service}`;
+    window.dynamicMarketOverrides = window.dynamicMarketOverrides || {};
+    const overrides = window.dynamicMarketOverrides[overrideKey] || {};
+    const pctFor = (scenarioIndex, item) => { const sIdx = item.direction === "kurang" ? 0 : scenarioIndex;
+      const field = `${item.direction}_${item.level}`;
+      const manual = overrides[sIdx]?.[field];
+        if (Number.isFinite(manual)) return manual;
+          if (item.direction === "kurang") return 100;
+          if (item.direction === "tambah" && window.dynamicMarketAddMode === "flat") return Number(Math.min(100, 50 + scenarioDefs[scenarioIndex].add).toFixed(2));
+          if (item.competitors === 0) return [100, 75, 50, 25, 0][scenarioIndex] || 0;
+          return Number(Math.min(100, item.naturalShare + scenarioDefs[scenarioIndex].add).toFixed(2));
+      };
+
+    const scenarioResults = scenarioDefs.map((definition, scenarioIndex) => {
+      let addCases = 0, addIdrg = 0, lossCases = 0, lossIdrg = 0;
+      levelData.forEach((item) => {
+        const pct = pctFor(scenarioIndex, item) / 100;
+        if (item.direction === "tambah") {
+          addCases += item.externalCases * pct;
+          addIdrg += item.externalIdrg * pct;
+        } else if (item.direction === "kurang") {
+          lossCases += item.targetCases * pct;
+          lossIdrg += item.targetIdrg * pct;
+        }
+      });
+      const projectedCases = baselineCases + addCases - lossCases;
+      const projectedIdrg = baselineIdrg + addIdrg - lossIdrg;
+      return {
+        definition, scenarioIndex, addCases, addIdrg, lossCases, lossIdrg, projectedCases, projectedIdrg
+      };
+    });
+
+    const safeScenarios = scenarioResults.filter(r => r.projectedCases <= baselineCases);
+    let mostLogicalIdx = 0;
+    if (safeScenarios.length > 0) {
+      safeScenarios.sort((a, b) => (b.projectedIdrg - competencyExistingIdrg) - (a.projectedIdrg - competencyExistingIdrg) || b.addCases - a.addCases);
+      mostLogicalIdx = safeScenarios[0].scenarioIndex;
+    } else {
+      const sortedUnsafe = [...scenarioResults].sort((a, b) => a.projectedCases - b.projectedCases || (b.projectedIdrg - competencyExistingIdrg) - (a.projectedIdrg - competencyExistingIdrg));
+      mostLogicalIdx = sortedUnsafe[0].scenarioIndex;
+    }
+
+    const pctInputLines = (scenarioIndex, direction) => levelData
+      .filter((item) => item.direction === direction)
+      .map((item) => `<label style="display:flex;align-items:center;justify-content:space-between;gap:4px;white-space:nowrap;"><span>${shortLevelNames[item.level]}</span><span><input class="dynamic-market-pct" data-scenario="${scenarioIndex}" data-direction="${direction}" data-level="${item.level}" type="number" min="0" max="100" step="0.01" value="${pctFor(scenarioIndex, item)}" style="width:52px;padding:3px;text-align:right;border:1px solid #cbd5e1;border-radius:4px;font-weight:800;">%</span></label>`)
+      .join("") || '<span style="color:#94a3b8;">—</span>';
+    container.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px;padding:8px 10px;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:9px;">
+        <button type="button" onclick="copyFullTable(this)" style="background:#2563eb;color:#fff;border:none;padding:5px 12px;border-radius:5px;font-weight:bold;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:6px;"><span style="font-size:14px;">??</span> Copy Seluruh Tabel (untuk Excel / PPT)</button>
+        <div style="display:flex;align-items:center;gap:9px;min-width:0;">
+          <label style="font-size:11px;font-weight:900;color:#5b21b6;white-space:nowrap;">LAYANAN</label>
+          <select id="dynamicMarketServiceSelect" style="min-width:420px;max-width:660px;padding:6px 9px;border:1.5px solid #7c3aed;border-radius:7px;background:#fff;font-size:12px;font-weight:750;color:#312e81;">
+            ${data.services.map((item) => `<option value="${escapeHtml(item)}" ${item === service ? "selected" : ""}>${escapeHtml(formatService(item))}</option>`).join("")}
+          </select>
+          <span style="padding:5px 9px;border-radius:999px;background:#7c3aed;color:#fff;font-size:11px;font-weight:900;white-space:nowrap;">Target: ${levelNames[targetComp]}</span>
+          <div class="dynamic-source-control" style="display:flex;align-items:center;gap:6px;font-size:10px;font-weight:900;color:#5b21b6;white-space:nowrap;">SUMBER TAMBAHAN
+            <span style="padding:6px 9px;border:1.5px solid #7c3aed;border-radius:7px;background:#fff;color:#312e81;font-size:11px;">${sourceRelationLabel}</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:10.5px;color:#64748b;font-weight:700;">${escapeHtml(target.name)}</span>
+          <button id="dynamicMarketExcelBtn" type="button" style="border:1px solid #16a34a;background:#f0fdf4;color:#166534;border-radius:6px;padding:5px 9px;font-size:10.5px;font-weight:800;cursor:pointer;white-space:nowrap;">📥 Kertas Kerja Excel</button>
+          <button id="dynamicMarketResetBtn" type="button" style="border:1px solid #c4b5fd;background:#fff;color:#6d28d9;border-radius:6px;padding:5px 9px;font-size:10.5px;font-weight:800;cursor:pointer;white-space:nowrap;">↻ Hitung Ulang Otomatis</button>
+        </div>
+      </div>
+
+      <details style="margin-bottom:9px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;overflow:hidden;">
+        <summary style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 10px;cursor:pointer;background:#f8fafc;list-style:none;">
+          <span style="font-size:10.5px;font-weight:900;color:#334155;">RS KOMPETITOR REGIONAL · ${escapeHtml(formatService(service))}</span>
+          <span style="display:flex;align-items:center;gap:6px;font-size:9.5px;font-weight:850;">
+            <b style="padding:3px 7px;border-radius:999px;background:#e0f2fe;color:#0369a1;">${formatNumber(competitorHospitals.length)} RS unik</b>
+            ${severityRanks.map((level) => `<b style="padding:3px 6px;border-radius:999px;background:${competitorColors[level][1]};color:${competitorColors[level][0]};">${shortLevelNames[level]} ${formatNumber(competitorGroups[level].length)}</b>`).join("")}
+            <span style="color:#64748b;">Buka daftar ▾</span>
+          </span>
+        </summary>
+        <div style="padding:7px 9px;border-top:1px solid #e2e8f0;">
+          <div style="margin-bottom:6px;font-size:9px;color:#64748b;">RS target tidak dihitung sebagai kompetitor. Daftar mengikuti filter regional aktif dan kompetensi pada layanan terpilih.</div>
+          <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;">${competitorListHtml}</div>
+        </div>
+      </details>
+
+      <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;margin-bottom:9px;">
+        <div style="padding:7px 9px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;"><div style="font-size:9.5px;color:#64748b;font-weight:800;">KASUS EKSISTING</div><strong style="font-size:16px;color:#0f172a;">${formatNumber(baselineCases)}</strong></div>
+        <div style="padding:7px 9px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;"><div style="font-size:9.5px;color:#64748b;font-weight:800;">INA-CBG EKSISTING</div><strong style="font-size:16px;color:#c2410c;">${formatTableMoney(baselineIna)}</strong></div>
+        <div style="padding:7px 9px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;"><div style="font-size:9.5px;color:#64748b;font-weight:800;">iDRG EKSISTING</div><strong style="font-size:16px;color:#0369a1;">${formatTableMoney(baselineIdrg)}</strong></div>
+        <div style="padding:7px 9px;border:1px solid ${baselineIdrg - baselineIna >= 0 ? "#a7f3d0" : "#fecdd3"};border-radius:8px;background:${baselineIdrg - baselineIna >= 0 ? "#ecfdf5" : "#fff1f2"};"><div style="font-size:9.5px;color:${baselineIdrg - baselineIna >= 0 ? "#047857" : "#be123c"};font-weight:850;">SELISIH iDRG − INA-CBG</div><strong style="font-size:16px;color:${baselineIdrg - baselineIna >= 0 ? "#047857" : "#be123c"};">${baselineIdrg - baselineIna >= 0 ? "+" : ""}${formatTableMoney(baselineIdrg - baselineIna)}</strong><div style="font-size:9.5px;font-weight:900;color:${baselineIdrg - baselineIna >= 0 ? "#047857" : "#be123c"};">${baselineIdrg - baselineIna >= 0 ? "+" : ""}${(baselineIna > 0 ? (baselineIdrg - baselineIna) / baselineIna * 100 : 0).toFixed(2).replace(".", ",")}%</div></div>
+        <div style="padding:7px 9px;border:1px solid #ddd6fe;border-radius:8px;background:#f5f3ff;"><div style="font-size:9.5px;color:#6d28d9;font-weight:800;">ATURAN KOMPETENSI</div><strong style="font-size:11px;color:#4c1d95;">Tambah ${rules.tambah.map((level) => shortLevelNames[level]).join("+") || "—"} · Kurang ${rules.kurang.map((level) => shortLevelNames[level]).join("+") || "—"}</strong></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:9px;">
+        ${levelData.map((item) => { const delta = item.targetIdrg - item.targetIna; const deltaPct = item.targetIna > 0 ? delta / item.targetIna * 100 : 0; return `<div style="padding:6px 8px;border:1px solid ${item.level === targetComp ? "#7c3aed" : "#cbd5e1"};border-radius:7px;background:${item.level === targetComp ? "#f5f3ff" : "#fff"};"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;"><strong style="font-size:10.5px;color:${item.level === targetComp ? "#6d28d9" : "#334155"};">${levelNames[item.level]}</strong><span style="font-size:9px;color:#64748b;">Komposisi Eksisting</span></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;font-size:9.5px;"><span>Kasus<br><b>${formatNumber(item.targetCases)}</b></span><span>INA-CBG<br><b style="color:#c2410c;">${formatTableMoney(item.targetIna)}</b></span><span>iDRG<br><b style="color:#0369a1;">${formatTableMoney(item.targetIdrg)}</b></span></div><div style="display:grid;grid-template-columns:1.5fr 1fr;gap:4px;margin-top:5px;padding-top:4px;border-top:1px dashed #cbd5e1;font-size:9px;"><span>Selisih iDRG − INA<br><b style="color:${delta >= 0 ? "#047857" : "#be123c"};">${delta >= 0 ? "+" : ""}${formatTableMoney(delta)}</b></span><span>% Selisih<br><b style="color:${delta >= 0 ? "#047857" : "#be123c"};">${delta >= 0 ? "+" : ""}${deltaPct.toFixed(2).replace(".", ",")}%</b></span></div></div>`; }).join("")}
+      </div>
+
+      <div style="border:1px solid #cbd5e1;border-radius:8px;overflow:hidden;margin-bottom:8px;">
+        <div style="padding:5px 9px;background:#334155;color:#fff;font-size:10.5px;font-weight:900;">DRIVER PASAR DINAMIS PER TINGKAT KOMPETENSI</div>
+        <table class="dynamic-driver-table" style="width:100%;border-collapse:collapse;font-size:10px;text-align:center;">
+          <thead><tr style="background:#e2e8f0;color:#334155;"><th style="padding:4px;">Level</th><th>Arah</th><th>Kasus Regional</th><th>Kasus Target</th><th>Pool Sumber Kasus</th><th>Nominal INA-CBG Pool</th><th>Nominal iDRG Pool</th><th>Selisih iDRG − INA</th><th>% Selisih</th><th>RS Kompetitor Level</th><th>Share / Aturan</th></tr></thead>
+          <tbody>${levelData.map((item) => `<tr style="border-top:1px solid #e2e8f0;background:${item.direction === "tambah" ? "#f0fdf4" : item.direction === "kurang" ? "#fff1f2" : "#fff"};"><td style="padding:4px;font-weight:900;">${levelNames[item.level]}</td><td style="font-weight:900;color:${item.direction === "tambah" ? "#15803d" : item.direction === "kurang" ? "#be123c" : "#64748b"};">${item.direction === "tambah" ? "↑ TAMBAH" : item.direction === "kurang" ? "↓ KURANG" : "—"}</td><td>${formatNumber(item.regionalCases)}</td><td>${formatNumber(item.targetCases)}</td><td style="font-weight:800;">${formatNumber(item.direction === "tambah" ? item.externalCases : item.targetCases)}</td><td style="font-weight:800;color:#c2410c;">${formatTableMoney(item.poolIna)}</td><td style="font-weight:800;color:${item.direction === "tambah" ? "#047857" : "#be123c"};">${formatTableMoney(item.poolIdrg)}</td><td style="font-weight:800;color:${item.tariffDelta >= 0 ? "#047857" : "#be123c"};">${item.tariffDelta >= 0 ? "+" : ""}${formatTableMoney(item.tariffDelta)}</td><td style="font-weight:800;color:${item.tariffDelta >= 0 ? "#047857" : "#be123c"};">${item.tariffDelta >= 0 ? "+" : ""}${item.tariffDeltaPct.toFixed(2).replace(".", ",")}%</td><td>${item.competitors}</td><td style="font-weight:900;color:${item.direction === "kurang" ? "#be123c" : "#0f172a"};">${item.direction !== "netral" ? `${item.naturalShare.toFixed(1).replace(".", ",")}% natural` : "—"}</td></tr>`).join("")}</tbody>
+        </table>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table class="dynamic-scenario-table" style="width:100%;border-collapse:collapse;border:1px solid #1e293b;text-align:center;font-size:11px;">
+          <thead style="background:#38bdf8;color:white;">
+            <tr>
+              <th rowspan="2" style="border:1px solid #1e293b;padding:7px;background:#0f766e;">Skenario</th>
+              <th rowspan="2" style="border:1px solid #1e293b;padding:7px;background:#334155;">Kasus Eksisting</th>
+              <th colspan="3" style="border:1px solid #1e293b;padding:7px;background:#059669;">Tambahan Kasus ${competencyLevelLabel} dari ${sourceRelationLabel}</th>
+              <th colspan="3" style="border:1px solid #1e293b;padding:7px;background:#e11d48;">Pengurangan Kasus ${lossLevelLabel} di Luar Kompetensi Target</th>
+              <th rowspan="2" style="border:1px solid #1e293b;padding:7px;background:#0369a1;">Total Kasus Pasca RBKP</th>
+              <th rowspan="2" style="border:1px solid #1e293b;padding:7px;background:#047857;">Total Pendapatan Pasca iDRG &amp; RBKP</th>
+              <th colspan="4" style="border:1px solid #1e293b;padding:7px;background:#0d9488;">Net +/- Pasca iDRG &amp; RBKP (vs Eksisting INA-CBG Keseluruhan)</th>
+            </tr>
+            <tr>
+              <th style="border:1px solid #1e293b;padding:6px;background:#10b981;">Persentase Dinamis <button onclick="copyColData(this, 'tb-pct')" style="background:none;border:none;cursor:pointer;padding:0;font-size:12px;" title="Copy Kolom">📋</button></th><th style="border:1px solid #1e293b;padding:6px;background:#10b981;">Jumlah Kasus <button onclick="copyColData(this, 'tb-kasus')" style="background:none;border:none;cursor:pointer;padding:0;font-size:12px;" title="Copy Kolom">📋</button></th><th style="border:1px solid #1e293b;padding:6px;background:#10b981;">Tambahan <button onclick="copyColData(this, 'tb-rp')" style="background:none;border:none;cursor:pointer;padding:0;font-size:12px;" title="Copy Kolom">📋</button></th>
+              <th style="border:1px solid #1e293b;padding:6px;background:#f43f5e;">Persentase Dinamis <button onclick="copyColData(this, 'kr-pct')" style="background:none;border:none;cursor:pointer;padding:0;font-size:12px;" title="Copy Kolom">📋</button></th><th style="border:1px solid #1e293b;padding:6px;background:#f43f5e;">Jumlah Kasus <button onclick="copyColData(this, 'kr-kasus')" style="background:none;border:none;cursor:pointer;padding:0;font-size:12px;" title="Copy Kolom">📋</button></th><th style="border:1px solid #1e293b;padding:6px;background:#f43f5e;">Pengurangan <button onclick="copyColData(this, 'kr-rp')" style="background:none;border:none;cursor:pointer;padding:0;font-size:12px;" title="Copy Kolom">📋</button></th>
+              <th style="border:1px solid #1e293b;padding:6px;background:#14b8a6;">+/- Kasus <button onclick="copyColData(this, 'nt-kasus')" style="background:none;border:none;cursor:pointer;padding:0;font-size:12px;" title="Copy Kolom">📋</button></th><th style="border:1px solid #1e293b;padding:6px;background:#14b8a6;">% Kasus <button onclick="copyColData(this, 'nt-kasuspct')" style="background:none;border:none;cursor:pointer;padding:0;font-size:12px;" title="Copy Kolom">📋</button></th><th style="border:1px solid #1e293b;padding:6px;background:#14b8a6;">+/- Pendapatan <button onclick="copyColData(this, 'nt-rp')" style="background:none;border:none;cursor:pointer;padding:0;font-size:12px;" title="Copy Kolom">📋</button></th><th style="border:1px solid #1e293b;padding:6px;background:#14b8a6;">% Pendapatan <button onclick="copyColData(this, 'nt-rppct')" style="background:none;border:none;cursor:pointer;padding:0;font-size:12px;" title="Copy Kolom">📋</button></th>
+            </tr>
+          </thead>
+          <tbody>${scenarioResults.map((result) => {
+            const deltaCases = result.projectedCases - baselineCases;
+            const deltaCasesPct = baselineCases > 0 ? deltaCases / baselineCases * 100 : 0;
+            const deltaIna = result.projectedIdrg - baselineIna;
+            const deltaInaPct = baselineIna > 0 ? deltaIna / baselineIna * 100 : 0;
+            return `<tr style="background:${result.scenarioIndex === mostLogicalIdx ? "#ecfeff" : "#fff"};">
+              <td style="border:1px solid #1e293b;padding:6px;font-weight:900;white-space:nowrap;">Skenario ${result.scenarioIndex + 1}${result.scenarioIndex === mostLogicalIdx ? ' <span style="font-size: 8px; color: #ffffff; background: #ea580c; padding: 1px 4px; border-radius: 3px;">⚡ Paling Logis</span>' : ''}<div style="font-size:9px;color:#64748b;">${result.definition.name}<br>+${result.definition.add}% dari natural</div></td>
+              ${result.scenarioIndex === 0 ? `<td rowspan="${scenarioResults.length}" style="border:1px solid #1e293b;padding:8px 10px;background:#f8fafc;min-width:185px;text-align:left;font-size:11px;line-height:1.5;"><div style="font-size:13px;font-weight:900;color:#0f172a;border-bottom:1px solid #cbd5e1;padding-bottom:3px;margin-bottom:3px;">Total Kasus: ${formatNumber(baselineCases)}</div>${levelData.map((item) => `<div style="font-weight:${rules.tambah.includes(item.level) ? '900' : '400'};color:${rules.tambah.includes(item.level) ? '#0f172a' : '#64748b'};">${shortLevelNames[item.level]}: ${formatNumber(item.targetCases)} (${formatMoneyUnit(item.targetIdrg)})</div>`).join('')}<div style="font-weight:800;color:#c2410c;border-top:1px solid #e2e8f0;margin-top:3px;padding-top:3px;">INA-CBG: ${formatMoneyUnit(baselineIna)}</div><div style="font-weight:800;color:#0369a1;">iDRG: ${formatMoneyUnit(baselineIdrg)}</div></td>` : ""}
+              <td data-col="tb-pct" style="border:1px solid #1e293b;padding:5px;min-width:105px;color:#15803d;font-weight:700;">${pctInputLines(result.scenarioIndex, "tambah")}</td><td data-col="tb-kasus" style="border:1px solid #1e293b;padding:6px;font-weight:900;">${formatNumber(Math.round(result.addCases))}</td><td data-col="tb-rp" style="border:1px solid #1e293b;padding:6px;font-weight:900;color:#059669;">▲ ${formatTableMoney(result.addIdrg)}</td>
+              ${result.scenarioIndex === 0 ? `<td data-col="kr-pct" rowspan="${scenarioResults.length}" style="border:1px solid #1e293b;padding:5px;min-width:105px;color:#be123c;font-weight:700;">${pctInputLines(0, "kurang")}</td><td data-col="kr-kasus" rowspan="${scenarioResults.length}" style="border:1px solid #1e293b;padding:6px;font-weight:900;">${formatNumber(Math.round(result.lossCases))}</td><td data-col="kr-rp" rowspan="${scenarioResults.length}" style="border:1px solid #1e293b;padding:6px;font-weight:900;color:#e11d48;">▼ ${formatTableMoney(result.lossIdrg)}</td>` : ""}
+              <td style="border:1px solid #1e293b;padding:6px;font-weight:900;background:#eff6ff;">${formatNumber(Math.round(result.projectedCases))}</td>
+              <td style="border:1px solid #1e293b;padding:6px;font-weight:900;background:#f0fdf4;">${formatTableMoney(result.projectedIdrg)}</td>
+              <td data-col="nt-kasus" style="border:1px solid #1e293b;padding:6px;font-weight:900;color:${deltaCases >= 0 ? "#059669" : "#e11d48"};">${deltaCases >= 0 ? "▲ " : "▼ "}${formatNumber(Math.abs(Math.round(deltaCases)))}</td><td data-col="nt-kasuspct" style="border:1px solid #1e293b;padding:6px;font-weight:900;color:${deltaCases >= 0 ? "#059669" : "#e11d48"};">${deltaCases >= 0 ? "▲ " : "▼ "}${decimalFormatter.format(Math.abs(deltaCasesPct))}%</td><td data-col="nt-rp" style="border:1px solid #1e293b;padding:6px;font-weight:900;color:${deltaIna >= 0 ? "#059669" : "#e11d48"};">${deltaIna >= 0 ? "▲ " : "▼ "}${formatTableMoney(Math.abs(deltaIna))}</td><td data-col="nt-rppct" style="border:1px solid #1e293b;padding:6px;font-weight:900;color:${deltaIna >= 0 ? "#059669" : "#e11d48"};">${deltaIna >= 0 ? "▲ " : "▼ "}${decimalFormatter.format(Math.abs(deltaInaPct))}%</td>
+            </tr>`;
+          }).join("")}</tbody>
+          <tfoot><tr><td colspan="14" class="competition-footnote" style="padding:8px;text-align:left;white-space:normal;line-height:1.5;">${escapeHtml(competitionFootnote(service, targetComp, levelData, overrides))}</td></tr></tfoot>
+        </table>
+      </div>`;
+    container.querySelector("#dynamicMarketServiceSelect")?.addEventListener("change", (event) => {
+      window.dynamicMarketService = event.target.value;
+      renderDynamicMarketShareSlide();
+    });
+    container.querySelector("#dynamicMarketExcelBtn")?.addEventListener("click", (event) => {
+      const button = event.currentTarget;
+      const originalLabel = button.textContent;
+      try {
+        if (!window.DynamicMarketExcel?.exportWorkbook) throw new Error("Modul kertas kerja dinamis belum tersedia.");
+        if (!window.XLSX) throw new Error("Library XLSX belum tersedia.");
+        button.disabled = true;
+        button.textContent = "Membuat Excel…";
+        const provinceFilters = [...document.querySelectorAll("#provDropdown input:checked")].map((input) => input.value);
+        const cityFilters = [...document.querySelectorAll("#cityDropdown input:checked")].map((input) => input.value);
+        const filters = [
+          provinceFilters.length ? `Provinsi: ${provinceFilters.join(", ")}` : "Semua provinsi",
+          cityFilters.length ? `Kab/Kota: ${cityFilters.join(", ")}` : "Semua kab/kota",
+          document.getElementById("muhammadiyahFilterToggle")?.checked ? "Jejaring Muhammadiyah" : "Semua jejaring"
+        ].join("; ");
+        window.DynamicMarketExcel.exportWorkbook({
+          XLSX: window.XLSX,
+          target,
+          service,
+          targetComp,
+          rules,
+          levelNames,
+          levelData,
+          scenarioDefs,
+          scenarioResults,
+          pctFor,
+          baselineCases,
+          baselineIna,
+          baselineIdrg,
+          datasetLabel: DATASET_PERIODS[activeDatasetKey]?.label || activeDatasetKey,
+          tariffLabel: TARIFF_SCENARIOS[state.activeTariffScenario]?.label || state.activeTariffScenario,
+          filterDescription: filters,
+          sourceRelationLabel,
+          competitionNote: competitionFootnote(service, targetComp, levelData, overrides)
+        });
+        button.textContent = "✓ Terunduh";
+      } catch (error) {
+        console.error("Dynamic market audit export failed", error);
+        button.textContent = "Ekspor gagal";
+        window.alert(`Gagal membuat kertas kerja: ${error.message}`);
+      } finally {
+        window.setTimeout(() => {
+          button.disabled = false;
+          button.textContent = originalLabel;
+        }, 1800);
+      }
+    });
+    container.querySelector("#dynamicMarketResetBtn")?.addEventListener("click", () => {
+      delete window.dynamicMarketOverrides[overrideKey];
+      renderDynamicMarketShareSlide();
+    });
+    container.querySelectorAll(".dynamic-market-pct").forEach((input) => {
+      input.addEventListener("change", () => {
+        const scenarioIndex = Number(input.dataset.scenario);
+        const field = `${input.dataset.direction}_${input.dataset.level}`;
+        const value = Math.min(100, Math.max(0, Number(input.value) || 0));
+        window.dynamicMarketOverrides[overrideKey] = window.dynamicMarketOverrides[overrideKey] || {};
+        window.dynamicMarketOverrides[overrideKey][scenarioIndex] = window.dynamicMarketOverrides[overrideKey][scenarioIndex] || {};
+        window.dynamicMarketOverrides[overrideKey][scenarioIndex][field] = value;
+        renderDynamicMarketShareSlide();
+      });
+    });
+  }
+
+  function renderTariffScatterWorkspace() {
+    const source = window.idrgMapData;
+    window.tariffScatterUi = { dataset: "jan_des", ...(window.tariffScatterUi || {}) };
+    const datasetKey = window.tariffScatterUi.dataset;
+    const scatterSource = datasetKey === "jan_des" ? window.scatter2025Data : source;
+    const periodLabel = datasetKey === "jan_des" ? "Januari–Desember 2025" : "15 Okt 2025–14 Juni 2026";
+    const casesSourceFile = datasetKey === "jan_des" ? "spending_jan_des_v11_gabungan.csv" : "spending_okt_jun_v3_gabungan.csv";
+    let root = document.getElementById("tariffScatterWorkspace");
+    if (!root) {
+      root = document.createElement("section");
+      root.id = "tariffScatterWorkspace";
+      root.className = "tariff-scatter-workspace";
+      document.body.appendChild(root);
+    }
+    if (!scatterSource?.scatterServices) { root.innerHTML = '<div class="scatter-empty">Data tarif aktual scatter belum tersedia. Muat ulang halaman tanpa cache (Ctrl+F5) untuk mengambil bundel data terbaru.</div>'; return; }
+    if (!window.Chart) { root.innerHTML = '<div class="scatter-empty">Modul Chart.js belum termuat. Muat ulang halaman tanpa cache (Ctrl+F5).</div>'; return; }
+    window.tariffScatterUi = { dataSource: "existing", service: "ALL", region: "ALL", hospitalClass: "ALL", rawatClass: "ALL", ownership: "ALL", ptd: "ALL", threshold: 6, ...(window.tariffScatterUi || {}) };
+    const ui = window.tariffScatterUi;
+    const useAf10 = ui.dataSource === "af10";
+    const useAf19 = ui.dataSource === "af19";
+    const services = Object.keys(scatterSource.scatterServices).sort();
+    const matchesSegment = (segment) => (ui.ownership === "ALL" || segment[2] === ui.ownership) && (ui.hospitalClass === "ALL" || segment[3] === ui.hospitalClass) && (ui.rawatClass === "ALL" || segment[4] === ui.rawatClass) && (ui.region === "ALL" || segment[5] === ui.region);
+    const scenarioMetricIndex = useAf19 ? 11 : { "1370_full": 8, "1370_afreg": 9, "1370_af": 10, "1370_noaf": 11, "1370_juknis": 12, "1363_full": 13, "1363_af": 14 }[state.activeTariffScenario || "1363_full"] || 13;
+    const scatterScenarioLabel = useAf19 ? "AF 19% (AF = 1)" : useAf10 ? "AF 10% (AF 10%.xlsx)" : TARIFF_SCENARIOS[state.activeTariffScenario || "1363_full"]?.chip || "iDRG 1363";
+    const selectedServices = ui.service === "ALL" ? services : [ui.service];
+    const aggregate = new Map();
+    selectedServices.forEach((service) => (scatterSource.scatterServices[service] || []).forEach((segment) => {
+      if (!matchesSegment(segment)) return;
+      if (ui.ptd !== "ALL" && String(source.idrgTariffs?.[segment[0]]?.ptd || "") !== ui.ptd) return;
+      const cases = Number(segment[6]) || 0, inaTotal = Number(segment[7]) || 0, idrgTotal = useAf10 ? cases * window.scatterAf10Data.tariffs[segment[0]].tariff : Number(segment[scenarioMetricIndex]) || 0;
+      if (!cases || !inaTotal || (!useAf10 && !idrgTotal)) return;
+      const item = aggregate.get(segment[0]) || { code: segment[0], description: segment[1] || source.idrgTariffs?.[segment[0]]?.description || segment[0], cases: 0, inaTotal: 0, idrgTotal: 0, services: new Set() };
+      item.cases += cases; item.inaTotal += inaTotal; item.idrgTotal += idrgTotal; item.services.add(service); aggregate.set(segment[0], item);
+    }));
+    const points = [...aggregate.values()].map((item) => { const ina = item.inaTotal / item.cases, idrg = item.idrgTotal / item.cases, delta = (item.idrgTotal - item.inaTotal) / item.inaTotal * 100; return { x: item.cases, y: Math.sign(delta) * Math.log10(1 + Math.abs(delta) / 10), realY: delta, code: item.code, description: item.description, ina, idrg, cases: item.cases, services: [...item.services].join(", "), segment: delta < 0 ? "negative" : delta <= ui.threshold ? "within" : "high" }; }).filter((item) => Number.isFinite(item.realY)).sort((a,b) => Math.abs(b.realY) - Math.abs(a.realY));
+    const topPoints = [...points.filter(p=>p.realY>=0).sort((a,b)=>b.realY-a.realY).slice(0,5), ...points.filter(p=>p.realY<0).sort((a,b)=>a.realY-b.realY).slice(0,5)];
+    const selectOptions = (values, selected, allLabel) => `<option value="ALL" ${selected === "ALL" ? "selected" : ""}>${allLabel}</option>${values.map((value) => `<option value="${value}" ${selected === value ? "selected" : ""}>${value}</option>`).join("")}`;
+    root.innerHTML = `<div class="scatter-shell"><header><div><span>ANALISIS TARIF AKTUAL PER KASUS</span><h1>Scatter Plot Selisih Tarif iDRG terhadap INA-CBG</h1><p>${useAf19 ? "Cost Weight × National Baserate × 1 · volume kasus dan INA-CBG tetap" : useAf10 ? "Tarif AF 10% dari Excel · volume kasus dan INA-CBG tetap" : "Total nilai klaim ÷ jumlah kasus"} · ${escapeHtml(scatterScenarioLabel)} · periode ${periodLabel}.</p><p>Dataset jumlah kasus: ${casesSourceFile} · kolom jml_kasus.</p></div><div><button id="scatterSave" type="button">⬇ Simpan Gambar + Deskripsi</button><button id="scatterClose" type="button" aria-label="Tutup">×</button></div></header><section class="scatter-controls"><label>Dataset jumlah kasus<select id="scatterDataset"><option value="jan_des" ${datasetKey === "jan_des" ? "selected" : ""}>Tahun 2025 (Jan–Des) — Default</option><option value="okt_jun" ${datasetKey === "okt_jun" ? "selected" : ""}>Uji Coba Okt 2025–Jun 2026</option></select></label><label>Sumber data tarif<select id="scatterDataSource"><option value="existing" ${!useAf10 && !useAf19 ? "selected" : ""}>Data awal (skenario tarif aktif)</option><option value="af10" ${useAf10 ? "selected" : ""} ${!window.scatterAf10Data ? "disabled" : ""}>AF 10% (AF 10%.xlsx)</option><option value="af19" ${useAf19 ? "selected" : ""}>AF 19% (AF = 1)</option></select></label><label>Kelompok layanan<select id="scatterService">${selectOptions(services,ui.service,"ALL Layanan")}</select></label><label>Jenis Rawat (PTD)<select id="scatterPtd">${selectOptions(["1","2"],ui.ptd,"ALL Jenis Rawat").replace(">1<",">Rawat Inap<").replace(">2<",">Rawat Jalan<")}</select></label><label>Regional<select id="scatterRegion">${selectOptions(["R1","R2","R3","R4","R5"],ui.region,"ALL Regional")}</select></label><label>Kelas RS<select id="scatterHospitalClass">${selectOptions(["A","B","C","D","RS KHUSUS"],ui.hospitalClass,"ALL Kelas RS")}</select></label><label>Kelas rawat<select id="scatterRawatClass">${selectOptions(["KELAS0","KELAS1","KELAS2","KELAS3"],ui.rawatClass,"ALL Kelas Rawat")}</select></label><label>Kepemilikan<select id="scatterOwnership">${selectOptions(["PEMERINTAH","SWASTA"],ui.ownership,"ALL Kepemilikan")}</select></label><label>Threshold positif<input id="scatterThreshold" type="number" min="0" max="100" step="1" value="${ui.threshold}"><span>%</span></label></section><main><section class="scatter-chart-panel"><div class="scatter-legend"><span><i class="high"></i>Di atas threshold</span><span><i class="within"></i>Di dalam threshold</span><span><i class="negative"></i>Selisih negatif</span><b>${formatNumber(points.length)} DRG</b></div><div class="scatter-canvas-wrap"><canvas id="tariffScatterChart" aria-label="Scatter plot volume kasus dan selisih tarif"></canvas></div></section><aside class="scatter-detail"><div id="scatterSelectedDetail"><span>PILIH TITIK</span><h2>Klik titik scatter plot</h2><p>Detail kode, deskripsi, volume, dan rata-rata aktual per kasus akan ditampilkan di sini.</p></div><h3>Outlier utama</h3><div class="scatter-outlier-list">${topPoints.map((point,index) => `<button type="button" data-scatter-code="${escapeHtml(point.code)}"><b>${index+1}</b><span><strong>${escapeHtml(point.code)}</strong><small>${escapeHtml(point.description)}</small></span><em>${point.realY >= 0 ? "+" : ""}${point.realY.toFixed(1)}%</em></button>`).join("") || '<p>Regenerasi data diperlukan atau tidak ada data pada filter ini.</p>'}</div></aside></main></div>`;
+    const datasets = [{ key:"high",label:"Di atas threshold",color:"#d86652" },{ key:"within",label:"Di dalam threshold",color:"#e8c84e" },{ key:"negative",label:"Selisih negatif",color:"#5c9dca" }].map((group) => ({ label:group.label, data:points.filter((point)=>point.segment===group.key), backgroundColor:group.color, borderColor:group.color, pointRadius:2, pointHoverRadius:6 }));
+    const chartCanvas = root.querySelector("#tariffScatterChart");
+    const zonePlugin = { id:"scatterZones", beforeDraw(chart) { const {ctx,chartArea,scales}=chart;if(!chartArea)return;const zero=scales.y.getPixelForValue(0),threshold=scales.y.getPixelForValue(Math.sign(ui.threshold)*Math.log10(1+Math.abs(ui.threshold)/10));ctx.save();ctx.fillStyle="#fff5f3";ctx.fillRect(chartArea.left,chartArea.top,chartArea.width,Math.max(0,threshold-chartArea.top));ctx.fillStyle="#fffbea";ctx.fillRect(chartArea.left,threshold,chartArea.width,Math.max(0,zero-threshold));ctx.fillStyle="#eff7fc";ctx.fillRect(chartArea.left,zero,chartArea.width,Math.max(0,chartArea.bottom-zero));ctx.restore();}, afterDatasetsDraw(chart){const {ctx,scales,chartArea}=chart;ctx.save();[0,ui.threshold].forEach((value,index)=>{const y=scales.y.getPixelForValue(Math.sign(value)*Math.log10(1+Math.abs(value)/10));ctx.strokeStyle=index?"#c43125":"#162d31";ctx.lineWidth=index?2:3;ctx.setLineDash(index?[9,7]:[]);ctx.beginPath();ctx.moveTo(chartArea.left,y);ctx.lineTo(chartArea.right,y);ctx.stroke();});const drawn=[];topPoints.forEach((point)=>{const x=scales.x.getPixelForValue(point.x);let y=scales.y.getPixelForValue(point.y)-8;if(x<chartArea.left||x>chartArea.right||y+8<chartArea.top||y+8>chartArea.bottom)return;ctx.font="600 10px Arial";const txt=`${point.code} · ${point.description.slice(0,36)}`;const w=ctx.measureText(txt).width;ctx.textAlign=x>chartArea.right-230?"right":"left";const tx=x+(ctx.textAlign==="right"?-8-w:8);for(let i=0;i<6;i++){if(!drawn.some(b=>tx<b.x+b.w+4&&tx+w+4>b.x&&y<b.y+10&&y>b.y-10))break;y-=12;}drawn.push({x:tx,y:y,w:w});ctx.fillStyle=point.segment==="high"?"#d86652":point.segment==="within"?"#e8c84e":"#5c9dca";ctx.fillText(txt,x+(ctx.textAlign==="right"?-8:8),y);});ctx.restore();} };
+    const chart = new Chart(chartCanvas,{ type:"scatter",data:{datasets},plugins:[zonePlugin],options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"nearest",intersect:false},onClick:(event,elements)=>{if(!elements.length)return;const element=elements[0],point=chart.data.datasets[element.datasetIndex].data[element.index];showDetail(point);},plugins:{legend:{display:false},tooltip:{callbacks:{title:(items)=>items[0]?.raw?.description||"",label:(ctx)=>{const p=ctx.raw;return [`${p.code} · ${formatNumber(p.cases)} kasus`,`INA-CBG ${moneyFormat(p.ina)} · iDRG ${moneyFormat(p.idrg)}`,`Selisih ${p.realY>=0?"▲ ":"▼ "}${Math.abs(p.realY).toFixed(2)}%`];}}}},scales:{x:{type:"logarithmic",title:{display:true,text:"Jumlah Kasus (Volume)",font:{size:14,weight:"bold"}},grid:{color:"rgba(71,85,105,.10)"},afterBuildTicks:(axis)=>{axis.ticks=[10,10000,10000000].map((v)=>({value:v}));},ticks:{callback:(value)=>Number(value).toLocaleString("id-ID")}},y:{title:{display:true,text:"% Selisih Rata-rata Tarif iDRG terhadap INA-CBG",font:{size:14,weight:"bold"}},grid:{color:"rgba(71,85,105,.10)"},afterBuildTicks:(axis)=>{const ticks=[-50,-20,0,ui.threshold,20,50,100];axis.ticks=ticks.sort((a,b)=>a-b).filter((v,i,a)=>a.indexOf(v)===i).map((v)=>({value:Math.sign(v)*Math.log10(1+Math.abs(v)/10)}));},ticks:{callback:(value)=>`${Math.round(Math.sign(value)*(Math.pow(10, Math.abs(value))-1)*10)}%`}}}}});
+    function moneyFormat(value){return `Rp ${Math.round(value).toLocaleString("id-ID")}`;}
+    function showDetail(point){root.querySelector("#scatterSelectedDetail").innerHTML=`<span>DETAIL TITIK SCATTER</span><h2>${escapeHtml(point.code)}</h2><p>${escapeHtml(point.description)}</p><dl><div><dt>Volume</dt><dd>${formatNumber(point.cases)} kasus</dd></div><div><dt>Rata-rata INA-CBG</dt><dd>${moneyFormat(point.ina)}</dd></div><div><dt>Rata-rata iDRG</dt><dd>${moneyFormat(point.idrg)}</dd></div><div><dt>Selisih</dt><dd class="${point.realY>=0?"positive":"negative"}">${point.realY>=0?"▲ ":"▼ "}${Math.abs(point.realY).toFixed(2)}%</dd></div></dl><small>Layanan: ${escapeHtml(point.services)}</small>`;}
+    root.querySelectorAll("[data-scatter-code]").forEach((button)=>button.addEventListener("click",()=>{const point=points.find((item)=>item.code===button.dataset.scatterCode);if(point)showDetail(point);}));
+    const rerender = () => { chart.destroy(); renderTariffScatterWorkspace(); };
+    [["scatterDataset","dataset"],["scatterDataSource","dataSource"],["scatterService","service"],["scatterPtd","ptd"],["scatterRegion","region"],["scatterHospitalClass","hospitalClass"],["scatterRawatClass","rawatClass"],["scatterOwnership","ownership"]].forEach(([id,key])=>root.querySelector(`#${id}`)?.addEventListener("change",(event)=>{ui[key]=event.target.value;rerender();}));
+    root.querySelector("#scatterThreshold")?.addEventListener("change",(event)=>{ui.threshold=Math.max(0,Number(event.target.value)||0);rerender();});
+    root.querySelector("#scatterClose")?.addEventListener("click",()=>{chart.destroy();root.remove();});
+    root.querySelector("#scatterSave")?.addEventListener("click",()=>{const output=document.createElement("canvas");output.width=1800;output.height=1320;const ctx=output.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,output.width,output.height);ctx.fillStyle="#07575b";ctx.font="bold 36px Arial";ctx.fillText("Analisis Selisih Tarif iDRG terhadap INA-CBG",45,55);ctx.font="18px Arial";ctx.fillStyle="#52615f";ctx.fillText(`${periodLabel} · ${scatterScenarioLabel} · ${ui.service === "ALL" ? "ALL Layanan" : ui.service} · PTD ${ui.ptd === "1" ? "Rawat Inap" : ui.ptd === "2" ? "Rawat Jalan" : "ALL"} · ${ui.region} · ${ui.hospitalClass} · ${ui.rawatClass} · ${ui.ownership}`,45,88);ctx.drawImage(chartCanvas,45,115,1710,850);ctx.fillStyle="#07575b";ctx.font="bold 23px Arial";ctx.fillText("Deskripsi outlier utama · rata-rata aktual per kasus",45,1010);ctx.font="16px Arial";topPoints.forEach((point,index)=>{ctx.fillStyle=point.segment==="high"?"#d86652":point.segment==="within"?"#e8c84e":"#5c9dca";ctx.fillText(`${index+1}. ${point.code} · ${point.realY>=0?"▲ ":"▼ "}${Math.abs(point.realY).toFixed(1)}% · ${formatNumber(point.cases)} kasus`,55,1045+index*24);ctx.fillText(point.description.slice(0,120),390,1045+index*24);});const link=document.createElement("a");link.download=`Scatter_Tarif_iDRG_${datasetKey}_${useAf19 ? "AF19" : useAf10 ? "AF10" : "Awal"}_${new Date().toISOString().slice(0,10)}.png`;link.href=output.toDataURL("image/png");link.click();});
+  }
+
+  window.showTariffScatterWorkspace = function() { renderTariffScatterWorkspace(); };
+
+  function renderIdrgMapSlide() {
+    const root = document.getElementById("idrgMapWorkspace") || document.getElementById("idrgMapSlide");
+    const source = window.idrgMapData;
+    if (!root) return;
+    if (!source?.services) {
+      root.innerHTML = '<div style="padding:30px;color:#b91c1c;font-weight:800;">Bundel PETA iDRG belum tersedia. Jalankan generator data pemetaan.</div>';
+      return;
+    }
+    window.idrgMapUi = { service: Object.keys(source.services)[0], region: "ALL", hospitalClass: "WITHOUT_SPECIAL", rawatClass: "ALL", ownership: "ALL", severity: "ALL", search: "", page: 0, view: "summary", ...(window.idrgMapUi || {}) };
+    const ui = window.idrgMapUi;
+    if (!["WITHOUT_SPECIAL", "WITH_SPECIAL", "A", "B", "C", "D", "RS KHUSUS"].includes(ui.hospitalClass)) ui.hospitalClass = "WITHOUT_SPECIAL";
+    const services = [...new Set([...Object.keys(source.services), "FORENSIK"])].sort();
+    if (ui.service !== "ALL" && !services.includes(ui.service)) ui.service = "ALL";
+    const query = ui.search.trim().toLowerCase();
+    const filteredCases = (row) => row.cases || 0;
+    let rows = (ui.service === "ALL" ? Object.values(source.services).flat() : (source.services[ui.service] || [])).map((row) => ({ ...row, cases: filteredCases(row) })).filter((row) => row.cases > 0 && (ui.severity === "ALL" || (ui.severity === "INPATIENT" ? row.severity > 0 : String(row.severity) === ui.severity)) && (!query || `${row.ina} ${row.inaDescription} ${row.idrg} ${row.idrgDescription}`.toLowerCase().includes(query)));
+    const grouped = new Map();
+    rows.forEach((row) => {
+      const key = row.ina;
+      const item = grouped.get(key) || { ina: row.ina, description: row.inaDescription, severity: row.severity, cases: 0, links: [] };
+      item.cases += row.cases; item.links.push(row); grouped.set(key, item);
+    });
+    const groups = [...grouped.values()].sort((a, b) => b.cases - a.cases);
+    const familiesMap = new Map();
+    groups.forEach((group) => {
+      const familyCode = group.ina.replace(/-(?:I|II|III)$/i, "");
+      const family = familiesMap.get(familyCode) || { code: familyCode, cases: 0, items: [] };
+      family.cases += group.cases; family.items.push(group); familiesMap.set(familyCode, family);
+    });
+    const families = [...familiesMap.values()].sort((a, b) => b.cases - a.cases);
+    const maxPage = Math.max(0, families.length - 1);
+    ui.page = Math.min(ui.page, maxPage);
+    const shown = (families[ui.page]?.items || []).sort((a, b) => a.severity - b.severity);
+    const targetMap = new Map();
+    shown.forEach((group) => group.links.forEach((link) => {
+      const item = targetMap.get(link.idrg) || { code: link.idrg, description: link.idrgDescription, cases: 0 };
+      item.cases += link.cases; targetMap.set(link.idrg, item);
+    }));
+    const prefixCases = new Map();
+    [...targetMap.values()].forEach(item => {
+      const prefix = String(item.code).substring(0, 6);
+      prefixCases.set(prefix, (prefixCases.get(prefix) || 0) + item.cases);
+    });
+    const targets = [...targetMap.values()].sort((a, b) => {
+      const prefixA = String(a.code).substring(0, 6);
+      const prefixB = String(b.code).substring(0, 6);
+      if (prefixA !== prefixB) {
+        const diff = prefixCases.get(prefixB) - prefixCases.get(prefixA);
+        return diff !== 0 ? diff : prefixA.localeCompare(prefixB);
+      }
+      return b.cases - a.cases;
+    });
+    const visibleCodes = new Set(targets.map((item) => item.code));
+    const sevColors = { 1: "#317a7e", 2: "#55ad9e", 3: "#51aec0", 0: "#64748b" };
+    const sevLabels = { 1: "Ringan", 2: "Sedang", 3: "Berat", 0: "Tanpa Severity / Rawat Jalan" };
+    const money = (value) => Number(value) > 0 ? `Rp ${Math.round(Number(value)).toLocaleString("id-ID")}` : "Tarif tidak tersedia";
+    const inaTariff = (code) => {
+      const tariffItem = source.inaTariffs?.[code] || {};
+      const codeRates = ui.ownership === "ALL" ? tariffItem.rates || {} : tariffItem.ownershipRates || {};
+      const classAverages = [];
+      ["A", "B", "C", "D"].forEach((hospitalClass) => {
+        if (["A", "B", "C", "D"].includes(ui.hospitalClass) && ui.hospitalClass !== hospitalClass) return;
+        if (ui.hospitalClass === "RS KHUSUS") return;
+        const classRates = codeRates[hospitalClass] || {};
+        const values = [];
+        (ui.rawatClass === "ALL" ? Object.keys(classRates) : [ui.rawatClass]).forEach((rawatClass) => {
+          const rates = ui.ownership === "ALL" ? classRates[rawatClass] || {} : classRates[rawatClass]?.[ui.ownership] || {};
+          if (ui.region === "ALL") {
+            Object.entries(rates).forEach(([key, value]) => { if (/^R[1-5]$/.test(key) && Number(value) > 0) values.push(Number(value)); });
+          } else if (Number(rates[ui.region]) > 0) values.push(Number(rates[ui.region]));
+        });
+        if (values.length) classAverages.push(values.reduce((sum, value) => sum + value, 0) / values.length);
+      });
+      if (ui.hospitalClass === "WITH_SPECIAL" || ui.hospitalClass === "RS KHUSUS") {
+        const specialRates = tariffItem.rates?.["RS KHUSUS"] || {};
+        const specialValues = [];
+        (ui.rawatClass === "ALL" ? Object.keys(specialRates) : [ui.rawatClass]).forEach((rawatClass) => {
+          const value = Number(specialRates[rawatClass]?.ALL) || 0;
+          if (value > 0) specialValues.push(value);
+        });
+        if (specialValues.length) classAverages.push(specialValues.reduce((sum, value) => sum + value, 0) / specialValues.length);
+      }
+      return classAverages.length ? classAverages.reduce((sum, value) => sum + value, 0) / classAverages.length : 0;
+    };
+    const totalCases = rows.reduce((sum, row) => sum + row.cases, 0);
+    const filterControls = `<label>KELOMPOK LAYANAN<select id="idrgMapService"><option value="ALL" ${ui.service === "ALL" ? "selected" : ""}>ALL Layanan</option>${services.map((s) => `<option ${s === ui.service ? "selected" : ""}>${escapeHtml(s)}</option>`).join("")}</select></label><label>TARIF INA-CBG<select id="idrgMapRegion"><option value="ALL" ${ui.region === "ALL" ? "selected" : ""}>Rata-rata ALL Regional</option>${[1,2,3,4,5].map((n) => `<option value="R${n}" ${ui.region === `R${n}` ? "selected" : ""}>Regional ${n}</option>`).join("")}</select></label><label>CAKUPAN KELAS RS<select id="idrgMapHospitalClass"><option value="WITHOUT_SPECIAL" ${ui.hospitalClass === "WITHOUT_SPECIAL" ? "selected" : ""}>Tanpa RS Khusus (A–D)</option><option value="WITH_SPECIAL" ${ui.hospitalClass === "WITH_SPECIAL" ? "selected" : ""}>Dengan RS Khusus</option><option value="A" ${ui.hospitalClass === "A" ? "selected" : ""}>Kelas A</option><option value="B" ${ui.hospitalClass === "B" ? "selected" : ""}>Kelas B</option><option value="C" ${ui.hospitalClass === "C" ? "selected" : ""}>Kelas C</option><option value="D" ${ui.hospitalClass === "D" ? "selected" : ""}>Kelas D</option><option value="RS KHUSUS" ${ui.hospitalClass === "RS KHUSUS" ? "selected" : ""}>Kelas Khusus</option></select></label><label>KELAS RAWAT<select id="idrgMapRawatClass"><option value="ALL" ${ui.rawatClass === "ALL" ? "selected" : ""}>ALL Kelas Rawat</option><option value="KELAS0" ${ui.rawatClass === "KELAS0" ? "selected" : ""}>Rawat Jalan</option>${[1,2,3].map((n) => `<option value="KELAS${n}" ${ui.rawatClass === `KELAS${n}` ? "selected" : ""}>Kelas Rawat ${n}</option>`).join("")}</select></label><label>KEPEMILIKAN<select id="idrgMapOwnership"><option value="ALL" ${ui.ownership === "ALL" ? "selected" : ""}>ALL Kepemilikan</option><option value="PEMERINTAH" ${ui.ownership === "PEMERINTAH" ? "selected" : ""}>Pemerintah</option><option value="SWASTA" ${ui.ownership === "SWASTA" ? "selected" : ""}>Swasta</option></select></label>`;
+    if (ui.view !== "map") {
+      const topIna = groups.slice(0, 10);
+      const idrgSummary = new Map();
+      rows.forEach((row) => { const item = idrgSummary.get(row.idrg) || { code: row.idrg, description: row.idrgDescription, cases: 0 }; item.cases += row.cases; idrgSummary.set(row.idrg, item); });
+      const topIdrg = [...idrgSummary.values()].sort((a, b) => b.cases - a.cases).slice(0, 10);
+      root.innerHTML = `<div class="idrg-workspace-shell"><header class="idrg-workspace-header"><div><span class="idrg-workspace-kicker">MENU KHUSUS</span><h1>Analisis Layanan &amp; Peta iDRG</h1><p>Pilih kelompok layanan dan parameter tarif, tinjau rincian kasus teratas, lalu buka peta reklasifikasi.</p></div><button id="idrgWorkspaceClose" class="idrg-close-btn" type="button" aria-label="Tutup">×</button></header><section class="idrg-summary-filters">${filterControls}</section><section class="idrg-summary-kpis"><article><span>Total relasi</span><strong>${formatNumber(rows.length)}</strong></article><article><span>Total kasus</span><strong>${formatNumber(totalCases)}</strong></article><article><span>Kode INA-CBG</span><strong>${formatNumber(groups.length)}</strong></article><article><span>Kode iDRG</span><strong>${formatNumber(idrgSummary.size)}</strong></article></section><main class="idrg-summary-content"><section><div class="idrg-list-heading"><div><small>VERSI INA-CBG</small><h2>Top kasus layanan</h2></div><span>${escapeHtml(ui.service)}</span></div><div class="idrg-ranking-list">${topIna.map((item, index) => `<article><b>${index + 1}</b><div><strong>${escapeHtml(item.ina)}</strong><p>${escapeHtml(item.description)}</p></div><em>${formatNumber(item.cases)} kasus</em></article>`).join("")}</div></section><section><div class="idrg-list-heading idrg-heading-gold"><div><small>VERSI iDRG</small><h2>Top kasus hasil reklasifikasi</h2></div><span>${escapeHtml(ui.service)}</span></div><div class="idrg-ranking-list">${topIdrg.map((item, index) => `<article><b>${index + 1}</b><div><strong>${escapeHtml(item.code)}</strong><p>${escapeHtml(source.idrgTariffs?.[item.code]?.description || item.description)}</p></div><em>${formatNumber(item.cases)} kasus</em></article>`).join("")}</div></section></main><footer class="idrg-summary-footer"><span>Menampilkan 10 kasus terbesar sesuai filter kelompok layanan.</span><button id="idrgOpenMap" type="button">Buka Peta iDRG untuk ${escapeHtml(ui.service)} →</button></footer></div>`;
+      const rerenderSummary = () => renderIdrgMapSlide();
+      root.querySelector("#idrgMapService")?.addEventListener("change", (e) => { ui.service = e.target.value; ui.page = 0; rerenderSummary(); });
+      root.querySelector("#idrgMapRegion")?.addEventListener("change", (e) => { ui.region = e.target.value; rerenderSummary(); });
+      root.querySelector("#idrgMapHospitalClass")?.addEventListener("change", (e) => { ui.hospitalClass = e.target.value; rerenderSummary(); });
+      root.querySelector("#idrgMapRawatClass")?.addEventListener("change", (e) => { ui.rawatClass = e.target.value; rerenderSummary(); });
+      root.querySelector("#idrgMapOwnership")?.addEventListener("change", (e) => { ui.ownership = e.target.value; rerenderSummary(); });
+      root.querySelector("#idrgOpenMap")?.addEventListener("click", () => { ui.view = "map"; ui.page = 0; rerenderSummary(); });
+      root.querySelector("#idrgWorkspaceClose")?.addEventListener("click", () => { root.remove(); document.body.classList.remove("idrg-workspace-open"); });
+      return;
+    }
+    root.innerHTML = `
+      <div style="height:100%;display:flex;flex-direction:column;background:#fff;overflow:hidden;">
+        <div style="padding:12px 20px;border-top:5px solid #111;background:#fff;display:flex;align-items:center;justify-content:space-between;gap:15px;">
+          <div style="display:flex;align-items:center;gap:12px;"><button id="idrgMapBack" type="button">← Ringkasan</button><div><h1 id="idrgMapSlideTitle" style="margin:0;font-size:27px;color:#55b5ae;font-weight:900;">PETA REKLASIFIKASI <span style="color:#d4c83f;">INA-CBG → iDRG</span></h1><div style="font-size:11px;color:#64748b;margin-top:2px;">Pemetaan kode, severity, volume kasus, dan perbandingan tarif resmi</div></div></div>
+          <div style="display:flex;gap:7px;align-items:end;flex-wrap:wrap;justify-content:flex-end;">
+            <label style="font-size:9px;font-weight:900;color:#475569;">24 KELOMPOK LAYANAN<br><select id="idrgMapService" style="width:245px;padding:6px;border:1px solid #94a3b8;border-radius:6px;font-weight:750;"><option value="ALL" ${ui.service === "ALL" ? "selected" : ""}>ALL Layanan</option>${services.map((s) => `<option ${s === ui.service ? "selected" : ""}>${escapeHtml(s)}</option>`).join("")}</select></label>
+            <label style="font-size:9px;font-weight:900;color:#475569;">TARIF INA-CBG<br><select id="idrgMapRegion" style="padding:6px;border:1px solid #94a3b8;border-radius:6px;font-weight:750;"><option value="ALL" ${ui.region === "ALL" ? "selected" : ""}>Rata-rata ALL Regional</option>${[1,2,3,4,5].map((n) => `<option value="R${n}" ${ui.region === `R${n}` ? "selected" : ""}>Regional ${n}</option>`).join("")}</select></label>
+            <label style="font-size:9px;font-weight:900;color:#475569;">CAKUPAN KELAS RS<br><select id="idrgMapHospitalClass" style="padding:6px;border:1px solid #94a3b8;border-radius:6px;font-weight:750;"><option value="WITHOUT_SPECIAL" ${ui.hospitalClass === "WITHOUT_SPECIAL" ? "selected" : ""}>Tanpa RS Khusus (A–D)</option><option value="WITH_SPECIAL" ${ui.hospitalClass === "WITH_SPECIAL" ? "selected" : ""}>Dengan RS Khusus</option><option value="A" ${ui.hospitalClass === "A" ? "selected" : ""}>Kelas A</option><option value="B" ${ui.hospitalClass === "B" ? "selected" : ""}>Kelas B</option><option value="C" ${ui.hospitalClass === "C" ? "selected" : ""}>Kelas C</option><option value="D" ${ui.hospitalClass === "D" ? "selected" : ""}>Kelas D</option><option value="RS KHUSUS" ${ui.hospitalClass === "RS KHUSUS" ? "selected" : ""}>Kelas Khusus</option></select></label>
+            <label style="font-size:9px;font-weight:900;color:#475569;">KELAS RAWAT<br><select id="idrgMapRawatClass" style="padding:6px;border:1px solid #94a3b8;border-radius:6px;font-weight:750;"><option value="ALL" ${ui.rawatClass === "ALL" ? "selected" : ""}>ALL Kelas Rawat</option><option value="KELAS0" ${ui.rawatClass === "KELAS0" ? "selected" : ""}>Rawat Jalan</option>${[1,2,3].map((n) => `<option value="KELAS${n}" ${ui.rawatClass === `KELAS${n}` ? "selected" : ""}>Kelas Rawat ${n}</option>`).join("")}</select></label>
+            <label style="font-size:9px;font-weight:900;color:#475569;">KEPEMILIKAN<br><select id="idrgMapOwnership" style="padding:6px;border:1px solid #94a3b8;border-radius:6px;font-weight:750;"><option value="ALL" ${ui.ownership === "ALL" ? "selected" : ""}>ALL Kepemilikan</option><option value="PEMERINTAH" ${ui.ownership === "PEMERINTAH" ? "selected" : ""}>Pemerintah</option><option value="SWASTA" ${ui.ownership === "SWASTA" ? "selected" : ""}>Swasta</option></select></label>
+            <label style="font-size:9px;font-weight:900;color:#475569;">SEVERITY<br><select id="idrgMapSeverity" style="padding:6px;border:1px solid #94a3b8;border-radius:6px;font-weight:750;"><option value="INPATIENT" ${ui.severity === "INPATIENT" ? "selected" : ""}>Rawat Inap Severity I–III</option><option value="ALL" ${ui.severity === "ALL" ? "selected" : ""}>Semua termasuk Rawat Jalan</option><option value="0" ${ui.severity === "0" ? "selected" : ""}>Tanpa Severity / Rawat Jalan</option>${[1,2,3].map((n) => `<option value="${n}" ${ui.severity === String(n) ? "selected" : ""}>${sevLabels[n]}</option>`).join("")}</select></label>
+            <label style="font-size:9px;font-weight:900;color:#475569;">CARI KODE / DESKRIPSI<br><input id="idrgMapSearch" value="${escapeHtml(ui.search)}" placeholder="Cari INA-CBG atau iDRG" style="width:190px;padding:6px;border:1px solid #94a3b8;border-radius:6px;"></label>
+            <button id="idrgMapExcel" type="button" style="padding:7px 11px;background:#f0fdf4;border:1px solid #16a34a;color:#166534;border-radius:6px;font-size:10px;font-weight:900;white-space:nowrap;">📥 Download Excel</button>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:7px 20px;background:#f8fafc;border-block:1px solid #e2e8f0;"><div><small style="color:#64748b;font-weight:800;">RELASI DITEMUKAN</small><b style="display:block;font-size:17px;">${formatNumber(rows.length)}</b></div><div><small style="color:#64748b;font-weight:800;">KODE INA-CBG</small><b style="display:block;font-size:17px;color:#317a7e;">${formatNumber(groups.length)}</b></div><div><small style="color:#64748b;font-weight:800;">KODE iDRG</small><b style="display:block;font-size:17px;color:#c7b92b;">${formatNumber(new Set(rows.map((r) => r.idrg)).size)}</b></div><div><small style="color:#64748b;font-weight:800;">JUMLAH KASUS</small><b style="display:block;font-size:17px;color:#b91c1c;">${formatNumber(totalCases)}</b></div></div>
+        <div id="idrgMapCanvas" style="position:relative;flex:1;min-height:0;padding:12px 20px 8px;display:grid;grid-template-columns:minmax(0,44%) minmax(70px,12%) minmax(0,44%);gap:0;overflow:auto;align-items:start;">
+          <div style="position:relative;z-index:2;"><div style="font-size:23px;font-weight:900;color:#2f6f75;margin-bottom:8px;">INA-CBG <span style="font-size:12px;color:#b42318;">(${ui.region === "ALL" ? "Rata-rata Regional 1–5" : `Tarif ${ui.region.replace('R','Regional ')}`} · ${ui.hospitalClass === "WITH_SPECIAL" ? "Dengan RS Khusus" : ui.hospitalClass === "WITHOUT_SPECIAL" ? "Tanpa RS Khusus (A–D)" : ui.hospitalClass === "RS KHUSUS" ? "Kelas Khusus" : "Kelas " + ui.hospitalClass} · ${ui.rawatClass === "ALL" ? "ALL Kelas Rawat" : ui.rawatClass.replace("KELAS", "Kelas Rawat ")} · ${ui.ownership === "ALL" ? "ALL Kepemilikan" : ui.ownership === "PEMERINTAH" ? "Pemerintah" : "Swasta"})</span></div><div style="display:flex;flex-direction:column;gap:10px;">${shown.map((group) => `<div class="idrg-source-card" data-key="${escapeHtml(`${group.ina}|${group.severity}`)}" style="display:grid;grid-template-columns:105px minmax(0,1fr) 125px;align-items:stretch;background:#ddd;border:3px solid #aaa;border-radius:5px;overflow:hidden;min-height:88px;"><div style="display:flex;align-items:center;justify-content:center;background:${sevColors[group.severity]};color:white;font-size:22px;font-weight:900;">${escapeHtml(group.ina)}</div><div style="padding:10px 12px;background:${sevColors[group.severity]};color:#fff;border-left:5px solid #aaa;font-size:16px;font-weight:850;line-height:1.25;">${escapeHtml(group.description)}<div style="font-size:10px;margin-top:5px;opacity:.9;">${sevLabels[group.severity]} · ${formatNumber(group.cases)} kasus</div></div><div style="display:flex;align-items:center;justify-content:center;text-align:center;color:#b42318;font-size:16px;font-weight:900;padding:5px;">${money(inaTariff(group.ina))}</div></div>`).join("") || '<div style="padding:30px;color:#64748b;">Tidak ada pemetaan sesuai filter.</div>'}</div></div>
+          <svg id="idrgMapArrows" style="position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;"></svg><div></div>
+          <div style="position:relative;z-index:2;"><div style="font-size:23px;font-weight:900;color:#d68436;margin-bottom:8px;">iDRG <span style="font-size:12px;color:#b42318;">(Master Tarif Final 1.363 DRG)</span></div><div style="display:flex;flex-direction:column;gap:10px;padding-top:48px;">${targets.map((item, index) => { const ref = source.idrgTariffs?.[item.code] || {}; const bg = index % 2 ? '#d7cb42' : '#317a7e'; return `<div class="idrg-target-card" data-code="${escapeHtml(item.code)}" style="display:grid;grid-template-columns:110px minmax(0,1fr) 135px;align-items:stretch;background:#fbf9c8;border:3px solid #999;border-radius:5px;overflow:hidden;min-height:88px;"><div style="display:flex;align-items:center;justify-content:center;background:${bg};color:#fff;font-size:22px;font-weight:900;">${escapeHtml(item.code)}</div><div style="padding:10px 12px;background:${bg};color:#fff;border-left:5px solid #aaa;font-size:16px;font-weight:850;line-height:1.25;">${escapeHtml(ref.description || item.description)}<div style="font-size:10px;margin-top:5px;opacity:.9;">${formatNumber(item.cases)} kasus terpetakan</div></div><div style="display:flex;align-items:center;justify-content:center;color:#b42318;font-size:16px;font-weight:900;">${money(ref.tariff)}</div></div>`; }).join("")}</div></div>
+        </div>
+        <div style="padding:7px 20px 10px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #e2e8f0;"><div style="font-size:10px;color:#64748b;">Semua tujuan iDRG pada keluarga INA-CBG aktif ditampilkan. Tarif mengikuti kelas RS, kelas rawat, dan regional terpilih. Ketebalan panah mengikuti volume kasus.</div><div style="display:flex;align-items:center;gap:7px;"><button id="idrgMapPrev" ${ui.page === 0 ? "disabled" : ""}>← Sebelumnya</button><b style="font-size:11px;">${ui.page + 1} / ${maxPage + 1}</b><button id="idrgMapNext" ${ui.page >= maxPage ? "disabled" : ""}>Berikutnya →</button></div></div>
+      </div>`;
+    const rerender = () => renderIdrgMapSlide();
+    root.querySelector("#idrgMapBack")?.addEventListener("click", () => { ui.view = "summary"; rerender(); });
+    root.querySelector("#idrgMapService")?.addEventListener("change", (e) => { ui.service = e.target.value; ui.page = 0; rerender(); });
+    root.querySelector("#idrgMapRegion")?.addEventListener("change", (e) => { ui.region = e.target.value; rerender(); });
+    root.querySelector("#idrgMapHospitalClass")?.addEventListener("change", (e) => { ui.hospitalClass = e.target.value; rerender(); });
+    root.querySelector("#idrgMapRawatClass")?.addEventListener("change", (e) => { ui.rawatClass = e.target.value; rerender(); });
+    root.querySelector("#idrgMapOwnership")?.addEventListener("change", (e) => { ui.ownership = e.target.value; rerender(); });
+    root.querySelector("#idrgMapSeverity")?.addEventListener("change", (e) => { ui.severity = e.target.value; ui.page = 0; rerender(); });
+    root.querySelector("#idrgMapSearch")?.addEventListener("change", (e) => { ui.search = e.target.value; ui.page = 0; rerender(); });
+    root.querySelector("#idrgMapExcel")?.addEventListener("click", (event) => {
+      const XLSX = window.XLSX;
+      if (!XLSX?.utils) { window.alert("Modul Excel belum tersedia."); return; }
+      const button = event.currentTarget; const original = button.textContent;
+      button.disabled = true; button.textContent = "Membuat Excel…";
+      try {
+        const workbook = XLSX.utils.book_new();
+        workbook.Props = { Title: `PETA iDRG - ${ui.service}`, Subject: "Pemetaan INA-CBG ke iDRG", Author: "Kementerian Kesehatan RI", CreatedDate: new Date() };
+        const regionLabel = ui.region === "ALL" ? "Rata-rata Regional 1–5" : ui.region.replace("R", "Regional ");
+        const guideRows = [
+          ["KERTAS KERJA PETA iDRG"], [], ["Parameter", "Nilai"], ["Kelompok layanan", ui.service], ["Tarif INA-CBG", regionLabel], ["Cakupan Kelas RS", ui.hospitalClass === "WITH_SPECIAL" ? "Dengan RS Khusus" : ui.hospitalClass === "WITHOUT_SPECIAL" ? "Tanpa RS Khusus (A–D)" : ui.hospitalClass === "RS KHUSUS" ? "Kelas Khusus" : "Kelas " + ui.hospitalClass], ["Kelas Rawat", ui.rawatClass], ["Kepemilikan", ui.ownership],
+          ["Severity", ui.severity === "ALL" ? "Semua termasuk Rawat Jalan" : ui.severity === "INPATIENT" ? "Rawat Inap Severity I–III" : sevLabels[Number(ui.severity)]], ["Pencarian", ui.search || "Semua kode/deskripsi"],
+          ["Sumber tarif iDRG", "Master final 1.363 kode iDRG yang disahkan pengguna"], ["Sumber tarif INA-CBG", "Draft Tarif 2023 Final 10012023 (2).xlsx - sheet TARIF CBGS 2022"],
+          ["Definisi ALL Regional", "Rata-rata tarif Regional 1 sampai Regional 5 untuk kode INA-CBG yang sama."],
+          ["Catatan", "Tarif INA-CBG mengikuti regional, kelas RS, kelas rawat, dan kepemilikan terpilih. Pilihan ALL menggunakan rata-rata tarif yang tersedia."],
+          ["Tanggal ekspor", new Date().toLocaleString("id-ID")]
+        ];
+        const guide = XLSX.utils.aoa_to_sheet(guideRows); guide["!cols"] = [{ wch: 27 }, { wch: 95 }];
+        XLSX.utils.book_append_sheet(workbook, guide, "00_Petunjuk");
+        const exportRows = [["Kelompok Layanan", "Severity", "Kode INA-CBG", "Deskripsi INA-CBG", "Pilihan Regional", "Kelas RS", "Kelas Rawat", "Kepemilikan", "Tarif INA-CBG (Rp)", "Kode iDRG", "Deskripsi iDRG", "Tarif Final iDRG (Rp)", "Jumlah Kasus", "Selisih Tarif (Rp)", "% Selisih Tarif"]];
+        rows.forEach((row, index) => {
+          const excelRow = index + 2; const inaValue = inaTariff(row.ina); const idrgValue = source.idrgTariffs?.[row.idrg]?.tariff || 0;
+          exportRows.push([ui.service, sevLabels[row.severity] || "Tanpa Severity", row.ina, row.inaDescription, regionLabel, ui.hospitalClass === "WITH_SPECIAL" ? "Dengan RS Khusus" : ui.hospitalClass === "WITHOUT_SPECIAL" ? "Tanpa RS Khusus (A–D)" : ui.hospitalClass === "RS KHUSUS" ? "Kelas Khusus" : "Kelas " + ui.hospitalClass, ui.rawatClass, ui.ownership, inaValue, row.idrg, source.idrgTariffs?.[row.idrg]?.description || row.idrgDescription, idrgValue, row.cases,
+            { t: "n", f: `L${excelRow}-I${excelRow}`, v: idrgValue - inaValue }, { t: "n", f: `IFERROR(N${excelRow}/I${excelRow},0)`, v: inaValue ? (idrgValue - inaValue) / inaValue : 0 }]);
+        });
+        const sheet = XLSX.utils.aoa_to_sheet(exportRows);
+        sheet["!cols"] = [{wch:34},{wch:15},{wch:17},{wch:58},{wch:22},{wch:13},{wch:15},{wch:18},{wch:20},{wch:16},{wch:58},{wch:20},{wch:16},{wch:20},{wch:17}];
+        sheet["!autofilter"] = { ref: `A1:O${exportRows.length}` }; sheet["!freeze"] = { xSplit: 0, ySplit: 1 };
+        for (let r = 2; r <= exportRows.length; r++) { ["I","L","N"].forEach((col) => { if (sheet[`${col}${r}`]) sheet[`${col}${r}`].z = '"Rp" #,##0'; }); if (sheet[`M${r}`]) sheet[`M${r}`].z = "#,##0"; if (sheet[`O${r}`]) sheet[`O${r}`].z = "0.00%"; }
+        XLSX.utils.book_append_sheet(workbook, sheet, "01_Pemetaan");
+        const safe = ui.service.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "");
+        XLSX.writeFile(workbook, `PETA_iDRG_${safe}_${ui.hospitalClass.replace(/\s/g,"-")}_${ui.rawatClass}_${ui.region}_${new Date().toISOString().slice(0,10)}.xlsx`, { compression: true });
+      } catch (error) { console.error("PETA iDRG Excel export failed", error); window.alert(`Gagal membuat Excel: ${error.message}`); }
+      finally { button.disabled = false; button.textContent = original; }
+    });
+    root.querySelector("#idrgMapPrev")?.addEventListener("click", () => { ui.page--; rerender(); });
+    root.querySelector("#idrgMapNext")?.addEventListener("click", () => { ui.page++; rerender(); });
+    const idrgTargetStack = root.querySelector(".idrg-target-card")?.parentElement;
+    if (idrgTargetStack) idrgTargetStack.style.paddingTop = "0";
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const canvas = root.querySelector("#idrgMapCanvas"); const svg = root.querySelector("#idrgMapArrows"); if (!canvas || !svg) return;
+      const width = Math.max(canvas.clientWidth, canvas.scrollWidth), height = Math.max(canvas.clientHeight, canvas.scrollHeight);
+      svg.setAttribute("width", width); svg.setAttribute("height", height); svg.setAttribute("viewBox", `0 0 ${width} ${height}`); svg.style.width = `${width}px`; svg.style.height = `${height}px`;
+      const localBox = (element) => {
+        let left = 0, top = 0, node = element;
+        while (node && node !== canvas) {
+          left += node.offsetLeft || 0;
+          top += node.offsetTop || 0;
+          node = node.offsetParent;
+        }
+        return { left, top, width: element.offsetWidth, height: element.offsetHeight };
+      };
+      let lines = '<defs><marker id="idrgArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#2f786e"/></marker></defs>';
+      shown.forEach((group) => { const fromElement = root.querySelector(`[data-key="${CSS.escape(`${group.ina}|${group.severity}`)}"]`); if (!fromElement) return; const from = localBox(fromElement); group.links.filter((l) => visibleCodes.has(l.idrg)).forEach((link) => { const toElement = root.querySelector(`[data-code="${CSS.escape(link.idrg)}"]`); if (!toElement) return; const to = localBox(toElement); const x1=from.left+from.width,y1=from.top+from.height/2,x2=to.left-4,y2=to.top+to.height/2,curve=Math.max(70,(x2-x1)*.38),w=Math.max(2,Math.min(8,2+Math.log10(link.cases+1))); lines += `<path d="M${x1},${y1} C${x1+curve},${y1} ${x2-curve},${y2} ${x2},${y2}" fill="none" stroke="#2f786e" stroke-width="${w}" opacity=".82" marker-end="url(#idrgArrow)"/>`; }); }); svg.innerHTML = lines;
+    }));
+  }
+
+  function renderRegionalProfileSlide() {
+    const target = targetHospital();
+    const totalCases = data.regional.total[CASES];
+    const totalIna = data.regional.total[INA];
+    const totalIdrg = data.regional.total[IDRG];
+    const totalActive = data.hospitals.length;
+
+    const formatMoneyUnit = (val) => {
+    const numeric = Number(val) || 0;
+    const absolute = Math.abs(numeric);
+    const sign = numeric < 0 ? "-" : "";
+    const inMilyar = absolute / 1e9;
+    let formatted;
+    if (absolute >= 1e9) {
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(inMilyar);
+    } else {
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(inMilyar);
+    }
+    return `${sign}${formatted} M`;
+  };
+
+    // Hospital classes
+    const classCounts = { A: 0, B: 0, C: 0, D: 0 };
+    data.hospitals.filter(h => h.code !== target.code).forEach(h => {
+      const cls = String(h.class || '').toUpperCase().trim();
+      if (classCounts[cls] !== undefined) classCounts[cls]++;
+    });
+
+    // Top 5 hospitals
+    const topHospitals = [...data.hospitals]
+      .sort((a, b) => b.total[CASES] - a.total[CASES])
+      .slice(0, 5);
+
+    // Severity metric breakdown
+    const kDasar = severityMetric(data.regional, 1)[CASES];
+    const kMadya = severityMetric(data.regional, 2)[CASES];
+    const kUtama = severityMetric(data.regional, 3)[CASES];
+    const kParipurna = severityMetric(data.regional, 4)[CASES];
+    const kLainnya = state.excludeUnmapped ? 0 : metric(data.regional.unclassified)[CASES];
+
+    const severityRows = [
+      { name: "Dasar", cases: kDasar, pct: totalCases ? (kDasar / totalCases) * 100 : 0 },
+      { name: "Madya", cases: kMadya, pct: totalCases ? (kMadya / totalCases) * 100 : 0 },
+      { name: "Utama", cases: kUtama, pct: totalCases ? (kUtama / totalCases) * 100 : 0 },
+      { name: "Paripurna", cases: kParipurna, pct: totalCases ? (kParipurna / totalCases) * 100 : 0 },
+      { name: "Lainnya", cases: kLainnya, pct: totalCases ? (kLainnya / totalCases) * 100 : 0 }
+    ];
+    const dominantSeverity = severityRows.filter((row) => row.name !== "Lainnya").sort((a, b) => b.cases - a.cases)[0] || severityRows[0];
+    const topHospital = topHospitals[0] || null;
+    const topFiveCases = topHospitals.reduce((sum, hospital) => sum + (hospital.total?.[CASES] || 0), 0);
+    const topFiveShare = totalCases > 0 ? topFiveCases / totalCases * 100 : 0;
+    const idrgGap = totalIdrg - totalIna;
+    const idrgGapPct = totalIna > 0 ? idrgGap / totalIna * 100 : 0;
+
+    
+    const getChecked = (dropdown) => Array.from(dropdown?.querySelectorAll("input:checked") || []).map(i => i.value);
+    const selectedProvinces = getChecked(document.getElementById("provDropdown"));
+    const selectedCities = getChecked(document.getElementById("cityDropdown"));
+    const baseData = allDatasets[activeDatasetKey] || window.marketSimulatorData;
+    
+    let filterText = 'NASIONAL';
+    if (selectedProvinces.length > 0) {
+      const parts = [];
+      for (const p of selectedProvinces) {
+          let pCities = selectedCities.filter(c => {
+            return baseData.hospitals.some(h => h.city === c && h.province === p);
+          });
+          if (pCities.length === 0) {
+            pCities = Array.from(new Set(data.hospitals.filter(h => h.province === p).map(h => h.city))).sort();
+          }
+          parts.push(`${p} (${pCities.join(', ')})`);
+        }
+      filterText = parts.join(' | ');
+    }
+
+
+    const filterSummaryHTML = selectedProvinces.length > 0 ? 
+      '<div style="font-size: 11px; font-weight: 650; color: #334155; max-height: 48px; overflow-y: auto; line-height: 1.35;">' +
+      selectedProvinces.map(p => {
+          let pCities = selectedCities.filter(c => baseData.hospitals.some(h => h.city === c && h.province === p));
+          if (pCities.length === 0) {
+            pCities = Array.from(new Set(data.hospitals.filter(h => h.province === p).map(h => h.city))).sort();
+          }
+          return '<div><span style="color: #0f766e; font-weight:800;">' + p + '</span> · <span style="font-weight: 500; color: #64748b;">' + pCities.join(', ') + '</span></div>';
+        }).join('') +
+      '</div>' : 
+      '<div style="font-size: 11px; font-weight: 700; color: #475569;">Nasional · Semua Provinsi dan Kabupaten/Kota</div>';
+
+    document.getElementById("regionalProfileSlideTitle").innerHTML = `Profil & Kasus Regional - ${target.name} `;
+    document.getElementById("regionalProfileSlide").innerHTML = `
+      <div class="regional-profile-layout" style="display:grid;grid-template-columns:minmax(360px,42%) minmax(0,1fr);gap:16px;height:100%;min-height:0;">
+        <!-- Left: Interactive Vector Map Container -->
+        <div style="background:linear-gradient(180deg,#f8fffe 0%,#ffffff 100%);border:1px solid #b9ddd2;border-radius:14px;padding:9px;box-shadow:0 8px 24px rgba(15,118,110,.09);display:flex;flex-direction:column;height:100%;min-height:0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:3px 5px 9px;gap:8px;"><div><div style="font-size:11px;font-weight:900;color:#0f766e;letter-spacing:.08em;">SEBARAN RUMAH SAKIT</div><div style="font-size:10px;color:#64748b;margin-top:2px;">Wilayah sesuai filter aktif</div></div><span style="padding:4px 8px;border-radius:999px;background:#ccfbf1;color:#0f766e;font-size:10px;font-weight:900;white-space:nowrap;">${formatNumber(totalActive)} RS</span></div>
+          <div id="junwatuMapContainer" class="regional-map-crop" role="img" aria-label="Peta Vektor Indonesia" style="flex:1 1 auto;height:100%;min-height:380px;position:relative;border-radius:10px;overflow:hidden;border:1px solid #dbeafe;background:#f8fafc;display:flex;align-items:center;justify-content:center;">
+            <div id="junwatuLoader" style="color:#0284c7; font-size: 14px; font-weight:600; display:flex; gap:8px; align-items:center;">
+              <div style="width:20px;height:20px;border:2px solid #0284c7;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;"></div>
+              Memuat Peta Regional...
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Summary and Tables -->
+        <div class="regional-profile-main" style="display:flex;flex-direction:column;gap:10px;height:100%;min-height:0;">
+          <!-- Top KPI Card -->
+          <div style="background:#fff;border:1px solid #dbe3ea;border-radius:14px;padding:12px 14px;box-shadow:0 5px 16px rgba(15,23,42,.05);">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:9px;">
+              <div><div style="font-size:11px;font-weight:900;color:#64748b;letter-spacing:.08em;">PROFIL REGIONAL AKTIF</div><div style="font-size:10px;color:#94a3b8;margin-top:2px;">Ringkasan wilayah dan fasilitas kesehatan</div></div>
+              <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;">
+                ${['A','B','C','D'].map((cls, i) => `<span style="min-width:48px;padding:5px 7px;border-radius:7px;background:${['#eff6ff','#f0fdf4','#fff7ed','#fdf4ff'][i]};border:1px solid ${['#bfdbfe','#bbf7d0','#fed7aa','#f5d0fe'][i]};color:${['#1d4ed8','#15803d','#c2410c','#a21caf'][i]};font-size:10px;font-weight:900;text-align:center;">${cls} · ${classCounts[cls]}</span>`).join('')}
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;">
+              <div style="padding:8px 9px;border-radius:9px;background:#f0fdfa;border-left:4px solid #0d9488;"><div style="font-size:9px;color:#64748b;font-weight:800;">TOTAL KASUS</div><div style="font-size:18px;color:#0f172a;font-weight:900;margin-top:2px;">${formatNumber(totalCases)}</div><div style="font-size:9px;color:#94a3b8;">kasus regional</div></div>
+              <div style="padding:8px 9px;border-radius:9px;background:#fff7ed;border-left:4px solid #f97316;"><div style="font-size:9px;color:#64748b;font-weight:800;">PENDAPATAN INA-CBG</div><div style="font-size:18px;color:#c2410c;font-weight:900;margin-top:2px;">${formatMoneyUnit(totalIna)}</div><div style="font-size:9px;color:#94a3b8;">nilai eksisting</div></div>
+              <div style="padding:8px 9px;border-radius:9px;background:#ffffff;border-left:4px solid #0284c7;"><div style="font-size:9px;color:#64748b;font-weight:800;">POTENSI iDRG</div><div style="font-size:18px;color:#0369a1;font-weight:900;margin-top:2px;">${formatMoneyUnit(totalIdrg)}</div><div style="font-size:9px;color:#94a3b8;">hasil mirroring</div></div>
+            </div>
+            <div style="margin-top:8px;padding:6px 8px;border-radius:7px;background:#f8fafc;border:1px solid #e2e8f0;display:flex;gap:7px;align-items:flex-start;"><span style="font-size:12px;">📍</span><div style="min-width:0;">${filterSummaryHTML}</div></div>
+          </div>
+
+          <!-- Bottom Tables Row -->
+          <div style="display:grid;grid-template-columns:minmax(245px,40%) minmax(0,1fr);gap:10px;flex:1 1 auto;min-height:0;">
+            <!-- Left Table: Tingkat Keparahan -->
+            <div style="border-radius: 12px; overflow: hidden; border: 1px solid #cbd5e1; background: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+              <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13.5px;">
+                <thead>
+                  <tr style="background: #16a085; color: #ffffff; font-weight: 800; text-transform: uppercase; font-size: 13px;">
+                    <th style="padding: 10px 12px; border-right: 1px solid rgba(255,255,255,0.2);">TINGKAT</th>
+                    <th style="padding: 10px 12px; text-align: right; border-right: 1px solid rgba(255,255,255,0.2);">KASUS</th>
+                    <th style="padding: 10px 12px; text-align: right;">%</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${severityRows.map(r => `
+                    <tr style="background: #fefce8; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 600;">
+                      <td style="padding: 7px 12px; border-right: 1px solid #e2e8f0;">${escapeHtml(r.name)}</td>
+                      <td style="padding: 7px 12px; text-align: right; border-right: 1px solid #e2e8f0; font-variant-numeric: tabular-nums;">${formatNumber(r.cases)}</td>
+                      <td style="padding: 7px 12px; text-align: right; font-variant-numeric: tabular-nums;">${r.pct.toFixed(2).replace('.', ',')}%</td>
+                    </tr>
+                  `).join('')}
+                  <tr style="background: #16a085; color: #ffffff; font-weight: 800; font-size: 13px;">
+                    <td style="padding: 7px 12px; border-right: 1px solid rgba(255,255,255,0.2);">TOTAL KASUS</td>
+                    <td style="padding: 7px 12px; text-align: right; border-right: 1px solid rgba(255,255,255,0.2); font-variant-numeric: tabular-nums;">${formatNumber(totalCases)}</td>
+                    <td style="padding: 7px 12px; text-align: right; font-variant-numeric: tabular-nums;">100,00%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Right Table: Top 5 RS -->
+            <div style="border-radius: 12px; overflow: hidden; border: 1px solid #cbd5e1; background: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+              <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13.5px;">
+                <thead>
+                  <tr style="background: #ea580c; color: #ffffff; font-weight: 800; text-transform: uppercase; font-size: 13px;">
+                    <th style="padding: 10px 8px; width: 36px; text-align: center; border-right: 1px solid rgba(255,255,255,0.2);">NO</th>
+                    <th style="padding: 10px 12px; border-right: 1px solid rgba(255,255,255,0.2);">RUMAH SAKIT</th>
+                    <th style="padding: 10px 8px; width: 55px; text-align: center; border-right: 1px solid rgba(255,255,255,0.2);">KELAS</th>
+                    <th style="padding: 10px 12px; width: 90px; text-align: right;">KASUS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${topHospitals.map((h, i) => {
+                    const isTarget = target.isMultiTarget ? (target.targetCodes || []).includes(h.code) : h.code === target.code;
+                    return `
+                      <tr style="background: ${isTarget ? '#fed7aa' : (i % 2 === 0 ? '#ffffff' : '#f8fafc')}; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: ${isTarget ? '800' : '600'};">
+                        <td style="padding: 7px 8px; text-align: center; border-right: 1px solid #e2e8f0;">${i + 1}</td>
+                        <td style="padding: 7px 12px; border-right: 1px solid #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px;" title="${escapeHtml(h.name)}">
+                          ${escapeHtml(h.name)}
+                        </td>
+                        <td style="padding: 7px 8px; text-align: center; border-right: 1px solid #e2e8f0;">${escapeHtml(h.class || '—')}</td>
+                        <td style="padding: 7px 12px; text-align: right; font-variant-numeric: tabular-nums;">${formatNumber(h.total[CASES])}</td>
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Dynamic Regional Insights -->
+          <div style="display:grid;grid-template-columns:112px repeat(3,minmax(0,1fr));border:1px solid #bae6e8;border-radius:10px;overflow:hidden;background:#f0fdfa;box-shadow:0 2px 7px rgba(15,118,110,.05);flex:0 0 auto;">
+            <div style="padding:9px 10px;background:#0f766e;color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;"><span style="font-size:19px;">💡</span><strong style="font-size:10px;letter-spacing:.08em;margin-top:2px;">INSIGHT REGIONAL</strong></div>
+            <div style="padding:8px 10px;border-right:1px solid #ccfbf1;"><div style="font-size:9px;font-weight:900;color:#0f766e;margin-bottom:3px;">KOMPOSISI KASUS</div><div style="font-size:10.5px;color:#475569;line-height:1.3;">Kasus <b style="color:#0f172a;">${dominantSeverity.name}</b> paling dominan: <b>${formatNumber(dominantSeverity.cases)}</b> (${dominantSeverity.pct.toFixed(2).replace('.', ',')}%).</div></div>
+            <div style="padding:8px 10px;border-right:1px solid #ccfbf1;"><div style="font-size:9px;font-weight:900;color:#0f766e;margin-bottom:3px;">KONSENTRASI PASAR</div><div style="font-size:10.5px;color:#475569;line-height:1.3;">Top 5 RS menguasai <b style="color:#0f172a;">${topFiveShare.toFixed(2).replace('.', ',')}%</b> kasus${topHospital ? `; tertinggi ${escapeHtml(topHospital.name)} (${formatNumber(topHospital.total[CASES])})` : ''}.</div></div>
+            <div style="padding:8px 10px;"><div style="font-size:9px;font-weight:900;color:#0f766e;margin-bottom:3px;">PELUANG PENDAPATAN</div><div style="font-size:10.5px;color:#475569;line-height:1.3;">iDRG ${idrgGap >= 0 ? 'memberi potensi kenaikan' : 'lebih rendah'} <b style="color:${idrgGap >= 0 ? '#15803d' : '#b91c1c'};">${idrgGap >= 0 ? '+' : '−'}Rp ${formatMoneyUnit(Math.abs(idrgGap))}</b> (${idrgGap >= 0 ? '+' : '−'}${Math.abs(idrgGapPct).toFixed(2).replace('.', ',')}%).</div></div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Render unified interactive map for Slide 7/8
+    renderUnifiedInteractiveMap("junwatuMapContainer", { isSlide8: true });
+  }
+
+  function getActiveMirroringHospitals() {
+    // Agar perhitungan konsisten dengan Slide 6 (Regional), kita gunakan data rumah sakit yang sesuai dengan filter aktif
+    return data.hospitals || [];
+  }
+
+  // Alias untuk format uang: T (triliun), M (miliar), 2 desimal
+  function formatMoneyUnit(val) {
+    const numeric = Number(val) || 0;
+    const absolute = Math.abs(numeric);
+    const sign = numeric < 0 ? "-" : "";
+    const inMilyar = absolute / 1e9;
+    let formatted;
+    if (absolute >= 1e9) {
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(inMilyar);
+    } else {
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(inMilyar);
+    }
+    return `${sign}${formatted} M`;
+  }
+
+  function formatTableMoney(val) {
+    const numeric = Number(val) || 0;
+    const absolute = Math.abs(numeric);
+    const sign = numeric < 0 ? "-" : "";
+    const inMilyar = absolute / 1e9;
+    let formatted;
+    if (absolute >= 1e9) {
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(inMilyar);
+    } else {
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(inMilyar);
+    }
+    return `${sign}${formatted}`;
+  }
+
+  function formatNetMoneyUnit(val) {
+    const numeric = Number(val) || 0;
+    const absolute = Math.abs(numeric);
+    const sign = numeric < 0 ? "-" : "";
+    const inMilyar = absolute / 1e9;
+    let formatted;
+    if (absolute >= 1e9) {
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(inMilyar);
+    } else {
+      formatted = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(inMilyar);
+    }
+    return `${sign}${formatted} M`;
+  }
+
+  function formatTablePct(pct) {
+    if (pct === undefined || pct === null || isNaN(pct)) return "—";
+    const val = pct * 100;
+    const sign = val > 0 ? "+" : "";
+    return `${sign}${val.toLocaleString("id-ID", { minimumFractionDigits: 3, maximumFractionDigits: 3 })}%`;
+  }
+
+  function computeNationalMirroringMetrics(hospitalsList) {
+  const roundM = (val) => {
+    if (typeof val !== "number" || val === 0 || isNaN(val)) return val;
+    const abs = Math.abs(val);
+    const sign = val < 0 ? -1 : 1;
+    const inM = abs / 1e9;
+    let factor = (abs >= 1e9) ? 1e2 : 1e3;
+    return sign * (Math.round(inM * factor) / factor) * 1e9;
+  };
+
+    const list = hospitalsList && hospitalsList.length > 0 ? hospitalsList : (data.hospitals || []);
+    
+    const classCounts = { A: 0, B: 0, C: 0, D: 0 };
+    let totalKasus = 0;
+    let totalIna = 0;
+    let totalIdrg = 0;
+
+    const base = {
+      A: { 4: [0,0,0], 3: [0,0,0], 2: [0,0,0], 1: [0,0,0] },
+      B: { 4: [0,0,0], 3: [0,0,0], 2: [0,0,0], 1: [0,0,0] },
+      C: { 4: [0,0,0], 3: [0,0,0], 2: [0,0,0], 1: [0,0,0] },
+      D: { 4: [0,0,0], 3: [0,0,0], 2: [0,0,0], 1: [0,0,0] }
+    };
+
+    const uniqueProvs = new Set();
+    const uniqueCities = new Set();
+
+    list.forEach((h) => {
+      const cls = (h.class || "").toUpperCase();
+      if (classCounts[cls] !== undefined) classCounts[cls]++;
+      if (h.province) uniqueProvs.add(h.province);
+      if (h.city) uniqueCities.add(h.city);
+
+      const hCases = h.total ? (h.total[0] || 0) : 0;
+      const hIna = h.total ? (h.total[1] || 0) : 0;
+      const hIdrg = h.total ? (h.total[IDRG] !== undefined ? h.total[IDRG] : (h.total[2] || 0)) : 0;
+
+      totalKasus += hCases;
+      totalIna += hIna;
+      totalIdrg += hIdrg;
+
+      if (base[cls]) {
+        [4, 3, 2, 1].forEach((lvl) => {
+          const sev = h.severity && h.severity[lvl] ? h.severity[lvl] : [0,0,0];
+          base[cls][lvl][0] += sev[0] || 0;
+          base[cls][lvl][1] += sev[1] || 0;
+          base[cls][lvl][2] += (sev[IDRG] !== undefined ? sev[IDRG] : (sev[2] || 0));
+        });
+      }
+    });
+
+    const RATIOS = {
+      A: {
+        4: [0.09541996, 0.72008650, 0.72113603],
+        3: [0.21595121, 0.85250423, 0.85996614],
+        2: [0.10784881, 0.69410185, 0.69639535],
+        1: [0.04342000, 0.45890000, 0.49876000]
+      },
+      B: {
+        4: [0.09535068, 0.63833671, 0.64906560],
+        3: [0.17735431, 0.88289370, 0.88349272],
+        2: [0.15616439, 0.66563849, 0.67389423],
+        1: [0.05770000, 0.52700000, 0.51970000]
+      },
+      C: {
+        4: [0.06413407, 0.56849360, 0.55700000],
+        3: [0.16124709, 0.82358079, 0.83690000],
+        2: [0.19265339, 0.68862837, 0.71210000],
+        1: [0.06815000, 0.55400000, 0.55620000]
+      },
+      D: {
+        4: [0.04555842, 0.37230000, 0.39500000],
+        3: [0.09527512, 0.61612735, 0.67320000],
+        2: [0.17937517, 0.56135706, 0.61480000],
+        1: [0.04377000, 0.37790000, 0.39860000]
+      }
+    };
+
+    const classes = ["A", "B", "C", "D"];
+    const levels = [4, 3, 2, 1];
+
+    const result = {
+      RI: { 4: {}, 3: {}, 2: {}, 1: {}, total: { A: [0,0,0,0,0], B: [0,0,0,0,0], C: [0,0,0,0,0], D: [0,0,0,0,0], Total: [0,0,0,0,0] } },
+      RJ: { 4: {}, 3: {}, 2: {}, 1: {}, total: { A: [0,0,0,0,0], B: [0,0,0,0,0], C: [0,0,0,0,0], D: [0,0,0,0,0], Total: [0,0,0,0,0] } },
+      grand: { A: [0,0,0,0,0], B: [0,0,0,0,0], C: [0,0,0,0,0], D: [0,0,0,0,0], Total: [0,0,0,0,0] }
+    };
+
+    classes.forEach((cls) => {
+      let totRiK = 0, totRiIna = 0, totRiIdrg = 0;
+      let totRjK = 0, totRjIna = 0, totRjIdrg = 0;
+
+      levels.forEach((lvl) => {
+        const [kTot, inaTot, idrgTot] = base[cls][lvl];
+        const [rK, rIna, rIdrg] = RATIOS[cls][lvl];
+
+        const riK = Math.round(kTot * rK);
+        const rjK = kTot - riK;
+
+        const riIna = roundM(inaTot * rIna);
+        const rjIna = roundM(inaTot - riIna);
+
+        const riIdrg = roundM(idrgTot * rIdrg);
+        const rjIdrg = roundM(idrgTot - riIdrg);
+
+        result.RI[lvl][cls] = [riK, riIna, riIdrg, riIdrg - riIna, riIna ? (riIdrg - riIna) / riIna : 0];
+        result.RJ[lvl][cls] = [rjK, rjIna, rjIdrg, rjIdrg - rjIna, rjIna ? (rjIdrg - rjIna) / rjIna : 0];
+
+        totRiK += riK; totRiIna += riIna; totRiIdrg += riIdrg;
+        totRjK += rjK; totRjIna += rjIna; totRjIdrg += rjIdrg;
+      });
+
+      result.RI.total[cls] = [totRiK, totRiIna, totRiIdrg, totRiIdrg - totRiIna, totRiIna ? (totRiIdrg - totRiIna) / totRiIna : 0];
+      result.RJ.total[cls] = [totRjK, totRjIna, totRjIdrg, totRjIdrg - totRjIna, totRjIna ? (totRjIdrg - totRjIna) / totRjIna : 0];
+
+      const totGrdK = totRiK + totRjK;
+      const totGrdIna = totRiIna + totRjIna;
+      const totGrdIdrg = totRiIdrg + totRjIdrg;
+      result.grand[cls] = [totGrdK, totGrdIna, totGrdIdrg, totGrdIdrg - totGrdIna, totGrdIna ? (totGrdIdrg - totGrdIna) / totGrdIna : 0];
+    });
+
+    ["RI", "RJ"].forEach((type) => {
+      levels.forEach((lvl) => {
+        let sK = 0, sIna = 0, sIdrg = 0;
+        classes.forEach((cls) => {
+          sK += result[type][lvl][cls][0];
+          sIna += roundM(result[type][lvl][cls][1]);
+          sIdrg += roundM(result[type][lvl][cls][2]);
+        });
+        result[type][lvl].Total = [sK, sIna, sIdrg, sIdrg - sIna, sIna ? (sIdrg - sIna) / sIna : 0];
+      });
+
+      let sTotK = 0, sTotIna = 0, sTotIdrg = 0;
+      classes.forEach((cls) => {
+        sTotK += result[type].total[cls][0];
+        sTotIna += roundM(result[type].total[cls][1]);
+        sTotIdrg += roundM(result[type].total[cls][2]);
+      });
+      result[type].total.Total = [sTotK, sTotIna, sTotIdrg, sTotIdrg - sTotIna, sTotIna ? (sTotIdrg - sTotIna) / sTotIna : 0];
+    });
+
+    let gTotK = 0, gTotIna = 0, gTotIdrg = 0;
+    classes.forEach((cls) => {
+      gTotK += result.grand[cls][0];
+      gTotIna += roundM(result.grand[cls][1]);
+      gTotIdrg += roundM(result.grand[cls][2]);
+    });
+    result.grand.Total = [gTotK, gTotIna, gTotIdrg, gTotIdrg - gTotIna, gTotIna ? (gTotIdrg - gTotIna) / gTotIna : 0];
+
+    const riCases = result.RI.total.Total[0];
+    const rjCases = result.RJ.total.Total[0];
+    const totalCalcKasus = riCases + rjCases;
+    const finalTotalKasus = totalKasus || totalCalcKasus;
+
+    const pctRanap = finalTotalKasus > 0 ? (riCases / finalTotalKasus) * 100 : 11.8;
+    const pctRajal = finalTotalKasus > 0 ? (rjCases / finalTotalKasus) * 100 : 88.2;
+
+    const diffRI_M = (result.RI.total.Total[2] - result.RI.total.Total[1]) / 1e9;
+    const pctRI = result.RI.total.Total[1] > 0 ? ((result.RI.total.Total[2] - result.RI.total.Total[1]) / result.RI.total.Total[1]) * 100 : 0;
+
+    const diffRJ_M = (result.RJ.total.Total[2] - result.RJ.total.Total[1]) / 1e9;
+    const pctRJ = result.RJ.total.Total[1] > 0 ? ((result.RJ.total.Total[2] - result.RJ.total.Total[1]) / result.RJ.total.Total[1]) * 100 : 0;
+
+    const diffTotal_T = (result.grand.Total[2] - result.grand.Total[1]) / 1e12;
+    const pctTotal = result.grand.Total[1] > 0 ? ((result.grand.Total[2] - result.grand.Total[1]) / result.grand.Total[1]) * 100 : 0;
+
+    return {
+      list,
+      totalKasus: finalTotalKasus,
+      totalIna: totalIna || result.grand.Total[1],
+      totalIdrg: totalIdrg || result.grand.Total[2],
+      hospitalCount: list.length,
+      provCount: uniqueProvs.size || (list.length > 0 ? 1 : 0),
+      cityCount: uniqueCities.size || (list.length > 0 ? 1 : 0),
+      classCounts,
+      base,
+      result,
+      riCases,
+      rjCases,
+      pctRanap,
+      pctRajal,
+      diffRI_M,
+      pctRI,
+      diffRJ_M,
+      pctRJ,
+      diffTotal_T,
+      pctTotal
+    };
+  }
+
+  // --- SLIDE: PROFIL & KASUS REGIONAL BERDASARKAN KOMPETENSI ICD ---
+  function renderIcdCompetencySlide() {
+    const container = document.getElementById("icdCompetencySlide");
+    if (!container) return;
+
+    // Gunakan data regional sesuai filter aktif
+    const activeHospitals = data.hospitals || [];
+    
+    const metrics = computeNationalMirroringMetrics(activeHospitals);
+    const { classCounts, result, diffRI_M, pctRI, diffRJ_M, pctRJ, diffTotal_T, pctTotal } = metrics;
+    const totalActive = metrics.hospitalCount;
+
+    const classes = ["A", "B", "C", "D"];
+    const levels = [4, 3, 2, 1];
+    const levelLabels = { 4: "Paripurna", 3: "Utama", 2: "Madya", 1: "Dasar" };
+
+    const fmtInt = (v) => formatNumber(Math.round(v || 0));
+    const fmtPct = (v) => {
+      if (!v && v !== 0) return "0,0%";
+      const sign = v > 0 ? "+" : "";
+      return sign + (v * 100).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "%";
+    };
+
+    const fmtM = formatTableMoney;
+
+    const renderCells = (groupData) => {
+      const [k, ina, idrg, selisih, pct] = groupData || [0,0,0,0,0];
+      const pctColor = pct > 0 ? "#15803d" : (pct < 0 ? "#b91c1c" : "#334155");
+      return `
+        <td style="text-align: right; padding: 4px 5px; font-size: 11px; border: 1px solid #cbd5e1; white-space: nowrap;">${fmtInt(k)}</td>
+        <td style="text-align: right; padding: 4px 5px; font-size: 11px; border: 1px solid #cbd5e1; white-space: nowrap;">${fmtM(ina)}</td>
+        <td style="text-align: right; padding: 4px 5px; font-size: 11px; border: 1px solid #cbd5e1; white-space: nowrap;">${fmtM(idrg)}</td>
+        <td style="text-align: right; padding: 4px 5px; font-size: 11px; border: 1px solid #cbd5e1; white-space: nowrap; color: ${pctColor}; font-weight: 600;">${fmtM(selisih)}</td>
+        <td style="text-align: right; padding: 4px 5px; font-size: 11px; border: 1px solid #cbd5e1; white-space: nowrap; color: ${pctColor}; font-weight: 700;">${fmtPct(pct)}</td>
+      `;
+    };
+
+    let html = `
+      <div style="display: flex; flex-direction: column; gap: 8px; height: 100%;">
+        <!-- Top Sub-Navigation Tabs for National Mirroring -->
+        ${renderNationalNavTabs(6)}
+
+        <!-- Top Summary Cards Row -->
+        <div style="display: flex; gap: 14px; align-items: stretch;">
+          
+          <!-- Left Card: Sebaran RS Aktif -->
+          <div style="flex: 0 0 40%; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 14px; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+            <div style="flex-shrink: 0; width: 42px; height: 42px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+              🏥
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+              <div style="font-size: 14.5px; font-weight: 800; color: #475569; letter-spacing: 0.3px;">
+                Sebaran RS AKTIF: <span style="font-weight: 900; color: #1e293b; font-size: 17px;">${fmtInt(totalActive)}</span>
+              </div>
+              <div style="font-size: 13.5px; font-weight: 700; color: #0284c7; letter-spacing: 0.5px;">
+                A: ${classCounts.A} <span style="color: #cbd5e1; font-weight: 400;">|</span> B: ${classCounts.B} <span style="color: #cbd5e1; font-weight: 400;">|</span> C: ${classCounts.C} <span style="color: #cbd5e1; font-weight: 400;">|</span> D: ${classCounts.D}
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Card: Financial and Case Stats -->
+          <div style="flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 16px; display: flex; flex-direction: column; justify-content: center; gap: 3px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; color: #475569; font-weight: 700;">
+              <span>TOTAL KASUS AKTIF</span>
+              <span style="font-weight: 800; color: #1e293b;">: ${fmtInt(metrics.totalKasus)} Kasus</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; color: #475569; font-weight: 700;">
+              <span>PENDAPATAN INA-CBG AKTIF</span>
+              <span style="font-weight: 800; color: #1e293b;">: ${fmtM(metrics.totalIna)}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; color: #475569; font-weight: 700;">
+              <span>POTENSI iDRG AKTIF</span>
+              <span style="font-weight: 800; color: #1e293b;">: ${fmtM(metrics.totalIdrg)}</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Main Matrix Table -->
+        <div style="flex: 1; overflow-x: auto; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.04);">
+          <table style="width: 100%; border-collapse: collapse; text-align: center; font-family: inherit; font-size: 11px;">
+            <thead>
+              <!-- Top Group Headers -->
+              <tr style="color: white; font-weight: 800;">
+                <th rowspan="2" style="background-color: #16a085; width: 68px; padding: 5px 3px; font-size: 11px; border: 1px solid #0d735f; vertical-align: middle;">Jenis<br>Layanan</th>
+                <th rowspan="2" style="background-color: #16a085; width: 72px; padding: 5px 3px; font-size: 11px; border: 1px solid #0d735f; vertical-align: middle;">Komp.<br>ICD</th>
+                <th colspan="5" style="background-color: #e06d75; padding: 4px; font-size: 11.5px; border: 1px solid #cf565e; letter-spacing: 0.5px;">RS A</th>
+                <th colspan="5" style="background-color: #84cc16; padding: 4px; font-size: 11.5px; border: 1px solid #65a30d; letter-spacing: 0.5px;">RS B</th>
+                <th colspan="5" style="background-color: #06b6d4; padding: 4px; font-size: 11.5px; border: 1px solid #0891b2; letter-spacing: 0.5px;">RS C</th>
+                <th colspan="5" style="background-color: #8b5cf6; padding: 4px; font-size: 11.5px; border: 1px solid #7c3aed; letter-spacing: 0.5px;">RS D</th>
+                <th colspan="5" style="background-color: #d97706; padding: 4px; font-size: 11.5px; border: 1px solid #b45309; letter-spacing: 0.5px;">Total</th>
+              </tr>
+              <!-- Sub Headers -->
+              <tr style="color: white; font-weight: 700; font-size: 9.5px;">
+                <!-- RS A sub headers -->
+                <th style="background-color: #e77f86; padding: 3px 2px; border: 1px solid #cf565e;">Jumlah<br>Kasus</th>
+                <th style="background-color: #e77f86; padding: 3px 2px; border: 1px solid #cf565e;">INA CBG<br>(Rp,M)</th>
+                <th style="background-color: #e77f86; padding: 3px 2px; border: 1px solid #cf565e;">IDRG<br>(Rp,M)</th>
+                <th style="background-color: #e77f86; padding: 3px 2px; border: 1px solid #cf565e;">Selisih<br>(Rp,M)</th>
+                <th style="background-color: #e77f86; padding: 3px 2px; border: 1px solid #cf565e;">% Selisih</th>
+
+                <!-- RS B sub headers -->
+                <th style="background-color: #9ecc1a; padding: 3px 2px; border: 1px solid #65a30d;">Jumlah<br>Kasus</th>
+                <th style="background-color: #9ecc1a; padding: 3px 2px; border: 1px solid #65a30d;">INA CBG<br>(Rp,M)</th>
+                <th style="background-color: #9ecc1a; padding: 3px 2px; border: 1px solid #65a30d;">IDRG<br>(Rp,M)</th>
+                <th style="background-color: #9ecc1a; padding: 3px 2px; border: 1px solid #65a30d;">Selisih<br>(Rp,M)</th>
+                <th style="background-color: #9ecc1a; padding: 3px 2px; border: 1px solid #65a30d;">% Selisih</th>
+
+                <!-- RS C sub headers -->
+                <th style="background-color: #22c7e0; padding: 3px 2px; border: 1px solid #0891b2;">Jumlah<br>Kasus</th>
+                <th style="background-color: #22c7e0; padding: 3px 2px; border: 1px solid #0891b2;">INA CBG<br>(Rp,M)</th>
+                <th style="background-color: #22c7e0; padding: 3px 2px; border: 1px solid #0891b2;">IDRG<br>(Rp,M)</th>
+                <th style="background-color: #22c7e0; padding: 3px 2px; border: 1px solid #0891b2;">Selisih<br>(Rp,M)</th>
+                <th style="background-color: #22c7e0; padding: 3px 2px; border: 1px solid #0891b2;">% Selisih</th>
+
+                <!-- RS D sub headers -->
+                <th style="background-color: #a77ef8; padding: 3px 2px; border: 1px solid #7c3aed;">Jumlah<br>Kasus</th>
+                <th style="background-color: #a77ef8; padding: 3px 2px; border: 1px solid #7c3aed;">INA CBG<br>(Rp,M)</th>
+                <th style="background-color: #a77ef8; padding: 3px 2px; border: 1px solid #7c3aed;">IDRG<br>(Rp,M)</th>
+                <th style="background-color: #a77ef8; padding: 3px 2px; border: 1px solid #7c3aed;">Selisih<br>(Rp,M)</th>
+                <th style="background-color: #a77ef8; padding: 3px 2px; border: 1px solid #7c3aed;">% Selisih</th>
+
+                <!-- Total sub headers -->
+                <th style="background-color: #e58d13; padding: 3px 2px; border: 1px solid #b45309;">Jumlah<br>Kasus</th>
+                <th style="background-color: #e58d13; padding: 3px 2px; border: 1px solid #b45309;">INA CBG<br>(Rp,M)</th>
+                <th style="background-color: #e58d13; padding: 3px 2px; border: 1px solid #b45309;">IDRG<br>(Rp,M)</th>
+                <th style="background-color: #e58d13; padding: 3px 2px; border: 1px solid #b45309;">Selisih<br>(Rp,M)</th>
+                <th style="background-color: #e58d13; padding: 3px 2px; border: 1px solid #b45309;">% Selisih</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- RAWAT INAP -->
+              ${levels.map((lvl, idx) => `
+                <tr style="background-color: #ffffff;">
+                  ${idx === 0 ? `<td rowspan="5" style="vertical-align: middle; font-weight: 700; font-size: 11.5px; background: #ffffff; border: 1px solid #cbd5e1; text-align: center; color: #1e293b; line-height: 1.2;">Rawat<br>Inap</td>` : ''}
+                  <td style="font-weight: 600; font-size: 11px; background: #fefce8; border: 1px solid #cbd5e1; text-align: center; color: #334155;">${levelLabels[lvl]}</td>
+                  ${renderCells(result.RI[lvl].A)}
+                  ${renderCells(result.RI[lvl].B)}
+                  ${renderCells(result.RI[lvl].C)}
+                  ${renderCells(result.RI[lvl].D)}
+                  ${renderCells(result.RI[lvl].Total)}
+                </tr>
+              `).join('')}
+              <!-- Total RI Row -->
+              <tr style="background-color: #f1f5f9; font-weight: 800;">
+                <td style="font-weight: 800; font-size: 11px; background: #f1f5f9; border: 1px solid #cbd5e1; text-align: center; color: #0f172a;">Total RI</td>
+                ${renderCells(result.RI.total.A)}
+                ${renderCells(result.RI.total.B)}
+                ${renderCells(result.RI.total.C)}
+                ${renderCells(result.RI.total.D)}
+                ${renderCells(result.RI.total.Total)}
+              </tr>
+
+              <!-- RAWAT JALAN -->
+              ${levels.map((lvl, idx) => `
+                <tr style="background-color: #ffffff;">
+                  ${idx === 0 ? `<td rowspan="5" style="vertical-align: middle; font-weight: 700; font-size: 11.5px; background: #ffffff; border: 1px solid #cbd5e1; text-align: center; color: #1e293b; line-height: 1.2;">Rawat<br>Jalan</td>` : ''}
+                  <td style="font-weight: 600; font-size: 11px; background: #fefce8; border: 1px solid #cbd5e1; text-align: center; color: #334155;">${levelLabels[lvl]}</td>
+                  ${renderCells(result.RJ[lvl].A)}
+                  ${renderCells(result.RJ[lvl].B)}
+                  ${renderCells(result.RJ[lvl].C)}
+                  ${renderCells(result.RJ[lvl].D)}
+                  ${renderCells(result.RJ[lvl].Total)}
+                </tr>
+              `).join('')}
+              <!-- Total RJ Row -->
+              <tr style="background-color: #f1f5f9; font-weight: 800;">
+                <td style="font-weight: 800; font-size: 11px; background: #f1f5f9; border: 1px solid #cbd5e1; text-align: center; color: #0f172a;">Total RJ</td>
+                ${renderCells(result.RJ.total.A)}
+                ${renderCells(result.RJ.total.B)}
+                ${renderCells(result.RJ.total.C)}
+                ${renderCells(result.RJ.total.D)}
+                ${renderCells(result.RJ.total.Total)}
+              </tr>
+
+              <!-- GRAND TOTAL -->
+              <tr style="background-color: #e2e8f0; font-weight: 900;">
+                <td colspan="2" style="font-weight: 900; font-size: 11.5px; background: #e2e8f0; border: 1px solid #cbd5e1; text-align: center; color: #0f172a; text-transform: uppercase;">Grand Total</td>
+                ${renderCells(result.grand.A)}
+                ${renderCells(result.grand.B)}
+                ${renderCells(result.grand.C)}
+                ${renderCells(result.grand.D)}
+                ${renderCells(result.grand.Total)}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Bottom Insight Card -->
+        <div style="background: #e0f7f6; border: 1px solid #99f6e4; border-radius: 8px; padding: 8px 16px; display: flex; align-items: center; gap: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+          <div style="font-size: 24px; background: #ccfbf1; width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+            💡
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 3px; font-size: 12.5px; color: #334155; line-height: 1.35;">
+            <div>• Kenaikan <strong>Rawat Inap</strong> sebesar <span style="font-weight: 800; color: #0f766e;">${diffRI_M >= 1000 ? (diffRI_M/1000).toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' T' : diffRI_M.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' M'}</span> dengan persentase <span style="font-weight: 800; color: #0f766e;">${pctRI.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2})}%</span></div>
+            <div>• Kenaikan <strong>Rawat Jalan</strong> sebesar <span style="font-weight: 800; color: #0f766e;">${diffRJ_M.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2})} M</span> dengan persentase <span style="font-weight: 800; color: #0f766e;">${pctRJ.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2})}%</span></div>
+            <div>• Kenaikan <strong>Total</strong> sebesar <span style="font-weight: 800; color: #0f766e;">${diffTotal_T.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2})} T</span> dengan persentase <span style="font-weight: 800; color: #0f766e;">${pctTotal.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2})}%</span></div>
+          </div>
+        </div>
+
+        <!-- Footnote & Logo -->
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #64748b; font-style: italic; margin-top: -2px;">
+          <div>*Lainnya Adalah Kasus yang belum terdapat Mapping Kompetensi ICD</div>
+          <div style="display: flex; align-items: center; gap: 6px; font-weight: 800; font-size: 13.5px; color: #0891b2; font-style: normal;">
+            <img src="img/logo-kemenkes.png" alt="Kemenkes" style="height: 18px;">
+            <span>Kemenkes</span>
+          </div>
+        </div>
+
+      </div>
+    `;
+
+    container.innerHTML = html;
+  }
+
+  // --- META & SUB-NAV TABS FOR NATIONAL MIRRORING SLIDES ---
+  const NATIONAL_SLIDES_META = [
+    { title: "1. Jenis Rawat", offset: 0 },
+    { title: "2. Spending Kelas RS", offset: 1 },
+    { title: "3. Spending per RS", offset: 2 },
+    { title: "4. 10 Besar Ranap", offset: 3 },
+    { title: "5. Severity Ranap", offset: 4 },
+    { title: "6. 10 Besar Rajal", offset: 5 },
+    { title: "7. Q-5-44-0 Rajal", offset: 6 },
+    { title: "8. Kompetensi ICD", offset: 7 }
+  ];
+
+  function renderNationalNavTabs(activeIndex) {
+    return `
+      <div style="display: flex; align-items: center; justify-content: space-between; background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 10px; padding: 4px 8px; margin-bottom: 2px; box-shadow: 0 1px 4px rgba(0,0,0,0.03);">
+        <div style="display: flex; align-items: center; gap: 5px; flex-wrap: wrap;">
+          <span style="font-size: 11px; font-weight: 800; color: #475569; margin-right: 4px; text-transform: uppercase;">📊 Navigasi Data Mirroring:</span>
+          ${NATIONAL_SLIDES_META.map((tab, idx) => `
+            <button type="button" onclick="window.showNationalMirroringSlide(${tab.offset})" style="border: none; cursor: pointer; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 750; transition: all 0.15s; ${
+              idx === activeIndex
+                ? 'background: #0f766e; color: #ffffff; box-shadow: 0 2px 4px rgba(15,118,110,0.3);'
+                : 'background: #ffffff; color: #334155; border: 1px solid #cbd5e1;'
+            }">
+              ${tab.title}
+            </button>
+          `).join('')}
+        </div>
+        <div class="national-export-actions" data-export-ui="true" style="display: flex; align-items: center; gap: 5px; flex-shrink: 0; margin-left: 8px;">
+          <span style="font-size: 11px; font-weight: 800; color: #0f766e; background: #ccfbf1; padding: 3px 8px; border-radius: 6px; border: 1px solid #99f6e4; white-space: nowrap;">
+            Slide ${activeIndex + 1} / 8
+          </span>
+          <button type="button" onclick="window.copyActiveNationalSlideImage(this)" title="Salin slide aktif sebagai gambar PNG" style="border: 1px solid #7dd3fc; background: #e0f2fe; color: #0369a1; cursor: pointer; padding: 4px 9px; border-radius: 6px; font-size: 10.5px; font-weight: 800; white-space: nowrap;">📋 Copy Image</button>
+          <button type="button" onclick="window.exportActiveNationalSlideToPptx(this)" title="Ekspor slide aktif dengan DOM-to-PPTX" style="border: 1px solid #c4b5fd; background: #ede9fe; color: #5b21b6; cursor: pointer; padding: 4px 9px; border-radius: 6px; font-size: 10.5px; font-weight: 800; white-space: nowrap;">⬡ DOM → PPTX</button>
+        </div>
+      </div>
+    `;
+  }
+
+  // --- SLIDE 11: JUMLAH DATA MASUK MENURUT JENIS RAWAT ---
+  function renderNationalRawatTypeSlide() {
+    const container = document.getElementById("nationalRawatTypeSlide");
+    if (!container) return;
+
+    const activeHospitals = getActiveMirroringHospitals();
+    const metrics = computeNationalMirroringMetrics(activeHospitals);
+
+    const isAll = activeHospitals.length >= (originalData.hospitals ? originalData.hospitals.length : 1000);
+    const scopeTitle = isAll ? "Seluruh Rumah Sakit Nasional" : `${metrics.hospitalCount.toLocaleString('id-ID')} RS Terpilih / Terfilter`;
+
+    const circumference = 502.65; // 2 * PI * 80
+    const dashRajal = Math.max(0, Math.min(circumference, (metrics.pctRajal / 100) * circumference));
+    const dashRanap = Math.max(0, Math.min(circumference, (metrics.pctRanap / 100) * circumference));
+
+    const compactKasus = metrics.totalKasus >= 1e6 ? `${(metrics.totalKasus / 1e6).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Jt` : formatNumber(metrics.totalKasus);
+
+    container.innerHTML = `
+      <div style="display: flex; flex-direction: column; height: 100%; justify-content: space-between; gap: 10px; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; box-sizing: border-box;">
+        <!-- Top Sub-Navigation Tabs for National Mirroring -->
+        ${renderNationalNavTabs(0)}
+
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="color: #d97706; font-size: 19px; font-weight: 800; letter-spacing: -0.2px;">
+            Data Klaim iDRG Menurut Jenis Perawatan
+          </div>
+          <div style="font-size: 11.5px; font-weight: 800; color: #0f766e; background: #ccfbf1; padding: 4px 12px; border-radius: 20px; border: 1.5px solid #99f6e4; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+            🎯 Cakupan: ${scopeTitle} (${metrics.provCount} Prov, ${metrics.cityCount} Kota)
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 480px 1fr; gap: 20px; align-items: stretch; flex: 1 1 auto; min-height: 0;">
+          <!-- Left: Big High-Clarity Donut Chart with Direct Percentage Labels -->
+          <div style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 18px; padding: 16px 20px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.03);">
+            <!-- Graphic Container with Callout Labels -->
+            <div style="position: relative; width: 260px; height: 260px; display: flex; align-items: center; justify-content: center;">
+              <svg viewBox="0 0 240 240" style="width: 100%; height: 100%; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.07));">
+                <!-- Background Circle -->
+                <circle cx="120" cy="120" r="80" fill="transparent" stroke="#f1f5f9" stroke-width="36" />
+                <!-- Rawat Jalan Segment (Rotated from -90deg) -->
+                <g transform="rotate(-90 120 120)">
+                  <circle cx="120" cy="120" r="80" fill="transparent" stroke="#0d9488" stroke-width="34" stroke-dasharray="${dashRajal} ${circumference}" stroke-dashoffset="0" stroke-linecap="round" />
+                  <circle cx="120" cy="120" r="80" fill="transparent" stroke="#f59e0b" stroke-width="34" stroke-dasharray="${dashRanap} ${circumference}" stroke-dashoffset="-${dashRajal}" stroke-linecap="round" />
+                </g>
+                <!-- Central Disc -->
+                <circle cx="120" cy="120" r="58" fill="#ffffff" filter="drop-shadow(0 2px 6px rgba(0,0,0,0.06))" />
+                <text x="120" y="102" text-anchor="middle" font-size="10.5" font-weight="800" fill="#64748b" letter-spacing="0.5">TOTAL KASUS</text>
+                <text x="120" y="125" text-anchor="middle" font-size="18" font-weight="900" fill="#0f172a" font-family="'Plus Jakarta Sans', sans-serif">${compactKasus}</text>
+                <text x="120" y="142" text-anchor="middle" font-size="11" font-weight="800" fill="#0f766e">${metrics.hospitalCount.toLocaleString('id-ID')} RS</text>
+              </svg>
+
+              <!-- Floating Percentage Badge 1: Rawat Jalan -->
+              <div style="position: absolute; top: 10px; right: 4px; background: #0f766e; color: #ffffff; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 900; box-shadow: 0 2px 8px rgba(15,118,110,0.35); border: 2px solid #ffffff; display: flex; align-items: center; gap: 5px;">
+                <span>🚶 Rajal:</span>
+                <span style="color: #99f6e4;">${metrics.pctRajal.toFixed(2).replace('.', ',')}%</span>
+              </div>
+
+              <!-- Floating Percentage Badge 2: Rawat Inap -->
+              <div style="position: absolute; bottom: 10px; left: 4px; background: #d97706; color: #ffffff; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 900; box-shadow: 0 2px 8px rgba(217,119,6,0.35); border: 2px solid #ffffff; display: flex; align-items: center; gap: 5px;">
+                <span>🛏️ Ranap:</span>
+                <span style="color: #fef08a;">${metrics.pctRanap.toFixed(2).replace('.', ',')}%</span>
+              </div>
+            </div>
+
+            <!-- Detail Cards Ditempatkan DI BAWAH Grafik -->
+            <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
+              <div style="background: #f0fdfa; border: 1.5px solid #99f6e4; border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span style="width: 16px; height: 16px; background: #0d9488; border-radius: 4px; flex-shrink: 0; box-shadow: 0 1px 3px rgba(13,148,136,0.4);"></span>
+                  <div>
+                    <div style="font-size: 13px; font-weight: 800; color: #0f172a;">Rawat Jalan (RJ)</div>
+                    <div style="font-size: 11px; font-weight: 600; color: #64748b;">${formatNumber(metrics.rjCases)} Kasus</div>
+                  </div>
+                </div>
+                <div style="text-align: right;">
+                  <div style="font-size: 17px; font-weight: 900; color: #0f766e;">${metrics.pctRajal.toFixed(2).replace('.', ',')}%</div>
+                  <div style="font-size: 11px; font-weight: 700; color: #0d9488;">iDRG: ${formatTableMoney(metrics.result.RJ.total.Total[2])}</div>
+                </div>
+              </div>
+
+              <div style="background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span style="width: 16px; height: 16px; background: #f59e0b; border-radius: 4px; flex-shrink: 0; box-shadow: 0 1px 3px rgba(245,158,11,0.4);"></span>
+                  <div>
+                    <div style="font-size: 13px; font-weight: 800; color: #0f172a;">Rawat Inap (RI)</div>
+                    <div style="font-size: 11px; font-weight: 600; color: #64748b;">${formatNumber(metrics.riCases)} Kasus</div>
+                  </div>
+                </div>
+                <div style="text-align: right;">
+                  <div style="font-size: 17px; font-weight: 900; color: #b45309;">${metrics.pctRanap.toFixed(2).replace('.', ',')}%</div>
+                  <div style="font-size: 11px; font-weight: 700; color: #d97706;">iDRG: ${formatTableMoney(metrics.result.RI.total.Total[2])}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Key Macro Numbers & Summary Cards -->
+          <div style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 18px; padding: 20px 24px; display: flex; flex-direction: column; justify-content: space-between; gap: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.03);">
+            <div style="font-size: 13px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1.5px solid #e2e8f0; padding-bottom: 6px;">
+              📊 Rangkuman Agregasi Data Masuk
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 190px 1fr; font-size: 14.5px; font-weight: 700; color: #334155; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
+              <div>Jumlah Kasus</div>
+              <div style="color: #0f172a; font-weight: 900;">: ${formatNumber(metrics.totalKasus)} Kasus</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 190px 1fr; font-size: 14.5px; font-weight: 700; color: #334155; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
+              <div>Jumlah Rumah Sakit</div>
+              <div style="color: #0f172a; font-weight: 900;">: ${metrics.hospitalCount.toLocaleString('id-ID')} Rumah Sakit</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 190px 1fr; font-size: 14.5px; font-weight: 700; color: #334155; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
+              <div>Jumlah Provinsi</div>
+              <div style="color: #0f172a; font-weight: 900;">: ${metrics.provCount} Provinsi</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 190px 1fr; font-size: 14.5px; font-weight: 700; color: #334155; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
+              <div>Jumlah Kab/Kota</div>
+              <div style="color: #0f172a; font-weight: 900;">: ${metrics.cityCount} Kab/Kota</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 190px 1fr; font-size: 14.5px; font-weight: 700; color: #334155; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
+              <div>Total INA-CBG</div>
+              <div style="color: #15803d; font-weight: 900;">: ${formatTableMoney(metrics.totalIna)}</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 190px 1fr; font-size: 14.5px; font-weight: 700; color: #334155; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
+              <div>Total Spending iDRG</div>
+              <div style="color: #0284c7; font-weight: 900;">: ${formatTableMoney(metrics.totalIdrg)}</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 190px 1fr; font-size: 14.5px; font-weight: 700; color: #334155;">
+              <div>Pertumbuhan Net iDRG</div>
+              <div style="color: ${metrics.diffTotal_T >= 0 ? '#047857' : '#dc2626'}; font-weight: 900;">: ${metrics.diffTotal_T >= 0 ? '+' : ''}${formatTableMoney(metrics.totalIdrg - metrics.totalIna)} (${metrics.pctTotal >= 0 ? '+' : ''}${metrics.pctTotal.toFixed(2).replace('.', ',')}%)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer / Keterangan di Bawah Halaman -->
+        <div style="display: flex; justify-content: space-between; align-items: center; color: #64748b; font-size: 11.5px; font-weight: 600; padding: 6px 14px; background: #f1f5f9; border-radius: 8px; border: 1px solid #e2e8f0;">
+          <div><strong>Keterangan:</strong> Agregasi data klaim realisasi Eklaim &amp; Uji Coba iDRG secara dinamis untuk fasilitas kesehatan yang aktif.</div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <img src="img/logo-kemenkes.png" alt="Kemenkes Logo" style="height: 18px;">
+            <span style="font-weight: 700; color: #0891b2;">Kementerian Kesehatan RI</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  const HOSPITAL_SPENDING_RATIOS = {
+    A: { 4: [0.09541996, 0.72008650, 0.72113603], 3: [0.21595121, 0.85250423, 0.85996614], 2: [0.10784881, 0.69410185, 0.69639535], 1: [0.04342, 0.4589, 0.49876] },
+    B: { 4: [0.09535068, 0.63833671, 0.64906560], 3: [0.17735431, 0.88289370, 0.88349272], 2: [0.15616439, 0.66563849, 0.67389423], 1: [0.0577, 0.527, 0.5197] },
+    C: { 4: [0.06413407, 0.56849360, 0.557], 3: [0.16124709, 0.82358079, 0.8369], 2: [0.19265339, 0.68862837, 0.7121], 1: [0.06815, 0.554, 0.5562] },
+    D: { 4: [0.04555842, 0.3723, 0.395], 3: [0.09527512, 0.61612735, 0.6732], 2: [0.17937517, 0.56135706, 0.6148], 1: [0.04377, 0.3779, 0.3986] }
+  };
+
+  function hospitalRegional(province) {
+    const p = String(province || "").toUpperCase();
+    if (/BANTEN|DKI|JAWA|YOGYAKARTA|DIY/.test(p)) return "Reg 1";
+    if (/SUMATERA BARAT|RIAU|SUMATERA SELATAN|LAMPUNG|BALI|NUSA TENGGARA BARAT|NTB/.test(p)) return "Reg 2";
+    if (/ACEH|NAD|SUMATERA UTARA|JAMBI|BENGKULU|BANGKA|KEPULAUAN RIAU|KALIMANTAN BARAT|KALIMANTAN TENGAH|KALIMANTAN SELATAN|KALIMANTAN TIMUR|SULAWESI|GORONTALO/.test(p)) return "Reg 3";
+    if (/KALIMANTAN UTARA|NUSA TENGGARA TIMUR|NTT|MALUKU|PAPUA$|PAPUA BARAT$/.test(p)) return "Reg 4";
+    if (/PAPUA/.test(p)) return "Reg 5";
+    return "Lainnya";
+  }
+
+  function hospitalOwnership(hospital) {
+    if (hospital.ownership) return hospital.ownership;
+    // Dataset agregat tidak memuat atribut kepemilikan; klasifikasi ini hanya untuk tampilan ringkas.
+    return /^(RSUD|RSUP|RSJ\b|RSP\b|RSK\b)/i.test(String(hospital.name || "")) ? "Pemerintah" : "Swasta";
+  }
+
+  function hospitalSpendingRow(hospital) {
+    const cls = String(hospital.class || "D").trim().toUpperCase();
+    const ratiosByLevel = HOSPITAL_SPENDING_RATIOS[cls] || HOSPITAL_SPENDING_RATIOS.D;
+    const ri = [0, 0, 0];
+    const total = [Number(hospital.total?.[0]) || 0, Number(hospital.total?.[1]) || 0, Number(hospital.total?.[IDRG]) || 0];
+    [1, 2, 3, 4].forEach((level) => {
+      const metric = hospital.severity?.[level];
+      const ratios = ratiosByLevel[level];
+      if (!metric || !ratios) return;
+      ri[0] += Math.round((Number(metric[0]) || 0) * ratios[0]);
+      ri[1] += (Number(metric[1]) || 0) * ratios[1];
+      ri[2] += (Number(metric[IDRG]) || 0) * ratios[2];
+    });
+    // Tetap rekonsiliasi dengan total RS, termasuk kasus tanpa mapping severity.
+    const rj = [total[0] - ri[0], total[1] - ri[1], total[2] - ri[2]];
+    const rawReg = hospital.regional || hospital.region || "";
+    let finalReg = rawReg.replace(/^R(\d)$/i, "Reg $1");
+    if (!finalReg) finalReg = hospitalRegional(hospital.province);
+    
+    const values = {
+      code: hospital.code || "-", name: hospital.name || "-", city: hospital.city || "-", province: hospital.province || "-", hospitalClass: cls,
+      ownership: hospitalOwnership(hospital), regional: finalReg,
+      rjCases: rj[0], riCases: ri[0], totalCases: total[0],
+      rjIna: rj[1], riIna: ri[1], totalIna: total[1],
+      rjIdrg: rj[2], riIdrg: ri[2], totalIdrg: total[2],
+    };
+    ["rj", "ri", "total"].forEach((prefix) => {
+      values[`${prefix}Diff`] = values[`${prefix}Idrg`] - values[`${prefix}Ina`];
+      values[`${prefix}Pct`] = values[`${prefix}Ina`] ? values[`${prefix}Diff`] / values[`${prefix}Ina`] : 0;
+    });
+    return values;
+  }
+
+  function exportHospitalSpendingExcel(rows) {
+    if (!window.XLSX?.utils) throw new Error("Library Excel belum tersedia.");
+    const XLSX = window.XLSX;
+    const header1 = ["Kode RS", "Nama RS", "Kab/Kota", "Provinsi", "Kelas RS", "Kepemilikan", "Regional", "Total Kasus", "", "", "Tarif INA-CBG (Rp)", "", "", "Tarif iDRG (Rp)", "", "", "Selisih (Rp)", "", "", "Perubahan (%)", "", ""];
+    const header2 = ["", "", "", "", "", "", "", "Rawat Jalan", "Rawat Inap", "Rawat Jalan & Rawat Inap", "Rawat Jalan", "Rawat Inap", "Rawat Jalan & Rawat Inap", "Rawat Jalan", "Rawat Inap", "Rawat Jalan & Rawat Inap", "Rawat Jalan", "Rawat Inap", "Rawat Jalan & Rawat Inap", "Rawat Jalan", "Rawat Inap", "Rawat Jalan & Rawat Inap"];
+    const body = rows.map((r) => [r.code, r.name, r.city, r.province, r.hospitalClass, r.ownership, r.regional, r.rjCases, r.riCases, r.totalCases, r.rjIna, r.riIna, r.totalIna, r.rjIdrg, r.riIdrg, r.totalIdrg, r.rjDiff, r.riDiff, r.totalDiff, r.rjPct, r.riPct, r.totalPct]);
+    const ws = XLSX.utils.aoa_to_sheet([["SPENDING iDRG PER RUMAH SAKIT"], ["Periode dan skenario tarif mengikuti filter aktif pada dashboard"], [], header1, header2, ...body]);
+    ws["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 21 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: 21 } }, ...[0, 1, 2, 3, 4, 5, 6].map(c => ({ s: { r: 3, c }, e: { r: 4, c } })), ...[7, 10, 13, 16, 19].map(c => ({ s: { r: 3, c }, e: { r: 3, c: c + 2 } }))];
+    ws["!cols"] = [14, 42, 22, 20, 11, 16, 28, ...Array(15).fill(18)].map(wch => ({ wch }));
+    ws["!freeze"] = { xSplit: 7, ySplit: 5 };
+    for (let c = 0; c < 22; c++) {
+      ["A1", "A2"].forEach(ref => { if (ws[ref]) ws[ref].s = { font: { bold: true, color: { rgb: "FFFFFF" }, sz: ref === "A1" ? 15 : 10 }, fill: { fgColor: { rgb: ref === "A1" ? "0F766E" : "0D9488" } }, alignment: { vertical: "center" } }; });
+      [3, 4].forEach(row => { const ref = XLSX.utils.encode_cell({ r: row, c }); if (ws[ref]) ws[ref].s = { font: { bold: true, color: { rgb: "FFFFFF" }, sz: 9 }, fill: { fgColor: { rgb: c < 7 ? "115E59" : c < 10 ? "0369A1" : c < 13 ? "15803D" : c < 16 ? "7C3AED" : c < 19 ? "B45309" : "BE185D" } }, alignment: { horizontal: "center", vertical: "center", wrapText: true } }; });
+    }
+    for (let row = 5; row < body.length + 5; row++) for (let c = 0; c < 22; c++) {
+      const cell = ws[XLSX.utils.encode_cell({ r: row, c })];
+      if (!cell) continue;
+      cell.s = cell.s || {}; cell.s.alignment = { horizontal: c < 7 ? "left" : "right", vertical: "center" };
+      if (c >= 7 && c <= 9) cell.z = "#,##0";
+      if (c >= 10 && c <= 18) cell.z = '#,##0.00;[Red]-#,##0.00';
+      if (c >= 19) cell.z = '0.00%;[Red]-0.00%';
+    }
+    ws["!autofilter"] = { ref: `A5:V${body.length + 5}` };
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Spending per RS");
+    XLSX.writeFile(wb, `Spending_iDRG_per_RS_${activeDatasetKey}_${new Date().toISOString().slice(0, 10)}.xlsx`, { compression: true });
+  }
+
+  function renderNationalHospitalSpendingSlide() {
+    const container = document.getElementById("nationalHospitalSpendingSlide");
+    if (!container) return;
+
+    const oldInput = container.querySelector("#hospitalSpendingSearch");
+    const isFocused = oldInput && oldInput === document.activeElement;
+    const cursor = isFocused ? [oldInput.selectionStart, oldInput.selectionEnd] : null;
+
+    const ui = window.hospitalSpendingUi = { query: "", page: 0, sort: "totalDiff", direction: "desc", ...(window.hospitalSpendingUi || {}) };
+    const rows = getActiveMirroringHospitals().map(hospitalSpendingRow);
+    const query = ui.query.toLocaleLowerCase("id-ID").trim();
+    const filtered = rows.filter(r => !query || `${r.code} ${r.name} ${r.city}`.toLocaleLowerCase("id-ID").includes(query));
+    filtered.sort((a, b) => typeof a[ui.sort] === "string" ? a[ui.sort].localeCompare(b[ui.sort], "id") * (ui.direction === "asc" ? 1 : -1) : ((a[ui.sort] || 0) - (b[ui.sort] || 0)) * (ui.direction === "asc" ? 1 : -1));
+    const pageSize = 50, pages = Math.max(1, Math.ceil(filtered.length / pageSize)); ui.page = Math.min(ui.page, pages - 1);
+    const shown = filtered.slice(ui.page * pageSize, (ui.page + 1) * pageSize);
+    const money = v => formatTableMoney(v);
+    const pct = v => `${v >= 0 ? "+" : ""}${(v * 100).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
+    const head = (label, key) => `<button type="button" data-sort="${key}" style="border:0;background:transparent;color:inherit;font:inherit;font-weight:800;cursor:pointer;padding:0;white-space:nowrap;">${label} ${ui.sort === key ? (ui.direction === "asc" ? "↑" : "↓") : "↕"}</button>`;
+    const moneyCells = (r, prefix, kind) => ["rj", "ri", "total"].map(p => `<td>${kind === "pct" ? pct(r[`${p}Pct`]) : kind === "diff" ? money(r[`${p}Diff`]) : kind === "ina" ? money(r[`${p}Ina`]) : money(r[`${p}Idrg`])}</td>`).join("");
+      container.innerHTML = `<div style="height:100%;min-height:0;display:flex;flex-direction:column;gap:9px;font-family:'Plus Jakarta Sans',sans-serif;"><div style="display:flex;align-items:center;gap:10px;"><div style="font-size:14px;font-weight:850;color:#0f766e;flex:1;">Rincian spending per rumah sakit <span style="font-size:11px;color:#64748b;font-weight:650;">${formatNumber(filtered.length)} RS – sesuai filter aktif</span></div><input id="hospitalSpendingSearch" value="${escapeHtml(ui.query)}" placeholder="Cari kode, nama, atau kab/kota..." style="width:290px;padding:7px 10px;border:1px solid #94a3b8;border-radius:7px;font-size:11px;"><button id="hospitalSpendingExcel" type="button" style="border:0;background:#15803d;color:#fff;border-radius:7px;padding:8px 12px;font-size:11px;font-weight:800;cursor:pointer;">↓ Download Excel</button><button id="hospitalSpendingDRGExcel" type="button" style="border:0;background:#0369a1;color:#fff;border-radius:7px;padding:8px 12px;font-size:11px;font-weight:800;cursor:pointer;">↓ Tarik Detail DRG</button></div><div style="flex:1;min-height:0;overflow:auto;border:1px solid #cbd5e1;border-radius:9px;"><table style="border-collapse:collapse;width:100%;font-size:10px;white-space:nowrap;"><thead style="position:sticky;top:0;z-index:2;color:#fff;text-align:center;"><tr style="background:#0f766e;"><th rowspan="2">${head("Kode RS", "code")}</th><th rowspan="2">${head("Nama RS", "name")}</th><th rowspan="2">${head("Kab/Kota", "city")}</th><th rowspan="2">${head("Provinsi", "province")}</th><th rowspan="2">${head("Kelas RS", "hospitalClass")}</th><th rowspan="2">${head("Kepemilikan", "ownership")}</th><th rowspan="2">${head("Regional", "regional")}</th><th colspan="3" style="background:#0369a1">Total Kasus</th><th colspan="3" style="background:#15803d">Tarif INA-CBG (Rp Miliar)</th><th colspan="3" style="background:#7c3aed">Tarif iDRG (Rp Miliar)</th><th colspan="3" style="background:#b45309">Selisih (Rp Miliar)</th><th colspan="3" style="background:#be185d">Perubahan (%)</th></tr><tr style="background:#134e4a;">${["rjCases", "riCases", "totalCases", "rjIna", "riIna", "totalIna", "rjIdrg", "riIdrg", "totalIdrg", "rjDiff", "riDiff", "totalDiff", "rjPct", "riPct", "totalPct"].map((key, i) => `<th>${head(["Rawat Jalan", "Rawat Inap", "RJ & RI"][i % 3], key)}</th>`).join("")}</tr></thead><tbody>${shown.map((r, i) => `<tr style="background:${i % 2 ? "#f8fafc" : "#fff"};"><td>${escapeHtml(r.code)}</td><td style="font-weight:750;max-width:280px;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(r.name)}</td><td>${escapeHtml(r.city)}</td><td>${escapeHtml(r.province)}</td><td>${escapeHtml(r.hospitalClass)}</td><td>${escapeHtml(r.ownership)}</td><td>${escapeHtml(r.regional)}</td><td>${formatNumber(r.rjCases)}</td><td>${formatNumber(r.riCases)}</td><td style="font-weight:800">${formatNumber(r.totalCases)}</td>${moneyCells(r, "", "ina")}${moneyCells(r, "", "idrg")}${moneyCells(r, "", "diff")}${moneyCells(r, "", "pct")}</tr>`).join("") || `<tr><td colspan="22" style="padding:22px;text-align:center;color:#64748b;">Tidak ada rumah sakit sesuai pencarian.</td></tr>`}</tbody></table></div><div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#475569;"><span>Menampilkan ${filtered.length ? ui.page * pageSize + 1 : 0}–${Math.min((ui.page + 1) * pageSize, filtered.length)} dari ${formatNumber(filtered.length)} RS</span><span style="display:flex;gap:6px;align-items:center;"><button id="hospitalSpendingPrev" ${ui.page === 0 ? "disabled" : ""}>← Sebelumnya</button><b>Halaman ${ui.page + 1}/${pages}</b><button id="hospitalSpendingNext" ${ui.page >= pages - 1 ? "disabled" : ""}>Berikutnya →</button></span></div></div>`;
+      container.querySelectorAll("th,td").forEach(cell => { cell.style.padding = "6px 7px"; cell.style.borderBottom = "1px solid #e2e8f0"; });
+      container.querySelectorAll("[data-sort]").forEach(button => button.addEventListener("click", () => { const key = button.dataset.sort; ui.direction = ui.sort === key && ui.direction === "desc" ? "asc" : "desc"; ui.sort = key; ui.page = 0; renderNationalHospitalSpendingSlide(); }));
+      
+      const newSearchInput = container.querySelector("#hospitalSpendingSearch");
+      if (newSearchInput) {
+          newSearchInput.addEventListener("input", event => { ui.query = event.target.value; ui.page = 0; renderNationalHospitalSpendingSlide(); });
+          if (isFocused) {
+              newSearchInput.focus();
+              newSearchInput.setSelectionRange(cursor[0], cursor[1]);
+          }
+      }
+      
+      container.querySelector("#hospitalSpendingPrev")?.addEventListener("click", () => { ui.page--; renderNationalHospitalSpendingSlide(); });
+      container.querySelector("#hospitalSpendingNext")?.addEventListener("click", () => { ui.page++; renderNationalHospitalSpendingSlide(); });
+      container.querySelector("#hospitalSpendingExcel")?.addEventListener("click", () => { try { exportHospitalSpendingExcel(filtered); } catch (error) { alert(error.message || "Excel gagal dibuat."); } });
+      container.querySelector("#hospitalSpendingDRGExcel")?.addEventListener("click", () => { alert("Data detail per DRG dan Rumah Sakit memiliki jutaan baris (terlalu besar untuk diproses di browser).\n\nSilakan jalankan script Python 'tarik_drg_rs.py' di folder project Anda untuk meng-generate file CSV nya secara lokal."); });
+  }
+
+  // --- SLIDE 12: SIMULASI SPENDING iDRG NASIONAL MENURUT KELAS RS ---
+  function renderNationalSpendingClassSlide() {
+    const container = document.getElementById("nationalSpendingClassSlide");
+    if (!container) return;
+
+    const activeHospitals = getActiveMirroringHospitals();
+    const metrics = computeNationalMirroringMetrics(activeHospitals);
+
+    const isAll = activeHospitals.length >= (originalData.hospitals ? originalData.hospitals.length : 1000);
+    const scopeBadge = isAll ? "Seluruh RS Nasional (Agregat Penuh)" : `${metrics.hospitalCount.toLocaleString('id-ID')} RS Terpilih / Terfilter`;
+
+    const ri = metrics.result.RI.total;
+    const rj = metrics.result.RJ.total;
+    const gr = metrics.result.grand;
+
+    container.innerHTML = `
+      <div style="display: flex; flex-direction: column; height: 100%; justify-content: space-between; gap: 8px; font-family: 'Plus Jakarta Sans', sans-serif; box-sizing: border-box;">
+        <!-- Top Sub-Navigation Tabs for National Mirroring -->
+        ${renderNationalNavTabs(1)}
+
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="color: #d97706; font-size: 18px; font-weight: 800;">
+            Simulasi Spending iDRG Menurut Kelas Rumah Sakit
+          </div>
+          <div style="font-size: 11px; font-weight: 800; color: #0f766e; background: #ccfbf1; padding: 3px 10px; border-radius: 12px; border: 1px solid #99f6e4;">
+            🎯 Cakupan: ${scopeBadge}
+          </div>
+        </div>
+
+        <!-- Top KPI Headline Cards -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+          <div style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 12px; padding: 8px 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+            <div style="font-size: 10.5px; font-weight: 800; color: #64748b; text-transform: uppercase;">Total Kasus</div>
+            <div style="font-size: 17px; font-weight: 900; color: #0f172a; margin-top: 2px;">${formatNumber(metrics.totalKasus)}</div>
+            <div style="font-size: 10px; font-weight: 600; color: #0f766e;">Ranap: ${(metrics.riCases/1e6).toFixed(2)} Jt · Rajal: ${(metrics.rjCases/1e6).toFixed(2)} Jt</div>
+          </div>
+
+          <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 12px; padding: 8px 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+            <div style="font-size: 10.5px; font-weight: 800; color: #166534; text-transform: uppercase;">Spending INA-CBG</div>
+            <div style="font-size: 17px; font-weight: 900; color: #15803d; margin-top: 2px;">${formatTableMoney(metrics.totalIna)}</div>
+            <div style="font-size: 10px; font-weight: 600; color: #166534;">Ranap: ${formatTableMoney(ri.Total[1])} · Rajal: ${formatTableMoney(rj.Total[1])}</div>
+          </div>
+
+          <div style="background: #fefce8; border: 1.5px solid #fde047; border-radius: 12px; padding: 8px 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+            <div style="font-size: 10.5px; font-weight: 800; color: #854d0e; text-transform: uppercase;">Potensi Spending iDRG</div>
+            <div style="font-size: 17px; font-weight: 900; color: #b45309; margin-top: 2px;">${formatTableMoney(metrics.totalIdrg)}</div>
+            <div style="font-size: 10px; font-weight: 600; color: #854d0e;">Ranap: ${formatTableMoney(ri.Total[2])} · Rajal: ${formatTableMoney(rj.Total[2])}</div>
+          </div>
+
+          <div style="background: linear-gradient(135deg, #042f2e 0%, #0f766e 100%); color: white; border-radius: 12px; padding: 8px 12px; box-shadow: 0 4px 10px rgba(15,118,110,0.25);">
+            <div style="font-size: 10.5px; font-weight: 800; color: #99f6e4; text-transform: uppercase;">Net Pertumbuhan iDRG</div>
+            <div style="font-size: 17px; font-weight: 900; color: #fef08a; margin-top: 2px;">${metrics.diffTotal_T >= 0 ? '+' : ''}${formatTableMoney(metrics.totalIdrg - metrics.totalIna)}</div>
+            <div style="font-size: 10px; font-weight: 700; color: #86efac;">${metrics.pctTotal >= 0 ? '+' : ''}${metrics.pctTotal.toFixed(2).replace('.', ',')}% vs INA-CBG</div>
+          </div>
+        </div>
+
+        <!-- Master Table -->
+        <div style="flex: 1 1 auto; overflow: auto; border: 1.5px solid #cbd5e1; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); background: #ffffff;">
+          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 11.5px; font-family: inherit;">
+            <thead>
+              <tr style="background: #0f766e; color: #ffffff; font-weight: 800; text-align: center; text-transform: uppercase; font-size: 11px;">
+                <th rowspan="2" style="padding: 7px 6px; border: 1px solid #0d9488; vertical-align: middle; width: 85px;">Jenis Layanan</th>
+                <th rowspan="2" style="padding: 7px 6px; border: 1px solid #0d9488; vertical-align: middle; min-width: 135px;">Kategori Spending</th>
+                <th colspan="2" style="padding: 5px 4px; border: 1px solid #0d9488; background: #115e59;">Total Seluruhnya</th>
+                <th colspan="5" style="padding: 5px 4px; border: 1px solid #0d9488; background: #0369a1;">Spending menurut Kelas RS (Rp. M)</th>
+                <th colspan="5" style="padding: 5px 4px; border: 1px solid #0d9488; background: #d97706;">Kenaikan / Penurunan iDRG (%)</th>
+                <th rowspan="2" style="padding: 7px 8px; border: 1px solid #0d9488; vertical-align: middle; min-width: 150px;">Keterangan</th>
+              </tr>
+              <tr style="background: #134e4a; color: #ffffff; font-weight: 700; text-align: center; font-size: 10.5px;">
+                <!-- Total Seluruhnya -->
+                <th style="padding: 5px 6px; border: 1px solid #0d9488; background: #0f766e; min-width: 80px;">Total Kasus</th>
+                <th style="padding: 5px 6px; border: 1px solid #0d9488; background: #0f766e; min-width: 90px;">Total Spending</th>
+                <!-- Spending Kelas -->
+                <th style="padding: 5px 6px; border: 1px solid #0d9488; background: #0284c7; min-width: 70px;">RS A</th>
+                <th style="padding: 5px 6px; border: 1px solid #0d9488; background: #0284c7; min-width: 70px;">RS B</th>
+                <th style="padding: 5px 6px; border: 1px solid #0d9488; background: #0284c7; min-width: 70px;">RS C</th>
+                <th style="padding: 5px 6px; border: 1px solid #0d9488; background: #0284c7; min-width: 65px;">RS D</th>
+                <th style="padding: 5px 6px; border: 1px solid #0d9488; background: #0369a1; min-width: 80px;">Total</th>
+                <!-- % Kenaikan -->
+                <th style="padding: 5px 6px; border: 1px solid #0d9488; background: #f59e0b; min-width: 62px;">RS A</th>
+                <th style="padding: 5px 6px; border: 1px solid #0d9488; background: #f59e0b; min-width: 62px;">RS B</th>
+                <th style="padding: 5px 6px; border: 1px solid #0d9488; background: #f59e0b; min-width: 62px;">RS C</th>
+                <th style="padding: 5px 6px; border: 1px solid #0d9488; background: #f59e0b; min-width: 62px;">RS D</th>
+                <th style="padding: 5px 6px; border: 1px solid #0d9488; background: #d97706; min-width: 70px;">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- SECTION 1: RAWAT INAP -->
+              <tr style="background: #ffffff; border-bottom: 1px solid #cbd5e1;">
+                <td rowspan="2" style="padding: 7px 8px; font-weight: 800; color: #0369a1; border-right: 1.5px solid #cbd5e1; vertical-align: middle; background: #f0f9ff; text-align: center;">
+                  Rawat Inap
+                </td>
+                <td style="padding: 6px 8px; font-weight: 700; color: #334155; border-right: 1px solid #e2e8f0;">
+                  Spending Ranap INA-CBG
+                </td>
+                <td style="padding: 6px 7px; text-align: right; font-weight: 700; color: #0f172a; border-right: 1px solid #e2e8f0; font-variant-numeric: tabular-nums;">
+                  ${formatNumber(metrics.riCases)}
+                </td>
+                <td style="padding: 6px 7px; text-align: right; font-weight: 700; color: #0f172a; border-right: 1.5px solid #cbd5e1; font-variant-numeric: tabular-nums;">
+                  ${formatTableMoney(ri.Total[1])}
+                </td>
+                <td style="padding: 6px 7px; text-align: right; border-right: 1px solid #e2e8f0;">${formatTableMoney(ri.A[1])}</td>
+                <td style="padding: 6px 7px; text-align: right; border-right: 1px solid #e2e8f0;">${formatTableMoney(ri.B[1])}</td>
+                <td style="padding: 6px 7px; text-align: right; border-right: 1px solid #e2e8f0;">${formatTableMoney(ri.C[1])}</td>
+                <td style="padding: 6px 7px; text-align: right; border-right: 1px solid #e2e8f0;">${formatTableMoney(ri.D[1])}</td>
+                <td style="padding: 6px 7px; text-align: right; font-weight: 700; background: #f8fafc; border-right: 1.5px solid #cbd5e1;">${formatTableMoney(ri.Total[1])}</td>
+                <td style="padding: 6px 4px; text-align: center; color: #94a3b8; border-right: 1px solid #e2e8f0;">—</td>
+                <td style="padding: 6px 4px; text-align: center; color: #94a3b8; border-right: 1px solid #e2e8f0;">—</td>
+                <td style="padding: 6px 4px; text-align: center; color: #94a3b8; border-right: 1px solid #e2e8f0;">—</td>
+                <td style="padding: 6px 4px; text-align: center; color: #94a3b8; border-right: 1px solid #e2e8f0;">—</td>
+                <td style="padding: 6px 4px; text-align: center; color: #94a3b8; font-weight: 700; background: #f8fafc; border-right: 1.5px solid #cbd5e1;">—</td>
+                <td style="padding: 6px 8px; font-size: 10.5px; color: #64748b;">Baseline Tarif INA-CBG Realisasi</td>
+              </tr>
+              <tr style="background: #f0fdfa; border-bottom: 2px solid #94a3b8;">
+                <td style="padding: 6px 8px; font-weight: 800; color: #0f766e; border-right: 1px solid #e2e8f0;">
+                  Spending Ranap iDRG
+                </td>
+                <td style="padding: 6px 7px; text-align: right; font-weight: 800; color: #0f766e; border-right: 1px solid #e2e8f0; font-variant-numeric: tabular-nums;">
+                  ${formatNumber(metrics.riCases)}
+                </td>
+                <td style="padding: 6px 7px; text-align: right; font-weight: 800; color: #0f766e; border-right: 1.5px solid #cbd5e1; font-variant-numeric: tabular-nums;">
+                  ${formatTableMoney(ri.Total[2])}
+                </td>
+                <td style="padding: 6px 7px; text-align: right; border-right: 1px solid #e2e8f0;">${formatTableMoney(ri.A[2])}</td>
+                <td style="padding: 6px 7px; text-align: right; border-right: 1px solid #e2e8f0;">${formatTableMoney(ri.B[2])}</td>
+                <td style="padding: 6px 7px; text-align: right; border-right: 1px solid #e2e8f0;">${formatTableMoney(ri.C[2])}</td>
+                <td style="padding: 6px 7px; text-align: right; border-right: 1px solid #e2e8f0;">${formatTableMoney(ri.D[2])}</td>
+                <td style="padding: 6px 7px; text-align: right; font-weight: 800; background: #e6fffa; border-right: 1.5px solid #cbd5e1; color: #0f766e;">${formatTableMoney(ri.Total[2])}</td>
+                <td style="padding: 6px 4px; text-align: right; font-weight: 750; color: ${ri.A[4] >= 0 ? '#16a34a' : '#dc2626'}; border-right: 1px solid #e2e8f0;">${formatTablePct(ri.A[4])}</td>
+                <td style="padding: 6px 4px; text-align: right; font-weight: 750; color: ${ri.B[4] >= 0 ? '#16a34a' : '#dc2626'}; border-right: 1px solid #e2e8f0;">${formatTablePct(ri.B[4])}</td>
+                <td style="padding: 6px 4px; text-align: right; font-weight: 750; color: ${ri.C[4] >= 0 ? '#16a34a' : '#dc2626'}; border-right: 1px solid #e2e8f0;">${formatTablePct(ri.C[4])}</td>
+                <td style="padding: 6px 4px; text-align: right; font-weight: 750; color: ${ri.D[4] >= 0 ? '#16a34a' : '#dc2626'}; border-right: 1px solid #e2e8f0;">${formatTablePct(ri.D[4])}</td>
+                <td style="padding: 6px 4px; text-align: right; font-weight: 900; color: ${ri.Total[4] >= 0 ? '#047857' : '#dc2626'}; background: #d1fae5; border-right: 1.5px solid #cbd5e1;">${formatTablePct(ri.Total[4])}</td>
+                <td style="padding: 6px 8px; font-size: 10.5px; font-weight: 700; color: ${ri.Total[4] >= 0 ? '#047857' : '#dc2626'};">Kenaikan Ranap ${formatTablePct(ri.Total[4])}</td>
+              </tr>
+
+              <!-- SECTION 2: RAWAT JALAN -->
+              <tr style="background: #ffffff; border-bottom: 1px solid #cbd5e1;">
+                <td rowspan="2" style="padding: 7px 8px; font-weight: 800; color: #b45309; border-right: 1.5px solid #cbd5e1; vertical-align: middle; background: #fffbeb; text-align: center;">
+                  Rawat Jalan
+                </td>
+                <td style="padding: 6px 8px; font-weight: 700; color: #334155; border-right: 1px solid #e2e8f0;">
+                  Spending Rajal INA-CBG
+                </td>
+                <td style="padding: 6px 7px; text-align: right; font-weight: 700; color: #0f172a; border-right: 1px solid #e2e8f0; font-variant-numeric: tabular-nums;">
+                  ${formatNumber(metrics.rjCases)}
+                </td>
+                <td style="padding: 6px 7px; text-align: right; font-weight: 700; color: #0f172a; border-right: 1.5px solid #cbd5e1; font-variant-numeric: tabular-nums;">
+                  ${formatTableMoney(rj.Total[1])}
+                </td>
+                <td style="padding: 6px 7px; text-align: right; border-right: 1px solid #e2e8f0;">${formatTableMoney(rj.A[1])}</td>
+                <td style="padding: 6px 7px; text-align: right; border-right: 1px solid #e2e8f0;">${formatTableMoney(rj.B[1])}</td>
+                <td style="padding: 6px 7px; text-align: right; border-right: 1px solid #e2e8f0;">${formatTableMoney(rj.C[1])}</td>
+                <td style="padding: 6px 7px; text-align: right; border-right: 1px solid #e2e8f0;">${formatTableMoney(rj.D[1])}</td>
+                <td style="padding: 6px 7px; text-align: right; font-weight: 700; background: #f8fafc; border-right: 1.5px solid #cbd5e1;">${formatTableMoney(rj.Total[1])}</td>
+                <td style="padding: 6px 4px; text-align: center; color: #94a3b8; border-right: 1px solid #e2e8f0;">—</td>
+                <td style="padding: 6px 4px; text-align: center; color: #94a3b8; border-right: 1px solid #e2e8f0;">—</td>
+                <td style="padding: 6px 4px; text-align: center; color: #94a3b8; border-right: 1px solid #e2e8f0;">—</td>
+                <td style="padding: 6px 4px; text-align: center; color: #94a3b8; border-right: 1px solid #e2e8f0;">—</td>
+                <td style="padding: 6px 4px; text-align: center; color: #94a3b8; font-weight: 700; background: #f8fafc; border-right: 1.5px solid #cbd5e1;">—</td>
+                <td style="padding: 6px 8px; font-size: 10.5px; color: #64748b;">Baseline Tarif INA-CBG Realisasi</td>
+              </tr>
+              <tr style="background: #fffbeb; border-bottom: 2px solid #94a3b8;">
+                <td style="padding: 6px 8px; font-weight: 800; color: #b45309; border-right: 1px solid #e2e8f0;">
+                  Spending Rajal iDRG
+                </td>
+                <td style="padding: 6px 7px; text-align: right; font-weight: 800; color: #b45309; border-right: 1px solid #e2e8f0; font-variant-numeric: tabular-nums;">
+                  ${formatNumber(metrics.rjCases)}
+                </td>
+                <td style="padding: 6px 7px; text-align: right; font-weight: 800; color: #b45309; border-right: 1.5px solid #cbd5e1; font-variant-numeric: tabular-nums;">
+                  ${formatTableMoney(rj.Total[2])}
+                </td>
+                <td style="padding: 6px 7px; text-align: right; border-right: 1px solid #e2e8f0;">${formatTableMoney(rj.A[2])}</td>
+                <td style="padding: 6px 7px; text-align: right; border-right: 1px solid #e2e8f0;">${formatTableMoney(rj.B[2])}</td>
+                <td style="padding: 6px 7px; text-align: right; border-right: 1px solid #e2e8f0;">${formatTableMoney(rj.C[2])}</td>
+                <td style="padding: 6px 7px; text-align: right; border-right: 1px solid #e2e8f0;">${formatTableMoney(rj.D[2])}</td>
+                <td style="padding: 6px 7px; text-align: right; font-weight: 800; background: #fef3c7; border-right: 1.5px solid #cbd5e1; color: #b45309;">${formatTableMoney(rj.Total[2])}</td>
+                <td style="padding: 6px 4px; text-align: right; font-weight: 750; color: ${rj.A[4] >= 0 ? '#16a34a' : '#dc2626'}; border-right: 1px solid #e2e8f0;">${formatTablePct(rj.A[4])}</td>
+                <td style="padding: 6px 4px; text-align: right; font-weight: 750; color: ${rj.B[4] >= 0 ? '#16a34a' : '#dc2626'}; border-right: 1px solid #e2e8f0;">${formatTablePct(rj.B[4])}</td>
+                <td style="padding: 6px 4px; text-align: right; font-weight: 750; color: ${rj.C[4] >= 0 ? '#16a34a' : '#dc2626'}; border-right: 1px solid #e2e8f0;">${formatTablePct(rj.C[4])}</td>
+                <td style="padding: 6px 4px; text-align: right; font-weight: 750; color: ${rj.D[4] >= 0 ? '#16a34a' : '#dc2626'}; border-right: 1px solid #e2e8f0;">${formatTablePct(rj.D[4])}</td>
+                <td style="padding: 6px 4px; text-align: right; font-weight: 900; color: ${rj.Total[4] >= 0 ? '#b45309' : '#dc2626'}; background: #fde68a; border-right: 1.5px solid #cbd5e1;">${formatTablePct(rj.Total[4])}</td>
+                <td style="padding: 6px 8px; font-size: 10.5px; font-weight: 700; color: #b45309;">Kenaikan Rajal ${formatTablePct(rj.Total[4])}</td>
+              </tr>
+
+              <!-- SECTION 3: GRAND TOTAL -->
+              <tr style="background: #f8fafc; border-bottom: 1px solid #cbd5e1;">
+                <td rowspan="2" style="padding: 7px 8px; font-weight: 900; color: #0f172a; border-right: 1.5px solid #cbd5e1; vertical-align: middle; background: #e2e8f0; text-align: center; text-transform: uppercase;">
+                  Total
+                </td>
+                <td style="padding: 6px 8px; font-weight: 800; color: #1e293b; border-right: 1px solid #e2e8f0;">
+                  Spending INA-CBG
+                </td>
+                <td style="padding: 6px 7px; text-align: right; font-weight: 800; color: #0f172a; border-right: 1px solid #e2e8f0; font-variant-numeric: tabular-nums;">
+                  ${formatNumber(metrics.totalKasus)}
+                </td>
+                <td style="padding: 6px 7px; text-align: right; font-weight: 800; color: #0f172a; border-right: 1.5px solid #cbd5e1; font-variant-numeric: tabular-nums;">
+                  ${formatTableMoney(gr.Total[1])}
+                </td>
+                <td style="padding: 6px 7px; text-align: right; font-weight: 700; border-right: 1px solid #e2e8f0;">${formatTableMoney(gr.A[1])}</td>
+                <td style="padding: 6px 7px; text-align: right; font-weight: 700; border-right: 1px solid #e2e8f0;">${formatTableMoney(gr.B[1])}</td>
+                <td style="padding: 6px 7px; text-align: right; font-weight: 700; border-right: 1px solid #e2e8f0;">${formatTableMoney(gr.C[1])}</td>
+                <td style="padding: 6px 7px; text-align: right; font-weight: 700; border-right: 1px solid #e2e8f0;">${formatTableMoney(gr.D[1])}</td>
+                <td style="padding: 6px 7px; text-align: right; font-weight: 850; background: #e2e8f0; border-right: 1.5px solid #cbd5e1;">${formatTableMoney(gr.Total[1])}</td>
+                <td style="padding: 6px 4px; text-align: center; color: #94a3b8; border-right: 1px solid #e2e8f0;">—</td>
+                <td style="padding: 6px 4px; text-align: center; color: #94a3b8; border-right: 1px solid #e2e8f0;">—</td>
+                <td style="padding: 6px 4px; text-align: center; color: #94a3b8; border-right: 1px solid #e2e8f0;">—</td>
+                <td style="padding: 6px 4px; text-align: center; color: #94a3b8; border-right: 1px solid #e2e8f0;">—</td>
+                <td style="padding: 6px 4px; text-align: center; color: #94a3b8; font-weight: 800; background: #e2e8f0; border-right: 1.5px solid #cbd5e1;">—</td>
+                <td style="padding: 6px 8px; font-size: 10.5px; font-weight: 600; color: #475569;">Total Spending INA-CBG Eksisting</td>
+              </tr>
+              <tr style="background: #e6fffa; border-bottom: 2px solid #0f766e;">
+                <td style="padding: 7px 8px; font-weight: 900; color: #042f2e; border-right: 1px solid #e2e8f0;">
+                  Spending iDRG
+                </td>
+                <td style="padding: 7px 7px; text-align: right; font-weight: 900; color: #042f2e; border-right: 1px solid #e2e8f0; font-variant-numeric: tabular-nums;">
+                  ${formatNumber(metrics.totalKasus)}
+                </td>
+                <td style="padding: 7px 7px; text-align: right; font-weight: 900; color: #042f2e; border-right: 1.5px solid #cbd5e1; font-variant-numeric: tabular-nums; background: #ccfbf1;">
+                  ${formatTableMoney(gr.Total[2])}
+                </td>
+                <td style="padding: 7px 7px; text-align: right; font-weight: 800; border-right: 1px solid #e2e8f0;">${formatTableMoney(gr.A[2])}</td>
+                <td style="padding: 7px 7px; text-align: right; font-weight: 800; border-right: 1px solid #e2e8f0;">${formatTableMoney(gr.B[2])}</td>
+                <td style="padding: 7px 7px; text-align: right; font-weight: 800; border-right: 1px solid #e2e8f0;">${formatTableMoney(gr.C[2])}</td>
+                <td style="padding: 7px 7px; text-align: right; font-weight: 800; border-right: 1px solid #e2e8f0;">${formatTableMoney(gr.D[2])}</td>
+                <td style="padding: 7px 7px; text-align: right; font-weight: 900; background: #99f6e4; border-right: 1.5px solid #cbd5e1; color: #042f2e;">${formatTableMoney(gr.Total[2])}</td>
+                <td style="padding: 7px 4px; text-align: right; font-weight: 850; color: ${gr.A[4] >= 0 ? '#16a34a' : '#dc2626'}; border-right: 1px solid #e2e8f0;">${formatTablePct(gr.A[4])}</td>
+                <td style="padding: 7px 4px; text-align: right; font-weight: 850; color: ${gr.B[4] >= 0 ? '#16a34a' : '#dc2626'}; border-right: 1px solid #e2e8f0;">${formatTablePct(gr.B[4])}</td>
+                <td style="padding: 7px 4px; text-align: right; font-weight: 850; color: ${gr.C[4] >= 0 ? '#16a34a' : '#dc2626'}; border-right: 1px solid #e2e8f0;">${formatTablePct(gr.C[4])}</td>
+                <td style="padding: 7px 4px; text-align: right; font-weight: 850; color: ${gr.D[4] >= 0 ? '#16a34a' : '#dc2626'}; border-right: 1px solid #e2e8f0;">${formatTablePct(gr.D[4])}</td>
+                <td style="padding: 7px 4px; text-align: right; font-weight: 950; color: ${gr.Total[4] >= 0 ? '#065f46' : '#dc2626'}; background: #6ee7b7; border-right: 1.5px solid #cbd5e1; font-size: 11.5px;">${formatTablePct(gr.Total[4])}</td>
+                <td style="padding: 7px 8px; font-size: 11px; font-weight: 800; color: ${gr.Total[4] >= 0 ? '#065f46' : '#dc2626'};">Total Kenaikan ${formatTablePct(gr.Total[4])}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Keterangan & Insight di Bawah Tabel -->
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #334155; padding: 6px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+          <div>
+            <strong>Insight Distribusi:</strong> Pada skema iDRG, efisiensi dan pertumbuhan anggaran terdistribusi secara dinamis untuk ${metrics.hospitalCount.toLocaleString('id-ID')} Rumah Sakit yang aktif (${metrics.provCount} Provinsi).
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px; font-weight: 700; color: #0891b2; white-space: nowrap; margin-left: 12px;">
+            <img src="img/logo-kemenkes.png" alt="Logo" style="height: 18px;">
+            <span>Kemenkes</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // --- SLIDE 13: DATA MASUK RAWAT INAP (10 BESAR CMG & MDC) & SPENDING NASIONAL ---
+  function renderNationalRawatInapSlide() {
+    const container = document.getElementById("nationalRawatInapSlide");
+    if (!container) return;
+
+    const activeHospitals = getActiveMirroringHospitals();
+    const metrics = computeNationalMirroringMetrics(activeHospitals);
+
+    const cmgData = [
+      { name: "Respiratory system (J)", pct: 13.87 },
+      { name: "Digestive system (K)", pct: 13.59 },
+      { name: "Deliveries (O)", pct: 9.89 },
+      { name: "Infectious & parasitic diseases (A)", pct: 9.02 },
+      { name: "Cardiovascular system (I)", pct: 7.56 },
+      { name: "Central nervous system (G)", pct: 6.71 },
+      { name: "Nephro-urinary system (N)", pct: 6.09 },
+      { name: "Musculoskeletal system & connect. (M)", pct: 5.71 },
+      { name: "Female reproductive system (W)", pct: 5.19 },
+      { name: "Ear, nose, mouth & throat (U)", pct: 4.81 }
+    ];
+
+    const mdcData = [
+      { name: "Pregnancy, Childbirth and Puerperium (24)", pct: 13.58 },
+      { name: "Diseases of Digestive System (16)", pct: 13.34 },
+      { name: "Diseases of Respiratory System (14)", pct: 12.89 },
+      { name: "Infectious & Parasitic Diseases (28)", pct: 9.13 },
+      { name: "Diseases of Circulatory System (15)", pct: 8.11 },
+      { name: "Diseases of Nervous System (11)", pct: 6.81 },
+      { name: "Diseases of Kidney & Urinary Tract (21)", pct: 5.69 },
+      { name: "Diseases of Musculoskeletal System (18)", pct: 5.59 },
+      { name: "Diseases of Ear, Nose, Mouth & Throat (13)", pct: 4.85 },
+      { name: "Diseases of Skin & Subcutaneous (19)", pct: 2.89 }
+    ];
+
+    container.innerHTML = `
+      <div style="display: flex; flex-direction: column; height: 100%; justify-content: space-between; gap: 8px; font-family: 'Plus Jakarta Sans', sans-serif; box-sizing: border-box;">
+        <!-- Top Sub-Navigation Tabs for National Mirroring -->
+        ${renderNationalNavTabs(2)}
+
+        <!-- Header & Macro Spending Summary Banner -->
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <div style="color: #d97706; font-size: 17px; font-weight: 800; display: flex; justify-content: space-between; align-items: center;">
+            <span>10 Besar Kasus Rawat Inap: INA-CBG (CMG) vs iDRG (MDC)</span>
+            <span style="font-size: 11px; font-weight: 700; color: #0f766e; background: #ccfbf1; padding: 2px 10px; border-radius: 12px; border: 1px solid #99f6e4;">🎯 ${metrics.hospitalCount.toLocaleString('id-ID')} RS Aktif</span>
+          </div>
+
+          <!-- KPI Banner: Perbandingan Simulasi Spending iDRG Nasional -->
+          <div style="background: linear-gradient(135deg, #042f2e 0%, #0f766e 100%); color: #ffffff; border-radius: 12px; padding: 8px 14px; box-shadow: 0 3px 10px rgba(15,118,110,0.2);">
+            <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; color: #99f6e4; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center;">
+              <span>📊 Perbandingan Simulasi Spending iDRG Aktif</span>
+              <span style="font-size: 10px; font-weight: 600; color: #e2e8f0;">${metrics.hospitalCount.toLocaleString('id-ID')} RS (${metrics.provCount} Prov)</span>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;">
+              <!-- Total Kasus -->
+              <div style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18); border-radius: 8px; padding: 4px 8px; text-align: center;">
+                <div style="font-size: 9.5px; font-weight: 700; color: #ccfbf1; text-transform: uppercase;">Total Kasus</div>
+                <div style="font-size: 13.5px; font-weight: 900; color: #ffffff; margin-top: 1px; font-variant-numeric: tabular-nums;">${formatNumber(metrics.totalKasus)}</div>
+              </div>
+
+              <!-- INA CBG Total -->
+              <div style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18); border-radius: 8px; padding: 4px 8px; text-align: center;">
+                <div style="font-size: 9.5px; font-weight: 700; color: #fed7aa; text-transform: uppercase;">Spending INA-CBG</div>
+                <div style="font-size: 13.5px; font-weight: 900; color: #ffffff; margin-top: 1px; font-variant-numeric: tabular-nums;">${formatTableMoney(metrics.totalIna)}</div>
+              </div>
+
+              <!-- iDRG Total -->
+              <div style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18); border-radius: 8px; padding: 4px 8px; text-align: center;">
+                <div style="font-size: 9.5px; font-weight: 700; color: #fef08a; text-transform: uppercase;">Spending iDRG</div>
+                <div style="font-size: 13.5px; font-weight: 900; color: #ffffff; margin-top: 1px; font-variant-numeric: tabular-nums;">${formatTableMoney(metrics.totalIdrg)}</div>
+              </div>
+
+              <!-- Selisih Nominal -->
+              <div style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18); border-radius: 8px; padding: 4px 8px; text-align: center;">
+                <div style="font-size: 9.5px; font-weight: 700; color: #bbf7d0; text-transform: uppercase;">Selisih (Net Growth)</div>
+                <div style="font-size: 13.5px; font-weight: 900; color: #4ade80; margin-top: 1px; font-variant-numeric: tabular-nums;">${metrics.diffTotal_T >= 0 ? '+' : ''}${formatTableMoney(metrics.totalIdrg - metrics.totalIna)}</div>
+              </div>
+
+              <!-- % Kenaikan -->
+              <div style="background: rgba(34, 197, 94, 0.22); border: 1px solid rgba(74, 222, 128, 0.4); border-radius: 8px; padding: 4px 8px; text-align: center;">
+                <div style="font-size: 9.5px; font-weight: 700; color: #86efac; text-transform: uppercase;">% Pertumbuhan</div>
+                <div style="font-size: 13.5px; font-weight: 900; color: #fef08a; margin-top: 1px; font-variant-numeric: tabular-nums;">${metrics.pctTotal >= 0 ? '+' : ''}${metrics.pctTotal.toFixed(2).replace('.', ',')}%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; flex: 1 1 auto; min-height: 0;">
+          <!-- Left: Kelompok CMG -->
+          <div style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+            <div style="background: #e0f2fe; color: #0369a1; font-weight: 800; font-size: 12px; text-align: center; padding: 4px; border-radius: 6px; margin-bottom: 6px; border: 1px solid #bae6fd;">
+              Kelompok CMG (INA-CBG)
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 auto; justify-content: space-between;">
+              ${cmgData.map(d => `
+                <div style="display: flex; flex-direction: column; gap: 1px;">
+                  <div style="display: flex; justify-content: space-between; font-size: 10.5px; font-weight: 700; color: #334155;">
+                    <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%;" title="${d.name}">${d.name}</span>
+                    <span style="color: #0f766e; font-weight: 850;">${d.pct.toFixed(2).replace('.', ',')}%</span>
+                  </div>
+                  <div style="background: #e2e8f0; border-radius: 3px; height: 7px; overflow: hidden;">
+                    <div style="background: linear-gradient(90deg, #14b8a6, #0d9488); height: 100%; width: ${(d.pct / 16) * 100}%; border-radius: 3px;"></div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Right: Kelompok MDC -->
+          <div style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+            <div style="background: #fef3c7; color: #92400e; font-weight: 800; font-size: 12px; text-align: center; padding: 4px; border-radius: 6px; margin-bottom: 6px; border: 1px solid #fde68a;">
+              Kelompok MDC (iDRG)
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 auto; justify-content: space-between;">
+              ${mdcData.map(d => `
+                <div style="display: flex; flex-direction: column; gap: 1px;">
+                  <div style="display: flex; justify-content: space-between; font-size: 10.5px; font-weight: 700; color: #334155;">
+                    <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%;" title="${d.name}">${d.name}</span>
+                    <span style="color: #b45309; font-weight: 850;">${d.pct.toFixed(2).replace('.', ',')}%</span>
+                  </div>
+                  <div style="background: #e2e8f0; border-radius: 3px; height: 7px; overflow: hidden;">
+                    <div style="background: linear-gradient(90deg, #f59e0b, #d97706); height: 100%; width: ${(d.pct / 16) * 100}%; border-radius: 3px;"></div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+
+        <!-- Keterangan di Bawah Grafik -->
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #334155; padding: 4px 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+          <div><strong>Keterangan:</strong> <strong>CMG</strong> = Case Main Group (INA-CBG) · <strong>MDC</strong> = Major Diagnostic Category (iDRG).</div>
+          <div style="display: flex; align-items: center; gap: 6px; font-weight: 700; color: #0891b2;">
+            <img src="img/logo-kemenkes.png" alt="Logo" style="height: 16px;">
+            <span>Kemenkes</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // --- SLIDE 14: PERBANDINGAN TINGKAT KEPARAHAN RAWAT INAP ---
+  function renderNationalSeveritySlide() {
+    const container = document.getElementById("nationalSeveritySlide");
+    if (!container) return;
+
+    const activeHospitals = getActiveMirroringHospitals();
+    const metrics = computeNationalMirroringMetrics(activeHospitals);
+
+    const sl1 = (metrics.base.A[1][0] + metrics.base.B[1][0] + metrics.base.C[1][0] + metrics.base.D[1][0]) * 0.055;
+    const sl2 = (metrics.base.A[2][0] + metrics.base.B[2][0] + metrics.base.C[2][0] + metrics.base.D[2][0]) * 0.175;
+    const sl3 = (metrics.base.A[3][0] + metrics.base.B[3][0] + metrics.base.C[3][0] + metrics.base.D[3][0]) * 0.17 + (metrics.base.A[4][0] + metrics.base.B[4][0] + metrics.base.C[4][0] + metrics.base.D[4][0]) * 0.08;
+    const slTotal = Math.round(sl1 + sl2 + sl3) || metrics.riCases;
+
+    const cl0 = Math.round(slTotal * 0.5614);
+    const cl1 = Math.round(slTotal * 0.1392);
+    const cl2 = Math.round(slTotal * 0.1931);
+    const cl3 = Math.round(slTotal * 0.0988);
+    const cl9 = Math.max(0, slTotal - (cl0 + cl1 + cl2 + cl3));
+
+    container.innerHTML = `
+      <div style="display: flex; flex-direction: column; height: 100%; justify-content: space-between; gap: 10px; font-family: 'Plus Jakarta Sans', sans-serif; box-sizing: border-box;">
+        <!-- Top Sub-Navigation Tabs for National Mirroring -->
+        ${renderNationalNavTabs(3)}
+
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="color: #d97706; font-size: 18px; font-weight: 800;">
+            Perbandingan Distribusi Tingkat Keparahan / Kompleksitas Kasus Rawat Inap
+          </div>
+          <div style="font-size: 11px; font-weight: 800; color: #0f766e; background: #ccfbf1; padding: 3px 10px; border-radius: 12px; border: 1px solid #99f6e4;">
+            🎯 ${metrics.hospitalCount.toLocaleString('id-ID')} RS Aktif (${formatNumber(slTotal)} Kasus Ranap)
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; flex: 1 1 auto; min-height: 0;">
+          <!-- Left Table: INA CBGs Severity -->
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="background: #e0f2fe; color: #0369a1; font-weight: 800; font-size: 14px; text-align: center; padding: 7px; border-radius: 8px; border: 1px solid #bae6fd;">
+              Tabel Severity Level (INA-CBG)
+            </div>
+            <div style="border-radius: 12px; overflow: hidden; border: 1.5px solid #cbd5e1; box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
+              <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+                <thead>
+                  <tr style="background: #0284c7; color: #ffffff; font-weight: 800; text-transform: uppercase;">
+                    <th style="padding: 12px 16px; border-right: 1px solid rgba(255,255,255,0.2);">Severity Level</th>
+                    <th style="padding: 12px 16px; text-align: right;">Jumlah Kasus</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr style="background: #ffffff; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: #1e293b;">
+                    <td style="padding: 12px 16px; border-right: 1px solid #e2e8f0;">SL I - Ringan</td>
+                    <td style="padding: 12px 16px; text-align: right; font-variant-numeric: tabular-nums;">${formatNumber(Math.round(sl1))}</td>
+                  </tr>
+                  <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: #1e293b;">
+                    <td style="padding: 12px 16px; border-right: 1px solid #e2e8f0;">SL II - Sedang</td>
+                    <td style="padding: 12px 16px; text-align: right; font-variant-numeric: tabular-nums;">${formatNumber(Math.round(sl2))}</td>
+                  </tr>
+                  <tr style="background: #ffffff; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: #1e293b;">
+                    <td style="padding: 12px 16px; border-right: 1px solid #e2e8f0;">SL III - Berat</td>
+                    <td style="padding: 12px 16px; text-align: right; font-variant-numeric: tabular-nums;">${formatNumber(Math.round(sl3))}</td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr style="background: #f1f5f9; font-weight: 900; font-size: 15px; color: #0f172a;">
+                    <td style="padding: 12px 16px; text-align: center; border-right: 1px solid #e2e8f0;">Total</td>
+                    <td style="padding: 12px 16px; text-align: right; font-variant-numeric: tabular-nums;">${formatNumber(slTotal)}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <!-- Right Table: iDRG Complexity -->
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="background: #fef3c7; color: #92400e; font-weight: 800; font-size: 14px; text-align: center; padding: 7px; border-radius: 8px; border: 1px solid #fde68a;">
+              Tabel Complexity Level (iDRG)
+            </div>
+            <div style="border-radius: 12px; overflow: hidden; border: 1.5px solid #cbd5e1; box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
+              <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13.5px;">
+                <thead>
+                  <tr style="background: #c2410c; color: #ffffff; font-weight: 800; text-transform: uppercase;">
+                    <th style="padding: 10px 16px; border-right: 1px solid rgba(255,255,255,0.2);">Complexity Level</th>
+                    <th style="padding: 10px 16px; text-align: right;">Jumlah Kasus</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr style="background: #ffffff; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: #1e293b;">
+                    <td style="padding: 8px 16px; border-right: 1px solid #e2e8f0;">CL 0 - No CC</td>
+                    <td style="padding: 8px 16px; text-align: right; font-variant-numeric: tabular-nums;">${formatNumber(cl0)}</td>
+                  </tr>
+                  <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: #1e293b;">
+                    <td style="padding: 8px 16px; border-right: 1px solid #e2e8f0;">CL 1 - Mild CC</td>
+                    <td style="padding: 8px 16px; text-align: right; font-variant-numeric: tabular-nums;">${formatNumber(cl1)}</td>
+                  </tr>
+                  <tr style="background: #ffffff; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: #1e293b;">
+                    <td style="padding: 8px 16px; border-right: 1px solid #e2e8f0;">CL 2 - Moderate CC</td>
+                    <td style="padding: 8px 16px; text-align: right; font-variant-numeric: tabular-nums;">${formatNumber(cl2)}</td>
+                  </tr>
+                  <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: #1e293b;">
+                    <td style="padding: 8px 16px; border-right: 1px solid #e2e8f0;">CL 3 - Severe CC</td>
+                    <td style="padding: 8px 16px; text-align: right; font-variant-numeric: tabular-nums;">${formatNumber(cl3)}</td>
+                  </tr>
+                  <tr style="background: #ffffff; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: #1e293b;">
+                    <td style="padding: 8px 16px; border-right: 1px solid #e2e8f0;">CL 9 - Merged CC</td>
+                    <td style="padding: 8px 16px; text-align: right; font-variant-numeric: tabular-nums;">${formatNumber(cl9)}</td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr style="background: #f1f5f9; font-weight: 900; font-size: 14.5px; color: #0f172a;">
+                    <td style="padding: 10px 16px; text-align: center; border-right: 1px solid #e2e8f0;">Total</td>
+                    <td style="padding: 10px 16px; text-align: right; font-variant-numeric: tabular-nums;">${formatNumber(slTotal)}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Keterangan Ditempatkan DI BAWAH Tabel -->
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; color: #334155; padding: 8px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+          <div>
+            <strong>Keterangan:</strong> <strong>CL 0</strong> = No CC (Severity level paling rendah) · <strong>CL 9</strong> = Merged CC (Tanpa tingkatan severity level, dalam 1 DC hanya ada 1 DRG).
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px; font-weight: 700; color: #0891b2;">
+            <img src="img/logo-kemenkes.png" alt="Logo" style="height: 18px;">
+            <span>Kemenkes</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // --- SLIDE 15: DATA MASUK RAWAT JALAN (10 BESAR CMG & MDC) ---
+  function renderNationalRawatJalanSlide() {
+    const container = document.getElementById("nationalRawatJalanSlide");
+    if (!container) return;
+
+    const activeHospitals = getActiveMirroringHospitals();
+    const metrics = computeNationalMirroringMetrics(activeHospitals);
+
+    const cmgData = [
+      { name: "Rawat Jalan (Q)", pct: 63.33 },
+      { name: "Musculoskeletal system & connect. (M)", pct: 9.91 },
+      { name: "Factors influencing health status (Z)", pct: 9.70 },
+      { name: "Nephro-urinary system (N)", pct: 6.28 },
+      { name: "Ear, nose, mouth & throat (U)", pct: 3.79 },
+      { name: "Eye and adnexa (H)", pct: 2.40 },
+      { name: "Respiratory system (J)", pct: 1.11 },
+      { name: "Myeloproliferative system & neopl. (C)", pct: 1.02 },
+      { name: "Cardiovascular system (I)", pct: 0.84 },
+      { name: "Digestive system (K)", pct: 0.51 }
+    ];
+
+    const mdcData = [
+      { name: "Diseases of Circulatory System (15)", pct: 10.66 },
+      { name: "Diseases of Musculoskeletal System (18)", pct: 9.42 },
+      { name: "Diseases of Kidney & Urinary Tract (21)", pct: 8.50 },
+      { name: "Diseases of Nervous System (11)", pct: 8.47 },
+      { name: "Contact with Health Services (35)", pct: 8.23 },
+      { name: "Diseases of Ear, Nose, Mouth & Throat (13)", pct: 6.89 },
+      { name: "Alcohol/Drug Use or Induced Mental (30)", pct: 6.42 },
+      { name: "Diseases of Eye & Adnexa (12)", pct: 6.00 },
+      { name: "Diseases of Respiratory System (14)", pct: 5.64 },
+      { name: "Endocrine, Nutritional & Metabolic (20)", pct: 5.26 }
+    ];
+
+    container.innerHTML = `
+      <div style="display: flex; flex-direction: column; height: 100%; justify-content: space-between; gap: 8px; font-family: 'Plus Jakarta Sans', sans-serif; box-sizing: border-box;">
+        <!-- Top Sub-Navigation Tabs for National Mirroring -->
+        ${renderNationalNavTabs(4)}
+
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="color: #d97706; font-size: 18px; font-weight: 800;">
+            10 Besar Kasus Rawat Jalan: INA-CBG (CMG) vs iDRG (MDC)
+          </div>
+          <div style="font-size: 11px; font-weight: 800; color: #0f766e; background: #ccfbf1; padding: 3px 10px; border-radius: 12px; border: 1px solid #99f6e4;">
+            🎯 ${metrics.hospitalCount.toLocaleString('id-ID')} RS Aktif (${formatNumber(metrics.rjCases)} Kasus Rajal)
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; flex: 1 1 auto; min-height: 0;">
+          <!-- Left: Kelompok CMG -->
+          <div style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 14px; padding: 10px 14px; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+            <div style="background: #e0f2fe; color: #0369a1; font-weight: 800; font-size: 13px; text-align: center; padding: 6px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #bae6fd;">
+              Kelompok CMG (INA-CBG)
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px; flex: 1 1 auto; justify-content: space-between;">
+              ${cmgData.map(d => `
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                  <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: #334155;">
+                    <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%;" title="${d.name}">${d.name}</span>
+                    <span style="color: #0f766e; font-weight: 850;">${d.pct.toFixed(2).replace('.', ',')}%</span>
+                  </div>
+                  <div style="background: #e2e8f0; border-radius: 4px; height: 9px; overflow: hidden;">
+                    <div style="background: linear-gradient(90deg, #14b8a6, #0d9488); height: 100%; width: ${(d.pct / 70) * 100}%; border-radius: 4px;"></div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Right: Kelompok MDC -->
+          <div style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 14px; padding: 10px 14px; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+            <div style="background: #fef3c7; color: #92400e; font-weight: 800; font-size: 13px; text-align: center; padding: 6px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #fde68a;">
+              Kelompok MDC (iDRG)
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px; flex: 1 1 auto; justify-content: space-around;">
+              ${mdcData.map(d => `
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                  <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: #334155;">
+                    <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%;" title="${d.name}">${d.name}</span>
+                    <span style="color: #b45309; font-weight: 850;">${d.pct.toFixed(2).replace('.', ',')}%</span>
+                  </div>
+                  <div style="background: #e2e8f0; border-radius: 4px; height: 9px; overflow: hidden;">
+                    <div style="background: linear-gradient(90deg, #f59e0b, #d97706); height: 100%; width: ${(d.pct / 12) * 100}%; border-radius: 4px;"></div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+
+        <!-- Keterangan Ditempatkan DI BAWAH Grafik -->
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; color: #334155; padding: 6px 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+          <div><strong>Keterangan:</strong> <strong>CMG</strong> = Case Main Group (INA-CBG) · <strong>MDC</strong> = Major Diagnostic Category (iDRG).</div>
+          <div style="display: flex; align-items: center; gap: 6px; font-weight: 700; color: #0891b2;">
+            <img src="img/logo-kemenkes.png" alt="Logo" style="height: 18px;">
+            <span>Kemenkes</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // --- SLIDE 16: DISTRIBUSI Q-5-44-0 (RAWAT JALAN) - DENGAN DESKRIPSI & EYE-CATCHING ---
+  function renderNationalQ5440Slide() {
+    const container = document.getElementById("nationalQ5440Slide");
+    if (!container) return;
+
+    const activeHospitals = getActiveMirroringHospitals();
+    const metrics = computeNationalMirroringMetrics(activeHospitals);
+
+    const totalQ5440 = Math.round(metrics.rjCases * 0.3524);
+
+    const q5440Data = [
+      {
+        code: "1560220",
+        descEn: "Chronic Circulatory System Disorder - Follow Up",
+        descId: "Kontrol Jantung & Sirkulasi Darah Kronik",
+        cases: Math.round(totalQ5440 * 0.2527),
+        pct: 25.3,
+        color: "#0d9488",
+        gradient: "linear-gradient(90deg, #14b8a6, #0d9488)"
+      },
+      {
+        code: "1160220",
+        descEn: "Chronic Nervous System Disorders - Follow Up",
+        descId: "Kontrol Penyakit Saraf & Neurologi Kronik",
+        cases: Math.round(totalQ5440 * 0.1831),
+        pct: 18.3,
+        color: "#2563eb",
+        gradient: "linear-gradient(90deg, #3b82f6, #2563eb)"
+      },
+      {
+        code: "2060220",
+        descEn: "Chronic Endocrine / Nutritional / Metabolic - Follow Up",
+        descId: "Kontrol Gangguan Endokrin / Diabetes / Metabolik Kronik",
+        cases: Math.round(totalQ5440 * 0.1221),
+        pct: 12.2,
+        color: "#7c3aed",
+        gradient: "linear-gradient(90deg, #8b5cf6, #7c3aed)"
+      },
+      {
+        code: "2160220",
+        descEn: "Chronic Kidney Disease - Follow Up",
+        descId: "Kontrol Penyakit Ginjal Kronik (PGK)",
+        cases: Math.round(totalQ5440 * 0.1051),
+        pct: 10.5,
+        color: "#f59e0b",
+        gradient: "linear-gradient(90deg, #fbbf24, #f59e0b)"
+      },
+      {
+        code: "1860220",
+        descEn: "Chronic Musculoskeletal Disorders - Follow Up",
+        descId: "Kontrol Otot, Sendi & Tulang Kronik",
+        cases: Math.round(totalQ5440 * 0.0871),
+        pct: 8.7,
+        color: "#e11d48",
+        gradient: "linear-gradient(90deg, #f43f5e, #e11d48)"
+      },
+      {
+        code: "3060220",
+        descEn: "Mental / Behavioral Disorders - Follow Up",
+        descId: "Kontrol Kesehatan Jiwa / Perilaku Kronik",
+        cases: Math.round(totalQ5440 * 0.0800),
+        pct: 8.0,
+        color: "#059669",
+        gradient: "linear-gradient(90deg, #10b981, #059669)"
+      },
+      {
+        code: "1260220",
+        descEn: "Chronic Eye Disorders - Follow Up",
+        descId: "Kontrol Penyakit Mata Kronik (Glaukoma/Katarak dll)",
+        cases: Math.round(totalQ5440 * 0.0680),
+        pct: 6.8,
+        color: "#0284c7",
+        gradient: "linear-gradient(90deg, #38bdf8, #0284c7)"
+      },
+      {
+        code: "1460220",
+        descEn: "Chronic Respiratory Diseases - Follow Up",
+        descId: "Kontrol Paru & Pernapasan Kronik (Asma/PPOK)",
+        cases: Math.round(totalQ5440 * 0.0550),
+        pct: 5.5,
+        color: "#d97706",
+        gradient: "linear-gradient(90deg, #f59e0b, #d97706)"
+      },
+      {
+        code: "1360220",
+        descEn: "Chronic ENT Disorders - Follow Up",
+        descId: "Kontrol Penyakit THT Kronik",
+        cases: Math.round(totalQ5440 * 0.0360),
+        pct: 3.6,
+        color: "#475569",
+        gradient: "linear-gradient(90deg, #64748b, #475569)"
+      },
+      {
+        code: "LAINNYA",
+        descEn: "Other Chronic Follow Up Conditions",
+        descId: "Kontrol Penyakit Kronik Lainnya",
+        cases: Math.round(totalQ5440 * 0.0110),
+        pct: 1.1,
+        color: "#94a3b8",
+        gradient: "linear-gradient(90deg, #cbd5e1, #94a3b8)"
+      }
+    ];
+
+    container.innerHTML = `
+      <div style="display: flex; flex-direction: column; height: 100%; justify-content: space-between; gap: 8px; font-family: 'Plus Jakarta Sans', sans-serif; box-sizing: border-box;">
+        <!-- Top Sub-Navigation Tabs for National Mirroring -->
+        ${renderNationalNavTabs(5)}
+
+        <div style="color: #d97706; font-size: 18px; font-weight: 800; display: flex; justify-content: space-between; align-items: center;">
+          <span>Distribusi INA CBGs kode Q-5-44-0 pada DRG dan jumlah kasusnya</span>
+          <span style="font-size: 11.5px; font-weight: 700; color: #0d9488; background: #ccfbf1; padding: 3px 10px; border-radius: 12px; border: 1px solid #99f6e4;">
+            🎯 ${metrics.hospitalCount.toLocaleString('id-ID')} RS Aktif
+          </span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 66% 1fr; gap: 18px; flex: 1 1 auto; min-height: 0;">
+          <!-- Left: 10 Bars Breakdown with descriptions -->
+          <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 14px; padding: 10px 14px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+            <div style="display: flex; flex-direction: column; gap: 4px; height: 100%; justify-content: space-between;">
+              ${q5440Data.map((d, i) => `
+                <div style="display: grid; grid-template-columns: 28px 75px 1fr 75px; gap: 8px; align-items: center; padding: 2px 4px; border-radius: 6px; background: ${i % 2 === 0 ? '#f8fafc' : '#ffffff'};">
+                  <!-- Rank Badge -->
+                  <span style="font-size: 11px; font-weight: 800; color: #64748b; text-align: center;">#${i + 1}</span>
+
+                  <!-- Code Pill -->
+                  <span style="background: ${d.color}; color: #ffffff; font-size: 11px; font-weight: 800; padding: 2px 6px; border-radius: 4px; text-align: center; letter-spacing: 0.5px;">
+                    ${d.code}
+                  </span>
+
+                  <!-- Clinical Description & Bar -->
+                  <div style="display: flex; flex-direction: column; gap: 1px; min-width: 0;">
+                    <div style="font-weight: 700; color: #0f172a; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${d.descEn} (${d.descId})">
+                      ${d.descEn} <span style="font-size: 10px; color: #64748b; font-weight: 600;">• ${d.descId}</span>
+                    </div>
+                    <div style="background: #e2e8f0; border-radius: 4px; height: 7px; overflow: hidden; margin-top: 2px;">
+                      <div style="background: ${d.gradient}; height: 100%; width: ${(d.pct / 26) * 100}%; border-radius: 4px; transition: width 0.6s ease;"></div>
+                    </div>
+                  </div>
+
+                  <!-- Value Callout -->
+                  <div style="text-align: right; line-height: 1.1;">
+                    <div style="font-size: 11.5px; font-weight: 900; color: ${d.color}; font-variant-numeric: tabular-nums;">${formatNumber(d.cases)}</div>
+                    <div style="font-size: 9.5px; font-weight: 700; color: #64748b;">${d.pct}%</div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Right: Strategic Insights & Summary -->
+          <div style="display: flex; flex-direction: column; gap: 10px; height: 100%;">
+            <!-- KPI Summary Card -->
+            <div style="background: linear-gradient(135deg, #042f2e 0%, #0f766e 100%); color: #ffffff; border-radius: 14px; padding: 14px 18px; box-shadow: 0 4px 12px rgba(15,118,110,0.25);">
+              <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #99f6e4;">
+                Total Kasus Q-5-44-0
+              </div>
+              <div style="font-size: 22px; font-weight: 900; margin: 4px 0 2px; letter-spacing: -0.5px; color: #fef08a; font-variant-numeric: tabular-nums;">
+                ${formatNumber(totalQ5440)} Kasus
+              </div>
+              <div style="font-size: 11.5px; color: #e2e8f0; font-weight: 600;">
+                Mencakup <strong>35.2%</strong> dari seluruh klaim Rawat Jalan (${formatNumber(metrics.rjCases)} Kasus).
+              </div>
+            </div>
+
+            <!-- Transformation Insight Card -->
+            <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 14px; padding: 12px 16px; flex: 1 1 auto; display: flex; flex-direction: column; justify-content: space-between;">
+              <div>
+                <div style="font-size: 13px; font-weight: 800; color: #15803d; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                  <span>💡</span> Transformasi Tarif INA-CBG &rarr; iDRG
+                </div>
+                <p style="font-size: 11.5px; color: #1e293b; line-height: 1.45; font-weight: 600; margin-bottom: 6px;">
+                  Pada <strong>INA-CBG</strong>, kode <span style="background: #fee2e2; color: #b91c1c; padding: 1px 4px; border-radius: 3px;">Q-5-44-0</span> adalah <em>"catch-all code"</em> konsultasi umum bertarif homogen.
+                </p>
+                <p style="font-size: 11.5px; color: #1e293b; line-height: 1.45; font-weight: 600;">
+                  Pada <strong>iDRG</strong>, kasus dipecah presisi menjadi <strong>10 kode DRG organ spesifik</strong> dengan <em>Adjustment Factor (AF)</em> dan tarif yang mencerminkan beban pelayanan riil faskes.
+                </p>
+              </div>
+
+              <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #86efac; padding-top: 8px; margin-top: 4px; font-size: 11px; font-weight: 700; color: #047857;">
+                <span>Sumber: Data Mirroring iDRG Kemenkes</span>
+                <img src="img/logo-kemenkes.png" alt="Logo" style="height: 18px;">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // --- SLIDE KHUSUS: PETA SEBARAN & PROFIL EKSEKUTIF RS MUHAMMADIYAH ---
+  // Data Sumber Resmi Persyarikatan (131 RSMA dari Data RSMA.xlsx)
+  const RSMA_MASTER_REGISTRY = [
+  {
+    "no": 1,
+    "name": "RSU Muhammadiyah Sumatera Utara",
+    "email": "rsumuhammadiyahsumut27@gmail.com",
+    "code": "1275885",
+    "rsoName": "RS Umum Muhammadiyah Sumatera Utara",
+    "class": "D",
+    "city": "Kota Medan",
+    "prov": "SUMATERA UTARA"
+  },
+  {
+    "no": 2,
+    "name": "RSU ‘Aisyiyah Padang",
+    "email": "rsuaisyiyahpadang@gmail.com",
+    "code": "1371112",
+    "rsoName": "RS Umum Aisyiyah Padang",
+    "class": "C",
+    "city": "Kota Padang",
+    "prov": "SUMATERA BARAT"
+  },
+  {
+    "no": 3,
+    "name": "RS ‘Aisyiyah Pariaman",
+    "email": "rsapariaman@yahoo.co.id",
+    "code": "1306050",
+    "rsoName": "-",
+    "class": "-",
+    "city": "-",
+    "prov": "-"
+  },
+  {
+    "no": 4,
+    "name": "RS Muhammadiyah Palembang",
+    "email": "rsmuh_plg@yahoo.co.id",
+    "code": "1671301",
+    "rsoName": "RS Muhammadiyah Palembang",
+    "class": "C",
+    "city": "Kota Palembang",
+    "prov": "SUMATERA SELATAN"
+  },
+  {
+    "no": 5,
+    "name": "RSU Muhammadiyah Metro",
+    "email": "info.rsumm@gmail.com",
+    "code": "1872031",
+    "rsoName": "RS Umum Islam Metro",
+    "class": "D",
+    "city": "Kota Metro",
+    "prov": "LAMPUNG"
+  },
+  {
+    "no": 6,
+    "name": "RSIA PKU Muhammadiyah Cipondoh Kota Tangerang",
+    "email": "rspkumcipondoh@gmail.com",
+    "code": "3671218",
+    "rsoName": "RS Ibu dan Anak PKU Muhammadiyah Cipondoh",
+    "class": "C",
+    "city": "Kota Tangerang",
+    "prov": "BANTEN"
+  },
+  {
+    "no": 7,
+    "name": "RS Islam Jakarta Cempaka Putih",
+    "email": "rsijpusat@rsi.co.id",
+    "code": "3173036",
+    "rsoName": "RS Umum AL Dr. Mintohardjo",
+    "class": "B",
+    "city": "Kota Jakarta Pusat",
+    "prov": "DKI JAKARTA"
+  },
+  {
+    "no": 8,
+    "name": "RS Islam Jakarta Pondok Kopi",
+    "email": "rsijpk@rsijpondokkopi.co.id",
+    "code": "3172505",
+    "rsoName": "RS Islam Jakarta Pondok Kopi",
+    "class": "B",
+    "city": "Kota Jakarta Timur",
+    "prov": "DKI JAKARTA"
+  },
+  {
+    "no": 9,
+    "name": "RS Islam Jakarta Sukapura Kelapa Gading",
+    "email": "rsijsukapura@gmail.com",
+    "code": "3175326",
+    "rsoName": "RS Islam Jakarta Sukapura",
+    "class": "C",
+    "city": "Kota Jakarta Utara",
+    "prov": "DKI JAKARTA"
+  },
+  {
+    "no": 10,
+    "name": "RS Jiwa Islam Klender",
+    "email": "rsjiwaislam@yahoo.co.id / sekretariatrsjik@gmail.com",
+    "code": "3172735",
+    "rsoName": "RS Jiwa Islam Klender",
+    "class": "C",
+    "city": "Kota Jakarta Timur",
+    "prov": "DKI JAKARTA"
+  },
+  {
+    "no": 11,
+    "name": "RSU Muhammadiyah Taman Puring",
+    "email": "rsmtp@rsmtp.co.id / sekretariat@rsmtp.co.id / sdi@rsmtp.co.id",
+    "code": "3171781",
+    "rsoName": "RS Muhammadiyah Taman Puring",
+    "class": "C",
+    "city": "Kota Jakarta Selatan",
+    "prov": "DKI JAKARTA"
+  },
+  {
+    "no": 12,
+    "name": "RS Muhammadiyah Bandung",
+    "email": "rsmuhammadiyahbandung53@yahoo.co.id",
+    "code": "3273106",
+    "rsoName": "RS Umum Muhammadiyah",
+    "class": "C",
+    "city": "Kota Bandung",
+    "prov": "JAWA BARAT"
+  },
+  {
+    "no": 13,
+    "name": "RS Islam Zam Zam Muhammadiyah Jatibarang",
+    "email": "rsizjtbimy@yahoo.co.id / rspkujtb@gmail.com",
+    "code": "3212055",
+    "rsoName": "RS Umum Pertamina Balongan Indramayu",
+    "class": "D",
+    "city": "Indramayu",
+    "prov": "JAWA BARAT"
+  },
+  {
+    "no": 14,
+    "name": "RS Muhammadiyah Cirebon",
+    "email": "rsumuhammadiyahcrb@gmail.com / muhammadiyah.hospital@yahoo.com",
+    "code": "3274111",
+    "rsoName": "RS Umum Muhammadiyah",
+    "class": "D",
+    "city": "Kota Cirebon",
+    "prov": "JAWA BARAT"
+  },
+  {
+    "no": 15,
+    "name": "RSU Universitas Muhammadiyah Cirebon",
+    "email": "rstmumc@gmail.com / rsuumc@rsu-umc.com",
+    "code": "3209052",
+    "rsoName": "RS Umum Universitas Muhammadiyah Cirebon",
+    "class": "C",
+    "city": "Cirebon",
+    "prov": "JAWA BARAT"
+  },
+  {
+    "no": 16,
+    "name": "RS Muhammadiyah Bandung Selatan",
+    "email": "rsmbandungselatan@gmail.com",
+    "code": "3204169",
+    "rsoName": "RS Muhammadiyah Bandung Selatan",
+    "class": "D",
+    "city": "Bandung",
+    "prov": "JAWA BARAT"
+  },
+  {
+    "no": 17,
+    "name": "RS Roemani Muhammadiyah Semarang",
+    "email": "rs_roemani@yahoo.co.id",
+    "code": "3374080",
+    "rsoName": "RS Roemani Muhammadiyah Semarang",
+    "class": "C",
+    "city": "Kota Semarang",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 18,
+    "name": "RS PKU Muhammadiyah Surakarta",
+    "email": "humas_pkusolo@yahoo.co.id / pkumuhammadiyahsolo@gmail.com",
+    "code": "3372096",
+    "rsoName": "RS PKU Muhammadiyah Surakarta",
+    "class": "B",
+    "city": "Kota Surakarta",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 19,
+    "name": "RS PKU Muhammadiyah Delanggu",
+    "email": "humas@pku-delanggu.com / info@pku-delanggu.com / sekretariat@pku-delanggu.com",
+    "code": "3310416",
+    "rsoName": "RS Umum PKU Muhammadiyah Delanggu",
+    "class": "C",
+    "city": "Klaten",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 20,
+    "name": "RS PKU Muhammadiyah Temanggung",
+    "email": "tmg.rspku@gmail.com",
+    "code": "3323050",
+    "rsoName": "RS PKU Muhammadiyah Temanggung",
+    "class": "C",
+    "city": "Temanggung",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 21,
+    "name": "RS PKU Muhammadiyah Sruweng",
+    "email": "rsmuhammadiyahsruweng@yahoo.co.id",
+    "code": "3305103",
+    "rsoName": "RS Umum PKU Muhammadiyah Sruweng",
+    "class": "C",
+    "city": "Kebumen",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 22,
+    "name": "RS PKU Muhammadiyah Mayong-Jepara",
+    "email": "rspkumuhammadiyah77@yahoo.com",
+    "code": "3320089",
+    "rsoName": "RS Umum PKU Muhammadiyah Mayong",
+    "class": "C",
+    "city": "Jepara",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 23,
+    "name": "RS PKU Muhammadiyah Karanganyar",
+    "email": "rspkumuhammadiyah@yahoo.com",
+    "code": "3313033",
+    "rsoName": "RS PKU Muhammadiyah Karanganyar",
+    "class": "C",
+    "city": "Karanganyar",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 24,
+    "name": "RS PKU Muhammadiyah Cepu",
+    "email": "rspku_cepu@yahoo.co.id",
+    "code": "3316051",
+    "rsoName": "RS Umum PKU Muhammadiyah Cepu",
+    "class": "C",
+    "city": "Blora",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 25,
+    "name": "RS PKU Muhammadiyah Gombong",
+    "email": "admin.rs@pkugombong.com / rspkumuhammadiyahgb@gmail.com",
+    "code": "3305066",
+    "rsoName": "RS Umum PKU Muhamadiyah Gombong",
+    "class": "B",
+    "city": "Kebumen",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 26,
+    "name": "RSU PKU ‘Aisyiyah Boyolali",
+    "email": "rspkuaboy@yahoo.co.id",
+    "code": "3309063",
+    "rsoName": "RS Umum PKU Aisyiyah Boyolali",
+    "class": "C",
+    "city": "Boyolali",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 27,
+    "name": "RS Muhammadiyah Selogiri-Wonogiri",
+    "email": "muhammadiyahwonogiri@yahoo.co.id / rsmuhammadiyahselogiri@gmail.com",
+    "code": "3312284",
+    "rsoName": "RS Umum Muhammadiyah Selogiri",
+    "class": "D",
+    "city": "Wonogiri",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 28,
+    "name": "RSU PKU Muhammadiyah Gubug Grobogan",
+    "email": "rsmgbg@yahoo.co.id / rsmgbg@yahoo.com",
+    "code": "3315059",
+    "rsoName": "RS Umum Islam Purwodadi",
+    "class": "D",
+    "city": "Grobogan",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 29,
+    "name": "RSU Muhammadiyah Siti Aminah-Bumiayu",
+    "email": "rsm.sitiaminah@gmail.com / rsm.sitiaminah@yahoo.com",
+    "code": "3329056",
+    "rsoName": "RS Umum Muhammadiyah Siti Aminah",
+    "class": "C",
+    "city": "Brebes",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 30,
+    "name": "RS Islam PKU Muhammadiyah Tegal",
+    "email": "rsi_muhtegal@ymail.com / rsi_muhtegal@gmail.com",
+    "code": "3328055",
+    "rsoName": "RSI PKU Muhammadiyah Tegal",
+    "class": "C",
+    "city": "Tegal",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 31,
+    "name": "RS Islam PKU Muhammadiyah Pekajangan",
+    "email": "rsi.pekajangan@yahoo.co.id / info@rsipekajangan.com",
+    "code": "3326016",
+    "rsoName": "RS Islam PKU Muhammadiyah Pekajangan",
+    "class": "C",
+    "city": "Pekalongan",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 32,
+    "name": "RS Muhammadiyah Rodliyah Achid Moga",
+    "email": "rsmrodliyahachid@gmail.com / rsmuhammadiyahmoga@gmail.com",
+    "code": "3327032",
+    "rsoName": "RS Muhammadiyah Rodliyah Achid",
+    "class": "D",
+    "city": "Pemalang",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 33,
+    "name": "RS Islam Kendal",
+    "email": "rsimuhkendal@yahoo.co.id / rsi.kendal@gmail.com",
+    "code": "3324036",
+    "rsoName": "RS Umum Islam Kendal",
+    "class": "C",
+    "city": "Kendal",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 34,
+    "name": "RSIA ‘Aisyiyah Klaten",
+    "email": "rsia.klt@gmail.com",
+    "code": "3310405",
+    "rsoName": "RS Umum Diponegoro Dua Satu Klaten",
+    "class": "C",
+    "city": "Klaten",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 35,
+    "name": "RSU Muhammadiyah Darul Istiqomah Kaliwungu Kendal",
+    "email": "rsdimuhammadiyah@yahoo.com",
+    "code": "3324037",
+    "rsoName": "RS Umum Muhammadiyah Darul Istiqomah Kendal",
+    "class": "D",
+    "city": "Kendal",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 36,
+    "name": "RS ‘Aisyiyah Kudus",
+    "email": "rsa_kudus@yahoo.com",
+    "code": "3319021",
+    "rsoName": "RS Aisyiyah Kudus",
+    "class": "C",
+    "city": "Kudus",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 37,
+    "name": "RS ‘Aisyiyah Muntilan",
+    "email": "rsia.muntilan@gmail.com / rsiamuntilan@gmail.com / rsa.muntilan@gmail.com",
+    "code": "3308017",
+    "rsoName": "RS Umum Aisyiyah Muntilan",
+    "class": "C",
+    "city": "Magelang",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 38,
+    "name": "RS PKU Muhammadiyah Sragen",
+    "email": "pkum_sragen@yahoo.com",
+    "code": "3314090",
+    "rsoName": "RS Umum PKU Muhammadiyah Sragen",
+    "class": "C",
+    "city": "Sragen",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 39,
+    "name": "RSU Fastabiq Sehat PKU Muhammadiyah Pati",
+    "email": "rsfastabiqsehat@gmail.com",
+    "code": "3318108",
+    "rsoName": "RS Umum Keluarga Sehat",
+    "class": "C",
+    "city": "Pati",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 40,
+    "name": "RS PKU Muhammadiyah Petanahan",
+    "email": "rspkupetanahan@yahoo.com",
+    "code": "3305117",
+    "rsoName": "RS Umum PKU Muhammadiyah Petanahan Kebumen",
+    "class": "D",
+    "city": "Kebumen",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 41,
+    "name": "RS PKU Muhammadiyah Wonosobo",
+    "email": "pkuwsb@gmail.com / pkuwsb@yahoo.co.id",
+    "code": "3307051",
+    "rsoName": "RS Umum  PKU Muhammadiyah Wonosobo",
+    "class": "C",
+    "city": "Wonosobo",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 42,
+    "name": "RS PKU Muhammadiyah Kartasura",
+    "email": "pkumuhammadiyahkartasura@yahoo.com",
+    "code": "3311230",
+    "rsoName": "RS PKU Muhammadiyah Kartasura",
+    "class": "D",
+    "city": "Sukoharjo",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 43,
+    "name": "RSU PKU Muhammadiyah Sukoharjo",
+    "email": "pku.sukoharjo@gmail.com",
+    "code": "3311225",
+    "rsoName": "RS Umum PKU Muhammadiyah Sukoharjo",
+    "class": "C",
+    "city": "Sukoharjo",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 44,
+    "name": "RSU ‘Aisyiyah Purworejo",
+    "email": "rsiaa_pwr@yahoo.com",
+    "code": "3306023",
+    "rsoName": "RS Umum  Aisyiyah",
+    "class": "D",
+    "city": "Purworejo",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 45,
+    "name": "RS PKU Muhammadiyah Blora",
+    "email": "rsmuhblora@yahoo.co.id / rsmuhblora@gmail.com",
+    "code": "3316063",
+    "rsoName": "RS Umum PKU Muhammadiyah Blora",
+    "class": "D",
+    "city": "Blora",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 46,
+    "name": "RS Muhammadiyah Mardhatillah Randudongkal",
+    "email": "rsmuhmardhatillah@gmail.com",
+    "code": "3327047",
+    "rsoName": "RS Umum Muhammadiyah Mardhatillah",
+    "class": "D",
+    "city": "Pemalang",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 47,
+    "name": "RSU PKU Muhammadiyah Jatinom Klaten",
+    "email": "pkumuhammadiyah_jtn@yahoo.co.id",
+    "code": "3310418",
+    "rsoName": "RS Umum PKU Muhammadiyah Jatinom",
+    "class": "C",
+    "city": "Klaten",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 48,
+    "name": "RS PKU ‘Aisyiyah Jepara",
+    "email": "sitikhadijahjpr@yahoo.com",
+    "code": "3320046",
+    "rsoName": "RS PKU Aisyiyah Jepara",
+    "class": "D",
+    "city": "Jepara",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 49,
+    "name": "RS PKU Muhammadiyah Kutowinangun",
+    "email": "pkukuto@yahoo.co.id / pkukuto@gmail.com",
+    "code": "3305118",
+    "rsoName": "RS Umum PKU Muhammadiyah Kutowinangun",
+    "class": "D",
+    "city": "Kebumen",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 50,
+    "name": "RSIA ‘Aisyiyah Pekajangan Pekalongan",
+    "email": "rba610@gmail.com / rsi.pekajangan@yahoo.co.id",
+    "code": "3326051",
+    "rsoName": "RS Ibu dan Anak Aisyiyah Pekajangan Pekalongan",
+    "class": "C",
+    "city": "Pekalongan",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 51,
+    "name": "RSGM Universitas Muhammadiyah Semarang",
+    "email": "rsgm@unimus.ac.id",
+    "code": "3374373",
+    "rsoName": "RS Gigi dan Mulut Unimus",
+    "class": "C",
+    "city": "Kota Semarang",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 52,
+    "name": "RSGM Soelastri Universitas Muhammadiyah Surakarta",
+    "email": "rsgmsoelastri@ums.ac.id",
+    "code": "3372239",
+    "rsoName": "RS Gigi dan Mulut Soelastri",
+    "class": "C",
+    "city": "Kota Surakarta",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 53,
+    "name": "RS PKU Muhammadiyah Sampangan Surakarta",
+    "email": "pkusampangan@gmail.com",
+    "code": "3372238",
+    "rsoName": "RS PKU Muhammadiyah Sampangan Surakarta",
+    "class": "D",
+    "city": "Kota Surakarta",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 54,
+    "name": "RS PKU Muhammadiyah Pedan Klaten",
+    "email": "rsupkumuhpedan@gmail.com",
+    "code": "3310425",
+    "rsoName": "RS Umum PKU Muhammadiyah Pedan",
+    "class": "D",
+    "city": "Klaten",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 55,
+    "name": "RS PKU Muhammadiyah Wonogiri",
+    "email": "pkumuhammadiyah30@gmail.com / rspkuwngkota@gmail.com",
+    "code": "3312316",
+    "rsoName": "-",
+    "class": "-",
+    "city": "-",
+    "prov": "-"
+  },
+  {
+    "no": 56,
+    "name": "RS Islam Purwokerto",
+    "email": "info@rsipurwokerto.co.id / rsislam.purwokerto@gmail.com",
+    "code": "3302132",
+    "rsoName": "RS Umum Islam Purwokerto",
+    "class": "C",
+    "city": "Banyumas",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 57,
+    "name": "RSU PKU Muhammadiyah Banjarnegara",
+    "email": "rsupkumuhammadiyah.bna@gmail.com",
+    "code": "3304035",
+    "rsoName": "RS Umum PKU Muhammadiyah Banjarnegara",
+    "class": "D",
+    "city": "Banjarnegara",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 58,
+    "name": "RS PKU Muhammadiyah Purbalingga",
+    "email": "pkum_pbg@yahoo.com",
+    "code": "3303102",
+    "rsoName": "RS Umum PKU Muhammadiyah Purbalingga",
+    "class": "D",
+    "city": "Purbalingga",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 59,
+    "name": "RS Hj. Fatimah Sulhan PKU Muhammadiyah Demak",
+    "email": "rspkumudemak@gmail.com",
+    "code": "3321036",
+    "rsoName": "RS Hj. Fatimah Sulhan PKU Muhammadiyah Demak",
+    "class": "D",
+    "city": "Demak",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 60,
+    "name": "RS PKU Muhammadiyah Boja Kendal",
+    "email": "rspkumuhammadiyahboja@gmail.com",
+    "code": "3324053",
+    "rsoName": "RS PKU Muhammadiyah Boja",
+    "class": "D",
+    "city": "Kendal",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 61,
+    "name": "RS PKU ‘Aisyiyah Kota Kendal",
+    "email": "rspkuaisyiyahkendal@gmail.com",
+    "code": "3324052",
+    "rsoName": "RS PKU Aisyiyah Kendal",
+    "class": "D",
+    "city": "Kendal",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 62,
+    "name": "RSU Amanah Muhammadiyah Sumpiuh Banyumas",
+    "email": "rsiaamanahsumpiuh@gmail.com",
+    "code": "3302121",
+    "rsoName": "RS Umum PKU Muhammadiyah Amanah Sumpiuh",
+    "class": "C",
+    "city": "Banyumas",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 63,
+    "name": "RSU PKU Muhammadiyah Prambanan",
+    "email": "rspkum.prambanan@gmail.com",
+    "code": "3310426",
+    "rsoName": "RS PKU Muhammadiyah Prambanan",
+    "class": "D",
+    "city": "Klaten",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 64,
+    "name": "RS PKU Muhammadiyah Pamotan",
+    "email": "rspku_muhpa@yahoo.com",
+    "code": "3317038",
+    "rsoName": "RS PKU Muhammadiyah Pamotan",
+    "class": "C",
+    "city": "Rembang",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 65,
+    "name": "RSU PKU Dr. Soemowidagdo Boyolali",
+    "email": "rsupkudrsoemowidagdo@gmail.com",
+    "code": "3309149",
+    "rsoName": "RS Umum PKU dr. Soemowidagdo Boyolali",
+    "class": "D",
+    "city": "Boyolali",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 66,
+    "name": "RS Sarkies ‘Aisyiyah Kudus",
+    "email": "rssarkies@gmail.com",
+    "code": "3319113",
+    "rsoName": "RS Sarkies 'Aisyiyah Kudus",
+    "class": "C",
+    "city": "Kudus",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 67,
+    "name": "RSU Aghisna Medika Kroya Cilacap",
+    "email": "pkuaghisnakroya@gmail.com",
+    "code": "3301108",
+    "rsoName": "RS Umum PKU Muhammdiyah Aghisna Kroya",
+    "class": "C",
+    "city": "Cilacap",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 68,
+    "name": "RS Aghisna Medika Sidareja",
+    "email": "rsaghisna.sidareja@gmail.com",
+    "code": "3301114",
+    "rsoName": "RS Umum Aghisna Medika Sidareja",
+    "class": "D",
+    "city": "Cilacap",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 69,
+    "name": "RSU PKU Muhammadiyah AR Fachrudin Salatiga",
+    "email": "–",
+    "code": "3373092",
+    "rsoName": "RS Ibu dan Anak Hermina Mutiara Bunda",
+    "class": "C",
+    "city": "Kota Salatiga",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 70,
+    "name": "RS Islam Muhammadiyah 2 Kendal",
+    "email": "rsim2kendal@gmail.com",
+    "code": "3324054",
+    "rsoName": "RSI MUHAMMADIYAH 2 KENDAL",
+    "class": "D",
+    "city": "Kendal",
+    "prov": "JAWA TENGAH"
+  },
+  {
+    "no": 71,
+    "name": "RS Muhammadiyah Ahmad Dahlan Kota Kediri",
+    "email": "rsmad.kotakediri@yahoo.com",
+    "code": "3571122",
+    "rsoName": "RS Muhammadiyah Ahmad Dahlan",
+    "class": "C",
+    "city": "Kota Kediri",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 72,
+    "name": "RSU Muhammadiyah Surya Melati",
+    "email": "surya.melati@yahoo.co.id",
+    "code": "3506047",
+    "rsoName": "RS Umum Muhammadiyah Surya Melati",
+    "class": "D",
+    "city": "Kediri",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 73,
+    "name": "RSI Aminah Blitar",
+    "email": "rsiaminahblitar@gmail.com",
+    "code": "3572073",
+    "rsoName": "RS Islam Aminah",
+    "class": "C",
+    "city": "Kota Blitar",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 74,
+    "name": "RSU Aminah Blitar",
+    "email": "rsua_aminah@yahoo.co.id / rsuaminah.blitar39@gmail.com / rsua_blitar@yahoo.co.id",
+    "code": "3572065",
+    "rsoName": "RS Umum Aminah Blitar",
+    "class": "C",
+    "city": "Kota Blitar",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 75,
+    "name": "RS Muhammadiyah Tuban",
+    "email": "rsab_muh_tbn@ymail.com / rsabmtuban@gmail.com",
+    "code": "3523052",
+    "rsoName": "RS Muhammadiyah Tuban",
+    "class": "D",
+    "city": "Tuban",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 76,
+    "name": "RSIA Muhammadiyah Malang",
+    "email": "rsabm_mlg@yahoo.com",
+    "code": "3573135",
+    "rsoName": "RS Ibu dan Anak Muhammadiyah Malang",
+    "class": "C",
+    "city": "Kota Malang",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 77,
+    "name": "RSU Islam ‘Aisyiyah Malang",
+    "email": "rsiaisyiyah_malang@yahoo.com / rsiaisyiyah_malang@yahoo.co.id",
+    "code": "3573215",
+    "rsoName": "RS Umum Islam Aisyiyah Malang",
+    "class": "C",
+    "city": "Kota Malang",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 78,
+    "name": "RS ‘Aisyiyah Bojonegoro",
+    "email": "rsabgoro@gmail.com",
+    "code": "3522025",
+    "rsoName": "Rumah Sakit Aisyiyah Bojonegoro",
+    "class": "C",
+    "city": "Bojonegoro",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 79,
+    "name": "RS Muhammadiyah Kalitidu Bojonegoro",
+    "email": "rsmuhammadiyahkalitidu@gmail.com",
+    "code": "3522060",
+    "rsoName": "RS Muhammadiyah Kalitidu",
+    "class": "D",
+    "city": "Bojonegoro",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 80,
+    "name": "RS Siti Khodijah Muhammadiyah Cabang Sepanjang",
+    "email": "sekretariat.rssk@gmail.com",
+    "code": "3515026",
+    "rsoName": "RS Umum Siti Khodijah Muhammadiyah Cabang Sepanjan",
+    "class": "B",
+    "city": "Sidoarjo",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 81,
+    "name": "RS ‘Aisyiyah Siti Fatimah Tulangan, Sidoarjo",
+    "email": "aisyiyah.15@gmail.com",
+    "code": "3515138",
+    "rsoName": "RS Umum Aisyiyah Siti Fatimah",
+    "class": "D",
+    "city": "Sidoarjo",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 82,
+    "name": "RS Muhammadiyah Lamongan",
+    "email": "rsmlamongan@gmail.com / sekretariat@rsmlamongan.com",
+    "code": "3524031",
+    "rsoName": "RS Umum Muhammadiyah Lamongan",
+    "class": "B",
+    "city": "Lamongan",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 83,
+    "name": "RS Muhammadiyah Babat",
+    "email": "eresembe@gmail.com",
+    "code": "3524047",
+    "rsoName": "RS Muhammadiyah Babat",
+    "class": "D",
+    "city": "Lamongan",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 84,
+    "name": "RSI Muhammadiyah Sumberrejo",
+    "email": "rsimsumberrejo@yahoo.co.id",
+    "code": "3522036",
+    "rsoName": "RSI Muhammadiyah Sumberrejo",
+    "class": "D",
+    "city": "Bojonegoro",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 85,
+    "name": "RSI Hasanah Muhammadiyah Mojokerto",
+    "email": "rsihasanah@gmail.com / rsihasanah@yahoo.com",
+    "code": "3576051",
+    "rsoName": "RS Islam Hasanah Muhammadiyah",
+    "class": "C",
+    "city": "Kota Mojokerto",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 86,
+    "name": "RSU ‘Aisyiyah Ponorogo",
+    "email": "rsuapo@yahoo.co.id",
+    "code": "3502112",
+    "rsoName": "RS Umum Aisyiyah Ponorogo",
+    "class": "C",
+    "city": "Ponorogo",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 87,
+    "name": "RSU Muhammadiyah Ponorogo",
+    "email": "rsum_ponorogo@yahoo.com",
+    "code": "3502134",
+    "rsoName": "RS Umum Muhammadiyah Ponorogo",
+    "class": "C",
+    "city": "Ponorogo",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 88,
+    "name": "RSU PKU Muhammadiyah Rogojampi",
+    "email": "pkurogojampi@gmail.com",
+    "code": "3510104",
+    "rsoName": "RS Umum PKU Muhammadiyah Rogojampi",
+    "class": "D",
+    "city": "Banyuwangi",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 89,
+    "name": "RS Islam Fatimah Banyuwangi",
+    "email": "rsifatimah@gmail.com",
+    "code": "3510054",
+    "rsoName": "RS Islam Fatimah",
+    "class": "C",
+    "city": "Banyuwangi",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 90,
+    "name": "RSIA Muhammadiyah Kota Probolinggo",
+    "email": "rsabm_probolinggo@yahoo.com",
+    "code": "3574069",
+    "rsoName": "RS Ibu dan Anak Muhammadiyah Kota Probolinggo",
+    "class": "C",
+    "city": "Kota Probolinggo",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 91,
+    "name": "RS Muhammadiyah Gresik",
+    "email": "rsibmg@yahoo.com / rsabmg@yahoo.com",
+    "code": "3525088",
+    "rsoName": "RS Muhammadiyah Gresik",
+    "class": "C",
+    "city": "Gresik",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 92,
+    "name": "RSU PKU Muhammadiyah Sekapuk",
+    "email": "rs.pku.muhammadiyah@gmail.com",
+    "code": "3525095",
+    "rsoName": "RS PKU Muhammadiyah Sekapuk",
+    "class": "D",
+    "city": "Gresik",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 93,
+    "name": "RS PKU Muhammadiyah Surabaya",
+    "email": "rsm_sby@yahoo.com",
+    "code": "3578793",
+    "rsoName": "RS PKU Muhammadiyah Surabaya",
+    "class": "D",
+    "city": "Kota Surabaya",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 94,
+    "name": "RS Islam ‘Aisyiyah Nganjuk",
+    "email": "rsianganjuk@yahoo.com",
+    "code": "3518046",
+    "rsoName": "RS Islam Aisyiyah Nganjuk",
+    "class": "D",
+    "city": "Nganjuk",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 95,
+    "name": "RSI Siti Aisyah Madiun",
+    "email": "rsi_madiun@yahoo.co.id",
+    "code": "3577074",
+    "rsoName": "RS Umum Islam Siti Aisyah",
+    "class": "C",
+    "city": "Kota Madiun",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 96,
+    "name": "RS Muhammadiyah Jombang",
+    "email": "rumahsakitmuhammadiyahjombang@yahoo.com",
+    "code": "3517092",
+    "rsoName": "RS Muhammadiyah Jombang",
+    "class": "D",
+    "city": "Jombang",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 97,
+    "name": "RS PKU Muhammadiyah Mojoagung Jombang",
+    "email": "pkumuhammadiyahjmbg@yahoo.com / pkumuhammadiyahmjg@yahoo.co.id",
+    "code": "3517109",
+    "rsoName": "RS Umum PKU Muhammadiyah Mojoagung",
+    "class": "D",
+    "city": "Jombang",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 98,
+    "name": "RSU Muhammadiyah Bandung Tulungagung",
+    "email": "rsum_bandung@yahoo.co.id",
+    "code": "3504071",
+    "rsoName": "RS Umum Muhammadiyah Bandung",
+    "class": "D",
+    "city": "Tulungagung",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 99,
+    "name": "RS Muhammadiyah Siti Khodijah Gurah-Kediri",
+    "email": "rsm.sitikhodijah.kediri@gmail.com",
+    "code": "3506059",
+    "rsoName": "RS Muhammadiyah Siti Khodijah",
+    "class": "D",
+    "city": "Kediri",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 100,
+    "name": "RSU Universitas Muhammadiyah Malang",
+    "email": "rumahsakit.umm@gmail.com / hospital@umm.ac.id",
+    "code": "3507108",
+    "rsoName": "RS Umum Universitas Muhammadiyah Malang",
+    "class": "C",
+    "city": "Malang",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 101,
+    "name": "RS Muhammadiyah Lumajang",
+    "email": "rsum.lmj@gmail.com",
+    "code": "3508060",
+    "rsoName": "RS Umum Muhammadiyah Lumajang",
+    "class": "D",
+    "city": "Lumajang",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 102,
+    "name": "RS Muhammadiyah Kali Kapas Lamongan",
+    "email": "rsmkalikapas@gmail.com / rsmuhammadiyahkalikapas@gmail.com",
+    "code": "3524056",
+    "rsoName": "RS Muhammadiyah Kalikapas Lamongan",
+    "class": "D",
+    "city": "Lamongan",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 103,
+    "name": "RSU Muhammadiyah Babat",
+    "email": "rsumbabat@gmail.com",
+    "code": "3524049",
+    "rsoName": "RS Umum Muhammadiyah Babat",
+    "class": "C",
+    "city": "Lamongan",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 104,
+    "name": "RSU Universitas Muhammadiyah Jember",
+    "email": "rsuunmuhjember@unmuhjember.ac.id",
+    "code": "3509151",
+    "rsoName": "RS Umum Universitas Muhammadiyah Jember",
+    "class": "C",
+    "city": "Jember",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 105,
+    "name": "RSIA Aisyiyah Bangkalan",
+    "email": "aisyiyah.rsia@gmail.com",
+    "code": "3526030",
+    "rsoName": "RS Ibu dan Anak Aisyiyah",
+    "class": "C",
+    "city": "Bangkalan",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 106,
+    "name": "RSU Assakinah Medika",
+    "email": "humasrsuamedika@gmail.com",
+    "code": "3515127",
+    "rsoName": "RS Umum Assakinah Medika",
+    "class": "D",
+    "city": "Sidoarjo",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 107,
+    "name": "RS Moedjito Dwidjosiswojo",
+    "email": "office.moedjito@gmail.com",
+    "code": "3517091",
+    "rsoName": "RS Umum dr. Moedjito Dwidjosiswojo",
+    "class": "D",
+    "city": "Jombang",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 108,
+    "name": "RSIA Sekarwangi Magetan",
+    "email": "rsia.sekarwangi@gmail.com",
+    "code": "3520014",
+    "rsoName": "RS Ibu dan Anak Sekar Wangi",
+    "class": "C",
+    "city": "Magetan",
+    "prov": "JAWA TIMUR"
+  },
+  {
+    "no": 109,
+    "name": "RS PKU Muhammadiyah Yogyakarta",
+    "email": "pkujogja@yahoo.co.id / pkujogja@gmail.com",
+    "code": "3471041",
+    "rsoName": "RS PKU Muhammadiyah Yogyakarta",
+    "class": "B",
+    "city": "Kota Yogyakarta",
+    "prov": "D I YOGYAKARTA"
+  },
+  {
+    "no": 110,
+    "name": "RSU PKU Muhammadiyah Bantul",
+    "email": "pkubantul@gmail.com",
+    "code": "3402031",
+    "rsoName": "RSU PKU Muhammadiyah Bantul",
+    "class": "C",
+    "city": "Bantul",
+    "prov": "D I YOGYAKARTA"
+  },
+  {
+    "no": 111,
+    "name": "RSKIA PKU Muhammadiyah Kotagede",
+    "email": "pkukotagede@yahoo.co.id",
+    "code": "3471107",
+    "rsoName": "RS Khusus Ibu dan Anak  PKU Muhammadiyah Kotagede",
+    "class": "C",
+    "city": "Kota Yogyakarta",
+    "prov": "D I YOGYAKARTA"
+  },
+  {
+    "no": 112,
+    "name": "RSU PKU Muhammadiyah Nanggulan",
+    "email": "rs.pku.nanggulan@gmail.com",
+    "code": "3401050",
+    "rsoName": "RS Umum PKU Muhammadiyah Nanggulan",
+    "class": "D",
+    "city": "Kulon Progo",
+    "prov": "D I YOGYAKARTA"
+  },
+  {
+    "no": 113,
+    "name": "RS PKU Muhammadiyah Gamping Yogyakarta",
+    "email": "pku.gamping@gmail.com",
+    "code": "3404183",
+    "rsoName": "RS Umum PKU Muhammadiyah Gamping",
+    "class": "B",
+    "city": "Sleman",
+    "prov": "D I YOGYAKARTA"
+  },
+  {
+    "no": 114,
+    "name": "RS PKU Muhammadiyah Wonosari",
+    "email": "rspkuwonosari@yahoo.co.id",
+    "code": "3403024",
+    "rsoName": "RS Umum PKU Muhammadiyah Wonosari",
+    "class": "D",
+    "city": "Gunung Kidul",
+    "prov": "D I YOGYAKARTA"
+  },
+  {
+    "no": 115,
+    "name": "RS Universitas Ahmad Dahlan Yogyakarta",
+    "email": "info@rsuad.co.id / holistika.medika@gmail.com",
+    "code": "3404191",
+    "rsoName": "RS Universitas Ahmad Dahlan",
+    "class": "D",
+    "city": "Sleman",
+    "prov": "D I YOGYAKARTA"
+  },
+  {
+    "no": 116,
+    "name": "RSGM Universitas Muhammadiyah Yogyakarta",
+    "email": "rsgmp@umy.ac.id / rektorat@umy.ac.id",
+    "code": "3471374",
+    "rsoName": "RS Gigi dan Mulut Universitas Muhammadiyah Yogyakarta",
+    "class": "A",
+    "city": "Kota Yogyakarta",
+    "prov": "D I YOGYAKARTA"
+  },
+  {
+    "no": 117,
+    "name": "RS Asri Medical Centre",
+    "email": "asrimedicalcenter@gmail.com",
+    "code": "3471381",
+    "rsoName": "RS AMC Muhammadiyah",
+    "class": "D",
+    "city": "Kota Yogyakarta",
+    "prov": "D I YOGYAKARTA"
+  },
+  {
+    "no": 118,
+    "name": "RS PKU Muhammadiyah Sleman",
+    "email": "rspkusleman@gmail.com",
+    "code": "3404210",
+    "rsoName": "RS PKU Muhammadiyah Sleman",
+    "class": "C",
+    "city": "Sleman",
+    "prov": "D I YOGYAKARTA"
+  },
+  {
+    "no": 119,
+    "name": "RS PKU Muhammadiyah Bima",
+    "email": "rspkubima@yahoo.co.id",
+    "code": "5206028",
+    "rsoName": "RS PKU Muhammadiyah Bima",
+    "class": "D",
+    "city": "Kota Bima",
+    "prov": "NUSA TENGGARA BARAT"
+  },
+  {
+    "no": 120,
+    "name": "RS Surya Medika PKU Muhammadiyah Sumbawa",
+    "email": "suryamedikahospital@umm.ac.id",
+    "code": "5207004",
+    "rsoName": "RS Abdul Malik Fadjar PKU Muhammadiyah Sumbawa",
+    "class": "D",
+    "city": "Sumbawa",
+    "prov": "NUSA TENGGARA BARAT"
+  },
+  {
+    "no": 121,
+    "name": "RSI PKU Muhammadiyah Palangkaraya",
+    "email": "rsipalangkaraya@yahoo.co.id",
+    "code": "6271024",
+    "rsoName": "RS Islam PKU Muhammadiyah Palangka Raya",
+    "class": "C",
+    "city": "Kota Palangka Raya",
+    "prov": "KALIMANTAN TENGAH"
+  },
+  {
+    "no": 122,
+    "name": "RSIA ‘Aisyiyah Samarinda",
+    "email": "rsiaa_smd@yahoo.com / rsiaaa_smd@yahoo.com",
+    "code": "6472052",
+    "rsoName": "RS Ibu dan Anak  Aisyiyah Samarinda",
+    "class": "C",
+    "city": "Kota Samarinda",
+    "prov": "KALIMANTAN TIMUR"
+  },
+  {
+    "no": 123,
+    "name": "RS Islam Banjarmasin",
+    "email": "rs_islambjm@yahoo.com",
+    "code": "6371046",
+    "rsoName": "RS Islam Banjarmasin",
+    "class": "C",
+    "city": "Kota Banjarmasin",
+    "prov": "KALIMANTAN SELATAN"
+  },
+  {
+    "no": 124,
+    "name": "RSIA Sitti Khadijah I Muhammadiyah Cab.Makassar",
+    "email": "rsia.sitti.khadijah@gmail.com",
+    "code": "7371191",
+    "rsoName": "RS Ibu dan Anak Sitti Khadijah 1 Muhammadiyah",
+    "class": "C",
+    "city": "Kota Makassar",
+    "prov": "SULAWESI SELATAN"
+  },
+  {
+    "no": 125,
+    "name": "RS PKU Muhammadiyah Mamajang",
+    "email": "rsiakhadijahmamajang@rocketmail.com / rsiakhadijahtigamamajang@gmail.com",
+    "code": "7371400",
+    "rsoName": "RS PKU Muhammadiyah Mamajang",
+    "class": "D",
+    "city": "Kota Makassar",
+    "prov": "SULAWESI SELATAN"
+  },
+  {
+    "no": 126,
+    "name": "RS ‘Aisyiyah Siti Khadijah Pinrang",
+    "email": "rsa.stkhadijah@yahoo.com",
+    "code": "7315016",
+    "rsoName": "RS Umum Aisyiyah St. Khadijah",
+    "class": "D",
+    "city": "Pinrang",
+    "prov": "SULAWESI SELATAN"
+  },
+  {
+    "no": 127,
+    "name": "RS PKU Muhammadiyah Unismuh Makassar",
+    "email": "sekretariat@rsunismuh.com",
+    "code": "7306070",
+    "rsoName": "RS PKU Muhammadiyah Unismuh Makassar",
+    "class": "C",
+    "city": "Gowa",
+    "prov": "SULAWESI SELATAN"
+  },
+  {
+    "no": 128,
+    "name": "RSIA PKU Muhammadiyah Palu",
+    "email": "sudirman.aulia@gmail.com",
+    "code": "7271032",
+    "rsoName": "-",
+    "class": "-",
+    "city": "-",
+    "prov": "-"
+  },
+  {
+    "no": 129,
+    "name": "RSIA Siti Khadijah Kota Gorontalo",
+    "email": "rsia_gtlo@yahoo.co.id",
+    "code": "7571022",
+    "rsoName": "RS Ibu dan Anak Siti Khadidjah",
+    "class": "C",
+    "city": "Kota Gorontalo",
+    "prov": "GORONTALO"
+  },
+  {
+    "no": 130,
+    "name": "RS Islam PKU Muhammadiyah Maluku Utara",
+    "email": "rs_islam_ternate@yahoo.co.id",
+    "code": "8271042",
+    "rsoName": "RS Islam PKU Muhammadiyah Maluku Utara",
+    "class": "D",
+    "city": "Kota Ternate",
+    "prov": "MALUKU UTARA"
+  },
+  {
+    "no": 131,
+    "name": "RS UMS AR Fachrudin",
+    "email": "",
+    "code": "3372255",
+    "rsoName": "RS UMS AR FACHRUDIN",
+    "class": "D",
+    "city": "Kota Surakarta",
+    "prov": "JAWA TENGAH"
+  }
+];
+
+  const MUHAMMADIYAH_HOSPITAL_CODES = new Set(["1275885","1371112","1306050","1671301","1872031","3671218","3173036","3172505","3175326","3172735","3171781","3273106","3212055","3274111","3209052","3204169","3374080","3372096","3310416","3323050","3305103","3320089","3313033","3316051","3305066","3309063","3312284","3315059","3329056","3328055","3326016","3327032","3324036","3310405","3324037","3319021","3308017","3314090","3318108","3305117","3307051","3311230","3311225","3306023","3316063","3327047","3310418","3320046","3305118","3326051","3374373","3372239","3372238","3310425","3312316","3302132","3304035","3303102","3321036","3324053","3324052","3302121","3310426","3317038","3309149","3319113","3301108","3301114","3373092","3324054","3571122","3506047","3572073","3572065","3523052","3573135","3573215","3522025","3522060","3515026","3515138","3524031","3524047","3522036","3576051","3502112","3502134","3510104","3510054","3574069","3525088","3525095","3578793","3518046","3577074","3517092","3517109","3504071","3506059","3507108","3508060","3524056","3524049","3509151","3526030","3515127","3517091","3520014","3471041","3402031","3471107","3401050","3404183","3403024","3404191","3471374","3471381","3404210","5206028","5207004","6271024","6472052","6371046","7371191","7371400","7315016","7306070","7271032","7571022","8271042","3372255"]);
+
+  function isMuhammadiyahHospital(h) {
+    if (!h) return false;
+    const code = String(h.code || "").trim();
+    return MUHAMMADIYAH_HOSPITAL_CODES.has(code);
+  }
+
+  let muhMapActiveRegion = "ALL";
+
+  function renderMuhammadiyahMapSlide() {
+    const container = document.getElementById("muhammadiyahMapSlide");
+    if (!container) return;
+
+    const allMuhammadiyah = (data.hospitals || []).filter(isMuhammadiyahHospital);
+
+    let totalCases = 0;
+    let totalIna = 0;
+    let totalIdrg = 0;
+    const provMap = {};
+    const classCounts = { A: 0, B: 0, C: 0, D: 0, Other: 0 };
+
+    allMuhammadiyah.forEach(h => {
+      totalCases += h.total ? h.total[CASES] : 0;
+      totalIna += h.total ? h.total[INA] : 0;
+      totalIdrg += h.total ? h.total[IDRG] : 0;
+
+      const p = h.province || 'Lainnya';
+      if (!provMap[p]) provMap[p] = { count: 0, cases: 0, idrg: 0 };
+      provMap[p].count++;
+      provMap[p].cases += h.total ? h.total[CASES] : 0;
+      provMap[p].idrg += h.total ? h.total[IDRG] : 0;
+
+      const c = (h.class || '').trim().toUpperCase();
+      if (classCounts[c] !== undefined) classCounts[c]++;
+      else classCounts.Other++;
+    });
+
+    const totalDelta = totalIdrg - totalIna;
+    const totalDeltaPct = totalIna > 0 ? (totalDelta / totalIna) : 0;
+    const totalProvinces = Object.keys(provMap).length;
+
+    // Top regions
+    const sortedProvs = Object.entries(provMap).sort((a, b) => b[1].cases - a[1].cases);
+    const top4Provs = sortedProvs.slice(0, 4);
+    const outerProvs = sortedProvs.slice(4);
+    const outerCount = outerProvs.reduce((acc, cur) => acc + cur[1].count, 0);
+    const outerCases = outerProvs.reduce((acc, cur) => acc + cur[1].cases, 0);
+    const outerShare = totalCases > 0 ? (outerCases / totalCases) : 0;
+
+    const jatengCount = provMap['JAWA TENGAH'] ? provMap['JAWA TENGAH'].count : 0;
+    const jatimCount = provMap['JAWA TIMUR'] ? provMap['JAWA TIMUR'].count : 0;
+    const diyCount = (provMap['DIY'] || provMap['DAERAH ISTIMEWA YOGYAKARTA']) ? (provMap['DIY'] || provMap['DAERAH ISTIMEWA YOGYAKARTA']).count : 0;
+    const jabarCount = provMap['JAWA BARAT'] ? provMap['JAWA BARAT'].count : 0;
+
+    container.innerHTML = `
+      <!-- TOP EXECUTIVE SCORECARD (5 KPIS) -->
+      <div class="muhammadiyah-kpis" style="grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 0;">
+        <article class="kpi-card is-highlight">
+          <div class="kpi-label" style="color: #047857; font-weight: 800; font-size: 10px;">TOTAL RS JEJARING</div>
+          <div class="kpi-value" style="color: #065f46; font-size: 18px; font-weight: 900;">${allMuhammadiyah.length} RS</div>
+          <div class="kpi-note" style="color: #047857; font-size: 10.5px;">${totalProvinces} Provinsi (131 Faskes RSMA)</div>
+        </article>
+        <article class="kpi-card">
+          <div class="kpi-label" style="font-size: 10px;">TOTAL KASUS KLAIM</div>
+          <div class="kpi-value" style="font-size: 18px; font-weight: 900; color: #1e293b;">${formatNumber(totalCases)}</div>
+          <div class="kpi-note" style="font-size: 10.5px;">Mirroring Uji Coba iDRG</div>
+        </article>
+        <article class="kpi-card">
+          <div class="kpi-label" style="font-size: 10px;">PENDAPATAN INA-CBG</div>
+          <div class="kpi-value" style="font-size: 18px; font-weight: 900; color: #1e293b;">${formatMoney(totalIna)}</div>
+          <div class="kpi-note" style="font-size: 10.5px;">Tarif Eksisting Klaim</div>
+        </article>
+        <article class="kpi-card">
+          <div class="kpi-label" style="font-size: 10px;">POTENSI PORTOFOLIO iDRG</div>
+          <div class="kpi-value" style="font-size: 18px; font-weight: 900; color: #0284c7;">${formatMoney(totalIdrg)}</div>
+          <div class="kpi-note" style="font-size: 10.5px;">Potensi Klaim Era Baru</div>
+        </article>
+        <article class="kpi-card is-highlight">
+          <div class="kpi-label" style="color: #047857; font-weight: 800; font-size: 10px;">STIMULUS PERTUMBUHAN (DELTA)</div>
+          <div class="kpi-value ${totalDelta >= 0 ? 'delta-positive' : 'delta-negative'}" style="font-size: 18px; font-weight: 900;">
+            ${totalDelta >= 0 ? '+' : ''}${formatMoney(totalDelta)}
+          </div>
+          <div class="kpi-note" style="color: #047857; font-weight: 700; font-size: 10.5px;">
+            ${totalDeltaPct >= 0 ? '▲ +' : '▼ '}${formatPercent(totalDeltaPct)} vs INA-CBG
+          </div>
+        </article>
+      </div>
+
+      <!-- MAIN 2-COLUMN SPLIT: MAP (LEFT 65%) + SCORECARD PANEL (RIGHT 35%) -->
+      <div style="flex: 1; min-height: 0; display: grid; grid-template-columns: 1.85fr 1fr; gap: 12px; margin-top: 4px;">
+        <!-- MAP COLUMN (LEFT) -->
+        <div style="display: flex; flex-direction: column; gap: 6px; height: 100%; min-height: 0;">
+          <!-- Map Region Filter Controls & Legend -->
+          <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 4px 10px; font-size: 11px;">
+            <div style="display: flex; gap: 5px; align-items: center;" id="muhMapRegionFilterBtns">
+              <span style="font-weight: 800; color: #334155; font-size: 10.5px; margin-right: 2px;">Fokus:</span>
+              <button type="button" class="muh-map-filter-btn ${muhMapActiveRegion === 'ALL' ? 'is-active' : ''}" data-region="ALL">Semua (${allMuhammadiyah.length})</button>
+              <button type="button" class="muh-map-filter-btn ${muhMapActiveRegion === 'JAWA TENGAH' ? 'is-active' : ''}" data-region="JAWA TENGAH">Jateng (${jatengCount})</button>
+              <button type="button" class="muh-map-filter-btn ${muhMapActiveRegion === 'JAWA TIMUR' ? 'is-active' : ''}" data-region="JAWA TIMUR">Jatim (${jatimCount})</button>
+              <button type="button" class="muh-map-filter-btn ${muhMapActiveRegion === 'DAERAH ISTIMEWA YOGYAKARTA' || muhMapActiveRegion === 'DIY' ? 'is-active' : ''}" data-region="DAERAH ISTIMEWA YOGYAKARTA">DIY (${diyCount})</button>
+              <button type="button" class="muh-map-filter-btn ${muhMapActiveRegion === 'JAWA BARAT' ? 'is-active' : ''}" data-region="JAWA BARAT">Jabar (${jabarCount})</button>
+              <button type="button" class="muh-map-filter-btn ${muhMapActiveRegion === 'LUAR_JAWA' ? 'is-active' : ''}" data-region="LUAR_JAWA">Luar Jawa (${outerCount})</button>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center; font-weight: 700; font-size: 10.5px;">
+              <span style="display: flex; align-items: center; gap: 4px;"><span style="display: inline-block; width: 8px; height: 8px; background: #059669; border-radius: 50%; border: 1.5px solid white;"></span> RS Muhammadiyah</span>
+              <span style="display: flex; align-items: center; gap: 4px;"><span style="display: inline-block; width: 9px; height: 9px; background: #dc2626; border-radius: 50%; border: 1.5px solid #fef08a;"></span> RS Target</span>
+            </div>
+          </div>
+
+          <!-- Map Container -->
+          <div id="muhammadiyahSvgMapContainer" style="width: 100%; flex: 1; min-height: 380px; border-radius: 10px; border: 1px solid #cbd5e1; background: #e0f2fe; position: relative; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.06);"></div>
+        </div>
+
+        <!-- RIGHT PANEL: PROVINCIAL & STRATEGIC INSIGHT SCORECARD -->
+        <div style="display: flex; flex-direction: column; gap: 8px; height: 100%; min-height: 0; overflow-y: auto; padding-right: 2px;">
+          <!-- Top Provinces Card -->
+          <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+            <div style="font-size: 11px; font-weight: 800; color: #047857; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+              <span>📍 Konsentrasi Utama Faskes</span>
+              <span style="font-size: 10px; color: #64748b; font-weight: 600;">${totalProvinces} Provinsi</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+              ${top4Provs.map(([prov, pData]) => {
+                const provShare = totalCases > 0 ? (pData.cases / totalCases) : 0;
+                return `
+                  <div style="background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 6px; padding: 5px 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                      <span style="font-weight: 700; font-size: 11.5px; color: #1e293b;">${escapeHtml(prov)}</span>
+                      <span style="font-size: 11px; font-weight: 800; color: #059669;">${pData.count} RS (${(provShare*100).toFixed(2).replace('.', ',')}%)</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 10px; color: #64748b;">
+                      <span>${formatNumber(pData.cases)} Kasus</span>
+                      <span style="font-weight: 600; color: #0284c7;">${formatMoney(pData.idrg)}</span>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+
+              ${outerCount > 0 ? `
+                <div style="background: #f0fdf4; border: 1px dashed #86efac; border-radius: 6px; padding: 5px 8px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                    <span style="font-weight: 700; font-size: 11px; color: #166534;">Luar Jawa (${outerProvs.length} Provinsi)</span>
+                    <span style="font-size: 11px; font-weight: 800; color: #16a34a;">${outerCount} RS (${(outerShare*100).toFixed(2).replace('.', ',')}%)</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; font-size: 10px; color: #15803d;">
+                    <span>${formatNumber(outerCases)} Kasus</span>
+                    <span style="font-weight: 600;">${formatMoney(outerProvs.reduce((a,c)=>a+c[1].idrg, 0))}</span>
+                  </div>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+
+          <!-- Class Distribution Card -->
+          <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+            <div style="font-size: 11px; font-weight: 800; color: #047857; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+              🏥 Distribusi Kelas RS Jejaring
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; text-align: center;">
+              <div style="background: #fee2e2; border-radius: 6px; padding: 4px 2px;">
+                <div style="font-size: 9px; font-weight: 700; color: #991b1b;">KELAS A</div>
+                <div style="font-size: 13px; font-weight: 900; color: #dc2626;">${classCounts.A || 0}</div>
+              </div>
+              <div style="background: #fef3c7; border-radius: 6px; padding: 4px 2px;">
+                <div style="font-size: 9px; font-weight: 700; color: #92400e;">KELAS B</div>
+                <div style="font-size: 13px; font-weight: 900; color: #d97706;">${classCounts.B}</div>
+              </div>
+              <div style="background: #dcfce7; border-radius: 6px; padding: 4px 2px;">
+                <div style="font-size: 9px; font-weight: 700; color: #166534;">KELAS C</div>
+                <div style="font-size: 13px; font-weight: 900; color: #16a34a;">${classCounts.C}</div>
+              </div>
+              <div style="background: #f1f5f9; border-radius: 6px; padding: 4px 2px;">
+                <div style="font-size: 9px; font-weight: 700; color: #475569;">KELAS D</div>
+                <div style="font-size: 13px; font-weight: 900; color: #334155;">${classCounts.D}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Strategic Narrative Card -->
+          <div style="background: linear-gradient(135deg, #f0fdf4, #ecfdf5); border: 1px solid #a7f3d0; border-radius: 10px; padding: 10px 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); flex: 1;">
+            <div style="font-size: 11px; font-weight: 800; color: #065f46; display: flex; align-items: center; gap: 4px; margin-bottom: 4px;">
+              <span>💡</span> Ringkasan Strategis Jejaring RSMA
+            </div>
+            <p style="margin: 0; font-size: 11px; color: #047857; line-height: 1.45; text-align: justify;">
+              Jejaring <strong>${allMuhammadiyah.length} RS Muhammadiyah/Aisyiyah</strong> (dari total 131 RSMA resmi) melayani <strong>${(totalCases/1e6).toFixed(2).replace('.', ',')} Juta kasus</strong> dalam periode simulasi. Transisi ke tarif iDRG menghasilkan potensi kenaikan pendapatan agregat <strong>+${(totalDeltaPct*100).toFixed(2).replace('.', ',')}% (+${formatMoney(totalDelta)})</strong>, membuktikan kesiapan jejaring faskes persyarikatan dalam penguatan transformasi sistem rujukan nasional.
+            </p>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Render interactive vector map for Muhammadiyah
+    renderUnifiedInteractiveMap("muhammadiyahSvgMapContainer", { isMuhammadiyahMap: true, regionFilter: muhMapActiveRegion });
+
+    // Attach region filter click listeners
+    const filterContainer = container.querySelector("#muhMapRegionFilterBtns");
+    if (filterContainer) {
+      filterContainer.querySelectorAll(".muh-map-filter-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          muhMapActiveRegion = btn.dataset.region;
+          renderMuhammadiyahMapSlide();
+        });
+      });
+    }
+  }
+
+  // --- ANALISIS KHUSUS GROUP RS MUHAMMADIYAH & AISYIYAH ---
+  const muhammadiyahState = {
+    activeTab: 'hospitals', // 'hospitals' | 'services' | 'provinces' | 'registry'
+    search: '',
+    provFilter: 'ALL',
+    classFilter: 'ALL',
+    sortBy: 'cases_desc'
+  };
+
+  function renderHospitalsTabHtml(filteredHospitals, provinceOptions, totalGroupCases) {
+    return `
+      <div class="muhammadiyah-filter-bar">
+        <div style="position: relative; flex: 1; min-width: 200px;">
+          <input type="text" id="muhammadiyahSearchInput" placeholder="🔍 Cari nama RS, kota, atau kode..." value="${escapeHtml(muhammadiyahState.search)}" style="width: 100%; box-sizing: border-box;">
+          ${muhammadiyahState.search ? `<button id="clearMuhammadiyahSearch" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 13px; font-weight: 700;">×</button>` : ''}
+        </div>
+        <select id="muhammadiyahProvSelect" aria-label="Filter Provinsi">
+          <option value="ALL">Semua Provinsi (${data.hospitals.filter(isMuhammadiyahHospital).length} RS)</option>
+          ${provinceOptions}
+        </select>
+        <select id="muhammadiyahClassSelect" aria-label="Filter Kelas RS">
+          <option value="ALL" ${muhammadiyahState.classFilter === 'ALL' ? 'selected' : ''}>Semua Kelas RS</option>
+          <option value="A" ${muhammadiyahState.classFilter === 'A' ? 'selected' : ''}>Kelas A</option>
+          <option value="B" ${muhammadiyahState.classFilter === 'B' ? 'selected' : ''}>Kelas B</option>
+          <option value="C" ${muhammadiyahState.classFilter === 'C' ? 'selected' : ''}>Kelas C</option>
+          <option value="D" ${muhammadiyahState.classFilter === 'D' ? 'selected' : ''}>Kelas D</option>
+        </select>
+        <select id="muhammadiyahSortSelect" aria-label="Urutkan Data">
+          <option value="cases_desc" ${muhammadiyahState.sortBy === 'cases_desc' ? 'selected' : ''}>Urutkan: Kasus Terbanyak ↓</option>
+          <option value="idrg_desc" ${muhammadiyahState.sortBy === 'idrg_desc' ? 'selected' : ''}>Urutkan: iDRG Terbesar ↓</option>
+          <option value="delta_desc" ${muhammadiyahState.sortBy === 'delta_desc' ? 'selected' : ''}>Urutkan: Selisih Potensi Terbesar ↓</option>
+          <option value="name_asc" ${muhammadiyahState.sortBy === 'name_asc' ? 'selected' : ''}>Urutkan: Nama RS (A - Z)</option>
+        </select>
+        <span style="font-size: 11.5px; font-weight: 700; color: #047857; margin-left: auto;">
+          Ditemukan: <strong>${filteredHospitals.length}</strong> RS
+        </span>
+      </div>
+
+      <div class="muhammadiyah-table-wrap">
+        <table class="muhammadiyah-table" aria-label="Tabel Rinci RS Muhammadiyah">
+          <thead>
+            <tr>
+              <th style="width: 35px; text-align: center;">No</th>
+              <th style="min-width: 220px;">Nama Rumah Sakit &amp; Kode</th>
+              <th style="min-width: 140px;">Kota/Kab &amp; Provinsi</th>
+              <th style="width: 55px; text-align: center;">Kelas</th>
+              <th style="width: 95px; text-align: center;">Layanan Kompeten</th>
+              <th class="num" style="min-width: 100px;">Kasus Mirroring</th>
+              <th class="num" style="min-width: 120px;">INA-CBG (Rp. M)</th>
+              <th class="num" style="min-width: 120px;">Potensi iDRG (Rp. M)</th>
+              <th class="num" style="min-width: 120px;">Selisih (+/– Rp)</th>
+              <th class="num" style="min-width: 65px;">Share</th>
+              <th style="width: 95px; text-align: center;">Aksi Target</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filteredHospitals.length === 0 ? `
+              <tr><td colspan="11" style="text-align: center; padding: 25px; color: #64748b; font-weight: 600;">Tidak ada RS Muhammadiyah yang sesuai dengan filter pencarian ini.</td></tr>
+            ` : filteredHospitals.map((h, idx) => {
+              const hCases = h.total ? h.total[CASES] : 0;
+              const hIna = h.total ? h.total[INA] : 0;
+              const hIdrg = h.total ? h.total[IDRG] : 0;
+              const hDelta = hIdrg - hIna;
+              const hDeltaPct = hIna > 0 ? (hDelta / hIna) : 0;
+              const share = totalGroupCases > 0 ? (hCases / totalGroupCases) : 0;
+              const isTarget = (state.targetCodes || []).includes(h.code) || h.code === state.targetCode;
+
+              let competentCount = 0;
+              Object.keys(h.services || {}).forEach(s => {
+                if ((h.services[s].competency || 0) > 0) competentCount++;
+              });
+
+              return `
+                <tr class="${isTarget ? 'is-current-target' : ''}">
+                  <td style="text-align: center; font-weight: 700; color: #64748b;">${idx + 1}</td>
+                  <td>
+                    <div style="font-weight: 800; color: ${isTarget ? '#dc2626' : '#1e293b'};">${escapeHtml(h.name)}</div>
+                    <div style="font-size: 10px; color: #64748b;">Kode RS: <span style="font-family: monospace; font-weight: 700;">${escapeHtml(h.code)}</span></div>
+                  </td>
+                  <td>
+                    <div style="font-weight: 600;">${escapeHtml(h.city || '-')}</div>
+                    <div style="font-size: 10.5px; color: #64748b;">${escapeHtml(h.province || '-')}</div>
+                  </td>
+                  <td style="text-align: center;">
+                    <span style="display: inline-block; padding: 2px 6px; border-radius: 4px; font-weight: 800; font-size: 11px; background: ${h.class === 'A' ? '#fee2e2; color: #dc2626;' : h.class === 'B' ? '#fef3c7; color: #d97706;' : h.class === 'C' ? '#dcfce7; color: #15803d;' : '#f1f5f9; color: #475569;'}">${escapeHtml(h.class || '-')}</span>
+                  </td>
+                  <td style="text-align: center; font-weight: 700;">
+                    <span style="color: ${competentCount >= 18 ? '#15803d' : competentCount >= 10 ? '#0284c7' : '#d97706'};">${competentCount}</span><span style="color: #94a3b8; font-size: 10.5px;">/24</span>
+                  </td>
+                  <td class="num" style="font-weight: 800; color: #1e293b;">${formatNumber(hCases)}</td>
+                  <td class="num">${formatTableMoney(hIna)}</td>
+                  <td class="num" style="font-weight: 800; color: #0284c7;">${formatTableMoney(hIdrg)}</td>
+                  <td class="num ${hDelta >= 0 ? 'delta-positive' : 'delta-negative'}">
+                    ${hDelta >= 0 ? '+' : ''}${formatMoney(hDelta)}
+                    <div style="font-size: 9.5px; font-weight: 600; opacity: 0.85;">${hDeltaPct >= 0 ? '▲ +' : '▼ '}${formatPercent(hDeltaPct)}</div>
+                  </td>
+                  <td class="num" style="font-weight: 700; color: #059669;">${formatPercent(share)}</td>
+                  <td style="text-align: center;">
+                    <button type="button" class="btn-set-target ${isTarget ? 'is-active' : ''}" data-code="${escapeHtml(h.code)}">
+                      ${isTarget ? '🎯 Target Aktif' : '🎯 Pilih Target'}
+                    </button>
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function renderServicesTabHtml(serviceSummary, totalGroupCases) {
+    return `
+      <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 6px 12px;">
+        <span style="font-size: 12px; font-weight: 700; color: #1e293b;">
+          Agregasi 24 Kelompok Pelayanan Medis pada RS Jejaring Muhammadiyah &amp; Aisyiyah
+        </span>
+        <span style="font-size: 11.5px; color: #64748b;">
+          Diurutkan berdasarkan volume kasus terbesar
+        </span>
+      </div>
+
+      <div class="muhammadiyah-table-wrap">
+        <table class="muhammadiyah-table" aria-label="Tabel Layanan RS Muhammadiyah">
+          <thead>
+            <tr>
+              <th style="width: 35px; text-align: center;">No</th>
+              <th style="min-width: 200px;">Kelompok Layanan</th>
+              <th class="num" style="min-width: 95px;">Total Kasus Group</th>
+              <th class="num" style="min-width: 115px;">Nilai INA-CBG (Rp. M)</th>
+              <th class="num" style="min-width: 115px;">Potensi iDRG (Rp. M)</th>
+              <th class="num" style="min-width: 115px;">Selisih (+/– Rp)</th>
+              <th class="num" style="min-width: 65px;">Share Group</th>
+              <th style="min-width: 170px; text-align: center;">Distribusi Strata RS Muhammadiyah</th>
+              <th style="min-width: 180px;">RS Kontributor Terbesar</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${serviceSummary.map((s, idx) => {
+              return `
+                <tr>
+                  <td style="text-align: center; font-weight: 700; color: #64748b;">${idx + 1}</td>
+                  <td style="font-weight: 800; color: #1e293b;">${escapeHtml(formatService(s.service))}</td>
+                  <td class="num" style="font-weight: 800; color: #1e293b;">${formatNumber(s.cases)}</td>
+                  <td class="num">${formatTableMoney(s.ina)}</td>
+                  <td class="num" style="font-weight: 800; color: #0284c7;">${formatTableMoney(s.idrg)}</td>
+                  <td class="num ${s.delta >= 0 ? 'delta-positive' : 'delta-negative'}">
+                    ${s.delta >= 0 ? '+' : ''}${formatMoney(s.delta)}
+                    <div style="font-size: 9.5px; font-weight: 600; opacity: 0.85;">${s.deltaPct >= 0 ? '▲ +' : '▼ '}${formatPercent(s.deltaPct)}</div>
+                  </td>
+                  <td class="num" style="font-weight: 700; color: #059669;">${formatPercent(s.share)}</td>
+                  <td style="text-align: center; font-size: 10.5px;">
+                    <span style="display: inline-flex; gap: 3px; align-items: center; justify-content: center;">
+                      ${s.compDist[4] > 0 ? `<span style="background: #dff3ec; color: #08765b; font-weight: 800; padding: 1px 4px; border-radius: 3px;" title="${s.compDist[4]} RS Paripurna">P: ${s.compDist[4]}</span>` : ''}
+                      ${s.compDist[3] > 0 ? `<span style="background: #f5f7d6; color: #6f7614; font-weight: 800; padding: 1px 4px; border-radius: 3px;" title="${s.compDist[3]} RS Utama">U: ${s.compDist[3]}</span>` : ''}
+                      ${s.compDist[2] > 0 ? `<span style="background: #e7f5ed; color: #187a59; font-weight: 800; padding: 1px 4px; border-radius: 3px;" title="${s.compDist[2]} RS Madya">M: ${s.compDist[2]}</span>` : ''}
+                      ${s.compDist[1] > 0 ? `<span style="background: #e2f4f3; color: #087e83; font-weight: 800; padding: 1px 4px; border-radius: 3px;" title="${s.compDist[1]} RS Dasar">D: ${s.compDist[1]}</span>` : ''}
+                      <span style="background: #f1f5f9; color: #64748b; font-weight: 700; padding: 1px 4px; border-radius: 3px;" title="${s.compDist[0]} RS Tidak Kompeten">TK: ${s.compDist[0]}</span>
+                    </span>
+                  </td>
+                  <td>
+                    ${s.topHosp ? `
+                      <div style="font-weight: 700; color: #1e293b; font-size: 11px;">${escapeHtml(s.topHosp.name)}</div>
+                      <div style="font-size: 10px; color: #059669; font-weight: 600;">${formatNumber(s.topHosp.cases)} kasus (${escapeHtml(s.topHosp.city || '')})</div>
+                    ` : '<span style="color: #94a3b8;">—</span>'}
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function renderProvincesTabHtml(provSummary, totalGroupCases) {
+    return `
+      <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 6px 12px;">
+        <span style="font-size: 12px; font-weight: 700; color: #1e293b;">
+          Sebaran dan Kinerja RS Jejaring Muhammadiyah &amp; Aisyiyah di ${provSummary.length} Provinsi
+        </span>
+        <span style="font-size: 11.5px; color: #64748b;">
+          Diurutkan berdasarkan volume kasus per provinsi
+        </span>
+      </div>
+
+      <div class="muhammadiyah-table-wrap">
+        <table class="muhammadiyah-table" aria-label="Tabel Provinsi RS Muhammadiyah">
+          <thead>
+            <tr>
+              <th style="width: 35px; text-align: center;">No</th>
+              <th style="min-width: 180px;">Provinsi</th>
+              <th class="num" style="min-width: 80px;">Jumlah RS</th>
+              <th class="num" style="min-width: 100px;">Total Kasus</th>
+              <th class="num" style="min-width: 120px;">INA-CBG (Rp. M)</th>
+              <th class="num" style="min-width: 120px;">Potensi iDRG (Rp. M)</th>
+              <th class="num" style="min-width: 120px;">Selisih (+/– Rp)</th>
+              <th class="num" style="min-width: 65px;">Share Group</th>
+              <th style="min-width: 200px;">RS Terbesar di Provinsi</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${provSummary.map((p, idx) => {
+              return `
+                <tr>
+                  <td style="text-align: center; font-weight: 700; color: #64748b;">${idx + 1}</td>
+                  <td style="font-weight: 800; color: #1e293b;">${escapeHtml(p.province)}</td>
+                  <td class="num" style="font-weight: 800; color: #059669;">${p.rsCount} RS</td>
+                  <td class="num" style="font-weight: 800; color: #1e293b;">${formatNumber(p.cases)}</td>
+                  <td class="num">${formatTableMoney(p.ina)}</td>
+                  <td class="num" style="font-weight: 800; color: #0284c7;">${formatTableMoney(p.idrg)}</td>
+                  <td class="num ${p.delta >= 0 ? 'delta-positive' : 'delta-negative'}">
+                    ${p.delta >= 0 ? '+' : ''}${formatMoney(p.delta)}
+                    <div style="font-size: 9.5px; font-weight: 600; opacity: 0.85;">${p.deltaPct >= 0 ? '▲ +' : '▼ '}${formatPercent(p.deltaPct)}</div>
+                  </td>
+                  <td class="num" style="font-weight: 700; color: #059669;">${formatPercent(p.share)}</td>
+                  <td>
+                    ${p.topHosp ? `
+                      <div style="font-weight: 700; color: #1e293b; font-size: 11px;">${escapeHtml(p.topHosp.name)}</div>
+                      <div style="font-size: 10px; color: #059669; font-weight: 600;">${formatNumber(p.topHosp.total ? p.topHosp.total[CASES] : 0)} kasus · ${escapeHtml(p.topHosp.city || '')}</div>
+                    ` : '<span style="color: #94a3b8;">—</span>'}
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function renderRegistryTabHtml(provinceOptions) {
+    let list = RSMA_MASTER_REGISTRY;
+    if (muhammadiyahState.search) {
+      const q = muhammadiyahState.search.toLowerCase();
+      list = list.filter(r => 
+        r.name.toLowerCase().includes(q) ||
+        r.email.toLowerCase().includes(q) ||
+        r.code.toLowerCase().includes(q) ||
+        r.city.toLowerCase().includes(q) ||
+        r.prov.toLowerCase().includes(q) ||
+        (r.rsoName && r.rsoName.toLowerCase().includes(q))
+      );
+    }
+    if (muhammadiyahState.provFilter !== 'ALL') {
+      list = list.filter(r => r.prov === muhammadiyahState.provFilter);
+    }
+    if (muhammadiyahState.classFilter !== 'ALL') {
+      list = list.filter(r => (r.class || '').trim().toUpperCase() === muhammadiyahState.classFilter);
+    }
+
+    const totalActiveClaim = RSMA_MASTER_REGISTRY.filter(r => data.hospitals.some(h => h.code === r.code)).length;
+
+    return `
+      <div class="muhammadiyah-filter-bar">
+        <div style="position: relative; flex: 1; min-width: 200px;">
+          <input type="text" id="muhammadiyahSearchInput" placeholder="🔍 Cari nama RSMA, email, kota, atau kode..." value="${escapeHtml(muhammadiyahState.search)}" style="width: 100%; box-sizing: border-box;">
+          ${muhammadiyahState.search ? `<button id="clearMuhammadiyahSearch" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 13px; font-weight: 700;">×</button>` : ''}
+        </div>
+        <select id="muhammadiyahProvSelect" aria-label="Filter Provinsi">
+          <option value="ALL">Semua Provinsi (${RSMA_MASTER_REGISTRY.length} RSMA)</option>
+          ${provinceOptions}
+        </select>
+        <select id="muhammadiyahClassSelect" aria-label="Filter Kelas RS">
+          <option value="ALL" ${muhammadiyahState.classFilter === 'ALL' ? 'selected' : ''}>Semua Kelas RS</option>
+          <option value="A" ${muhammadiyahState.classFilter === 'A' ? 'selected' : ''}>Kelas A</option>
+          <option value="B" ${muhammadiyahState.classFilter === 'B' ? 'selected' : ''}>Kelas B</option>
+          <option value="C" ${muhammadiyahState.classFilter === 'C' ? 'selected' : ''}>Kelas C</option>
+          <option value="D" ${muhammadiyahState.classFilter === 'D' ? 'selected' : ''}>Kelas D</option>
+        </select>
+        <span style="font-size: 11.5px; font-weight: 700; color: #047857; margin-left: auto;">
+          Menampilkan: <strong>${list.length}</strong> dari <strong>${RSMA_MASTER_REGISTRY.length}</strong> RSMA Resmi (<strong>${totalActiveClaim}</strong> RS Terdata Klaim)
+        </span>
+      </div>
+
+      <div class="muhammadiyah-table-wrap">
+        <table class="muhammadiyah-table" aria-label="Tabel Master Registry RS Muhammadiyah & Aisyiyah">
+          <thead>
+            <tr>
+              <th style="width: 40px; text-align: center;">No</th>
+              <th style="min-width: 230px;">Nama Resmi RSMA (Data RSMA.xlsx)</th>
+              <th style="min-width: 180px;">E-mail Resmi Persyarikatan</th>
+              <th style="min-width: 200px;">Kode &amp; Nama RS Online (Kemenkes)</th>
+              <th style="min-width: 130px;">Kota/Kab &amp; Provinsi</th>
+              <th style="width: 60px; text-align: center;">Kelas</th>
+              <th style="min-width: 160px; text-align: center;">Status Data Transaksi Klaim</th>
+              <th style="width: 95px; text-align: center;">Aksi Target</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${list.length === 0 ? `
+              <tr><td colspan="8" style="text-align: center; padding: 25px; color: #64748b; font-weight: 600;">Tidak ada RSMA yang sesuai dengan filter pencarian ini.</td></tr>
+            ` : list.map(r => {
+              const h = data.hospitals.find(x => x.code === r.code);
+              const isTarget = h && ((state.targetCodes || []).includes(h.code) || h.code === state.targetCode);
+              const hCases = h && h.total ? h.total[CASES] : 0;
+              return `
+                <tr class="${isTarget ? 'is-current-target' : ''}">
+                  <td style="text-align: center; font-weight: 800; color: #047857;">${r.no}</td>
+                  <td>
+                    <div style="font-weight: 800; color: #1e293b;">${escapeHtml(r.name)}</div>
+                    <div style="font-size: 10px; color: #64748b;">No. Urut Master: <span style="font-weight: 700;">#${r.no}</span></div>
+                  </td>
+                  <td>
+                    ${r.email ? `<div style="font-family: monospace; font-size: 11px; color: #0284c7; font-weight: 600;">✉️ ${escapeHtml(r.email)}</div>` : `<span style="color: #94a3b8;">—</span>`}
+                  </td>
+                  <td>
+                    <div style="font-weight: 700; color: #334155; font-size: 11.5px;">${escapeHtml(r.rsoName || r.name)}</div>
+                    <div style="font-size: 10.5px; color: #64748b;">Kode Kemenkes: <span style="font-family: monospace; font-weight: 800; color: #0f172a;">${escapeHtml(r.code)}</span></div>
+                  </td>
+                  <td>
+                    <div style="font-weight: 600;">${escapeHtml(r.city)}</div>
+                    <div style="font-size: 10.5px; color: #64748b;">${escapeHtml(r.prov)}</div>
+                  </td>
+                  <td style="text-align: center;">
+                    <span style="display: inline-block; padding: 2px 6px; border-radius: 4px; font-weight: 800; font-size: 11px; background: ${r.class === 'A' ? '#fee2e2; color: #dc2626;' : r.class === 'B' ? '#fef3c7; color: #d97706;' : r.class === 'C' ? '#dcfce7; color: #15803d;' : '#f1f5f9; color: #475569;'}">${escapeHtml(r.class)}</span>
+                  </td>
+                  <td style="text-align: center;">
+                    ${h ? `
+                      <span style="display: inline-flex; align-items: center; gap: 4px; background: #ecfdf5; color: #047857; padding: 3px 8px; border-radius: 12px; font-size: 10.5px; font-weight: 800; border: 1px solid #a7f3d0;">
+                        <span>✓</span> Terdata (${formatNumber(hCases)} kss)
+                      </span>
+                    ` : `
+                      <span style="display: inline-flex; align-items: center; gap: 4px; background: #f8fafc; color: #64748b; padding: 3px 8px; border-radius: 12px; font-size: 10.5px; font-weight: 700; border: 1px solid #e2e8f0;" title="Faskes baru/khusus/non-klaim uji coba">
+                        Non-Klaim Uji Coba
+                      </span>
+                    `}
+                  </td>
+                  <td style="text-align: center;">
+                    ${h ? `
+                      <button type="button" class="btn-set-target ${isTarget ? 'is-active' : ''}" data-code="${escapeHtml(r.code)}">
+                        ${isTarget ? '🎯 Target Aktif' : '🎯 Pilih Target'}
+                      </button>
+                    ` : `
+                      <span style="color: #cbd5e1; font-size: 11px; font-weight: 600;">—</span>
+                    `}
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function attachMuhammadiyahEvents(container) {
+    container.querySelectorAll(".muhammadiyah-tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        muhammadiyahState.activeTab = btn.dataset.tab;
+        renderMuhammadiyahGroupSlide();
+      });
+    });
+
+    const searchInput = container.querySelector("#muhammadiyahSearchInput");
+    if (searchInput) {
+      searchInput.addEventListener("input", (e) => {
+        muhammadiyahState.search = e.target.value;
+        renderMuhammadiyahGroupSlide();
+        const inputAfter = container.querySelector("#muhammadiyahSearchInput");
+        if (inputAfter) {
+          inputAfter.focus();
+          inputAfter.selectionStart = inputAfter.selectionEnd = inputAfter.value.length;
+        }
+      });
+    }
+
+    const clearSearchBtn = container.querySelector("#clearMuhammadiyahSearch");
+    if (clearSearchBtn) {
+      clearSearchBtn.addEventListener("click", () => {
+        muhammadiyahState.search = '';
+        renderMuhammadiyahGroupSlide();
+      });
+    }
+
+    const provSelect = container.querySelector("#muhammadiyahProvSelect");
+    if (provSelect) {
+      provSelect.addEventListener("change", (e) => {
+        muhammadiyahState.provFilter = e.target.value;
+        renderMuhammadiyahGroupSlide();
+      });
+    }
+
+    const classSelect = container.querySelector("#muhammadiyahClassSelect");
+    if (classSelect) {
+      classSelect.addEventListener("change", (e) => {
+        muhammadiyahState.classFilter = e.target.value;
+        renderMuhammadiyahGroupSlide();
+      });
+    }
+
+    const sortSelect = container.querySelector("#muhammadiyahSortSelect");
+    if (sortSelect) {
+      sortSelect.addEventListener("change", (e) => {
+        muhammadiyahState.sortBy = e.target.value;
+        renderMuhammadiyahGroupSlide();
+      });
+    }
+
+    container.querySelectorAll(".btn-set-target").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const code = btn.dataset.code;
+        if (code) {
+          window.selectTargetHospital(code);
+          renderMuhammadiyahGroupSlide();
+        }
+      });
+    });
+  }
+
+  function renderMuhammadiyahGroupSlide() {
+    const container = document.getElementById("muhammadiyahGroupSlide");
+    if (!container) return;
+
+    const allMuhammadiyah = (data.hospitals || []).filter(isMuhammadiyahHospital);
+
+    let totalCases = 0;
+    let totalIna = 0;
+    let totalIdrg = 0;
+    const provCounts = {};
+    const classCounts = { A: 0, B: 0, C: 0, D: 0, Other: 0 };
+
+    allMuhammadiyah.forEach(h => {
+      totalCases += h.total ? h.total[CASES] : 0;
+      totalIna += h.total ? h.total[INA] : 0;
+      totalIdrg += h.total ? h.total[IDRG] : 0;
+
+      const p = h.province || 'Lainnya';
+      provCounts[p] = (provCounts[p] || 0) + 1;
+
+      const c = (h.class || '').trim().toUpperCase();
+      if (classCounts[c] !== undefined) classCounts[c]++;
+      else classCounts.Other++;
+    });
+
+    const totalDelta = totalIdrg - totalIna;
+    const totalDeltaPct = totalIna > 0 ? (totalDelta / totalIna) : 0;
+    const totalProvinces = Object.keys(provCounts).length;
+
+    let filteredHospitals = allMuhammadiyah.filter(h => {
+      if (muhammadiyahState.provFilter !== 'ALL' && h.province !== muhammadiyahState.provFilter) return false;
+      if (muhammadiyahState.classFilter !== 'ALL' && (h.class || '').trim().toUpperCase() !== muhammadiyahState.classFilter) return false;
+      if (muhammadiyahState.search) {
+        const q = muhammadiyahState.search.toLowerCase();
+        const matchName = h.name.toLowerCase().includes(q);
+        const matchCity = (h.city || '').toLowerCase().includes(q);
+        const matchCode = (h.code || '').toLowerCase().includes(q);
+        if (!matchName && !matchCity && !matchCode) return false;
+      }
+      return true;
+    });
+
+    filteredHospitals.sort((a, b) => {
+      const aCases = a.total ? a.total[CASES] : 0;
+      const bCases = b.total ? b.total[CASES] : 0;
+      const aIna = a.total ? a.total[INA] : 0;
+      const bIna = b.total ? b.total[INA] : 0;
+      const aIdrg = a.total ? a.total[IDRG] : 0;
+      const bIdrg = b.total ? b.total[IDRG] : 0;
+      const aDelta = aIdrg - aIna;
+      const bDelta = bIdrg - bIna;
+
+      if (muhammadiyahState.sortBy === 'cases_desc') return bCases - aCases;
+      if (muhammadiyahState.sortBy === 'idrg_desc') return bIdrg - aIdrg;
+      if (muhammadiyahState.sortBy === 'delta_desc') return bDelta - aDelta;
+      if (muhammadiyahState.sortBy === 'name_asc') return a.name.localeCompare(b.name);
+      return 0;
+    });
+
+    const serviceSummary = (data.services || []).map(service => {
+      let sCases = 0, sIna = 0, sIdrg = 0;
+      const compDist = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 };
+      let topHosp = null, maxHospCases = -1;
+
+      allMuhammadiyah.forEach(h => {
+        const sObj = h.services && h.services[service];
+        const cases = sObj && sObj.total ? sObj.total[CASES] : 0;
+        const ina = sObj && sObj.total ? sObj.total[INA] : 0;
+        const idrg = sObj && sObj.total ? sObj.total[IDRG] : 0;
+        const comp = sObj ? (sObj.competency || 0) : 0;
+
+        sCases += cases;
+        sIna += ina;
+        sIdrg += idrg;
+        compDist[comp]++;
+
+        if (cases > maxHospCases) {
+          maxHospCases = cases;
+          topHosp = { name: h.name, cases, city: h.city };
+        }
+      });
+
+      const sDelta = sIdrg - sIna;
+      const sDeltaPct = sIna > 0 ? (sDelta / sIna) : 0;
+      const sShareOfGroup = totalCases > 0 ? (sCases / totalCases) : 0;
+
+      return {
+        service,
+        cases: sCases,
+        ina: sIna,
+        idrg: sIdrg,
+        delta: sDelta,
+        deltaPct: sDeltaPct,
+        share: sShareOfGroup,
+        compDist,
+        competentCount: compDist[1] + compDist[2] + compDist[3] + compDist[4],
+        topHosp
+      };
+    }).sort((a, b) => b.cases - a.cases);
+
+    const provMap = {};
+    allMuhammadiyah.forEach(h => {
+      const p = h.province || 'Lainnya';
+      if (!provMap[p]) {
+        provMap[p] = { province: p, rsCount: 0, cases: 0, ina: 0, idrg: 0, hospitals: [] };
+      }
+      provMap[p].rsCount++;
+      provMap[p].cases += h.total ? h.total[CASES] : 0;
+      provMap[p].ina += h.total ? h.total[INA] : 0;
+      provMap[p].idrg += h.total ? h.total[IDRG] : 0;
+      provMap[p].hospitals.push(h);
+    });
+
+    const provSummary = Object.values(provMap).map(p => {
+      const delta = p.idrg - p.ina;
+      const deltaPct = p.ina > 0 ? (delta / p.ina) : 0;
+      const share = totalCases > 0 ? (p.cases / totalCases) : 0;
+      const topHosp = p.hospitals.sort((a, b) => (b.total ? b.total[CASES] : 0) - (a.total ? a.total[CASES] : 0))[0];
+      return { ...p, delta, deltaPct, share, topHosp };
+    }).sort((a, b) => b.cases - a.cases);
+
+    const provinceOptions = Object.keys(provCounts).sort().map(p => 
+      `<option value="${escapeHtml(p)}" ${muhammadiyahState.provFilter === p ? 'selected' : ''}>${escapeHtml(p)} (${provCounts[p]} RS)</option>`
+    ).join("");
+
+    container.innerHTML = `
+      <!-- TOP KPI CARDS -->
+      <div class="muhammadiyah-kpis">
+        <article class="kpi-card is-highlight">
+          <div class="kpi-label" style="color: #047857; font-weight: 800;">TOTAL RS JEJARING</div>
+          <div class="kpi-value" style="color: #065f46; font-size: 20px; font-weight: 900;">${allMuhammadiyah.length} RS</div>
+          <div class="kpi-note" style="color: #047857;">${totalProvinces} Provinsi (131 Faskes RSMA)</div>
+        </article>
+        <article class="kpi-card">
+          <div class="kpi-label">TOTAL KASUS GROUP</div>
+          <div class="kpi-value" style="font-size: 20px; font-weight: 900; color: #1e293b;">${formatNumber(totalCases)}</div>
+          <div class="kpi-note">Mirroring Uji Coba iDRG</div>
+        </article>
+        <article class="kpi-card">
+          <div class="kpi-label">TOTAL PENDAPATAN INA-CBG</div>
+          <div class="kpi-value" style="font-size: 20px; font-weight: 900; color: #1e293b;">${formatMoney(totalIna)}</div>
+          <div class="kpi-note">Tarif Eksisting Klaim</div>
+        </article>
+        <article class="kpi-card">
+          <div class="kpi-label">TOTAL POTENSI iDRG</div>
+          <div class="kpi-value" style="font-size: 20px; font-weight: 900; color: #0284c7;">${formatMoney(totalIdrg)}</div>
+          <div class="kpi-note">Potensi Klaim Era Baru</div>
+        </article>
+        <article class="kpi-card is-highlight">
+          <div class="kpi-label" style="color: #047857; font-weight: 800;">POTENSI SELISIH (DELTA)</div>
+          <div class="kpi-value ${totalDelta >= 0 ? 'delta-positive' : 'delta-negative'}" style="font-size: 20px; font-weight: 900;">
+            ${totalDelta >= 0 ? '+' : ''}${formatMoney(totalDelta)}
+          </div>
+          <div class="kpi-note" style="color: #047857; font-weight: 700;">
+            ${totalDeltaPct >= 0 ? '▲ +' : '▼ '}${formatPercent(totalDeltaPct)} vs INA-CBG
+          </div>
+        </article>
+      </div>
+
+      <!-- TABS HEADER -->
+      <div class="muhammadiyah-tabs">
+        <button type="button" class="muhammadiyah-tab-btn ${muhammadiyahState.activeTab === 'hospitals' ? 'is-active' : ''}" data-tab="hospitals">
+          <span>🏢</span> Rincian Per Rumah Sakit (${filteredHospitals.length}/${allMuhammadiyah.length} RS Terdata)
+        </button>
+        <button type="button" class="muhammadiyah-tab-btn ${muhammadiyahState.activeTab === 'services' ? 'is-active' : ''}" data-tab="services">
+          <span>🩺</span> Rincian Per Kelompok Layanan (24 Layanan)
+        </button>
+        <button type="button" class="muhammadiyah-tab-btn ${muhammadiyahState.activeTab === 'provinces' ? 'is-active' : ''}" data-tab="provinces">
+          <span>🗺️</span> Rincian Berdasarkan Regional Provinsi (${provSummary.length} Provinsi)
+        </button>
+        <button type="button" class="muhammadiyah-tab-btn ${muhammadiyahState.activeTab === 'registry' ? 'is-active' : ''}" data-tab="registry">
+          <span>📋</span> Master Registry RSMA (131 Faskes Resmi)
+        </button>
+      </div>
+
+      <!-- TAB CONTENT AREA -->
+      <div class="muhammadiyah-tab-body" style="flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px;">
+        ${muhammadiyahState.activeTab === 'hospitals' ? renderHospitalsTabHtml(filteredHospitals, provinceOptions, totalCases) : ''}
+        ${muhammadiyahState.activeTab === 'services' ? renderServicesTabHtml(serviceSummary, totalCases) : ''}
+        ${muhammadiyahState.activeTab === 'provinces' ? renderProvincesTabHtml(provSummary, totalCases) : ''}
+        ${muhammadiyahState.activeTab === 'registry' ? renderRegistryTabHtml(provinceOptions) : ''}
+      </div>
+    `;
+
+    attachMuhammadiyahEvents(container);
+  }
+
+
+    window.showMuhammadiyahMapSlide = function() {
+    const slides = [...document.querySelectorAll(".slide")];
+    const targetIndex = slides.findIndex(s => s.classList.contains("muhammadiyah-map-slide"));
+    if (targetIndex >= 0) {
+      showSlide(targetIndex);
+    }
+  };
+
+  window.showMuhammadiyahGroupSlide = function() {
+    const slides = [...document.querySelectorAll(".slide")];
+    const targetIndex = slides.findIndex(s => s.classList.contains("muhammadiyah-group-slide"));
+    if (targetIndex >= 0) {
+      showSlide(targetIndex);
+    }
+  };
+
+  window.showNationalMirroringSlide = function(offset = 0) {
+    const slides = [...document.querySelectorAll(".slide")];
+    const targetIndex = slides.findIndex(s => s.classList.contains("national-rawat-type-slide"));
+    if (targetIndex >= 0) {
+      showSlide(targetIndex + offset);
+    }
+  };
+
+  function renderSimulatorSlide() {
+    const slide = document.getElementById("simulatorSlide");
+    if (!slide) return;
+    const target = targetHospital();
+    if (!target) return;
+    const result = computeScenario();
+    const overrideCount = Object.values(state.overrides).filter((item) => item.enabled).length;
+    slide.innerHTML = `
+      <div class="simulator-layout">
+        <article class="panel control-panel">
+          <div class="panel-heading"><h2>Asumsi global</h2><span>${overrideCount} override layanan</span></div>
+          <table class="assumption-table"><thead><tr><th>Keparahan</th><th>Capture external</th><th>Retensi eksisting</th></tr></thead><tbody>
+            ${severityRanks.map((rank) => `<tr><td>${levelNames[rank]}</td><td><span class="input-suffix"><input class="global-rate" data-type="capture" data-rank="${rank}" type="number" min="0" max="100" step="1" value="${state.globalRates.capture[rank]}" aria-label="Capture external ${levelNames[rank]}"></span></td><td><span class="input-suffix"><input class="global-rate" data-type="retention" data-rank="${rank}" type="number" min="0" max="100" step="1" value="${state.globalRates.retention[rank]}" aria-label="Retensi eksisting ${levelNames[rank]}"></span></td></tr>`).join("")}
+          </tbody></table>
+          <div class="formula-box"><strong>Proyeksi per tingkat:</strong><br>Eksisting × retensi + external pool × capture.<br><br>Kasus di atas kompetensi target tidak dipertahankan. Kasus tanpa klasifikasi ICD tetap pada baseline dan tidak dicapture.</div>
+        </article>
+        <div class="simulator-main">
+          <div class="kpi-grid simulator-kpis">
+            <article class="kpi-card is-primary"><div class="kpi-label">Proyeksi total kasus</div><div class="kpi-value">${formatNumber(result.projected[CASES])}</div><div class="kpi-note">${formatSignedNumber(result.delta[CASES])} dari eksisting</div></article>
+            <article class="kpi-card"><div class="kpi-label">Kasus hasil capture</div><div class="kpi-value">${formatNumber(result.captured[CASES])}</div><div class="kpi-note">Dari RS lain</div></article>
+            <article class="kpi-card"><div class="kpi-label">Proyeksi iDRG</div><div class="kpi-value">${formatMoney(result.projected[IDRG])}</div><div class="kpi-note">${formatMoney(result.delta[IDRG])} vs eksisting</div></article>
+            <article class="kpi-card"><div class="kpi-label">Projected regional share</div><div class="kpi-value">${formatPercent(result.projected[CASES] / data.regional.total[CASES])}</div><div class="kpi-note">Eksisting ${formatPercent(target.total[CASES] / data.regional.total[CASES])}</div></article>
+          </div>
+          <article class="panel simulation-table-panel">
+            <div class="panel-heading"><h2>Proyeksi seluruh layanan</h2><span>Klik layanan untuk melihat kompetitor dan override</span></div>
+            <div class="table-wrap"><table class="compact-table"><thead><tr><th>Layanan</th><th>Kompetensi</th><th class="num">Eksisting</th><th class="num">Retained</th><th class="num">Captured</th><th class="num">Proyeksi</th><th class="num">Δ kasus</th><th class="num">Proyeksi iDRG</th><th class="num">Δ iDRG</th></tr></thead><tbody>
+              ${result.serviceRows.map((row) => `<tr class="${row.service === state.selectedService ? "is-selected" : ""} ${row.competency ? "" : "is-disabled"}"><td><button class="service-button" data-service="${escapeHtml(row.service)}" type="button">${escapeHtml(formatService(row.service))}</button></td><td>${levelBadge(row.competency)}</td><td class="num">${formatNumber(row.existing[CASES])}</td><td class="num">${formatNumber(row.retained[CASES])}</td><td class="num">${formatNumber(row.captured[CASES])}</td><td class="num">${formatNumber(row.projected[CASES])}</td><td class="num ${deltaClass(row.delta[CASES])}">${formatSignedNumber(row.delta[CASES])}</td><td class="num">${formatTableMoney(row.projected[IDRG])}</td><td class="num ${deltaClass(row.delta[IDRG])}">${formatTableMoney(row.delta[IDRG])}</td></tr>`).join("")}
+            </tbody></table></div>
+          </article>
+        </div>
+      </div>`;
+    attachSimulatorEvents();
+  }
+
+  function renderCompetitionSlide() {
+    const slide = document.getElementById("competitionSlide");
+    if (!slide) return;
+    const target = targetHospital();
+    if (!target) return;
+    const service = state.selectedService;
+    const rank = state.selectedSeverity;
+    const competency = getCompetency(target, service);
+    const capable = competency >= rank;
+    const competition = competitorsFor(service, rank);
+    const override = state.overrides[service] || {
+      enabled: false,
+      capture: { ...state.globalRates.capture },
+      retention: { ...state.globalRates.retention },
+    };
+    const share = capable ? Math.min(Math.max(state.targetShare, 0), 100) : 0;
+    const targetAllocationCases = competition.regional[CASES] * share / 100;
+    const targetAllocationIdrg = competition.regional[IDRG] * share / 100;
+    const providerCount = competition.rows.length + (capable ? 1 : 0);
+
+    slide.innerHTML = `
+      <div class="competition-layout">
+        <article class="panel competition-controls">
+          <div class="field-grid">
+            <label class="select-field"><span>Layanan</span><select id="serviceSelect">${data.services.map((item) => `<option value="${escapeHtml(item)}" ${item === service ? "selected" : ""}>${escapeHtml(formatService(item))}</option>`).join("")}</select></label>
+            <label class="select-field"><span>Tingkat keparahan</span><select id="severitySelect">${severityRanks.map((item) => `<option value="${item}" ${item === rank ? "selected" : ""}>${levelNames[item]}</option>`).join("")}</select></label>
+          </div>
+          <div class="share-split">
+            <div class="field-grid">
+              <label class="number-field"><span>Target share RS target</span><span class="input-suffix"><input id="targetShareInput" type="number" min="0" max="100" step="1" value="${state.targetShare}" ${capable ? "" : "disabled"}></span></label>
+              <div class="number-field"><span>Provider setara/mampu</span><input value="${providerCount}" disabled aria-label="Jumlah provider setara yang mampu"></div>
+            </div>
+            <div class="share-track" aria-label="Pembagian target market share"><div class="share-target" style="width:${share}%">${share ? `${share}% target` : ""}</div><div class="share-competitors" style="width:${100 - share}%">${100 - share}% kompetitor</div></div>
+            <div class="allocation-result"><div><span>Target kasus pada share tersebut</span><strong>${formatNumber(targetAllocationCases)}</strong></div><div><span>Target iDRG pada share tersebut</span><strong>${formatMoney(targetAllocationIdrg)}</strong></div></div>
+          </div>
+          <div>
+            <div class="override-header"><div><strong>Override ${escapeHtml(formatService(service))}</strong><div class="muted" style="font-size: 14px">Menggantikan asumsi global pada simulator</div></div><label><input id="overrideEnabled" type="checkbox" ${override.enabled ? "checked" : ""}> Aktifkan</label></div>
+            <table class="assumption-table override-table"><thead><tr><th>Keparahan</th><th>Capture</th><th>Retensi</th></tr></thead><tbody>
+              ${severityRanks.map((item) => `<tr><td>${levelNames[item]}</td><td><span class="input-suffix"><input class="override-rate" data-type="capture" data-rank="${item}" type="number" min="0" max="100" value="${override.capture[item]}" ${override.enabled ? "" : "disabled"}></span></td><td><span class="input-suffix"><input class="override-rate" data-type="retention" data-rank="${item}" type="number" min="0" max="100" value="${override.retention[item]}" ${override.enabled ? "" : "disabled"}></span></td></tr>`).join("")}
+            </tbody></table>
+          </div>
+        </article>
+        <div class="competition-main">
+          <div class="kpi-grid competition-summary">
+            <article class="kpi-card ${capable ? "is-primary" : "is-negative"}"><div class="kpi-label">Kompetensi target</div><div class="kpi-value">${levelNames[competency]}</div><div class="kpi-note">${capable ? `Mampu melayani ${levelNames[rank]}` : `Tidak mampu melayani ${levelNames[rank]}`}</div></article>
+            <article class="kpi-card"><div class="kpi-label">Kasus regional</div><div class="kpi-value">${formatNumber(competition.regional[CASES])}</div><div class="kpi-note">${escapeHtml(formatService(service))} · ${levelNames[rank]}</div></article>
+            <article class="kpi-card"><div class="kpi-label">Eksisting RS target</div><div class="kpi-value">${formatNumber(competition.targetExisting[CASES])}</div><div class="kpi-note">Share ${formatPercent(competition.regional[CASES] ? competition.targetExisting[CASES] / competition.regional[CASES] : 0)}</div></article>
+            <article class="kpi-card"><div class="kpi-label">External pool</div><div class="kpi-value">${formatNumber(competition.external[CASES])}</div><div class="kpi-note">Target dikeluarkan</div></article>
+          </div>
+          <article class="panel competitor-table-panel">
+            <div class="panel-heading"><h2>RS kompetitor setara yang mampu melayani*</h2><span>${competition.rows.length} RS · minimum ${levelNames[competition.minimumCompetency]}</span></div>
+            <div class="table-wrap"><table class="compact-table"><thead><tr><th>#</th><th>Rumah sakit</th><th>Kota</th><th>Kompetensi</th><th class="num">Kasus eksisting</th><th class="num">iDRG</th><th class="num">Share regional</th></tr></thead><tbody>
+              ${competition.rows.length ? competition.rows.map((row, index) => `<tr><td>${index + 1}</td><td class="service-name">${escapeHtml(row.hospital.name)}</td><td>${escapeHtml(row.hospital.city)}</td><td>${levelBadge(row.competency)}</td><td class="num">${formatNumber(row.existing[CASES])}</td><td class="num">${formatTableMoney(row.existing[IDRG])}</td><td class="num">${formatPercent(row.share)}</td></tr>`).join("") : `<tr><td colspan="7"><div class="empty-state"><div><strong>Tidak ada RS kompetitor yang memenuhi kemampuan ini.</strong><span>Pilih layanan atau tingkat keparahan lain.</span></div></div></td></tr>`}
+              ${competition.outsideCapable[CASES] > 0 ? `<tr class="is-disabled"><td>—</td><td class="service-name">Kasus pada RS di luar kelompok kompetitor setara</td><td>Regional</td><td><span class="level-badge level-0">Di luar kriteria</span></td><td class="num">${formatNumber(competition.outsideCapable[CASES])}</td><td class="num">${formatTableMoney(competition.outsideCapable[IDRG])}</td><td class="num">${formatPercent(competition.regional[CASES] ? competition.outsideCapable[CASES] / competition.regional[CASES] : 0)}</td></tr>` : ""}
+            </tbody></table></div>
+          </article>
+        </div>
+      </div>`;
+    attachCompetitionEvents();
+  }
+
+    function renderSummarySlide() {
+    const slide = document.getElementById("summarySlide");
+    if (!slide) return;
+    const target = targetHospital();
+    if (!target) return;
+    const result = computeScenario();
+    
+    const existingCases = result.existing[CASES];
+    const projectedCases = result.projected[CASES];
+    const deltaCases = result.delta[CASES];
+    const pctCases = existingCases ? (deltaCases / existingCases) * 100 : 0;
+    
+    const existingIna = result.existing[INA];
+    const projectedIdrg = result.projected[IDRG];
+    const deltaRev = projectedIdrg - existingIna;
+    const pctRev = existingIna ? (deltaRev / existingIna) * 100 : 0;
+    
+    const fmtSign = val => val > 0 ? "▲" : val < 0 ? "▼" : "";
+    
+    slide.innerHTML = `
+      <div style="display:flex; flex-direction:column; gap:20px; padding: 20px 40px; font-family:'Plus Jakarta Sans', sans-serif; background: #f8fafc; height: 100%;">
+        
+        <div style="display:flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 20px;">
+          <div style="background: #2f6f74; color: #fff; padding: 12px 30px; border-radius: 10px; font-size: 20px; font-weight: 800; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 350px;">
+            INA CBGs &amp;<br>Rujukan Berjenjang
+          </div>
+          
+          <div style="color: #66b595; font-size: 60px; font-weight: bold; line-height: 1;">
+            ➔
+          </div>
+          
+          <div style="background: #ced54f; color: #fff; padding: 12px 30px; border-radius: 10px; font-size: 24px; font-weight: 800; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 350px; display: flex; align-items: center; justify-content: center; height: 60px;">
+            iDRG &amp; RBKP
+          </div>
+        </div>
+        
+        <!-- KASUS -->
+        <div style="position: relative; margin-bottom: 30px;">
+          <div style="background: #2f6f74; color: white; padding: 8px 20px; border-radius: 20px 20px 0 0; width: 200px; font-size: 18px; font-weight: bold; position: absolute; top: -30px; left: 0;">
+            Kasus
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; background: #fff; border-radius: 0 10px 10px 10px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center;">
+            <div style="background: #215155; color: white; padding: 10px; font-weight: bold; font-size: 15px;">Total Kasus</div>
+            <div style="background: #50b094; color: white; padding: 10px; font-weight: bold; font-size: 15px;">Kenaikan Kasus</div>
+            <div style="background: #5db9ae; color: white; padding: 10px; font-weight: bold; font-size: 15px;">Persentase</div>
+            <div style="background: #dbdc48; color: white; padding: 10px; font-weight: bold; font-size: 15px;">Total Kasus</div>
+            
+            <div style="padding: 20px; font-size: 32px; font-weight: 900; color: #b73239;">${formatNumber(existingCases)}</div>
+            <div style="padding: 20px; font-size: 32px; font-weight: 900; color: #6db194;">${fmtSign(deltaCases)} ${formatNumber(Math.abs(deltaCases))}</div>
+            <div style="padding: 20px; font-size: 32px; font-weight: 900; color: #69b6ad;">${fmtSign(pctCases)} ${formatNumber(Math.abs(pctCases), 2)}%</div>
+            <div style="padding: 20px; font-size: 32px; font-weight: 900; color: #c4ba47;">${formatNumber(projectedCases)}</div>
+          </div>
+        </div>
+
+        <!-- PENDAPATAN -->
+        <div style="position: relative;">
+          <div style="background: #2f6f74; color: white; padding: 8px 20px; border-radius: 20px 20px 0 0; width: 200px; font-size: 18px; font-weight: bold; position: absolute; top: -30px; left: 0;">
+            Pendapatan
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; background: #fff; border-radius: 0 10px 10px 10px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center;">
+            <div style="background: #215155; color: white; padding: 10px; font-weight: bold; font-size: 15px;">Pendapatan INA CBGs:</div>
+            <div style="background: #50b094; color: white; padding: 10px; font-weight: bold; font-size: 15px;">Selisih Pendapatan:</div>
+            <div style="background: #5db9ae; color: white; padding: 10px; font-weight: bold; font-size: 15px;">Persentase:</div>
+            <div style="background: #dbdc48; color: white; padding: 10px; font-weight: bold; font-size: 15px;">Pendapatan iDRG:</div>
+            
+            <div style="padding: 20px; font-size: 32px; font-weight: 900; color: #b73239;">${formatNumber(existingIna / 1e9, 2)} M</div>
+            <div style="padding: 20px; font-size: 32px; font-weight: 900; color: #6db194;">${fmtSign(deltaRev)} ${formatNumber(Math.abs(deltaRev) / 1e9, 2)} M</div>
+            <div style="padding: 20px; font-size: 32px; font-weight: 900; color: #69b6ad;">${fmtSign(pctRev)} ${formatNumber(Math.abs(pctRev), 2)}%</div>
+            <div style="padding: 20px; font-size: 32px; font-weight: 900; color: #c4ba47;">${formatNumber(projectedIdrg / 1e9, 2)} M</div>
+          </div>
+        </div>
+        
+      </div>
+    `;
+  }
+
+  function renderRecapSlide() {
+    const container = document.getElementById("recapSlide");
+    if (!container) return;
+
+    const target = targetHospital();
+    if (!target) return;
+    
+    const formatSignedPercent = (val) => {
+      if (val === 0 || isNaN(val)) return "0%";
+      const sign = val > 0 ? "+" : "";
+      return sign + (val * 100).toFixed(2).replace('.', ',') + "%";
+    };
+    
+    let htmlHeader = `
+      <div class="table-container" style="max-height: 480px; overflow-y: auto;">
+        <table class="scenario-table" style="table-layout: auto; width: 100%; min-width: 1400px;">
+          <thead style="position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 3px rgba(0,0,0,0.15);">
+            <tr>
+              <th rowspan="2" style="background-color: #0f766e; color: white;">No</th>
+              <th rowspan="2" style="background-color: #0f766e; color: white; text-align: left;">Layanan</th>
+              <th rowspan="2" style="background-color: #0f766e; color: white;">Komp.</th>
+              <th rowspan="2" style="background-color: #1e293b; color: white;">Eksisting Kasus<br><span style="font-size:10px; font-weight:normal;">(Sebelum Dikurangi)</span></th>
+              <th colspan="2" style="background-color: #be123c; color: white; text-align: center;">Dampak Pengurangan<br><span style="font-size: 10px; font-weight: normal;">(Keluar dari RS target)</span></th>
+              <th colspan="2" style="background-color: #16a34a; color: white; text-align: center;">Dampak Penambahan<br><span style="font-size: 10px; font-weight: normal;">(Capture dari Kompetitor)</span></th>
+              <th colspan="2" style="background-color: #0369a1; color: white; text-align: center;">Net +/- (Penambahan - Pengurangan)</th>
+              <th rowspan="2" style="background-color: #0891b2; color: white;">Sisa Kasus & Pendapatan<br><span style="font-size:10px; font-weight:normal;">(Eksisting - Kurang)</span></th>
+              <th rowspan="2" style="background-color: #1e40af; color: white;">PASCA KASUS<br><span style="font-size:10px; font-weight:normal;">(Sisa + Tambah)</span><br>& % Retensi</th>
+              <th rowspan="2" style="background-color: #1e40af; color: white;">PENDAPATAN<br>PASCA RBKP<br>(Rp. M)</th>
+              <th rowspan="2" style="background-color: #0f766e; color: white;">% Kenaikan thd<br>INA-CBG Awal</th>
+            </tr>
+            <tr>
+              <th style="background-color: #e11d48; color: white; font-size: 11px;">- Kasus Keluar</th>
+              <th style="background-color: #e11d48; color: white; font-size: 11px;">- Pendapatan Hilang</th>
+              <th style="background-color: #22c55e; color: white; font-size: 11px;">+ Kasus Baru</th>
+              <th style="background-color: #22c55e; color: white; font-size: 11px;">+ Potensi Pendapatan</th>
+              <th style="background-color: #0284c7; color: white; font-size: 11px;">+/- Jml Kasus</th>
+              <th style="background-color: #0284c7; color: white; font-size: 11px;">+/- Net Rp (M)</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+    
+    let rowsHtml = [];
+    
+    const formatCell = (minVal, maxVal, isRp) => {
+      if (minVal === 0 && maxVal === 0) return `<span style="color:#cbd5e1;">-</span>`;
+      const isMinNeg = minVal < 0;
+      const isMaxNeg = maxVal < 0;
+      const color = (isMinNeg && isMaxNeg) ? "#b91c1c" : ((minVal > 0 || maxVal > 0) ? "#15803d" : "#334155");
+      const signMin = minVal > 0 ? "+" : (minVal < 0 ? "-" : "");
+      const signMax = maxVal > 0 ? "+" : (maxVal < 0 ? "-" : "");
+      
+      let textMin = isRp ? formatMoney(Math.abs(minVal)).replace("Rp", "").trim() : formatNumber(Math.abs(minVal));
+      let textMax = isRp ? formatMoney(Math.abs(maxVal)).replace("Rp", "").trim() : formatNumber(Math.abs(maxVal));
+      
+      if (isRp) {
+        textMin = (Math.abs(minVal)/1000000000).toFixed(2).replace('.', ',') + " M";
+        textMax = (Math.abs(maxVal)/1000000000).toFixed(2).replace('.', ',') + " M";
+      }
+      
+      if (minVal === maxVal) {
+        return `<span style="color:${color}; font-weight:700;">${signMin}${textMin}</span>`;
+      } else {
+        return `<span style="color:${color}; font-weight:700;">${signMin}${textMin} <span style="color:#94a3b8; font-weight:normal; font-size: 10px;">s.d</span> ${signMax}${textMax}</span>`;
+      }
+    };
+
+    let grandEksKasus = 0;
+    let grandEksIna = 0;
+    let grandMinKk = 0, grandMaxKk = 0;
+    let grandMinKrp = 0, grandMaxKrp = 0;
+    let grandMinTk = 0, grandMaxTk = 0;
+    let grandMinTrp = 0, grandMaxTrp = 0;
+    let grandMinNetK = 0, grandMaxNetK = 0;
+    let grandMinNetRp = 0, grandMaxNetRp = 0;
+    let grandMinSisaK = 0, grandMaxSisaK = 0;
+    let grandMinSisaRp = 0, grandMaxSisaRp = 0;
+    let grandMinPascaK = 0, grandMaxPascaK = 0;
+    let grandMinPascaRp = 0, grandMaxPascaRp = 0;
+
+    
+    let competitorCount = 0;
+    let compCountD = 0;
+    let compCountM = 0;
+    let compCountU = 0;
+    let compCountP = 0;
+    let targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
+    
+    // Compute Regional Cases for the target service(s)
+    const activeServices = targetServiceSelect === 'ALL' ? data.services : (data.services.includes(targetServiceSelect) ? [targetServiceSelect] : []);
+    const regTotalD = {cases: 0, rp: 0};
+    const regTotalM = {cases: 0, rp: 0};
+    const regTotalU = {cases: 0, rp: 0};
+    const regTotalP = {cases: 0, rp: 0};
+    
+    activeServices.forEach(svc => {
+      const s = data.regional?.services?.[svc];
+      if (!s) return;
+      const sD = severityMetric(s, 1);
+      const sM = severityMetric(s, 2);
+      const sU = severityMetric(s, 3);
+      const sP = severityMetric(s, 4);
+      
+      regTotalD.cases += sD[CASES] || 0; regTotalD.rp += sD[IDRG] || 0;
+      regTotalM.cases += sM[CASES] || 0; regTotalM.rp += sM[IDRG] || 0;
+      regTotalU.cases += sU[CASES] || 0; regTotalU.rp += sU[IDRG] || 0;
+      regTotalP.cases += sP[CASES] || 0; regTotalP.rp += sP[IDRG] || 0;
+    });
+
+    (function(){
+      targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
+      const servicesToSimulate = targetServiceSelect === 'ALL' ? data.services : (data.services.includes(targetServiceSelect) ? [targetServiceSelect] : []);
+      
+      // Compute Competitor count for the badge
+      competitorCount = 0;
+      compCountD = 0;
+      compCountM = 0;
+      compCountU = 0;
+      compCountP = 0;
+      
+      data.hospitals.filter(h => h.code !== target.code).forEach(h => {
+        if (h.code === targetHospital()?.code) return;
+        
+        if (targetServiceSelect !== 'ALL') {
+          const hComp = getCompetency(h, targetServiceSelect);
+          if (hComp && hComp > 0) {
+            competitorCount++;
+            if (hComp === 1) compCountD++;
+            if (hComp === 2) compCountM++;
+            if (hComp === 3) compCountU++;
+            if (hComp === 4) compCountP++;
+          }
+        } else {
+          competitorCount++;
+          data.services.forEach(svc => {
+            const hComp = getCompetency(h, svc);
+            if (hComp === 1) compCountD++;
+            else if (hComp === 2) compCountM++;
+            else if (hComp === 3) compCountU++;
+            else if (hComp === 4) compCountP++;
+          });
+        }
+      });
+      
+      const compBadge = document.getElementById('globalSimCompetitorBadge');
+      const compVal = document.getElementById('globalSimCompetitorValue');
+      if (compBadge && compVal) {
+        if (targetServiceSelect === 'ALL') {
+          compBadge.querySelector('div').innerText = 'KOMPETENSI LAYANAN';
+          compVal.innerHTML = `${competitorCount}`;
+        } else {
+          compBadge.querySelector('div').innerText = 'KOMPETENSI LAYANAN';
+          compVal.innerHTML = `${competitorCount}`;
+        }
+      }
+      
+      return servicesToSimulate;
+    })().forEach((service, idx) => {
+      const tHospSvc = target.services[service];
+      const targetCompetency = tHospSvc ? (tHospSvc.competency || 0) : 0;
+      
+      const calcResult = window.computeServiceScenarios(
+        service, target, data, state, CASES, INA, IDRG, severityMetric, getLevelRules,
+        window.getSimMode ? window.getSimMode() : 'regional_all', getCompetency
+      );
+      
+      const tKasus = calcResult.existingKasus;
+      const existingIna = calcResult.existingIna;
+      const existingIdrg = calcResult.existingIdrg || 0;
+      
+      const allKk = [], allKrp = [], allTk = [], allTrp = [];
+      const allNetK = [], allNetRp = [];
+      const allSisaK = [], allSisaRp = [];
+      const allPascaK = [], allPascaRp = [];
+      const allPctRp = [], allPctRetensi = [];
+      
+      calcResult.scnEvals.forEach(scnEval => {
+        allKk.push(scnEval.totalKurangKasus);
+        allKrp.push(scnEval.totalKurangRp);
+        allTk.push(scnEval.totalTambahKasus);
+        allTrp.push(scnEval.totalTambahRp);
+        allNetK.push(scnEval.netKasus);
+        allNetRp.push(scnEval.netRp);
+        allSisaK.push(scnEval.sisaKasus);
+        allSisaRp.push(scnEval.sisaIdrg);
+        allPascaK.push(scnEval.pascaKasus);
+        allPascaRp.push(scnEval.pascaRp);
+        allPctRp.push(existingIna ? ((scnEval.pascaRp - existingIna) / existingIna) : 0);
+        allPctRetensi.push(tKasus ? (scnEval.pascaKasus / tKasus) : 0);
+      });
+
+      if (allKk.length === 0) {
+        allKk.push(0); allKrp.push(0); allTk.push(0); allTrp.push(0);
+        allNetK.push(0); allNetRp.push(0);
+        allSisaK.push(tKasus); allSisaRp.push(existingIdrg);
+        allPascaK.push(tKasus); allPascaRp.push(existingIdrg);
+        allPctRp.push(0); allPctRetensi.push(1);
+      }
+      
+      const minKk = Math.min(...allKk), maxKk = Math.max(...allKk);
+      const minKrp = Math.min(...allKrp), maxKrp = Math.max(...allKrp);
+      const minTk = Math.min(...allTk), maxTk = Math.max(...allTk);
+      const minTrp = Math.min(...allTrp), maxTrp = Math.max(...allTrp);
+      const minNetK = Math.min(...allNetK), maxNetK = Math.max(...allNetK);
+      const minNetRp = Math.min(...allNetRp), maxNetRp = Math.max(...allNetRp);
+      const minSisaK = Math.min(...allSisaK), maxSisaK = Math.max(...allSisaK);
+      const minSisaRp = Math.min(...allSisaRp), maxSisaRp = Math.max(...allSisaRp);
+      const minPascaK = Math.min(...allPascaK), maxPascaK = Math.max(...allPascaK);
+      const minPascaRp = Math.min(...allPascaRp), maxPascaRp = Math.max(...allPascaRp);
+      const minPctRp = Math.min(...allPctRp), maxPctRp = Math.max(...allPctRp);
+      const minPctRetensi = Math.min(...allPctRetensi), maxPctRetensi = Math.max(...allPctRetensi);
+      
+      grandEksKasus += tKasus;
+      grandEksIna += existingIna;
+      grandMinKk += minKk; grandMaxKk += maxKk;
+      grandMinKrp += minKrp; grandMaxKrp += maxKrp;
+      grandMinTk += minTk; grandMaxTk += maxTk;
+      grandMinTrp += minTrp; grandMaxTrp += maxTrp;
+      grandMinNetK += minNetK; grandMaxNetK += maxNetK;
+      grandMinNetRp += minNetRp; grandMaxNetRp += maxNetRp;
+      grandMinSisaK += minSisaK; grandMaxSisaK += maxSisaK;
+      grandMinSisaRp += minSisaRp; grandMaxSisaRp += maxSisaRp;
+      grandMinPascaK += minPascaK; grandMaxPascaK += maxPascaK;
+      grandMinPascaRp += minPascaRp; grandMaxPascaRp += maxPascaRp;
+      
+      rowsHtml.push(`
+        <tr>
+          <td style="color: #94a3b8; font-size: 13px;">${idx + 1}</td>
+          <td style="text-align: left; font-weight: 600; font-size: 13px; white-space:nowrap;">${escapeHtml(formatService(service))}</td>
+          <td style="font-size: 13px;">${levelBadge(targetCompetency)}</td>
+          
+          <td style="text-align: center; font-weight: 700; color: #1e293b;">
+            <div>${formatNumber(tKasus)}</div>
+            <div style="font-size: 10px; color: #64748b; font-weight: 500;">${formatTableMoney(existingIna)}</div>
+          </td>
+          
+          <td style="background:#fff1f2; white-space:nowrap; text-align:center;">${formatCell(-maxKk, -minKk, false)}</td>
+          <td style="background:#fff1f2; white-space:nowrap; text-align:center;">${formatCell(-maxKrp, -minKrp, true)}</td>
+          
+          <td style="background:#f0fdf4; white-space:nowrap; text-align:center;">${formatCell(minTk, maxTk, false)}</td>
+          <td style="background:#f0fdf4; white-space:nowrap; text-align:center;">${formatCell(minTrp, maxTrp, true)}</td>
+          
+          <td style="background:#ffffff; white-space:nowrap; text-align:center;">${formatCell(minNetK, maxNetK, false)}</td>
+          <td style="background:#ffffff; white-space:nowrap; text-align:center;">${formatCell(minNetRp, maxNetRp, true)}</td>
+          
+          <td style="background:#ffffff; white-space:nowrap; text-align:center;">
+            <div style="font-weight:700; color:#0369a1;">${formatCell(minSisaK, maxSisaK, false).replace('+','')}</div>
+            <div style="font-size:11px;">${formatCell(minSisaRp, maxSisaRp, true).replace('+','')}</div>
+          </td>
+          
+          <td style="background:#ffffff; white-space:nowrap; text-align:center;">
+            <div style="font-weight:800; color:#1d4ed8; font-size:14px;">${formatCell(minPascaK, maxPascaK, false).replace('+','')}</div>
+            <div style="font-size:11px; font-weight:700; color:#2563eb;">${minPctRetensi === maxPctRetensi ? formatSignedPercent(minPctRetensi) : formatSignedPercent(minPctRetensi) + ' <span style="color:#94a3b8; font-size:9px; font-weight:normal;">s.d</span> ' + formatSignedPercent(maxPctRetensi)}</div>
+          </td>
+          
+          <td style="background:#ffffff; white-space:nowrap; text-align:center; font-weight:800; color:#1e40af;">
+            ${formatCell(minPascaRp, maxPascaRp, true).replace('+','')}
+          </td>
+          
+          <td style="background:#ffffff; white-space:nowrap; text-align:center;">
+            ${minPctRp === maxPctRp 
+                ? `<span style="color:${minPctRp >= 0 ? "#15803d" : "#b91c1c"}; font-weight:800; font-size:14px;">${formatSignedPercent(minPctRp)}</span>`
+                : `<span style="color:${minPctRp >= 0 ? "#15803d" : "#b91c1c"}; font-weight:800; font-size:13px;">${formatSignedPercent(minPctRp)}</span> <br> <span style="color:#94a3b8; font-size: 10px;">s.d</span> <span style="color:${maxPctRp >= 0 ? "#15803d" : "#b91c1c"}; font-weight:800; font-size:13px;">${formatSignedPercent(maxPctRp)}</span>`
+             }
+          </td>
+        </tr>
+      `);
+    });
+    
+    const minGrandPctRp = grandEksIna ? ((grandMinPascaRp - grandEksIna) / grandEksIna) : 0;
+    const maxGrandPctRp = grandEksIna ? ((grandMaxPascaRp - grandEksIna) / grandEksIna) : 0;
+    
+    let htmlFooter = `
+        <tr style="font-weight: bold; background-color: #e2e8f0; font-size: 13px;">
+          <td colspan="3" style="text-align: right; padding-right: 12px; color: #0f172a;">Total Seluruh Layanan</td>
+          
+          <td style="text-align: center; font-weight: 800; color: #1e293b;">
+            <div>${formatNumber(grandEksKasus)}</div>
+            <div style="font-size: 10px; color: #64748b; font-weight: 600;">${formatTableMoney(grandEksIna)}</div>
+          </td>
+          
+          <td style="background:#fff1f2; white-space:nowrap; text-align:center;">${formatCell(-grandMaxKk, -grandMinKk, false)}</td>
+          <td style="background:#fff1f2; white-space:nowrap; text-align:center;">${formatCell(-grandMaxKrp, -grandMinKrp, true)}</td>
+          
+          <td style="background:#f0fdf4; white-space:nowrap; text-align:center;">${formatCell(grandMinTk, grandMaxTk, false)}</td>
+          <td style="background:#f0fdf4; white-space:nowrap; text-align:center;">${formatCell(grandMinTrp, grandMaxTrp, true)}</td>
+          
+          <td style="background:#ffffff; white-space:nowrap; text-align:center;">${formatCell(grandMinNetK, grandMaxNetK, false)}</td>
+          <td style="background:#ffffff; white-space:nowrap; text-align:center;">${formatCell(grandMinNetRp, grandMaxNetRp, true)}</td>
+          
+          <td style="background:#ffffff; white-space:nowrap; text-align:center;">
+            <div style="font-weight:800; color:#0369a1;">${formatCell(grandMinSisaK, grandMaxSisaK, false).replace('+','')}</div>
+            <div style="font-size:11px;">${formatCell(grandMinSisaRp, grandMaxSisaRp, true).replace('+','')}</div>
+          </td>
+          
+          <td style="background:#ffffff; white-space:nowrap; text-align:center;">
+            <div style="font-weight:900; color:#1d4ed8; font-size:14px;">${formatCell(grandMinPascaK, grandMaxPascaK, false).replace('+','')}</div>
+          </td>
+          
+          <td style="background:#ffffff; white-space:nowrap; text-align:center; font-weight:900; color:#1e40af;">
+            ${formatCell(grandMinPascaRp, grandMaxPascaRp, true).replace('+','')}
+          </td>
+          
+          <td style="background:#ffffff; white-space:nowrap; text-align:center;">
+            ${minGrandPctRp === maxGrandPctRp 
+                ? `<span style="color:${minGrandPctRp >= 0 ? "#15803d" : "#b91c1c"}; font-weight:800; font-size:14px;">${formatSignedPercent(minGrandPctRp)}</span>`
+                : `<span style="color:${minGrandPctRp >= 0 ? "#15803d" : "#b91c1c"}; font-weight:800; font-size:13px;">${formatSignedPercent(minGrandPctRp)}</span> <br> <span style="color:#94a3b8; font-size: 10px;">s.d</span> <span style="color:${maxGrandPctRp >= 0 ? "#15803d" : "#b91c1c"}; font-weight:800; font-size:13px;">${formatSignedPercent(maxGrandPctRp)}</span>`
+             }
+          </td>
+        </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top: 10px; font-size: 13px; color: #4e5d59; font-style: italic; line-height: 1.5; background: #f4f8f7; padding: 6px 10px; border-radius: 6px; border: 1px solid #d9e5e2;">
+        <div>* Warna <strong>Hijau</strong> menandakan potensi penambahan (capture) dari RS kompetitor; warna <strong>Merah</strong> menandakan potensi kehilangan (loss) karena kasus dikembalikan.</div>
+        <div>* % Kenaikan thd INA-CBG dihitung dari (Proyeksi Tambahan iDRG - Pengurangan INA-CBG) / Eksisting INA-CBG.</div>
+      </div>
+    `;
+    
+    const partSize = Math.ceil(rowsHtml.length / 3);
+    const html1 = htmlHeader + rowsHtml.slice(0, partSize).join("") + `</tbody></table></div>`;
+    const html2 = htmlHeader + rowsHtml.slice(partSize, partSize * 2).join("") + `</tbody></table></div>`;
+    const html3 = htmlHeader + rowsHtml.slice(partSize * 2).join("") + htmlFooter;
+    
+    document.getElementById("recapSlide").innerHTML = html1;
+    const slide2 = document.getElementById("recapSlide2");
+    if (slide2) slide2.innerHTML = html2;
+    const slide3 = document.getElementById("recapSlide3");
+    if (slide3) slide3.innerHTML = html3;
+  }
+
+  function renderLogicalRecapSlide() {
+    const target = targetHospital();
+    const container = document.getElementById("logicalRecapSlide");
+    if (!target || !container) return;
+    
+    const formatSignedPercent = (val) => {
+      if (val === 0 || isNaN(val)) return "0%";
+      const sign = val > 0 ? "+" : "";
+      return sign + (val * 100).toFixed(2).replace('.', ',') + "%";
+    };
+
+    const levelBadgeShort = (lvl) => {
+      const names = { 1: "Dasar", 2: "Madya", 3: "Utama", 4: "Paripurna" };
+      return names[lvl] || `L${lvl}`;
+    };
+    
+    let grandEksKasus = 0;
+    let grandEksIna = 0;
+    let grandEksIdrg = 0;
+    let grandKurangKasus = 0;
+    let grandKurangRp = 0;
+    let grandTambahKasus = 0;
+    let grandTambahRp = 0;
+    let grandNetKasus = 0;
+    let grandNetRp = 0;
+    let grandSisaKasus = 0;
+    let grandSisaRp = 0;
+    let grandPascaKasus = 0;
+    let grandPascaRp = 0;
+    let safeCount = 0;
+    
+    const rows = [];
+    
+    
+    let competitorCount = 0;
+    let compCountD = 0;
+    let compCountM = 0;
+    let compCountU = 0;
+    let compCountP = 0;
+    let targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
+    
+    // Compute Regional Cases for the target service(s)
+    const activeServices = targetServiceSelect === 'ALL' ? data.services : (data.services.includes(targetServiceSelect) ? [targetServiceSelect] : []);
+    const regTotalD = {cases: 0, rp: 0};
+    const regTotalM = {cases: 0, rp: 0};
+    const regTotalU = {cases: 0, rp: 0};
+    const regTotalP = {cases: 0, rp: 0};
+    
+    activeServices.forEach(svc => {
+      const s = data.regional?.services?.[svc];
+      if (!s) return;
+      const sD = severityMetric(s, 1);
+      const sM = severityMetric(s, 2);
+      const sU = severityMetric(s, 3);
+      const sP = severityMetric(s, 4);
+      
+      regTotalD.cases += sD[CASES] || 0; regTotalD.rp += sD[IDRG] || 0;
+      regTotalM.cases += sM[CASES] || 0; regTotalM.rp += sM[IDRG] || 0;
+      regTotalU.cases += sU[CASES] || 0; regTotalU.rp += sU[IDRG] || 0;
+      regTotalP.cases += sP[CASES] || 0; regTotalP.rp += sP[IDRG] || 0;
+    });
+
+    (function(){
+      targetServiceSelect = document.getElementById('globalSimServiceSelect')?.value || 'ALL';
+      const servicesToSimulate = targetServiceSelect === 'ALL' ? data.services : (data.services.includes(targetServiceSelect) ? [targetServiceSelect] : []);
+      
+      // Compute Competitor count for the badge
+      competitorCount = 0;
+      compCountD = 0;
+      compCountM = 0;
+      compCountU = 0;
+      compCountP = 0;
+      
+      data.hospitals.filter(h => h.code !== target.code).forEach(h => {
+        if (h.code === targetHospital()?.code) return;
+        
+        if (targetServiceSelect !== 'ALL') {
+          const hComp = getCompetency(h, targetServiceSelect);
+          if (hComp && hComp > 0) {
+            competitorCount++;
+            if (hComp === 1) compCountD++;
+            if (hComp === 2) compCountM++;
+            if (hComp === 3) compCountU++;
+            if (hComp === 4) compCountP++;
+          }
+        } else {
+          competitorCount++;
+          data.services.forEach(svc => {
+            const hComp = getCompetency(h, svc);
+            if (hComp === 1) compCountD++;
+            else if (hComp === 2) compCountM++;
+            else if (hComp === 3) compCountU++;
+            else if (hComp === 4) compCountP++;
+          });
+        }
+      });
+      
+      const compBadge = document.getElementById('globalSimCompetitorBadge');
+      const compVal = document.getElementById('globalSimCompetitorValue');
+      if (compBadge && compVal) {
+        if (targetServiceSelect === 'ALL') {
+          compBadge.querySelector('div').innerText = 'KOMPETENSI LAYANAN';
+          compVal.innerHTML = `${competitorCount}`;
+        } else {
+          compBadge.querySelector('div').innerText = 'KOMPETENSI LAYANAN';
+          compVal.innerHTML = `${competitorCount}`;
+        }
+      }
+      
+      return servicesToSimulate;
+    })().forEach((service, idx) => {
+      const tHospSvc = target.services[service];
+      const svcData = data.regional.services[service];
+      const tSvcTotal = tHospSvc ? tHospSvc.total : [0,0,0];
+      
+      const tKasus = tSvcTotal[CASES] || 0;
+      const existingIna = tSvcTotal[INA] || 0;
+      const existingIdrg = tSvcTotal[IDRG] || 0;
+      
+      const targetCompetency = tHospSvc ? (tHospSvc.competency || 0) : 0;
+      
+      if (!state.serviceScenarios || !state.serviceScenarios[service]) {
+        state.serviceScenarios = state.serviceScenarios || {};
+        state.serviceScenarios[service] = generateDefaultServiceScenarios(service, target, targetCompetency);
+      }
+      
+      const calcResult = window.computeServiceScenarios(
+        service, target, data, state, CASES, INA, IDRG, severityMetric, getLevelRules,
+        window.getSimMode ? window.getSimMode() : 'regional_all', getCompetency
+      );
+      
+      const chosen = Object.assign({}, calcResult.chosen);
+      
+      chosen.tk = chosen.totalTambahKasus;
+      chosen.trp = chosen.totalTambahRp;
+      chosen.kk = chosen.totalKurangKasus;
+      chosen.krp = chosen.totalKurangRp;
+      chosen.sisaK = chosen.sisaKasus;
+      chosen.sisaRp = chosen.sisaIdrg;
+      chosen.pascaK = chosen.pascaKasus;
+      chosen.pascaRp = chosen.pascaRp;
+      chosen.netK = chosen.netKasus;
+      
+      const rules = getLevelRules(targetCompetency, service);
+      let paramStr = '';
+      rules.tambah.forEach(lvl => {
+        if (chosen.scn.hasOwnProperty("tambah_" + lvl)) {
+          paramStr += `+${chosen.scn["tambah_" + lvl]}% ${levelBadgeShort(lvl)} `;
+        }
+      });
+      chosen.index = chosen.idx + 1;
+      chosen.paramStr = paramStr.trim();
+      
+      const tD = tHospSvc ? severityMetric(tHospSvc, 1)[CASES] : 0;
+      const tM = tHospSvc ? severityMetric(tHospSvc, 2)[CASES] : 0;
+      const tU = tHospSvc ? severityMetric(tHospSvc, 3)[CASES] : 0;
+      const tP = tHospSvc ? severityMetric(tHospSvc, 4)[CASES] : 0;
+      
+      let bHtml = '';
+      if (tD > 0) bHtml += `<div>D: ${formatNumber(tD)}</div>`;
+      if (tM > 0) bHtml += `<div>M: ${formatNumber(tM)}</div>`;
+      if (tU > 0) bHtml += `<div>U: ${formatNumber(tU)}</div>`;
+      if (tP > 0) bHtml += `<div>P: ${formatNumber(tP)}</div>`;
+      const eksBreakdownHtml = bHtml ? `<div style="font-size: 10px; color: #64748b; font-weight: 500; margin-top: 4px; line-height: 1.2;">${bHtml}</div>` : '';
+      
+      let sD = tD, sM = tM, sU = tU, sP = tP;
+      if (chosen.scn.hasOwnProperty('kurang_1')) sD = tD - (calcResult.basePengurangan[1][0] * (chosen.scn['kurang_1'] / 100));
+      if (chosen.scn.hasOwnProperty('kurang_2')) sM = tM - (calcResult.basePengurangan[2][0] * (chosen.scn['kurang_2'] / 100));
+      if (chosen.scn.hasOwnProperty('kurang_3')) sU = tU - (calcResult.basePengurangan[3][0] * (chosen.scn['kurang_3'] / 100));
+      if (chosen.scn.hasOwnProperty('kurang_4')) sP = tP - (calcResult.basePengurangan[4][0] * (chosen.scn['kurang_4'] / 100));
+      
+      let sHtml = '';
+      if (sD > 0) sHtml += `<div>D: ${formatNumber(sD)}</div>`;
+      if (sM > 0) sHtml += `<div>M: ${formatNumber(sM)}</div>`;
+      if (sU > 0) sHtml += `<div>U: ${formatNumber(sU)}</div>`;
+      if (sP > 0) sHtml += `<div>P: ${formatNumber(sP)}</div>`;
+      const sisaBreakdownHtml = sHtml ? `<div style="font-size: 10px; color: #0284c7; font-weight: 500; margin-top: 4px; line-height: 1.2;">${sHtml}</div>` : '';
+      
+      if (chosen.isSafe) {
+        safeCount++;
+      }
+      
+      grandEksKasus += tKasus;
+      grandEksIna += existingIna;
+      grandEksIdrg += existingIdrg;
+      grandKurangKasus += chosen.kk;
+      grandKurangRp += chosen.krp;
+      grandTambahKasus += chosen.tk;
+      grandTambahRp += chosen.trp;
+      grandNetKasus += chosen.netK;
+      grandNetRp += chosen.netRp;
+      grandSisaKasus += chosen.sisaK;
+      grandSisaRp += chosen.sisaRp;
+      grandPascaKasus += chosen.pascaK;
+      grandPascaRp += chosen.pascaRp;
+      
+      const pctPascaIna = existingIna ? ((chosen.pascaRp - existingIna) / existingIna) : 0;
+      const pctNetKasus = tKasus ? (chosen.netK / tKasus) : 0;
+      const pctRetensi = tKasus ? (chosen.pascaK / tKasus) : 0;
+      
+      rows.push({
+        idx: idx + 1,
+        service,
+        targetCompetency,
+        chosen,
+        tKasus,
+        existingIna,
+        existingIdrg,
+        pctPascaIna,
+        pctNetKasus,
+        pctRetensi,
+        eksBreakdownHtml,
+        sisaBreakdownHtml
+      });
+    });
+    
+    const pctGrandPascaIna = grandEksIna ? ((grandPascaRp - grandEksIna) / grandEksIna) : 0;
+    const pctGrandNetKasus = grandEksKasus ? (grandNetKasus / grandEksKasus) : 0;
+    const pctGrandRetensi = grandEksKasus ? (grandPascaKasus / grandEksKasus) : 0;
+    
+    let htmlHeader = `
+      <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+        <div style="flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #0284c7; border-radius: 8px; padding: 10px 14px;">
+          <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">Total Kasus Pasca RBKP (Optimal)</div>
+          <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 2px;">
+            <span style="font-size: 20px; font-weight: 800; color: #0f172a;">${formatNumber(grandPascaKasus)}</span>
+            <span style="font-size: 11.5px; color: ${grandPascaKasus <= grandEksKasus ? '#15803d' : '#b91c1c'}; font-weight: 700;">(${formatPercent(pctGrandRetensi)} dari ${formatNumber(grandEksKasus)} eksisting)</span>
+          </div>
+        </div>
+
+        <div style="flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #0d9488; border-radius: 8px; padding: 10px 14px;">
+          <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">Total Proyeksi Pendapatan Pasca RBKP</div>
+          <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 2px;">
+            <span style="font-size: 20px; font-weight: 800; color: #0f766e;">${(grandPascaRp / 1e9).toFixed(2).replace('.', ',')} M</span>
+            <span style="font-size: 11.5px; color: #64748b; font-weight: 600;">(Eksisting INA: ${(grandEksIna / 1e9).toFixed(2).replace('.', ',')} M)</span>
+          </div>
+        </div>
+
+        <div style="flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid ${grandNetRp >= 0 ? '#15803d' : '#b91c1c'}; border-radius: 8px; padding: 10px 14px;">
+          <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">Dampak Bersih Net (+/-) Pendapatan</div>
+          <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 2px;">
+            <span style="font-size: 20px; font-weight: 800; color: ${grandNetRp >= 0 ? '#15803d' : '#b91c1c'};">${grandNetRp > 0 ? '+' : ''}${(grandNetRp / 1e9).toFixed(2).replace('.', ',')} M</span>
+            <span style="font-size: 11.5px; color: ${pctGrandPascaIna >= 0 ? '#15803d' : '#b91c1c'}; font-weight: 700;">(${formatSignedPercent(pctGrandPascaIna)})</span>
+          </div>
+        </div>
+
+        <div style="flex: 1.1; background: #f0fdf4; border: 1px solid #bbf7d0; border-left: 4px solid #16a34a; border-radius: 8px; padding: 10px 14px;">
+          <div style="font-size: 11px; font-weight: 700; color: #166534; text-transform: uppercase;">Kesesuaian Beban & Kapasitas</div>
+          <div style="font-size: 12px; color: #14532d; font-weight: 700; margin-top: 4px; line-height: 1.2;">
+            🎯 <b>${safeCount}/${rows.length} Layanan</b> 100% terkendali dalam batas kapasitas eksisting awal.
+          </div>
+        </div>
+      </div>
+
+      <div class="table-container" style="max-height: 480px; overflow-y: auto;">
+        <table class="scenario-table" style="table-layout: auto; width: 100%; min-width: 1250px; font-size: 12px;">
+          <thead style="position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <tr style="font-size: 11.5px;">
+              <th style="background-color: #0d9488; color: white; padding: 6px 4px;">No</th>
+              <th style="background-color: #0d9488; color: white; text-align: left; padding: 6px 8px;">Layanan</th>
+              <th style="background-color: #0d9488; color: white; padding: 6px 4px;">Komp.</th>
+              <th style="background-color: #0284c7; color: white; padding: 6px 6px;">Skenario Terpilih</th>
+              <th style="background-color: #334155; color: white; padding: 6px 6px;">Kasus Eksisting</th>
+              <th style="background-color: #e11d48; color: white; padding: 6px 6px;">Pengurangan (-)</th>
+              <th style="background-color: #0891b2; color: white; padding: 6px 6px;">Sisa Eksisting</th>
+              <th style="background-color: #16a34a; color: white; padding: 6px 6px;">Tambahan (+)</th>
+              <th style="background-color: #b45309; color: white; padding: 6px 6px;">Proyeksi Kasus Pasca</th>
+              <th style="background-color: #b45309; color: white; padding: 6px 6px;">Pendapatan Pasca RBKP</th>
+              <th style="background-color: #475569; color: white; padding: 6px 6px;">Net Kasus (+/-)</th>
+              <th style="background-color: #475569; color: white; padding: 6px 6px;">Net Rp (+/-)</th>
+              <th style="background-color: #475569; color: white; padding: 6px 6px;">% vs INA-CBG</th>
+              <th style="background-color: #334155; color: white; padding: 6px 6px;">Status Kapasitas</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+    
+    let rowsHtml = [];
+    rows.forEach(r => {
+      const c = r.chosen;
+      const netRpColor = c.netRp > 0 ? '#15803d' : (c.netRp < 0 ? '#b91c1c' : '#334155');
+      const netKColor = c.netK > 0 ? '#15803d' : (c.netK < 0 ? '#b91c1c' : '#334155');
+      const pctPascaColor = r.pctPascaIna > 0 ? '#15803d' : (r.pctPascaIna < 0 ? '#b91c1c' : '#334155');
+      
+      const statusBadge = c.isSafe 
+        ? `<span style="background: #dcfce7; color: #166534; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 10.5px; display: inline-flex; align-items: center; gap: 3px;">✅ Aman (≤ Eksisting)</span>`
+        : `<span style="background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 10.5px; display: inline-flex; align-items: center; gap: 3px;">🟡 Konservatif (Skenario 1)</span>`;
+      
+      rowsHtml.push(`
+        <tr style="border-bottom: 1px solid #e2e8f0; font-size: 12px; background-color: #ffffff;">
+          <td style="color: #64748b; text-align: center; padding: 5px 4px;">${r.idx}</td>
+          <td style="text-align: left; font-weight: 600; color: #1e293b; padding: 5px 8px; white-space: nowrap;">${escapeHtml(formatService(r.service))}</td>
+          <td style="text-align: center; padding: 5px 4px;">${levelBadge(r.targetCompetency)}</td>
+          <td style="text-align: center; padding: 5px 6px; background-color: #fff7ed;">
+            <div style="font-weight: 800; color: #c2410c; background: #ffedd5; border: 1px solid #fed7aa; padding: 2px 6px; border-radius: 4px; display: inline-block;">
+              ⚡ Skenario ${c.index}
+            </div>
+            <div style="font-size: 10px; color: #9a3412; font-weight: 600; margin-top: 2px;">${c.paramStr}</div>
+          </td>
+          <td style="text-align: center; font-weight: 700; color: #1e293b; padding: 5px 6px;">
+            <div>${formatNumber(r.tKasus)}</div>
+            ${r.eksBreakdownHtml}
+          </td>
+          <td style="text-align: center; color: #b91c1c; padding: 5px 6px; background: #fff1f2;">
+            <div>▼ ${formatNumber(c.kk)}</div>
+            <div style="font-size: 10.5px; font-weight: 600;">▼ ${(c.krp/1e9).toFixed(2).replace('.', ',')} M</div>
+          </td>
+          <td style="text-align: center; color: #0891b2; font-weight: 700; padding: 5px 6px; background: #ecfeff;">
+            <div>${formatNumber(c.sisaK)}</div>
+            <div style="font-size: 10.5px;">${(c.sisaRp/1e9).toFixed(2).replace('.', ',')} M</div>
+            ${r.sisaBreakdownHtml}
+          </td>
+          <td style="text-align: center; color: #15803d; padding: 5px 6px; background: #f0fdf4;">
+            <div>▲ ${formatNumber(c.tk)}</div>
+            <div style="font-size: 10.5px; font-weight: 600;">▲ ${(c.trp/1e9).toFixed(2).replace('.', ',')} M</div>
+          </td>
+          <td style="text-align: center; font-weight: 800; color: #92400e; padding: 5px 6px; background: #fffbeb;">
+            <div>${formatNumber(c.pascaK)}</div>
+            <div style="font-size: 10px; color: ${c.pascaK <= r.tKasus ? '#16a34a' : '#ea580c'}; font-weight: 700;">${formatPercent(r.pctRetensi)}</div>
+          </td>
+          <td style="text-align: center; font-weight: 800; color: ${c.pascaRp < 0 ? '#b91c1c' : '#92400e'}; padding: 5px 6px; background: #fffbeb;">
+            ${(c.pascaRp/1e9).toFixed(2).replace('.', ',')} M
+          </td>
+          <td style="text-align: center; font-weight: 700; color: ${netKColor}; padding: 5px 6px; background: #f8fafc;">
+            ${c.netK > 0 ? '+' : ''}${formatNumber(c.netK)}
+            <div style="font-size: 10px; font-weight: normal;">(${formatSignedPercent(r.pctNetKasus)})</div>
+          </td>
+          <td style="text-align: center; font-weight: 700; color: ${netRpColor}; padding: 5px 6px; background: #f8fafc;">
+            ${c.netRp > 0 ? '+' : ''}${(c.netRp/1e9).toFixed(2).replace('.', ',')} M
+          </td>
+          <td style="text-align: center; font-weight: 700; color: ${pctPascaColor}; padding: 5px 6px; background: #f8fafc;">
+            ${formatSignedPercent(r.pctPascaIna)}
+          </td>
+          <td style="text-align: center; padding: 5px 6px;">
+            ${statusBadge}
+          </td>
+        </tr>
+      `);
+    });
+    
+    let htmlFooter = `
+        <tr style="font-weight: bold; background-color: #e2e8f0; font-size: 12.5px; border-top: 2px solid #0d9488;">
+          <td colspan="4" style="text-align: right; padding: 8px 10px; color: #0f172a; font-weight: 800;">TOTAL SELURUH LAYANAN (OPTIMAL & LOGIS)</td>
+          <td style="text-align: center; padding: 8px 6px; font-weight: 800; color: #0f172a;">${formatNumber(grandEksKasus)}</td>
+          <td style="text-align: center; padding: 8px 6px; color: #b91c1c; background: #ffe4e6;">
+            <div>▼ ${formatNumber(grandKurangKasus)}</div>
+            <div style="font-size: 11px;">▼ ${(grandKurangRp/1e9).toFixed(2).replace('.', ',')} M</div>
+          </td>
+          <td style="text-align: center; padding: 8px 6px; color: #0891b2; font-weight: 800; background: #cffafe;">
+            <div>${formatNumber(grandSisaKasus)}</div>
+            <div style="font-size: 11px;">${(grandSisaRp/1e9).toFixed(2).replace('.', ',')} M</div>
+          </td>
+          <td style="text-align: center; padding: 8px 6px; color: #15803d; background: #dcfce7; font-weight: 800;">
+            <div>▲ ${formatNumber(grandTambahKasus)}</div>
+            <div style="font-size: 11px;">▲ ${(grandTambahRp/1e9).toFixed(2).replace('.', ',')} M</div>
+          </td>
+          <td style="text-align: center; padding: 8px 6px; font-weight: 900; color: #92400e; background: #fef3c7;">
+            <div>${formatNumber(grandPascaKasus)}</div>
+            <div style="font-size: 10.5px; color: #166534; font-weight: 800;">${formatPercent(pctGrandRetensi)}</div>
+          </td>
+          <td style="text-align: center; padding: 8px 6px; font-weight: 900; color: #9a3412; background: #fef3c7;">
+            ${(grandPascaRp/1e9).toFixed(2).replace('.', ',')} M
+          </td>
+          <td style="text-align: center; padding: 8px 6px; color: ${grandNetKasus >= 0 ? '#15803d' : '#b91c1c'}; font-weight: 800; background: #f1f5f9;">
+            ${grandNetKasus > 0 ? '+' : ''}${formatNumber(grandNetKasus)}
+            <div style="font-size: 10.5px; font-weight: normal;">(${formatSignedPercent(pctGrandNetKasus)})</div>
+          </td>
+          <td style="text-align: center; padding: 8px 6px; color: ${grandNetRp >= 0 ? '#15803d' : '#b91c1c'}; font-weight: 800; background: #f1f5f9;">
+            ${grandNetRp > 0 ? '+' : ''}${(grandNetRp/1e9).toFixed(2).replace('.', ',')} M
+          </td>
+          <td style="text-align: center; padding: 8px 6px; font-weight: 800; color: ${pctGrandPascaIna >= 0 ? '#15803d' : '#b91c1c'};">
+            ${formatSignedPercent(pctGrandPascaIna)}
+          </td>
+          <td style="text-align: center; padding: 8px 6px; color: #166534; font-weight: 800;">
+            100% Teroptimasi
+          </td>
+        </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top: 10px; font-size: 13px; color: #4e5d59; font-style: italic; line-height: 1.5; background: #f4f8f7; padding: 6px 10px; border-radius: 6px; border: 1px solid #d9e5e2;">
+        <div>* <strong>Skenario Aman/Logis</strong>: Sistem mencari tingkat skenario tertinggi (Net Pendapatan paling besar) dimana <strong>Pasca Kasus ≤ Kasus Eksisting</strong>, agar RS tidak overload. Jika di Skenario 1 pun Pasca Kasus sudah melebihi Eksisting, sistem akan menandainya 🟡 Konservatif.</div>
+      </div>
+    `;
+    
+    const partSize = Math.ceil(rowsHtml.length / 3);
+    const html1 = htmlHeader + rowsHtml.slice(0, partSize).join("") + `</tbody></table></div>`;
+    const html2 = htmlHeader + rowsHtml.slice(partSize, partSize * 2).join("") + `</tbody></table></div>`;
+    const html3 = htmlHeader + rowsHtml.slice(partSize * 2).join("") + htmlFooter;
+    
+    container.innerHTML = html1;
+    const lslide2 = document.getElementById("logicalRecapSlide2");
+    if (lslide2) lslide2.innerHTML = html2;
+    const lslide3 = document.getElementById("logicalRecapSlide3");
+    if (lslide3) lslide3.innerHTML = html3;
+  }
+
+
+
+  function recalculateTotals() {
+    const processItem = (item) => {
+      if (!item) return;
+      if (!item.originalTotal && item.total) item.originalTotal = [...item.total];
+      if (!item.originalTotal) return;
+      
+      if (state.excludeUnmapped && item.unclassified) {
+        item.total = item.originalTotal.map((val, idx) => Math.max(0, val - (item.unclassified[idx] || 0)));
+      } else {
+        item.total = [...item.originalTotal];
+      }
+    };
+    
+    data.hospitals.forEach(h => {
+      processItem(h);
+      if (h.services) {
+        Object.values(h.services).forEach(s => processItem(s));
+      }
+    });
+    
+    if (data.regional) {
+      processItem(data.regional);
+      if (data.regional.services) {
+        Object.values(data.regional.services).forEach(s => processItem(s));
+      }
+    }
+  }
+  function updateTargetMeta() {
+    const target = targetHospital();
+    document.getElementById("targetMeta").innerHTML = `<strong>${escapeHtml(target.city || "Lokasi tidak tersedia")}</strong><span>Kelas ${escapeHtml(target.class || "—")} · kode ${escapeHtml(target.code)} · ${formatNumber(target.total[CASES])} kasus</span>`;
+  }
+
+  function renderScenarioSlide() {
+    const target = targetHospital();
+    if (!target) return;
+    
+    if (!state.serviceScenarios) state.serviceScenarios = {};
+    
+    const availableServices = data.services
+      .sort((a, b) => {
+        const casesA = target.services[a] && target.services[a].total ? target.services[a].total[CASES] : 0;
+        const casesB = target.services[b] && target.services[b].total ? target.services[b].total[CASES] : 0;
+        return casesB - casesA;
+      });
+
+    const rows = [];
+    let globalExistingKasus = 0;
+    let globalExistingRp = 0;
+    
+    let tableDataRows = [];
+
+    availableServices.forEach((service) => {
+      const actualCompetency = getCompetency(target, service);
+      const targetCompetency = getSimulationCompetency(target, service);
+      const scenarioTarget = {
+        ...target,
+        services: { ...target.services, [service]: { ...(target.services?.[service] || {}), competency: targetCompetency } }
+      };
+      
+      
+      const targetSvc = target.services[service];
+      const existingKasus = targetSvc ? targetSvc.total[CASES] || 0 : 0;
+      const existingIna = targetSvc ? targetSvc.total[INA] || 0 : 0;
+      const existingIdrg = targetSvc ? targetSvc.total[IDRG] || 0 : 0;
+      globalExistingKasus += existingKasus;
+      globalExistingRp += existingIna;
+      
+      const regionalSvc = data.regional.services[service];
+      const rules = getLevelRules(targetCompetency, service);
+      
+      const competitorsList = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) === Math.max(1, targetCompetency));
+      const utamaCompetitors = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) >= 4).length;
+
+      if (!state.serviceScenarios[service] || state.serviceScenarios[service].length === 0) {
+        state.serviceScenarios[service] = generateDefaultServiceScenarios(service, scenarioTarget, targetCompetency);
+      }
+
+      const calcResult = window.computeServiceScenarios(service, scenarioTarget, data, state, CASES, INA, IDRG, severityMetric, getLevelRules,
+        window.getSimMode ? window.getSimMode() : 'regional_all', getCompetency);
+      const scnEvals = calcResult.scnEvals;
+      const scenarios = state.serviceScenarios[service];
+      
+      const allTambahK = scnEvals.map(s => s.tambahK);
+      const allTambahRp = scnEvals.map(s => s.tambahRp);
+      const allKurangK = scnEvals.map(s => s.kurangK);
+      const allKurangRp = scnEvals.map(s => s.kurangRp);
+      const allNetK = scnEvals.map(s => s.netK);
+      const allNetRp = scnEvals.map(s => s.netRp);
+      const allPascaRbkp = scnEvals.map(s => s.pascaRp);
+      
+      const minTK = Math.min(...allTambahK), maxTK = Math.max(...allTambahK);
+      const minTRp = Math.min(...allTambahRp), maxTRp = Math.max(...allTambahRp);
+      const minKK = Math.min(...allKurangK), maxKK = Math.max(...allKurangK);
+      const minKRp = Math.min(...allKurangRp), maxKRp = Math.max(...allKurangRp);
+      const minNetK = Math.min(...allNetK), maxNetK = Math.max(...allNetK);
+      const minNetRp = Math.min(...allNetRp), maxNetRp = Math.max(...allNetRp);
+      const minPasca = Math.min(...allPascaRbkp), maxPasca = Math.max(...allPascaRbkp);
+      
+      const minKenaikanPct = existingIna ? ((minPasca - existingIna) / existingIna) : 0;
+      const maxKenaikanPct = existingIna ? ((maxPasca - existingIna) / existingIna) : 0;
+      
+      let targetStringHTML = '';
+      [4, 3, 2, 1].forEach(lvl => {
+        if (rules.tambah.includes(lvl)) {
+           let minVal = Math.min(...scenarios.map(s => s['tambah_'+lvl] || 0));
+           let maxVal = Math.max(...scenarios.map(s => s['tambah_'+lvl] || 0));
+           let lvlName = levelNames[lvl];
+           targetStringHTML += `<div style="margin-bottom:2px;">✅ ${lvlName}: ${minVal}% &rarr; ${maxVal}%</div>`;
+        }
+      });
+      targetStringHTML += `<div style="font-size: 12px; color:#64748b; margin-top:2px;">(Berdasar Skenario 1-6)</div>`;
+
+      tableDataRows.push({
+        service: service,
+        competency: levelNames[targetCompetency],
+        baseIna: existingIna,
+        targetString: targetStringHTML,
+        minTK, maxTK,
+        minTRp, maxTRp,
+        minKK, maxKK,
+        minKRp, maxKRp,
+        minNetK, maxNetK,
+        minNetRp, maxNetRp,
+        minPasca, maxPasca,
+        minKenaikanPct, maxKenaikanPct,
+        utamaCompetitors: utamaCompetitors
+      });
+    });
+    
+    tableDataRows.sort((a, b) => b.maxNetRp - a.maxNetRp);
+    
+    tableDataRows.forEach((r, idx) => {
+      let priorityText = '';
+      if (idx === 0) priorityText = `🏆 #1 Strategic`;
+      else if (idx === 1) priorityText = `⭐ #2 Strategic`;
+      else if (idx === 2) priorityText = `⭐ #3 Strategic`;
+      else priorityText = `#${idx+1}`;
+      
+      rows.push(`
+        <tr style="border-bottom: 1px solid #e2e8f0; font-size: 13px;">
+          <td style="text-align: center; vertical-align: middle; font-weight: bold; color: #475569; padding: 8px 4px;">${idx + 1}</td>
+          <td style="text-align: left; vertical-align: top; padding: 8px;">
+            <div style="font-weight: 600; color: #1e293b;">${formatService(r.service)}</div>
+            <div style="font-size: 12px; color: #3b82f6; margin-top: 2px; font-weight: 500;">(${r.competency})</div>
+          </td>
+          <td style="text-align: left; vertical-align: top; padding: 8px; font-size: 12px; line-height: 1.4; color: #334155;">
+            ${r.targetString}
+          </td>
+          <td style="vertical-align: middle; text-align: center; color: #047857; background-color: #f0fdf4;">
+            +${formatNumber(r.minTK)} &rarr; +${formatNumber(r.maxTK)}
+          </td>
+          <td style="vertical-align: middle; text-align: center; color: #047857; font-weight: 600; background-color: #dcfce7;">
+            +${formatMatrixMoney(r.minTRp)} &rarr; +${formatMatrixMoney(r.maxTRp)}
+          </td>
+          <td style="vertical-align: middle; text-align: center; color: #b91c1c; background-color: #fef2f2;">
+            -${formatNumber(r.minKK)} &rarr; -${formatNumber(r.maxKK)}
+          </td>
+          <td style="vertical-align: middle; text-align: center; color: #b91c1c; font-weight: 600; background-color: #fee2e2;">
+            -${formatMatrixMoney(r.minKRp)} &rarr; -${formatMatrixMoney(r.maxKRp)}
+          </td>
+          <td style="vertical-align: middle; text-align: center; color: ${r.minNetK < 0 ? '#b91c1c' : '#047857'}; background-color: #f0f9ff;">
+            ${formatSignedNumber(r.minNetK)} &rarr; ${formatSignedNumber(r.maxNetK)}
+          </td>
+          <td style="vertical-align: middle; text-align: center; color: ${r.minNetRp < 0 ? '#b91c1c' : '#047857'}; font-weight: 600; background-color: #e0f2fe;">
+            ${r.minNetRp > 0 ? '+' : ''}${formatMatrixMoney(r.minNetRp)} &rarr; ${r.maxNetRp > 0 ? '+' : ''}${formatMatrixMoney(r.maxNetRp)}
+          </td>
+          <td style="vertical-align: middle; text-align: center; font-weight: 600; color: #1e293b;">${formatMatrixMoney(r.baseIna)}</td>
+          <td style="vertical-align: middle; text-align: center; font-weight: 700; color: ${r.maxPasca < 0 ? '#b91c1c' : (r.minPasca < 0 ? '#b91c1c' : '#0f766e')};">${formatMatrixMoney(r.minPasca)} &rarr; ${formatMatrixMoney(r.maxPasca)}</td>
+          <td style="vertical-align: middle; text-align: center; font-weight: 600; background-color: #ffffff;">
+            <span style="color: ${r.minKenaikanPct < 0 ? '#dc2626' : '#16a34a'}">${r.minKenaikanPct > 0 ? '+' : ''}${formatPercent(r.minKenaikanPct)}</span> &rarr;
+            <span style="color: ${r.maxKenaikanPct < 0 ? '#dc2626' : '#16a34a'}">${r.maxKenaikanPct > 0 ? '+' : ''}${formatPercent(r.maxKenaikanPct)}</span>
+          </td>
+          <td style="vertical-align: middle; text-align: center; padding: 8px; border-left: 1px dashed #cbd5e1;">
+            <div style="font-weight: 700; font-size: 13px; color: ${idx < 3 ? '#d97706' : '#475569'};">${priorityText}</div>
+            <div style="font-size: 11px; color: #64748b; margin-top: 4px;">(${r.utamaCompetitors} kompetitor Utama)</div>
+          </td>
+        </tr>
+      `);
+    });
+
+    const deltaIdrg = target.total[IDRG] - target.total[INA];
+    const deltaPercentIdrg = target.total[INA] ? deltaIdrg / target.total[INA] : 0;
+    
+    document.getElementById("scenarioSlide").innerHTML = `
+      <div class="existing-report-kpis" style="margin-bottom: 15px;">
+        <article class="existing-report-kpi kpi-cases"><span>Total Kasus:</span><strong>${formatNumber(target.total[CASES])}</strong><em>Jumlah kasus eklaim</em></article>
+        <article class="existing-report-kpi kpi-ina"><span>Pendapatan INA-CBG:</span><strong>${formatMoney(target.total[INA])}</strong><em>${activeDatasetKey === "jan_des" ? "Data tahun 2025" : "Data uji coba 8 bulan"}</em></article>
+        <article class="existing-report-kpi kpi-idrg"><span>Pendapatan iDRG:</span><strong>${formatMoney(target.total[IDRG])}</strong><em>${TARIFF_SCENARIOS[state.activeTariffScenario]?.chip || "Tarif iDRG aktif"}</em></article>
+        <article class="existing-report-kpi kpi-difference ${deltaIdrg < 0 ? "is-loss" : "is-gain"}"><span>Selisih Pendapatan:</span><strong>${formatMoney(deltaIdrg)}</strong><em>iDRG - INA CBGs</em></article>
+        <article class="existing-report-kpi kpi-percentage ${deltaIdrg < 0 ? "is-loss" : "is-gain"}"><span>Persentase:</span><strong>${formatPercent(deltaPercentIdrg)}</strong><em>Dari pendapatan INA-CBG</em></article>
+      </div>
+      
+      <div style="margin-bottom: 12px; font-weight: 600; color: #1e293b; font-size: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+        Laporan Rekapitulasi Potensi Skenario Berdasarkan Kompetensi Layanan
+        <div style="font-size: 14px; font-weight: 400; color: #64748b; margin-top: 4px;">Rangkuman proyeksi rentang (Low &rarr; High) dari seluruh 6 skenario. Diurutkan berdasarkan Max Proyeksi Tambahan Pendapatan (Strategi Terbaik).</div>
+      </div>
+      
+      <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+        <table class="scenario-table" style="table-layout: auto; width: 100%; border-collapse: collapse;">
+          <thead style="position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <tr>
+              <th rowspan="2" style="width: 30px; text-align: center; background-color: #1e293b; color: white; padding: 6px 4px; font-size: 13px;">No</th>
+              <th rowspan="2" style="width: 140px; text-align: left; background-color: #0f766e; color: white; padding: 6px; font-size: 13px;">Layanan (Kompetensi)</th>
+              <th rowspan="2" style="width: 110px; text-align: left; background-color: #475569; color: white; padding: 6px; font-size: 13px;">Rentang Skenario</th>
+              <th colspan="2" style="background-color: #22c55e; color: white; padding: 6px; font-size: 12px; text-align: center; border: 1px solid white;">PROYEKSI TAMBAHAN (Low &rarr; High)</th>
+              <th colspan="2" style="background-color: #dc2626; color: white; padding: 6px; font-size: 12px; text-align: center; border: 1px solid white;">PROYEKSI PENGURANGAN (Low &rarr; High)</th>
+              <th colspan="2" style="background-color: #0ea5e9; color: white; padding: 6px; font-size: 12px; text-align: center; border: 1px solid white;">NET +/- (Low &rarr; High)</th>
+              <th rowspan="2" style="width: 80px; text-align: center; background-color: #16a085; color: white; padding: 6px; font-size: 12px; border: 1px solid white;">PENDAPATAN<br>EKSISTING Dengan iDRG<br>(Rp. M)</th>
+              <th rowspan="2" style="width: 90px; text-align: center; background-color: #16a085; color: white; padding: 6px; font-size: 12px; border: 1px solid white;">PENDAPATAN<br>PASCA RBKP<br>(Low &rarr; High)</th>
+              <th rowspan="2" style="width: 80px; text-align: center; background-color: #16a085; color: white; padding: 6px; font-size: 12px; border: 1px solid white;">% KENAIKAN<br>PENDAPATAN</th>
+              <th rowspan="2" style="width: 80px; text-align: center; background-color: #ea580c; color: white; padding: 6px; font-size: 13px;">Prioritas Strategis</th>
+            </tr>
+            <tr>
+              <th style="background-color: #4ade80; color: white; padding: 6px; font-size: 12px; text-align: center; border: 1px solid white; width: 70px;">Kasus</th>
+              <th style="background-color: #4ade80; color: white; padding: 6px; font-size: 12px; text-align: center; border: 1px solid white; width: 80px;">Rp M</th>
+              <th style="background-color: #f87171; color: white; padding: 6px; font-size: 12px; text-align: center; border: 1px solid white; width: 70px;">Kasus</th>
+              <th style="background-color: #f87171; color: white; padding: 6px; font-size: 12px; text-align: center; border: 1px solid white; width: 80px;">Rp M</th>
+              <th style="background-color: #38bdf8; color: white; padding: 6px; font-size: 12px; text-align: center; border: 1px solid white; width: 70px;">Kasus</th>
+              <th style="background-color: #38bdf8; color: white; padding: 6px; font-size: 12px; text-align: center; border: 1px solid white; width: 80px;">Rp M</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function buildPerServiceDynamicTable(target, service, targetComp) {
+    const selectedTargets = getTargetHospitals();
+    const targetCodes = new Set(selectedTargets.map((hospital) => hospital.code));
+    targetCodes.add(target.code);
+    const rules = getLevelRules(targetComp, service);
+    const targetSrv = target.services?.[service] || { total: createZeroMetric(), severity: {} };
+    const regionalSrv = data.regional?.services?.[service] || { total: createZeroMetric(), severity: {} };
+    const sourceRelationLabel = "RS di luar kemampuan level kasus";
+    const additionSourceHospitals = data.hospitals.filter((hospital) => {
+      if (targetCodes.has(hospital.code)) return false;
+      return true;
+    });
+    const levelData = severityRanks.map((level) => {
+      const targetMetric = severityMetric(targetSrv, level);
+      const regionalMetric = severityMetric(regionalSrv, level);
+      const direction = rules.tambah.includes(level) ? "tambah" : (rules.kurang.includes(level) ? "kurang" : "netral");
+      const sourceHospitals = direction === "tambah"
+        ? additionSourceHospitals.filter((hospital) => !canServeLevel(getCompetency(hospital, service), level) && (severityMetric(hospital.services?.[service], level)[CASES] || 0) > 0)
+        : data.hospitals.filter((hospital) => !targetCodes.has(hospital.code) && canServeLevel(getCompetency(hospital, service), level));
+      const sourceMetric = sourceHospitals.reduce((total, hospital) => {
+        const metric = severityMetric(hospital.services?.[service], level);
+        total[CASES] += metric[CASES] || 0;
+        total[INA] += metric[INA] || 0;
+        total[IDRG] += metric[IDRG] || 0;
+        return total;
+      }, createZeroMetric());
+      const competitors = data.hospitals.filter((hospital) => !targetCodes.has(hospital.code) && canServeLevel(getCompetency(hospital, service), level)).length;
+      const poolIna = direction === "tambah" ? sourceMetric[INA] || 0 : targetMetric[INA] || 0;
+      const poolIdrg = direction === "tambah" ? sourceMetric[IDRG] || 0 : targetMetric[IDRG] || 0;
+      return {
+        level,
+        direction,
+        competitors,
+        naturalShare: competitors > 0 ? 100 / (competitors + 1) : (direction === "tambah" ? 100 : 0),
+        targetCases: targetMetric[CASES] || 0,
+        targetIna: targetMetric[INA] || 0,
+        targetIdrg: targetMetric[IDRG] || 0,
+        regionalCases: regionalMetric[CASES] || 0,
+        externalCases: direction === "tambah" ? sourceMetric[CASES] || 0 : 0,
+        externalIna: direction === "tambah" ? sourceMetric[INA] || 0 : 0,
+        externalIdrg: direction === "tambah" ? sourceMetric[IDRG] || 0 : 0,
+        poolIna,
+        poolIdrg,
+        tariffDelta: poolIdrg - poolIna,
+        tariffDeltaPct: poolIna > 0 ? (poolIdrg - poolIna) / poolIna * 100 : 0
+      };
+    });
+    const baselineCases = levelData.reduce((sum, item) => sum + item.targetCases, 0);
+    const baselineIna = levelData.reduce((sum, item) => sum + item.targetIna, 0);
+    const baselineIdrg = levelData.reduce((sum, item) => sum + item.targetIdrg, 0);
+    const competencyExisting = levelData.filter((item) => rules.tambah.includes(item.level));
+    const competencyExistingCases = competencyExisting.reduce((sum, item) => sum + item.targetCases, 0);
+    const competencyExistingIna = competencyExisting.reduce((sum, item) => sum + item.targetIna, 0);
+    const competencyExistingIdrg = competencyExisting.reduce((sum, item) => sum + item.targetIdrg, 0);
+    const competencyLevelLabel = competencyExisting.map((item) => levelNames[item.level]).join(" & ") || levelNames[targetComp];
+    const lossLevelLabel = rules.kurang.map((level) => levelNames[level]).join(" & ") || "Di Luar Kompetensi";
+    const scenarioDefs = [
+      { name: "Baseline", add: 0 },
+      { name: "Konservatif (+5%)", add: 5 },
+      { name: "Moderat (+10%)", add: 10 },
+      { name: "Optimistik (+15%)", add: 15 },
+      { name: "Ekspansif (+20%)", add: 20 }
+    ];
+    const overrideKey = `${activeDatasetKey}|${target.code}|${service}`;
+    window.dynamicMarketOverrides = window.dynamicMarketOverrides || {};
+    const overrides = window.dynamicMarketOverrides[`${activeDatasetKey}|${target.code}|${service}`] || {};
+    const additionPoolCases = levelData.filter((item) => item.direction === "tambah").reduce((sum, item) => sum + item.externalCases, 0);
+    const additionPoolIdrg = levelData.filter((item) => item.direction === "tambah").reduce((sum, item) => sum + item.externalIdrg, 0);
+    const pctFor = (scenarioIndex, item) => { const sIdx = item.direction === "kurang" ? 0 : scenarioIndex;
+      const manual = overrides[sIdx]?.[`${item.direction}_${item.level}`];
+        if (Number.isFinite(manual)) return manual;
+          if (item.direction === "kurang") return 100;
+          if (item.direction === "tambah" && window.dynamicMarketAddMode === "flat") return Number(Math.min(100, 50 + scenarioDefs[scenarioIndex].add).toFixed(2));
+          if (item.competitors === 0) return [100, 75, 50, 25, 0][scenarioIndex] || 0;
+          return Number(Math.min(100, item.naturalShare + scenarioDefs[scenarioIndex].add).toFixed(2));
+      };
+
+    const results = scenarioDefs.map((definition, scenarioIndex) => {
+      let addCases = 0, addIdrg = 0, lossCases = 0, lossIdrg = 0;
+      levelData.forEach((item) => {
+        const pct = pctFor(scenarioIndex, item) / 100;
+        if (item.direction === "tambah") {
+          addCases += item.externalCases * pct;
+          addIdrg += item.externalIdrg * pct;
+        } else if (item.direction === "kurang") {
+          lossCases += item.targetCases * pct;
+          lossIdrg += item.targetIdrg * pct;
+        }
+      });
+      return {
+        definition, scenarioIndex, addCases, addIdrg, lossCases, lossIdrg,
+        projectedCases: baselineCases + addCases - lossCases,
+        projectedIdrg: baselineIdrg + addIdrg - lossIdrg
+      };
+    });
+
+    const safeScenarios = results.filter(r => r.projectedCases <= baselineCases);
+    let mostLogicalIdx = 0;
+    if (safeScenarios.length > 0) {
+      safeScenarios.sort((a, b) => (b.projectedIdrg - baselineIna) - (a.projectedIdrg - baselineIna) || b.addCases - a.addCases);
+      mostLogicalIdx = safeScenarios[0].scenarioIndex;
+    } else {
+      const sortedUnsafe = [...results].sort((a, b) => a.projectedCases - b.projectedCases || (b.projectedIdrg - baselineIna) - (a.projectedIdrg - baselineIna));
+      mostLogicalIdx = sortedUnsafe[0].scenarioIndex;
+    }
+
+    const pctInputs = (scenarioIndex, direction) => levelData.filter((item) => item.direction === direction).map((item) =>
+      `<label style="display:flex;align-items:center;justify-content:space-between;gap:3px;white-space:nowrap;"><span>${shortLevelNames[item.level]}</span><span><input class="per-service-dynamic-pct" data-service="${escapeHtml(service)}" data-scenario="${scenarioIndex}" data-direction="${direction}" data-level="${item.level}" type="number" min="0" max="100" step="0.01" value="${Number(pctFor(scenarioIndex, item) || 0) % 1 === 0 ? Number(pctFor(scenarioIndex, item) || 0).toString() : Number(pctFor(scenarioIndex, item) || 0).toFixed(2)}" style="width:58px;padding:2px;text-align:right;border:1px solid ${direction === "tambah" ? "#86efac" : "#fda4af"};border-radius:4px;color:${direction === "tambah" ? "#15803d" : "#be123c"};font-weight:800;">%</span></label>`
+    ).join("") || '<span style="color:#94a3b8;">—</span>';
+
+    window.dynamicSimRecap = window.dynamicSimRecap || [];
+    const getPctStr = (scenarioIndex, direction) => levelData.filter((item) => item.direction === direction).map((item) => {
+      const p = Number(pctFor(scenarioIndex, item) || 0);
+      const pStr = p % 1 === 0 ? p.toString() : p.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+      return `<div style="font-size:10px;margin-bottom:2px;white-space:nowrap;">${shortLevelNames[item.level]}: ${pStr}%</div>`;
+    }).join("") || '-';
+
+    window.dynamicSimRecap.push({
+      service,
+      competitionNote: competitionFootnote(service, targetComp, levelData, overrides),
+      insightLevels: levelData.map(item => ({
+        level: item.level,
+        regionalCases: item.regionalCases,
+        competitors: data.hospitals.filter(h => !targetCodes.has(h.code) && canServeLevel(getCompetency(h, service), item.level)).length,
+        providers: data.hospitals.filter(h => canServeLevel(getCompetency(h, service), item.level)).length,
+        poolCases: item.externalCases,
+        addCases: item.direction === 'tambah' ? item.externalCases * pctFor(0, item) / 100 : 0,
+        lossCases: item.direction === 'kurang' ? item.targetCases * pctFor(0, item) / 100 : 0
+      })),
+      baselineCases,
+      baselineIna,
+      baselineIdrg,
+      addCases: results[0].addCases,
+      addIdrg: results[0].addIdrg,
+      addPctStr: getPctStr(0, "tambah"),
+      lossCases: results[0].lossCases,
+      lossIdrg: results[0].lossIdrg,
+      lossPctStr: getPctStr(0, "kurang"),
+      projectedCases: results[0].projectedCases,
+      projectedIdrg: results[0].projectedIdrg
+    });
+
+    return `<div class="service-result-table"><button type="button" onclick="copyFullTable(this)" style="margin-bottom:6px;padding:5px 10px;border:1px solid #0f766e;background:white;color:#0f766e;border-radius:4px;cursor:pointer;font-size:12px;">Salin tabel · Century Gothic 8 pt</button><table style="width:100%;border-collapse:collapse;border:1px solid #1e293b;text-align:center;font-size:10px;">
+        <thead><tr>
+          <th rowspan="2" style="border:1px solid #fff;padding:5px;background:#334155;color:#fff;">Eksisting Kasus &amp; Pendapatan<br>(Rp M)</th>
+          <th colspan="3" style="border:1px solid #fff;padding:5px;background:#46ae7e;color:#fff;">Tambahan Kasus ${competencyLevelLabel}</th>
+          <th colspan="3" style="border:1px solid #fff;padding:5px;background:#cc0000;color:#fff;">Pengurangan Kasus ${lossLevelLabel}</th>
+          <th rowspan="2" style="border:1px solid #fff;padding:5px;background:#16aa98;color:#fff;">Total Kasus Pasca iDRG &amp; RBKP</th>
+          <th rowspan="2" style="border:1px solid #fff;padding:5px;background:#16aa98;color:#fff;">Total Pendapatan Pasca iDRG &amp; RBKP (Rp M)</th>
+          <th colspan="4" style="border:1px solid #fff;padding:5px;background:#46ae7e;color:#fff;">Net +/- Pasca iDRG &amp; RBKP (vs INACBG)</th>
+        </tr><tr>
+          <th style="background:#46ae7e;color:#fff;padding:4px;">Persentase</th><th style="background:#46ae7e;color:#fff;padding:4px;">Jumlah Kasus</th><th style="background:#46ae7e;color:#fff;padding:4px;">Tambahan (Rp M)</th>
+          <th style="background:#cc0000;color:#fff;padding:4px;">Persentase</th><th style="background:#cc0000;color:#fff;padding:4px;">Jumlah Kasus</th><th style="background:#cc0000;color:#fff;padding:4px;">Pengurangan (Rp M)</th>
+          <th style="background:#46ae7e;color:#fff;padding:4px;">+/- Kasus</th><th style="background:#46ae7e;color:#fff;padding:4px;">% thd total kasus</th><th style="background:#46ae7e;color:#fff;padding:4px;">+/- Pendapatan (Rp M)</th><th style="background:#46ae7e;color:#fff;padding:4px;">% +/- Pendapatan</th>
+        </tr></thead><tbody>${[results[0]].map((result) => {
+          const deltaCases = result.projectedCases - baselineCases;
+          const deltaCasesPct = baselineCases > 0 ? deltaCases / baselineCases * 100 : 0;
+          const deltaIncome = result.projectedIdrg - baselineIna;
+          const deltaIncomePct = baselineIna > 0 ? deltaIncome / baselineIna * 100 : 0;
+          const cell = 'border:1px solid #cbd5e1;padding:4px;';
+          return `<tr style="background:#fff;">
+            <td style="${cell}background:#f8fafc;min-width:175px;text-align:left;font-size:10px;line-height:1.45;"><div style="font-size:12px;font-weight:900;color:#0f172a;border-bottom:1px solid #cbd5e1;padding-bottom:3px;margin-bottom:3px;">Total Kasus: ${formatNumber(baselineCases)}</div>${levelData.map((item) => `<div style="font-weight:${rules.tambah.includes(item.level) ? '900' : '400'};color:${rules.tambah.includes(item.level) ? '#0f172a' : '#64748b'};">${shortLevelNames[item.level]}: ${formatNumber(item.targetCases)} (${formatTableMoney(item.targetIdrg)})</div>`).join('')}<div style="font-weight:800;color:#16aa98;border-top:1px solid #e2e8f0;margin-top:3px;padding-top:3px;text-align:center;">iDRG: ${formatTableMoney(baselineIdrg)}</div></td>
+            <td data-col="srv-tb-pct" style="${cell}min-width:92px;color:#15803d;font-weight:700;">${pctInputs(result.scenarioIndex, "tambah")}</td><td data-col="srv-tb-kasus" style="${cell}font-weight:800;">${formatNumber(Math.round(result.addCases))}</td><td data-col="srv-tb-rp" style="${cell}font-weight:800;color:#46ae7e;">▲ ${formatTableMoney(result.addIdrg)}</td>
+            <td data-col="srv-kr-pct" style="${cell}min-width:92px;color:#be123c;font-weight:700;">${pctInputs(0, "kurang")}</td><td data-col="srv-kr-kasus" style="${cell}font-weight:800;">${formatNumber(Math.round(result.lossCases))}</td><td data-col="srv-kr-rp" style="${cell}font-weight:800;color:#cc0000;">▼ ${formatTableMoney(result.lossIdrg)}</td>
+            <td style="${cell}font-weight:900;background:#eff6ff;">${formatNumber(Math.round(result.projectedCases))}</td><td style="${cell}font-weight:900;background:#f0fdf4;">${formatTableMoney(result.projectedIdrg)}</td>
+            <td data-col="srv-nt-kasus" style="${cell}font-weight:800;color:${deltaCases >= 0 ? '#46ae7e' : '#cc0000'};"><span style="font-family: monospace; font-size: 11px;">${deltaCases >= 0 ? "▲ " : "▼ "}</span>${formatNumber(Math.abs(Math.round(deltaCases)))}</td>
+            <td data-col="srv-nt-kasuspct" style="${cell}font-weight:800;color:${deltaCases >= 0 ? '#46ae7e' : '#cc0000'};"><span style="font-family: monospace; font-size: 11px;">${deltaCases >= 0 ? "▲ " : "▼ "}</span>${decimalFormatter.format(Math.abs(deltaCasesPct))}%</td>
+            <td data-col="srv-nt-rp" style="${cell}font-weight:800;color:${deltaIncome >= 0 ? '#46ae7e' : '#cc0000'};"><span style="font-family: monospace; font-size: 11px;">${deltaIncome >= 0 ? "▲ " : "▼ "}</span>${formatTableMoney(Math.abs(deltaIncome))}</td>
+            <td data-col="srv-nt-rppct" style="${cell}font-weight:800;color:${deltaIncome >= 0 ? '#46ae7e' : '#cc0000'};"><span style="font-family: monospace; font-size: 11px;">${deltaIncome >= 0 ? "▲ " : "▼ "}</span>${decimalFormatter.format(Math.abs(deltaIncomePct))}%</td></tr>`;
+        }).join('')}</tbody></table></div>`;
+  }
+
+  function renderServiceInsights(target, service, competency, simulation) {
+    return `<section class="service-insights" aria-label="Dasar rekomendasi">
+      <details class="service-insight-method"><summary>Dasar rekomendasi</summary><p>Regional mengikuti data/filter aktif. Kompetitor mampu melayani dihitung dari RS di luar target dengan kompetensi selevel atau satu tingkat di atas level kasus. Indikator peningkatan membandingkan kasus regional per penyedia yang mampu melayani pada jenjang berikutnya dengan jenjang eksisting; ini indikator perencanaan, bukan kapasitas aktual atau keputusan akreditasi. Pool eligible mengikuti sumber tambahan pada simulasi dan tidak sama dengan semua kasus regional. Rekomendasi SDM dan sarpras mengikuti perubahan jumlah kasus dan tambahan bersih pada level Utama/Paripurna dari hasil simulasi aktif selama periode dataset terpilih. Rekomendasi ini menunjukkan arah kebutuhan sumber daya; jumlah tenaga, ruang, dan alat tidak dihitung dari simulasi kasus saja.</p></details>
+      <p class="competition-footnote" style="font-size:11px;line-height:1.5;color:#334155;">${escapeHtml(simulation.competitionNote || "")}</p>
+    </section>`;
+  }
+
+  function renderDynamicServiceSlides() {
+    window.dynamicSimRecap = [];
+    const target = targetHospital();
+    if (!target) return;
+    
+    let container = document.getElementById("dynamicServiceSlides");
+    if (!container) {
+      container = document.createElement("div");
+      container.id = "dynamicServiceSlides";
+      const stack = document.querySelector(".slide-stack");
+      if (stack) {
+        // Tabel simulasi per layanan harus dibaca lebih dahulu sebelum rekap total.
+        // Sisipkan tepat di depan slide rekap, bukan di ujung seluruh presentasi.
+        const recapSection = stack.querySelector('[data-slide="22"]');
+        stack.insertBefore(container, recapSection || null);
+      } else {
+        return;
+      }
+    }
+    
+    // Extract available services for the target hospital, sorted by total cases descending
+    const availableServices = data.services
+      .sort((a, b) => {
+        const casesA = target.services[a] && target.services[a].total ? target.services[a].total[CASES] : 0;
+        const casesB = target.services[b] && target.services[b].total ? target.services[b].total[CASES] : 0;
+        return casesB - casesA;
+      });
+    
+    let html = "";
+    
+    availableServices.forEach((service, idx) => {
+      const actualCompetency = getCompetency(target, service);
+      const targetCompetency = getSimulationCompetency(target, service);
+      const scenarioTarget = {
+        ...target,
+        services: { ...target.services, [service]: { ...(target.services?.[service] || {}), competency: targetCompetency } }
+      };
+      // Hitung kompetitor (RS lain yang punya kompetensi >= targetCompetency)
+      const competitorsList = data.hospitals.filter(h => h.code !== target.code && getCompetency(h, service) === Math.max(1, targetCompetency));
+      const competitors = competitorsList.length;
+      let competitorHtml = '';
+      if (competitors > 0) {
+        const groups = { 4: [], 3: [], 2: [], 1: [] };
+        competitorsList.forEach(h => groups[getCompetency(h, service)].push(h));
+        
+        let colsHtml = '';
+        [4, 3, 2, 1].forEach(lvl => {
+          if (groups[lvl].length > 0) {
+            const badgeColor = lvl === 4 ? 'background: #fdf4ff; color: #a21caf; border: 1px solid #f5d0fe;' : 
+                               lvl === 3 ? 'background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa;' : 
+                               lvl === 2 ? 'background: #fefce8; color: #a16207; border: 1px solid #fef08a;' : 
+                                           'background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4;';
+            const limit = 4;
+            const shownHospitals = groups[lvl].slice(0, limit);
+            const hiddenCount = groups[lvl].length - limit;
+            
+            let badgesHTML = shownHospitals.map(h => `<span style="font-size: 12px; padding: 2px 6px; border-radius: 4px; ${badgeColor} white-space: nowrap; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">${escapeHtml(h.name)}</span>`).join('');
+            if (hiddenCount > 0) {
+              badgesHTML += `<span style="font-size: 12px; padding: 2px 6px; border-radius: 4px; background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; white-space: nowrap; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">+ ${hiddenCount} lainnya</span>`;
+            }
+            
+            colsHtml += `
+              <div style="display: flex; flex-direction: column; align-items: flex-end; min-width: max-content; flex: 1;">
+                <div style="font-size: 11px; font-weight: 700; color: #94a3b8; margin-bottom: 4px; text-transform: uppercase;">${levelNames[lvl]} (${groups[lvl].length} RS)</div>
+                <div style="display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end;">
+                  ${badgesHTML}
+                </div>
+              </div>
+            `;
+          }
+        });
+        competitorHtml = `<div style="display: flex; flex-wrap: wrap; gap: 16px; justify-content: flex-end; padding-right: 4px; margin-top: 6px; max-width: 100%;">${colsHtml}</div>`;
+      } else {
+        competitorHtml = `<div style="font-size: 14px; color: var(--muted); margin-top: 2px;">Tidak ada kompetitor</div>`;
+      }
+      
+      // Hitung Persentase Default
+      if (!state.serviceScenarios[service] || state.serviceScenarios[service].length === 0) {
+        state.serviceScenarios[service] = generateDefaultServiceScenarios(service, scenarioTarget, targetCompetency);
+      }
+      
+      const getSumValidLevels = (svcData) => {
+        const res = [];
+        res[CASES] = 0;
+        res[INA] = 0;
+        res[IDRG] = 0;
+        if (svcData && svcData.severity) {
+          [1, 2, 3, 4].forEach(lvl => {
+            const m = svcData.severity[lvl];
+            if (m) {
+              res[CASES] += m[CASES] || 0;
+              res[INA] += m[INA] || 0;
+              res[IDRG] += m[IDRG] || 0;
+            }
+          });
+        }
+        return res;
+      };
+      
+      const targetExistingService = getSumValidLevels(target.services[service]);
+      const regionalExistingService = getSumValidLevels(data.regional.services[service]);
+      
+      const targetKasus = targetExistingService[CASES];
+      const regionalKasus = regionalExistingService[CASES];
+      const targetIna = targetExistingService[INA];
+      const targetIdrg = targetExistingService[IDRG];
+      const regionalIna = regionalExistingService[INA];
+      const regionalIdrg = regionalExistingService[IDRG];
+      
+      const potensiRegional = regionalIdrg - regionalIna;
+      const selisih = potensiRegional - targetIdrg;
+      
+      const targetSvc = target.services[service];
+      const targetKasusArr = targetExistingService;
+      const existingKasus = targetKasusArr[CASES] || 0;
+      const existingIna = targetKasusArr[INA] || 0;
+      const existingIdrg = targetKasusArr[IDRG] || 0;
+      
+      const calcResult = window.computeServiceScenarios(
+        service, scenarioTarget, data, state, CASES, INA, IDRG, severityMetric, getLevelRules,
+        window.getSimMode ? window.getSimMode() : 'regional_all', getCompetency
+      );
+      
+      const { baseTambahan, basePengurangan, scnEvals: scnMetrics, chosenIdx: mostLogicalScenarioIndex } = calcResult;
+      console.log('[DEBUG Skenario Logis]', service, '-> chosenIdx:', mostLogicalScenarioIndex, '| safeCount:', scnMetrics.filter(s=>s.isSafe).length, '| scnCount:', scnMetrics.length, '| scenarios in state:', (state.serviceScenarios[service]||[]).length);
+      
+      const formatMatrixMoneyJT = formatTableMoney;
+      const targetSvcRef = target.services[service];
+      const regionalSvcRef = data.regional.services[service];
+
+      const tD = targetSvcRef ? severityMetric(targetSvcRef, 1)[CASES] : 0;
+      const tM = targetSvcRef ? severityMetric(targetSvcRef, 2)[CASES] : 0;
+      const tU = targetSvcRef ? severityMetric(targetSvcRef, 3)[CASES] : 0;
+      const tP = targetSvcRef ? severityMetric(targetSvcRef, 4)[CASES] : 0;
+
+      const rD = regionalSvcRef ? severityMetric(regionalSvcRef, 1)[CASES] : 0;
+      const rM = regionalSvcRef ? severityMetric(regionalSvcRef, 2)[CASES] : 0;
+      const rU = regionalSvcRef ? severityMetric(regionalSvcRef, 3)[CASES] : 0;
+      const rP = regionalSvcRef ? severityMetric(regionalSvcRef, 4)[CASES] : 0;
+
+      const generateRow = (index, scn) => {
+        let totalTambahKasus = 0;
+        let totalTambahRp = 0;
+        let totalKurangKasus = 0;
+        let totalKurangRp = 0;
+        
+        const isMostLogical = (index === mostLogicalScenarioIndex);
+        const bgRow = isMostLogical ? '#fff7ed' : (index % 2 === 0 ? '#f8fafc' : '#ffffff');
+        const outlineRow = isMostLogical ? 'box-shadow: inset 0 0 0 2px #ea580c;' : '';
+        const cb = isMostLogical ? 'border: 1px solid #fdba74;' : 'border: 1px solid #e2e8f0;';
+        const badge = isMostLogical 
+          ? `<div style="margin-top: 3px;"><span style="font-size: 9px; color: #ffffff; background: linear-gradient(135deg, #f97316, #ea580c); padding: 2px 7px; border-radius: 4px; font-weight: 800; text-transform: uppercase; display: inline-flex; align-items: center; gap: 3px; box-shadow: 0 1px 3px rgba(234,88,12,0.4); letter-spacing: 0.3px;">⚡ Paling Logis</span></div>` 
+          : '';
+        
+        // ── PENGURANGAN (shared / rowspan di baris 0) ─────────────────────────────
+        let kurangCols = '';
+        [4, 3, 2, 1].forEach(lvl => {
+          if (scn.hasOwnProperty('kurang_' + lvl)) {
+            const pKurang = scn['kurang_' + lvl] / 100;
+            const kk = basePengurangan[lvl][0] * pKurang;
+            const krp = basePengurangan[lvl][1] * pKurang;
+            totalKurangKasus += kk;
+            totalKurangRp += krp;
+            if (index === 0) {
+              const nRows = state.serviceScenarios[service].length;
+              kurangCols += `
+                <td rowspan="${nRows}" style="border: 1px solid #fecaca; padding: 4px; vertical-align: middle; background-color: #fff5f5;">
+                  <input type="number" class="scenario-input dynamic-scenario-input" data-service="${escapeHtml(service)}" data-index="${index}" data-field="kurang_${lvl}" value="${scn['kurang_' + lvl]}" step="0.01" style="width: 52px; padding: 2px; font-size: 13px; text-align: center; border: 1px solid #fca5a5; border-radius: 4px; color: #b91c1c; background: transparent;">
+                </td>
+                <td rowspan="${nRows}" style="border: 1px solid #fecaca; padding: 4px; font-size: 13px; font-weight: 600; color: #b91c1c; vertical-align: middle; background-color: #fff5f5;">▼ ${formatNumber(kk)}</td>
+              `;
+            }
+          }
+        });
+        
+        // ── TAMBAHAN (per baris skenario) ─────────────────────────────────────────
+        let tambahCols = '';
+        [4, 3, 2, 1].forEach(lvl => {
+          if (scn.hasOwnProperty('tambah_' + lvl)) {
+            const pTambah = scn['tambah_' + lvl] / 100;
+            const tk = baseTambahan[lvl][0] * pTambah;
+            const trp = baseTambahan[lvl][1] * pTambah;
+            totalTambahKasus += tk;
+            totalTambahRp += trp;
+            tambahCols += `
+              <td style="${cb} padding: 4px; vertical-align: middle; background-color: ${isMostLogical ? '#f0fdf4' : 'transparent'};">
+                <input type="number" class="scenario-input dynamic-scenario-input" data-service="${escapeHtml(service)}" data-index="${index}" data-field="tambah_${lvl}" value="${scn['tambah_' + lvl]}" step="0.01" style="width: 52px; padding: 2px; font-size: 13px; text-align: center; border: 1px solid #86efac; border-radius: 4px; color: #15803d; background: transparent;">
+              </td>
+              <td style="${cb} padding: 4px; font-size: 13px; font-weight: 600; color: #15803d; vertical-align: middle;">▲ ${formatNumber(tk)}</td>
+              <td style="${cb} padding: 4px; font-size: 12px; color: #15803d; vertical-align: middle;">${formatMatrixMoneyJT(trp)}</td>
+            `;
+          }
+        });
+        
+        // ── DERIVED VALUES ────────────────────────────────────────────────────────
+        const sisaKasus = existingKasus - totalKurangKasus;
+        const sisaIdrg  = existingIdrg  - totalKurangRp;
+        const pascaKasus = sisaKasus + totalTambahKasus;
+        const pascaRbkp  = sisaIdrg  + totalTambahRp;
+        const netKasus   = totalTambahKasus - totalKurangKasus;
+        const netRp      = totalTambahRp - totalKurangRp;
+        const pctKenaikan = existingIna ? ((pascaRbkp - existingIna) / existingIna) : 0;
+        const isSafeRow  = (existingKasus === 0) || (pascaKasus <= existingKasus);
+        const safeIcon   = isSafeRow ? '<span style="color:#15803d;font-size:11px;"> ✅</span>' : '<span style="color:#b91c1c;font-size:11px;"> ⚠️</span>';
+        
+        let eksBreakdownHtml = '';
+        if (index === 0) {
+          let bHtml = '';
+          if (tD > 0) bHtml += `<div>D: ${formatNumber(tD)}</div>`;
+          if (tM > 0) bHtml += `<div>M: ${formatNumber(tM)}</div>`;
+          if (tU > 0) bHtml += `<div>U: ${formatNumber(tU)}</div>`;
+          if (tP > 0) bHtml += `<div>P: ${formatNumber(tP)}</div>`;
+          if (bHtml) {
+            eksBreakdownHtml = `<div style="font-size: 10px; color: #64748b; font-weight: 500; margin-top: 4px; line-height: 1.2;">${bHtml}</div>`;
+          }
+        }
+        
+        let sD = tD, sM = tM, sU = tU, sP = tP;
+        if (scn.hasOwnProperty('kurang_1')) sD = tD - (basePengurangan[1][0] * (scn['kurang_1'] / 100));
+        if (scn.hasOwnProperty('kurang_2')) sM = tM - (basePengurangan[2][0] * (scn['kurang_2'] / 100));
+        if (scn.hasOwnProperty('kurang_3')) sU = tU - (basePengurangan[3][0] * (scn['kurang_3'] / 100));
+        if (scn.hasOwnProperty('kurang_4')) sP = tP - (basePengurangan[4][0] * (scn['kurang_4'] / 100));
+        
+        let sisaBreakdownHtml = '';
+        let sHtml = '';
+        if (sD > 0) sHtml += `<div>D: ${formatNumber(sD)}</div>`;
+        if (sM > 0) sHtml += `<div>M: ${formatNumber(sM)}</div>`;
+        if (sU > 0) sHtml += `<div>U: ${formatNumber(sU)}</div>`;
+        if (sP > 0) sHtml += `<div>P: ${formatNumber(sP)}</div>`;
+        if (sHtml) {
+          sisaBreakdownHtml = `<div style="font-size: 10px; color: #0284c7; font-weight: 500; margin-top: 4px; line-height: 1.2;">${sHtml}</div>`;
+        }
+
+        return `<tr style="background-color: ${bgRow}; ${outlineRow}">
+          <!-- SKENARIO -->
+          <td style="${cb} font-weight: 700; text-align: center; font-size: 13px; padding: 5px 4px; color: ${isMostLogical ? '#c2410c' : '#334155'}; background-color: ${isMostLogical ? '#ffedd5' : 'transparent'};">
+            Skenario ${index + 1}
+            <div style="font-size: 10px; font-weight: 600; color: ${isMostLogical ? '#ea580c' : '#94a3b8'}; margin-top: 1px; text-transform: uppercase; letter-spacing: 0.3px;">${['Baseline','Konservatif','Moderat','Optimistik','Agresif','Maksimum'][index] || ''}</div>
+            ${badge}
+          </td>
+          <!-- EKSISTING (rowspan) -->
+          ${index === 0 ? `
+          <td rowspan="${state.serviceScenarios[service].length}" style="border: 1px solid #cbd5e1; padding: 5px; text-align: center; vertical-align: middle; background: #f1f5f9;">
+            <div style="font-size: 13px; font-weight: 700; color: #1e293b;">${formatNumber(existingKasus)}</div>
+            ${eksBreakdownHtml}
+          </td>
+          <td rowspan="${state.serviceScenarios[service].length}" style="border: 1px solid #cbd5e1; font-size: 12px; padding: 5px; text-align: center; vertical-align: middle; background: #f1f5f9; color: #334155;">${formatMatrixMoneyJT(existingIdrg)}</td>
+          ` : ''}
+          <!-- PENGURANGAN -->
+          ${kurangCols}
+          <!-- SISA -->
+          <td style="border: 1px solid #bae6fd; padding: 5px; text-align: center; vertical-align: middle; background: #f0f9ff;">
+            <div style="font-size: 13px; font-weight: 700; color: #0369a1;">${formatNumber(sisaKasus)}</div>
+            ${sisaBreakdownHtml}
+          </td>
+          <td style="border: 1px solid #bae6fd; font-size: 12px; padding: 5px; text-align: center; vertical-align: middle; background: #f0f9ff; color: #0369a1;">${formatMatrixMoneyJT(sisaIdrg)}</td>
+          <!-- TAMBAHAN -->
+          ${tambahCols}
+          <!-- PASCA KASUS & PENDAPATAN -->
+          <td style="${cb} font-size: 13px; padding: 4px; font-weight: 700; color: ${isSafeRow ? '#b45309' : '#b91c1c'}; background-color: ${isMostLogical ? '#fffbeb' : 'transparent'};">${formatNumber(pascaKasus)}${safeIcon}</td>
+          <td style="${cb} font-size: 13px; padding: 4px; font-weight: 800; color: ${pascaRbkp < 0 ? '#b91c1c' : '#92400e'}; background-color: ${isMostLogical ? '#ffedd5' : 'transparent'};">Rp ${formatMatrixMoneyJT(pascaRbkp)}</td>
+          <!-- NET +/- -->
+          <td style="${cb} font-size: 13px; padding: 4px; color: ${netKasus > 0 ? '#15803d' : (netKasus < 0 ? '#b91c1c' : '#334155')}; font-weight: 700;">${netKasus >= 0 ? "▲ " : "▼ "}${formatNumber(Math.abs(netKasus))}</td>
+          <td style="${cb} font-size: 12px; padding: 4px; color: ${netRp > 0 ? '#15803d' : (netRp < 0 ? '#b91c1c' : '#334155')}; font-weight: 700;">${netRp >= 0 ? "▲ " : "▼ "}${formatMatrixMoneyJT(Math.abs(netRp))}<br><span style="font-size: 10px; font-weight: 600; color: ${pctKenaikan > 0 ? '#15803d' : (pctKenaikan < 0 ? '#b91c1c' : '#94a3b8')};">${pctKenaikan >= 0 ? "▲ " : "▼ "}${formatPercent(Math.abs(pctKenaikan))}</span></td>
+        </tr>`;
+      };
+      
+      const totalTargetCases = targetKasusArr[CASES] || 0;
+      const totalRegionalCases = regionalKasus;
+      const competitorsCount = data.hospitals.filter((h) => h.code !== target.code && getCompetency(h, service) === targetCompetency).length;
+
+      const opportunityInsight =
+        totalRegionalCases > 0
+          ? `Peluang pasar regional di bidang ini mencapai <b>${formatNumber(totalRegionalCases)} kasus</b>.`
+          : `Pasar regional belum mencatat volume kasus signifikan.`;
+          
+      const riskInsight =
+        totalTargetCases > 0
+          ? ` RS target saat ini memegang <b>${formatNumber(totalTargetCases)} kasus</b>.`
+          : ` RS target belum memiliki basis kasus eksisting.`;
+
+      const competitionInsight =
+        competitorsCount > 0
+          ? `Terdapat <b>${competitorsCount} RS pesaing</b> se-level/setingkat lebih tinggi di wilayah ini.`
+          : `Tidak ada pesaing langsung se-level di wilayah ini (peluang dominasi tinggi).`;
+
+      const highestRevenueNet = mostLogicalScenarioIndex >= 0 && scnMetrics[mostLogicalScenarioIndex] ? scnMetrics[mostLogicalScenarioIndex].netRp : 0;
+
+      const scenarioInsight =
+        mostLogicalScenarioIndex >= 0
+          ? `Skenario ${mostLogicalScenarioIndex + 1} memberikan potensi net pendapatan terbaik yang logis`
+          : `Belum ada skenario yang aman/logis untuk dipilih.`;
+
+      const formatNetMoneyUnit = formatTableMoney;
+
+      const highestRevenueNote =
+        highestRevenueNet > 0
+          ? ` (+<b>${formatNetMoneyUnit(highestRevenueNet)}</b>).`
+          : ` (berpotensi penurunan).`;
+
+      const formatMoneyM = (val) => {
+        const absVal = Math.abs(val || 0);
+        return (absVal / 1e9).toLocaleString('id-ID', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        }) + " M";
+      };
+
+      const serviceTable = buildPerServiceDynamicTable(target, service, targetCompetency);
+      const simulation = window.dynamicSimRecap[window.dynamicSimRecap.length - 1];
+      const caseDelta = simulation.projectedCases - simulation.baselineCases;
+      const incomeDelta = simulation.projectedIdrg - simulation.baselineIna;
+      const casePct = simulation.baselineCases ? Math.abs(caseDelta / simulation.baselineCases) : 0;
+      const counts = [1, 2, 3, 4].map(level => data.hospitals.filter(h => h.code !== target.code && canServeLevel(getCompetency(h, service), level)).length);
+      const regionalMetrics = [1, 2, 3, 4].map(level => severityMetric(data.regional.services[service], level));
+      const revenueDelta = targetExistingService[IDRG] - targetExistingService[INA];
+      const signed = (value, formatted) => `<span class="${value < 0 ? 'service-negative' : 'service-positive'}">${value < 0 ? '▼' : value > 0 ? '▲' : ''} ${formatted}</span>`;
+      html += `
+        <section class="slide service-sim-slide service-reference" data-slide="service-${idx + 1}" aria-labelledby="dynamicSlide${idx}Title">
+          <header class="service-report-header">
+            <h1 id="dynamicSlide${idx}Title">Simulasi Market Share - ${escapeHtml(service)}</h1>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
+              <div class="service-period">Data Mirroring Uji Coba iDRG<br>periode 15 Okt 2025 - 14 Juni 2026</div>
+              <div style="background:#087c7e;color:#fff;font-size:12px;font-weight:800;padding:5px 14px;border-radius:5px;text-align:center;line-height:1.3;">Mirroring Inacbg dg<br>iDRG+KRIS</div>
+            </div>
+          </header>
+          <div class="slide-content service-report-content">
+
+            <div style="display:flex;gap:0;align-items:stretch;margin-bottom:10px;">
+              <div class="service-summary" style="flex:1;min-width:0;">
+                <div><strong>Total Kasus:</strong><b>${formatNumber(targetKasus)}</b><span>Jumlah kasus eklaim</span></div>
+                <div><strong>Pendapatan INA CBGs:</strong><b style="color:#d97706;">${formatMoneyM(targetExistingService[INA])}</b><span>Dari data 8 bulan</span></div>
+                <div><strong>Pendapatan iDRG:</strong><b style="color:#d97706;">${formatMoneyM(targetExistingService[IDRG])}</b><span>Klaim uji coba iDRG</span></div>
+                <div><strong>Selisih Pendapatan:</strong><b>${signed(revenueDelta, formatMoneyM(Math.abs(revenueDelta)))}</b><span>iDRG - INA CBGs</span></div>
+                <div><strong>Persentase:</strong><b>${targetExistingService[INA] ? signed(revenueDelta, formatPercent(Math.abs(revenueDelta / targetExistingService[INA]))) : '\u2014'}</b><span>Dari Pendapatan INACBG</span></div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);background:#0f766e;color:#fff;font-size:12px;font-weight:900;padding:10px 7px;min-width:36px;letter-spacing:1px;white-space:nowrap;border-left:3px solid #ccd32d;flex-shrink:0;">Mirorring Inacbg dg iDRG+KRIS</div>
+            </div>
+
+            ${(() => {
+              const rules = getLevelRules(targetCompetency, service);
               const thStyle = (lvl) => rules.tambah.includes(lvl) ? 'color:#cc0000;font-weight:900;' : 'color:#fff;font-weight:700;';
               const tdStyle = (lvl) => rules.tambah.includes(lvl) ? 'font-weight:900;color:#cc0000;' : '';
               const uniqueTotal = data.hospitals.filter(h => h.code !== target.code && [1,2,3,4].some(lvl => canServeLevel(getCompetency(h, service), lvl))).length;
