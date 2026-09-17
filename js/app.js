@@ -10872,63 +10872,64 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     }
   }
 
-  document.getElementById("exportGSlidesBtn").addEventListener("click", async function() {
-    const btn = this;
-    const status = document.getElementById("exportStatus");
-    btn.disabled = true;
-    btn.textContent = "Menyiapkan...";
-    status.textContent = "Membangun file Google Slides...";
-    try {
-      const target = targetHospital();
-      const services = data.services;
-      const activeHospitals = typeof getActiveMirroringHospitals === "function" ? getActiveMirroringHospitals() : (data.hospitals || []);
-      const nationalMetrics = typeof computeNationalMirroringMetrics === "function" ? computeNationalMirroringMetrics(activeHospitals) : null;
-      const addressableResult = typeof computeAddressable === "function" ? computeAddressable() : null;
-
-      const getChecked = (dropdown) => Array.from(dropdown?.querySelectorAll("input:checked") || []).map(i => i.value);
-      const selectedProvinces = getChecked(document.getElementById("provDropdown"));
-      const selectedCities = getChecked(document.getElementById("cityDropdown"));
-      const isMuhammadiyahOnly = document.getElementById("muhammadiyahFilterToggle")?.checked || false;
-      const activeDatasetPeriod = document.getElementById("datasetPeriodSelect")?.value || "okt_jun";
-      const activeTariff = document.getElementById("tariffScenarioSelect")?.value || "af_afreg_afkep";
-
-      const mapImageData = await captureSvgToPng("svgMapContainer");
-      const muhammadiyahMapImageData = await captureSvgToPng("muhammadiyahSvgMapContainer");
-
-      await window.exportGoogleSlides({
-        data, state, target,
-        CASES, INA, IDRG, REVENUE,
-        services,
-        levelNames,
-        activeHospitals,
-        nationalMetrics,
-        addressableResult,
-        mapImageData,
-        muhammadiyahMapImageData,
-        filters: {
-          selectedProvinces,
-          selectedCities,
-          isMuhammadiyahOnly,
-          activeDatasetPeriod,
-          activeTariff
-        },
-        helpers: {
-          isMuhammadiyahHospital,
-          getCompetency: getSimulationCompetency,
-          formatService
-        }
-      });
-      btn.textContent = "Terunduh!";
-      status.textContent = "File Google Slides berhasil dibuat.";
-    } catch (err) {
-      console.error("Google Slides export failed", err);
-      btn.textContent = "Gagal";
-      status.textContent = "Ekspor gagal: " + err.message;
-    } finally {
-      btn.disabled = false;
-      setTimeout(function() { btn.textContent = "Export Google Slides"; }, 2400);
-    }
-  });
+  document.getElementById("exportGSlidesBtn").addEventListener("click", exportDashboardToPptx);
+//   document.getElementById("exportGSlidesBtn").addEventListener("click", async function() {
+//     const btn = this;
+//     const status = document.getElementById("exportStatus");
+//     btn.disabled = true;
+//     btn.textContent = "Menyiapkan...";
+//     status.textContent = "Membangun file Google Slides...";
+//     try {
+//       const target = targetHospital();
+//       const services = data.services;
+//       const activeHospitals = typeof getActiveMirroringHospitals === "function" ? getActiveMirroringHospitals() : (data.hospitals || []);
+//       const nationalMetrics = typeof computeNationalMirroringMetrics === "function" ? computeNationalMirroringMetrics(activeHospitals) : null;
+//       const addressableResult = typeof computeAddressable === "function" ? computeAddressable() : null;
+// 
+//       const getChecked = (dropdown) => Array.from(dropdown?.querySelectorAll("input:checked") || []).map(i => i.value);
+//       const selectedProvinces = getChecked(document.getElementById("provDropdown"));
+//       const selectedCities = getChecked(document.getElementById("cityDropdown"));
+//       const isMuhammadiyahOnly = document.getElementById("muhammadiyahFilterToggle")?.checked || false;
+//       const activeDatasetPeriod = document.getElementById("datasetPeriodSelect")?.value || "okt_jun";
+//       const activeTariff = document.getElementById("tariffScenarioSelect")?.value || "af_afreg_afkep";
+// 
+//       const mapImageData = await captureSvgToPng("svgMapContainer");
+//       const muhammadiyahMapImageData = await captureSvgToPng("muhammadiyahSvgMapContainer");
+// 
+//       await window.exportGoogleSlides({
+//         data, state, target,
+//         CASES, INA, IDRG, REVENUE,
+//         services,
+//         levelNames,
+//         activeHospitals,
+//         nationalMetrics,
+//         addressableResult,
+//         mapImageData,
+//         muhammadiyahMapImageData,
+//         filters: {
+//           selectedProvinces,
+//           selectedCities,
+//           isMuhammadiyahOnly,
+//           activeDatasetPeriod,
+//           activeTariff
+//         },
+//         helpers: {
+//           isMuhammadiyahHospital,
+//           getCompetency: getSimulationCompetency,
+//           formatService
+//         }
+//       });
+//       btn.textContent = "Terunduh!";
+//       status.textContent = "File Google Slides berhasil dibuat.";
+//     } catch (err) {
+//       console.error("Google Slides export failed", err);
+//       btn.textContent = "Gagal";
+//       status.textContent = "Ekspor gagal: " + err.message;
+//     } finally {
+//       btn.disabled = false;
+//       setTimeout(function() { btn.textContent = "Export Google Slides"; }, 2400);
+//     }
+//   });
 
   document.getElementById("excludeUnmappedToggle")?.addEventListener("change", (e) => {
     state.excludeUnmapped = e.target.checked;
