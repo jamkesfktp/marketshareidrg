@@ -10240,11 +10240,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const style = document.createElement("style");
     style.textContent = `
       .pptx-export-page * { font-family: 'Quattrocento Sans', sans-serif !important; }
-      .pptx-export-page p, .pptx-export-page table, .pptx-export-page th, .pptx-export-page td, .pptx-export-page li { font-size: 8pt; }
-      .pptx-export-page h1, .pptx-export-page h2 { font-size: 14pt !important; font-weight: bold; }
-      .pptx-export-page h1 *, .pptx-export-page h2 * { font-size: 14pt !important; }
       .pptx-kemenkes-logo { position: absolute; top: 16px; right: 24px; height: 48px; width: auto; z-index: 50; }
-      .pptx-export-page th, .pptx-export-page td { white-space: nowrap !important; }
       .pptx-export-page .kpi-value, .pptx-export-page .summary-big strong { line-height: 1.2 !important; }
       
       /* Optimize Scenario Table for PPTX to prevent overflowing */
@@ -10276,6 +10272,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const pages = sourceSlides.map((sourceSlide, index) => {
       const page = document.createElement("section");
       page.className = "pptx-export-page";
+      const isServiceReference = sourceSlide.classList.contains("service-reference");
+      if (isServiceReference) page.classList.add("is-service-reference");
       page.dataset.pptxNotes = `Sumber data: Laporan_Agregat_iDRG_Simulasi_2.xlsx. RS target: ${target.name}. Parameter simulasi mengikuti nilai dashboard saat ekspor.`;
 
       const slideClone = sourceSlide.cloneNode(true);
@@ -10288,7 +10286,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       logo.src = "img/logo-kemenkes.png";
       logo.className = "pptx-kemenkes-logo";
 
-      page.append(logo, slideClone);
+      if (isServiceReference) page.append(slideClone);
+      else page.append(logo, slideClone);
       exportStage.appendChild(page);
       return page;
     });
@@ -10572,6 +10571,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       const exportDate = new Date().toISOString().slice(0, 10);
       await window.domToPptx.exportToPptx(built.pages, {
         fileName: `market-share-idrg-${target.code}-${exportDate}.pptx`,
+        width: 16,
+        height: 10,
         autoEmbedFonts: false,
         svgAsVector: true,
       });
