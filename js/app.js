@@ -7996,7 +7996,12 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       const caseDelta = simulation.projectedCases - simulation.baselineCases;
       const incomeDelta = simulation.projectedIdrg - simulation.baselineIna;
       const casePct = simulation.baselineCases ? Math.abs(caseDelta / simulation.baselineCases) : 0;
-      const counts = [1, 2, 3, 4].map(level => data.hospitals.filter(h => h.code !== target.code && canServeLevel(getCompetency(h, service), level)).length);
+      // Ringkasan tabel harus membagi setiap RS ke satu kolom kompetensi aktual.
+      // Kelayakan melayani tetap memakai canServeLevel() di perhitungan simulasi,
+      // tetapi tidak dipakai di sini agar satu RS tidak terhitung berulang.
+      const counts = [1, 2, 3, 4].map(level => data.hospitals.filter(
+        h => h.code !== target.code && getCompetency(h, service) === level
+      ).length);
       const regionalMetrics = [1, 2, 3, 4].map(level => severityMetric(data.regional.services[service], level));
       const revenueDelta = targetExistingService[IDRG] - targetExistingService[INA];
       const signed = (value, formatted) => `<span class="${value < 0 ? 'service-negative' : 'service-positive'}">${value < 0 ? '▼' : value > 0 ? '▲' : ''} ${formatted}</span>`;
@@ -8026,7 +8031,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
               const rules = getLevelRules(targetCompetency, service);
               const thStyle = (lvl) => rules.tambah.includes(lvl) ? 'color:#ff5555;font-weight:900;' : 'color:#fff;font-weight:700;';
               const tdStyle = (lvl) => rules.tambah.includes(lvl) ? 'background-color:#fffbcc;font-weight:700;text-align:center;' : 'text-align:center;background-color:#fff;';
-              const uniqueTotal = data.hospitals.filter(h => h.code !== target.code && [1,2,3,4].some(lvl => canServeLevel(getCompetency(h, service), lvl))).length;
+              const uniqueTotal = counts.reduce((sum, count) => sum + count, 0);
               return `<table class="service-competency-table" style="margin-bottom:8px;">
                 <thead>
                   <tr>
