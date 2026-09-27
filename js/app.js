@@ -10237,6 +10237,19 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     root.querySelectorAll("[aria-labelledby]").forEach((element) => element.removeAttribute("aria-labelledby"));
   }
 
+  function normalizePptxExportClone(root) {
+    root.querySelectorAll('[data-html2canvas-ignore="true"], [data-export-ui="true"]').forEach((element) => {
+      element.style.display = "none";
+    });
+    root.querySelectorAll('td[data-col="srv-tb-pct"], td[data-col="srv-kr-pct"]').forEach((cell) => {
+      [...cell.querySelectorAll("label")].forEach((label, index) => {
+        const level = label.querySelector(":scope > span:first-child");
+        if (level && !level.textContent.trim().endsWith(":")) level.textContent = `${level.textContent.trim()}:`;
+        if (index > 0) label.insertAdjacentText("beforebegin", " / ");
+      });
+    });
+  }
+
   function buildPptxExportPages() {
     const exportStage = document.createElement("div");
     exportStage.className = "pptx-export-stage";
@@ -10247,6 +10260,26 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       .pptx-export-page * { font-family: 'Quattrocento Sans', sans-serif !important; }
       .pptx-kemenkes-logo { position: absolute; top: 16px; right: 24px; height: 48px; width: auto; z-index: 50; }
       .pptx-export-page .kpi-value, .pptx-export-page .summary-big strong { line-height: 1.2 !important; }
+      /* PowerPoint uses slightly wider font metrics than Chromium. Keep native
+         objects editable while reserving enough width to prevent reflow. */
+      .pptx-export-page h1, .pptx-export-page h2,
+      .pptx-export-page .service-period,
+      .pptx-export-page .service-summary strong,
+      .pptx-export-page .service-summary b,
+      .pptx-export-page .service-summary > div > span,
+      .pptx-export-page .service-competency-table th,
+      .pptx-export-page .service-competency-table td { white-space: nowrap !important; }
+      .pptx-export-page.is-service-reference .service-report-header h1 { font-size: 36px !important; }
+      .pptx-export-page.is-service-reference .service-period { font-size: 18px !important; }
+      .pptx-export-page.is-service-reference .service-summary strong { font-size: 13px !important; }
+      .pptx-export-page.is-service-reference .service-summary b { font-size: 35px !important; }
+      .pptx-export-page.is-service-reference .service-summary > div > span { font-size: 12px !important; }
+      .pptx-export-page.is-service-reference .service-competency-table th,
+      .pptx-export-page.is-service-reference .service-competency-table td { font-size: 12px !important; padding-left: 5px !important; padding-right: 5px !important; }
+      .pptx-export-page.is-service-reference .service-result-table th { font-size: 12px !important; line-height: 1.25 !important; }
+      .pptx-export-page.is-service-reference .service-result-table td,
+      .pptx-export-page.is-service-reference .service-result-table td div { font-size: 12px !important; line-height: 1.25 !important; }
+      .pptx-export-page.is-service-reference .service-report-content > div:last-child > div:nth-child(2) { font-size: 23px !important; }
       
       /* Optimize Scenario Table for PPTX to prevent overflowing */
       .pptx-export-page .scenario-table th, .pptx-export-page .scenario-table td { padding: 3px 4px !important; font-size: 8px !important; line-height: 1.1 !important; }
@@ -10285,6 +10318,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       slideClone.hidden = false;
       slideClone.classList.remove("is-active");
       freezeExportControls(sourceSlide, slideClone);
+      normalizePptxExportClone(slideClone);
       removeDuplicateExportIds(slideClone);
 
       const logo = document.createElement("img");
@@ -10559,7 +10593,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
 
     try {
       if (!window.domToPptx?.exportToPptx) throw new Error("Library dom-to-pptx tidak tersedia.");
-      
+
       await new Promise((resolve) => {
         const img = new Image();
         img.onload = resolve;
@@ -10579,7 +10613,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         width: 16,
         height: 10,
         autoEmbedFonts: false,
-        svgAsVector: true,
+        svgAsVector: true
       });
 
       button.textContent = "PPTX terunduh";
