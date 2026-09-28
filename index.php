@@ -13,7 +13,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
   <link rel="icon" href="data:,">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Simulator Market Share Regional Rumah Sakit</title>
-  <link rel="stylesheet" href="css/style.css?v=20260910-simulation-insights">
+  <link rel="stylesheet" href="css/style.css?v=20260928-service-reference-ui">
 </head>
 <body class="simulator-app app-booting">
   <div id="appBootScreen" class="app-boot-screen" role="status" aria-live="polite" aria-label="Menyiapkan aplikasi">
@@ -513,7 +513,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
   <script src="js/data.js?v=20260903-competencies"></script>
   <script src="js/xlsx.bundle.js"></script>
   <script src="js/chart.umd.min.js?v=202608220900"></script>
-  <script src="js/dom-to-pptx.bundle.js"></script>
+  <script src="js/dom-to-pptx.bundle.js?v=20260928-preserve-row-height"></script>
   <script src="js/pptxgen.bundle.js"></script>
   <script src="js/scenarios-core.js?v=202608180005"></script>
   <script src="js/export-gslides.js?v=202608180005"></script>
@@ -525,7 +525,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
   <script src="js/scatter-af10-data.js?v=20260908"></script>
   <script src="js/service-insights.js?v=20260917-competency-rules"></script>
   <script src="js/table-copy.js?v=20260910-no-highlight"></script>
-  <script src="js/app.js?v=20260927-pptx-editable-layout"></script>
+  <script src="js/app.js?v=20260928-pptx-full-height"></script>
 </body>
 </html>
 

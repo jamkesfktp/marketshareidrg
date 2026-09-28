@@ -8011,7 +8011,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
               <h1 id="dynamicSlide${idx}Title">Simulasi Market Share - ${escapeHtml(service)}</h1>
               <div style="text-align:right;flex-shrink:0;min-width:290px;">
                 <div class="service-period" style="display:inline-block;white-space:nowrap;margin-bottom:6px;">Data Mirroring Uji Coba iDRG<br>periode 15 Okt 2025 - 14 Juni 2026</div><br>
-                <div style="display:inline-block;background:#087c7e;color:#fff;font-size:12px;font-weight:800;padding:5px 14px;border-radius:5px;text-align:center;line-height:1.3;white-space:nowrap;">Mirroring Inacbg dg<br>iDRG+KRIS</div>
+                <div class="service-header-mirroring">Mirroring Inacbg dg<br>iDRG+KRIS</div>
               </div>
             </header>
             <div class="slide-content service-report-content">
@@ -8024,7 +8024,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
                   <div style="flex:1;width:19%;box-sizing:border-box;background-color:#f5f5f5;padding:14px 16px;display:flex;flex-direction:column;gap:4px;border-radius:2px;"><strong style="font-size:14px;color:#333;font-weight:700;">Selisih Pendapatan:</strong><b style="font-size:38px;font-weight:800;line-height:1.2;white-space:nowrap;">${signed(revenueDelta, formatMoneyM(Math.abs(revenueDelta)))}</b><span style="font-size:13px;color:#777;font-weight:500;">iDRG - INA CBGs</span></div>
                   <div style="flex:1;width:19%;box-sizing:border-box;background-color:#f5f5f5;padding:14px 16px;display:flex;flex-direction:column;gap:4px;border-radius:2px;"><strong style="font-size:14px;color:#333;font-weight:700;">Persentase:</strong><b style="font-size:38px;font-weight:800;line-height:1.2;white-space:nowrap;">${targetExistingService[INA] ? signed(revenueDelta, formatPercent(Math.abs(revenueDelta / targetExistingService[INA]))) : '\u2014'}</b><span style="font-size:13px;color:#777;font-weight:500;">Dari Pendapatan INACBG</span></div>
                 </div>
-                <div style="display:flex;align-items:center;justify-content:center;text-align:center;background-color:#0f766e;color:#fff;font-size:13px;font-weight:900;padding:10px;width:140px;min-width:140px;max-width:140px;box-sizing:border-box;line-height:1.3;flex-shrink:0;border-right:4px solid #087c7e;margin-left:10px;">Mirorring<br>Inacbg dg<br>iDRG+KRIS</div>
+                <div class="service-side-callout service-side-callout-mirroring">Mirroring<br>INA CBG<br>Dengan<br>iDRG &amp; KRIS</div>
               </div>
 
             ${(() => {
@@ -8035,7 +8035,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
               return `<table class="service-competency-table" style="margin-bottom:8px;">
                 <thead>
                   <tr>
-                    <th style="background-color:#0f766e;color:#fff;font-weight:900;text-align:left;padding:7px 10px;">Kompetensi RS</th>
+                    <th style="background-color:#0f766e;color:#fff;font-weight:900;text-align:left;padding:7px 10px;">Kompetensi Layanan RS :</th>
                     <th colspan="5" style="background-color:#0f766e;color:#fff;font-weight:900;padding:7px 10px;">
                       <select class="service-competency-select" data-service="${escapeHtml(service)}" style="background-color:transparent;color:#fff;border:1.5px solid rgba(255,255,255,0.6);border-radius:5px;padding:3px 8px;font-weight:900;font-size:14px;cursor:pointer;outline:none;">
                         ${[0,1,2,3,4].map(l => `<option value="${l}" ${l===targetCompetency?'selected':''} style="background-color:#0f766e;color:#fff;">${escapeHtml(levelNames[l]||'Belum ditetapkan')}</option>`).join('')}
@@ -8071,11 +8071,11 @@ document.getElementById("globalSimulationSlide").innerHTML = `
 
             <div style="display:flex;gap:0;align-items:stretch;">
               <div style="flex:1;min-width:0;">${serviceTable}</div>
-              <div style="display:flex;align-items:center;justify-content:center;text-align:center;background-color:#0f766e;color:#fff;font-size:13px;font-weight:900;padding:10px;width:140px;min-width:140px;max-width:140px;box-sizing:border-box;line-height:1.3;flex-shrink:0;border-right:4px solid #087c7e;margin-left:10px;">Penerapan<br>iDRG+KRIS<br>+RBKP</div>
+              <div class="service-side-callout service-side-callout-implementation">Penerapan<br>iDRG, RBKP,<br>dan KRIS</div>
             </div>
 
             <div style="display:flex;align-items:stretch;gap:0;margin-top:10px;background:#fff;border:1px solid #cbd5e1;border-radius:0;min-height:80px;width:100%;box-sizing:border-box;">
-              <div style="flex-shrink:0;background:#0f766e;color:#cc0000;font-size:16px;font-weight:900;padding:14px 18px;text-align:center;line-height:1.25;display:flex;align-items:center;justify-content:center;width:160px;min-width:160px;max-width:160px;box-sizing:border-box;">Rekomendasi</div>
+              <div class="service-recommendation-label" style="flex-shrink:0;background:#0f766e;color:#cc0000;font-size:16px;font-weight:900;padding:14px 18px;text-align:center;line-height:1.25;display:flex;align-items:center;justify-content:center;width:160px;min-width:160px;max-width:160px;box-sizing:border-box;">Rekomendasi</div>
               <div style="flex:1;font-size:26px;font-weight:900;color:#0f766e;padding:12px 20px;line-height:1.3;white-space:pre-line;display:flex;align-items:center;">${escapeHtml(window.ServiceInsights.recommendation(formatService(service), targetCompetency, window.dynamicSimRecap[window.dynamicSimRecap.length - 1]))}</div>
               <div style="flex-shrink:0;display:flex;align-items:center;justify-content:center;padding:8px 18px;background:#fff;">
                 <img src="img/logo-kemenkes.png" alt="Kemenkes" style="width:120px;height:auto;object-fit:contain;">
@@ -10274,11 +10274,17 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       .pptx-export-page.is-service-reference .service-summary strong { font-size: 13px !important; }
       .pptx-export-page.is-service-reference .service-summary b { font-size: 35px !important; }
       .pptx-export-page.is-service-reference .service-summary > div > span { font-size: 12px !important; }
+      .pptx-export-page.is-service-reference .service-summary > div { min-height: 155px !important; justify-content: center !important; }
       .pptx-export-page.is-service-reference .service-competency-table th,
       .pptx-export-page.is-service-reference .service-competency-table td { font-size: 12px !important; padding-left: 5px !important; padding-right: 5px !important; }
+      .pptx-export-page.is-service-reference .service-competency-table thead tr:first-child { height: 38px !important; }
+      .pptx-export-page.is-service-reference .service-competency-table thead tr:nth-child(2) { height: 40px !important; }
+      .pptx-export-page.is-service-reference .service-competency-table tbody tr { height: 42px !important; }
       .pptx-export-page.is-service-reference .service-result-table th { font-size: 12px !important; line-height: 1.25 !important; }
       .pptx-export-page.is-service-reference .service-result-table td,
       .pptx-export-page.is-service-reference .service-result-table td div { font-size: 12px !important; line-height: 1.25 !important; }
+      .pptx-export-page.is-service-reference .service-result-table thead tr { height: 52px !important; }
+      .pptx-export-page.is-service-reference .service-result-table tbody tr { height: 360px !important; }
       .pptx-export-page.is-service-reference .service-report-content > div:last-child > div:nth-child(2) { font-size: 23px !important; }
       
       /* Optimize Scenario Table for PPTX to prevent overflowing */
