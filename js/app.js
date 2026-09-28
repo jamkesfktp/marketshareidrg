@@ -1993,9 +1993,9 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       };
     });
 
-    const baselineCases = levelData.reduce((sum, item) => sum + item.targetCases, 0);
-    const baselineIna = levelData.reduce((sum, item) => sum + item.targetIna, 0);
-    const baselineIdrg = levelData.reduce((sum, item) => sum + item.targetIdrg, 0);
+    const baselineCases = targetSrv.total[CASES] || levelData.reduce((sum, item) => sum + item.targetCases, 0);
+    const baselineIna = targetSrv.total[INA] || levelData.reduce((sum, item) => sum + item.targetIna, 0);
+    const baselineIdrg = targetSrv.total[IDRG] || levelData.reduce((sum, item) => sum + item.targetIdrg, 0);
     const competencyExisting = levelData.filter((item) => rules.tambah.includes(item.level));
     const competencyExistingCases = competencyExisting.reduce((sum, item) => sum + item.targetCases, 0);
     const competencyExistingIna = competencyExisting.reduce((sum, item) => sum + item.targetIna, 0);
@@ -2018,7 +2018,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         if (Number.isFinite(manual)) return manual;
           if (item.direction === "kurang") return 100;
           if (item.direction === "tambah" && window.dynamicMarketAddMode === "flat") return Number(Math.min(100, 50 + scenarioDefs[scenarioIndex].add).toFixed(2));
-          if (item.competitors === 0) return [100, 75, 50, 25, 0][scenarioIndex] || 0;
+          if (item.competitors === 0) return 100;
           return Number(Math.min(100, item.naturalShare + scenarioDefs[scenarioIndex].add).toFixed(2));
       };
 
@@ -7556,9 +7556,9 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         tariffDeltaPct: poolIna > 0 ? (poolIdrg - poolIna) / poolIna * 100 : 0
       };
     });
-    const baselineCases = levelData.reduce((sum, item) => sum + item.targetCases, 0);
-    const baselineIna = levelData.reduce((sum, item) => sum + item.targetIna, 0);
-    const baselineIdrg = levelData.reduce((sum, item) => sum + item.targetIdrg, 0);
+    const baselineCases = targetSrv.total[CASES] || levelData.reduce((sum, item) => sum + item.targetCases, 0);
+    const baselineIna = targetSrv.total[INA] || levelData.reduce((sum, item) => sum + item.targetIna, 0);
+    const baselineIdrg = targetSrv.total[IDRG] || levelData.reduce((sum, item) => sum + item.targetIdrg, 0);
     const competencyExisting = levelData.filter((item) => rules.tambah.includes(item.level));
     const competencyExistingCases = competencyExisting.reduce((sum, item) => sum + item.targetCases, 0);
     const competencyExistingIna = competencyExisting.reduce((sum, item) => sum + item.targetIna, 0);
@@ -7582,7 +7582,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         if (Number.isFinite(manual)) return manual;
           if (item.direction === "kurang") return 100;
           if (item.direction === "tambah" && window.dynamicMarketAddMode === "flat") return Number(Math.min(100, 50 + scenarioDefs[scenarioIndex].add).toFixed(2));
-          if (item.competitors === 0) return [100, 75, 50, 25, 0][scenarioIndex] || 0;
+          if (item.competitors === 0) return 100;
           return Number(Math.min(100, item.naturalShare + scenarioDefs[scenarioIndex].add).toFixed(2));
       };
 
