@@ -1,4 +1,4 @@
-(function dynamicMarketExcelModule(global) {
+﻿(function dynamicMarketExcelModule(global) {
   "use strict";
 
   const COLORS = {
@@ -90,18 +90,26 @@
     styleRange(XLSX, guide, "A3:B18", { fill: COLORS.white });
     styleRange(XLSX, guide, "A12:B12", { fill: COLORS.navy, fontColor: COLORS.white, bold: true });
 
+        const sumLevelCases = levelData.reduce((sum, item) => sum + item.targetCases, 0);
+    const sumLevelIna = levelData.reduce((sum, item) => sum + item.targetIna, 0);
+    const sumLevelIdrg = levelData.reduce((sum, item) => sum + item.targetIdrg, 0);
+    const unmappedCases = Math.max(0, baselineCases - sumLevelCases);
+    const unmappedIna = Math.max(0, baselineIna - sumLevelIna);
+    const unmappedIdrg = Math.max(0, baselineIdrg - sumLevelIdrg);
+
     const existingRows = [
       ["KASUS EKSISTING", "", "", "", ""],
       ["Layanan", service, "Kompetensi target", levelNames[targetComp] || targetComp, ""],
-      ["Level", "Jumlah Kasus", "INA-CBG (Rp)", "iDRG (Rp)", "Selisih iDRG–INA (Rp)"],
+      ["Level", "Jumlah Kasus", "INA-CBG (Rp)", "iDRG (Rp)", "Selisih iDRG-INA (Rp)"],
       ...levelData.map((item) => [levelNames[item.level], item.targetCases, item.targetIna, item.targetIdrg, item.targetIdrg - item.targetIna]),
-      ["TOTAL", formulaCell("SUM(B4:B7)", baselineCases, "#,##0"), formulaCell("SUM(C4:C7)", baselineIna, '"Rp" #,##0'), formulaCell("SUM(D4:D7)", baselineIdrg, '"Rp" #,##0'), formulaCell("D8-C8", baselineIdrg - baselineIna, '"Rp" #,##0')]
+      ["Tidak Terklasifikasi", unmappedCases, unmappedIna, unmappedIdrg, unmappedIdrg - unmappedIna],
+      ["TOTAL", formulaCell("SUM(B4:B8)", baselineCases, "#,##0"), formulaCell("SUM(C4:C8)", baselineIna, '"Rp" #,##0'), formulaCell("SUM(D4:D8)", baselineIdrg, '"Rp" #,##0'), formulaCell("D9-C9", baselineIdrg - baselineIna, '"Rp" #,##0')]
     ];
     const existing = append(existingRows, "01_Eksisting", "KASUS EKSISTING", "E", [18, 18, 22, 22, 24], 3);
-    styleRange(XLSX, existing, "A4:E8", { fill: COLORS.white });
-    styleRange(XLSX, existing, "A8:E8", { fill: COLORS.grey, bold: true });
-    styleRange(XLSX, existing, "B4:B8", { align: "right", numFmt: "#,##0" });
-    styleRange(XLSX, existing, "C4:E8", { align: "right", numFmt: '"Rp" #,##0' });
+    styleRange(XLSX, existing, "A4:E9", { fill: COLORS.white });
+    styleRange(XLSX, existing, "A9:E9", { fill: COLORS.grey, bold: true });
+    styleRange(XLSX, existing, "B4:B9", { align: "right", numFmt: "#,##0" });
+    styleRange(XLSX, existing, "C4:E9", { align: "right", numFmt: '"Rp" #,##0' });
     levelData.forEach((item, index) => {
       if (rules?.tambah?.includes(item.level)) styleRange(XLSX, existing, `A${index + 4}:E${index + 4}`, { fill: COLORS.blueSoft, bold: true });
     });
@@ -165,11 +173,11 @@
       resultRows.push([scenarioNo, result.definition.name,
         formulaCell(addCasesFormula, result.addCases, "#,##0"), formulaCell(addIdrgFormula, result.addIdrg, '"Rp" #,##0'),
         formulaCell(lossCasesFormula, result.lossCases, "#,##0"), formulaCell(lossIdrgFormula, result.lossIdrg, '"Rp" #,##0'),
-        formulaCell(`${quote("01_Eksisting")}!B8+C${excelRow}-E${excelRow}`, result.projectedCases, "#,##0"),
-        formulaCell(`${quote("01_Eksisting")}!D8+D${excelRow}-F${excelRow}`, result.projectedIdrg, '"Rp" #,##0'),
-        formulaCell(`G${excelRow}-${quote("01_Eksisting")}!B8`, result.projectedCases - baselineCases, "#,##0"),
-        formulaCell(`H${excelRow}-${quote("01_Eksisting")}!C8`, deltaIna, '"Rp" #,##0'),
-        formulaCell(`CEILING(IFERROR(J${excelRow}/${quote("01_Eksisting")}!C8,0)*100,1)/100`, Math.ceil((baselineIna ? deltaIna / baselineIna : 0) * 100) / 100, "0%")]);
+        formulaCell(`${quote("01_Eksisting")}!B9+C${excelRow}-E${excelRow}`, result.projectedCases, "#,##0"),
+        formulaCell(`${quote("01_Eksisting")}!D9+D${excelRow}-F${excelRow}`, result.projectedIdrg, '"Rp" #,##0'),
+        formulaCell(`G${excelRow}-${quote("01_Eksisting")}!B9`, result.projectedCases - baselineCases, "#,##0"),
+        formulaCell(`H${excelRow}-${quote("01_Eksisting")}!C9`, deltaIna, '"Rp" #,##0'),
+        formulaCell(`CEILING(IFERROR(J${excelRow}/${quote("01_Eksisting")}!C9,0)*100,1)/100`, Math.ceil((baselineIna ? deltaIna / baselineIna : 0) * 100) / 100, "0%")]);
     });
     const results = append(resultRows, "04_Hasil", "HASIL SIMULASI DINAMIS", "K", [9, 23, 16, 20, 18, 20, 18, 20, 16, 20, 18], 3);
     styleRange(XLSX, results, `A4:K${resultRows.length}`, { fill: COLORS.white });
@@ -183,9 +191,9 @@
     const lossIdrgExpected = levelData.filter((item) => item.direction === "kurang").reduce((sum, item) => sum + item.targetIdrg * pctFor(0, item) / 100, 0);
     const reconciliationRows = [
       ["REKONSILIASI DAN KONTROL AUDIT", "", "", ""], [], ["Kontrol", "Nilai Sumber", "Nilai Hasil", "Status"],
-      ["Total kasus eksisting D-M-U-P", baselineCases, formulaCell(`${quote("01_Eksisting")}!B8`, baselineCases, "#,##0"), { t: "s", f: `IF(B4=C4,"OK","SELISIH")`, v: "OK" }],
-      ["Total INA eksisting D-M-U-P", baselineIna, formulaCell(`${quote("01_Eksisting")}!C8`, baselineIna, '"Rp" #,##0'), { t: "s", f: `IF(B5=C5,"OK","SELISIH")`, v: "OK" }],
-      ["Total iDRG eksisting D-M-U-P", baselineIdrg, formulaCell(`${quote("01_Eksisting")}!D8`, baselineIdrg, '"Rp" #,##0'), { t: "s", f: `IF(B6=C6,"OK","SELISIH")`, v: "OK" }],
+      ["Total kasus eksisting keseluruhan", baselineCases, formulaCell(`${quote("01_Eksisting")}!B9`, baselineCases, "#,##0"), { t: "s", f: `IF(B4=C4,"OK","SELISIH")`, v: "OK" }],
+      ["Total INA eksisting keseluruhan", baselineIna, formulaCell(`${quote("01_Eksisting")}!C9`, baselineIna, '"Rp" #,##0'), { t: "s", f: `IF(B5=C5,"OK","SELISIH")`, v: "OK" }],
+      ["Total iDRG eksisting keseluruhan", baselineIdrg, formulaCell(`${quote("01_Eksisting")}!D9`, baselineIdrg, '"Rp" #,##0'), { t: "s", f: `IF(B6=C6,"OK","SELISIH")`, v: "OK" }],
       ["Pengurangan kasus sesuai parameter global", lossCasesExpected, formulaCell(`${quote("04_Hasil")}!E4`, lossCasesExpected, "#,##0"), { t: "s", f: `IF(B7=C7,"OK","SELISIH")`, v: "OK" }],
       ["Pengurangan iDRG sesuai parameter global", lossIdrgExpected, formulaCell(`${quote("04_Hasil")}!F4`, lossIdrgExpected, '"Rp" #,##0'), { t: "s", f: `IF(B8=C8,"OK","SELISIH")`, v: "OK" }]
     ];
