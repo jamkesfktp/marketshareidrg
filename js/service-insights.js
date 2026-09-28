@@ -1,4 +1,4 @@
-﻿(function (root) {
+(function (root) {
   'use strict';
   // Planning indicators, not clinical accreditation or measured provider capacity.
   //
@@ -19,20 +19,13 @@
     var known = [1, 2, 3, 4].indexOf(competency) >= 0;
     var current = levels.find(function(x){ return x.level === competency; });
     var next    = levels.find(function(x){ return x.level === competency + 1; });
-    
-    // Find highest level where hospital has actual existing cases
-    var actualMax = levels.slice().reverse().find(function(x){ return x.targetCases > 0; });
-    var actualComp = actualMax ? actualMax.level : 0;
-    
     var caseDelta   = simulation.projectedCases - simulation.baselineCases;
     var incomeDelta = simulation.projectedIdrg  - simulation.baselineIna;
     var currentLoad = current ? current.regionalCases / Math.max(1, current.providers) : 0;
     var nextLoad    = next    ? next.regionalCases    / Math.max(1, next.providers)    : 0;
-    
     var opportunity = 'maintain';
     if (!known) opportunity = 'unknown';
     else if (!levels.some(function(x){ return x.regionalCases > 0; })) opportunity = 'no-data';
-    else if (actualComp > competency) opportunity = 'downgrade';
     else if (competency === 4) opportunity = 'paripurna';
     else if (next && next.regionalCases > 0 && (next.providers === 0 || nextLoad > currentLoad)) opportunity = 'upgrade';
     else if (simulation.addCases <= 0) opportunity = 'optimize';
@@ -124,14 +117,6 @@
             return inMilyar.toLocaleString('id-ID', {minimumFractionDigits:3, maximumFractionDigits:3}) + ' M';
           }
         };
-        
-        if (insight.opportunity === 'downgrade') {
-          return 'Peringatan Simulasi Turun Kelas! RS secara riil melayani kasus yang lebih kompleks. Memilih simulasi level ' + names[competency] + ' akan menghilangkan kasus bervalue tinggi, sehingga memicu kerugian ' + DOWN + ' ' + fmtMoneyM(absIncome) + ' meskipun beban kasus meningkat ' + UP + ' ' + fmt(absDelta) + ' kasus' + pctStr + '.';
-        }
-        
-        if (insight.opportunity === 'downgrade') {
-          return 'Peringatan Simulasi Turun Kelas! RS secara riil melayani kasus yang lebih kompleks. Memilih simulasi level ' + names[competency] + ' akan menghilangkan kasus bervalue tinggi, sehingga memicu kerugian ' + DOWN + ' ' + fmtMoneyM(absIncome) + ' meskipun beban kasus meningkat ' + UP + ' ' + fmt(absDelta) + ' kasus' + pctStr + '.';
-        }
         
         if (insight.opportunity === 'upgrade') {
           return 'Peningkatan kompetensi ke ' + names[competency + 1] + ' sangat disarankan! Peningkatan beban layanan ' + UP + ' ' + fmt(absDelta) + ' kasus' + pctStr + ' saat ini berisiko membebani RS akibat potensi penurunan pendapatan ' + DOWN + ' ' + fmtMoneyM(absIncome) + ', sehingga upgrade kompetensi dapat membuka peluang kenaikan pendapatan.';
