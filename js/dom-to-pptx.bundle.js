@@ -57586,6 +57586,7 @@
   function extractTableData(node, scale) {
     const rows = [];
     const colWidths = [];
+    const rowHeights = [];
 
     // 1. Calculate Column Widths based on the first row of cells
     // We look at the first <tr>'s children to determine visual column widths.
@@ -57614,6 +57615,8 @@
     // 2. Iterate Rows
     const trList = node.querySelectorAll('tr');
     trList.forEach((tr) => {
+      const trRect = tr.getBoundingClientRect();
+      rowHeights.push(Math.max(0.01, trRect.height * (1 / 96) * scale));
       const rowData = [];
       const cellList = Array.from(tr.children).filter((c) => ['td', 'th'].includes((c?.tagName || '').toLowerCase()));
 
@@ -57698,7 +57701,7 @@
       }
     });
 
-    return { rows, colWidths };
+    return { rows, colWidths, rowHeights };
   }
 
   // Checks if any parent element has overflow: hidden which would clip this element
@@ -60144,6 +60147,7 @@
           y: item.options.y,
           w: item.options.w,
           colW: item.tableData.colWidths, // Essential for correct layout
+          rowH: item.tableData.rowHeights, // Preserve the browser's visual row heights
           autoPage: false,
           // Remove default table styles so our extracted CSS applies cleanly
           border: { type: 'none' },
