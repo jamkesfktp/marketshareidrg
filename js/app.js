@@ -1,4 +1,4 @@
-(function marketShareSimulator() {
+﻿(function marketShareSimulator() {
   "use strict";
 
   const allDatasets = window.marketSimulatorDatasets || { "okt_jun": window.marketSimulatorData };
@@ -10284,8 +10284,14 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       .pptx-export-page.is-service-reference .service-result-table td,
       .pptx-export-page.is-service-reference .service-result-table td div { font-size: 12px !important; line-height: 1.25 !important; }
       .pptx-export-page.is-service-reference .service-result-table thead tr { height: 52px !important; }
-      .pptx-export-page.is-service-reference .service-result-table tbody tr { height: 360px !important; }
+      .pptx-export-page.is-service-reference .service-result-table tbody tr { height: auto !important; }
       .pptx-export-page.is-service-reference .service-report-content > div:last-child > div:nth-child(2) { font-size: 23px !important; }
+      /* Fix 5: Callout bracket sizing for PPTX */
+      .pptx-export-page.is-service-reference .service-side-callout { margin-left: 30px !important; width: 100px !important; min-width: 100px !important; max-width: 100px !important; font-size: 14px !important; }
+      .pptx-export-page.is-service-reference .service-side-callout::before { font-size: 90px !important; right: calc(100% + 6px) !important; }
+      .pptx-export-page.is-service-reference .service-side-callout-implementation::before { font-size: 140px !important; }
+      /* Fix 6: Td padding & vertical-align for PPTX */
+      .pptx-export-page.is-service-reference .service-result-table td { padding: 6px 5px !important; vertical-align: middle !important; }
       
       /* Optimize Scenario Table for PPTX to prevent overflowing */
       .pptx-export-page .scenario-table th, .pptx-export-page .scenario-table td { padding: 3px 4px !important; font-size: 8px !important; line-height: 1.1 !important; }
