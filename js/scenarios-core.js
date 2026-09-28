@@ -1,4 +1,4 @@
-(function() {
+﻿(function() {
   "use strict";
   // mode: 'regional_all' (default) = sisa regional - target
   //       'kelasatas'               = serap Dasar/Madya dari RS kompetitor kelas LEBIH TINGGI
@@ -37,12 +37,25 @@
         baseTambahan[lvl][1] = poolRp;
       });
     } else {
-      // Mode regional_all (default): sisa = regional - target
+      // Mode regional_all (default): sesuaikan dengan buildPerServiceDynamicTable
+      // HANYA dari RS di luar kemampuan
+      const canServeLevel = (comp, level) => level >= 1 && level <= 4 && comp >= 1 && comp <= 4 && (comp === level || comp === level + 1);
       rules.tambah.forEach(lvl => {
-        const rMetric = regionalSvc ? severityMetricFn(regionalSvc, lvl) : [0,0,0];
-        const tMetric = targetSvcRef ? severityMetricFn(targetSvcRef, lvl) : [0,0,0];
-        baseTambahan[lvl][0] = Math.max(0, (rMetric[CASES] || 0) - (tMetric[CASES] || 0));
-        baseTambahan[lvl][1] = Math.max(0, (rMetric[IDRG] || 0) - (tMetric[IDRG] || 0));
+        let poolK = 0, poolRp = 0;
+        data.hospitals.forEach(h => {
+          if (!h || h.code === target.code) return;
+          const hComp = typeof getCompetencyFn === 'function' ? getCompetencyFn(h, service) : (h.services[service]?.competency || 0);
+          if (!canServeLevel(hComp, lvl)) {
+            const hSrv = h.services && h.services[service];
+            if (hSrv) {
+              const m = severityMetricFn(hSrv, lvl);
+              poolK += m[CASES] || 0;
+              poolRp += m[IDRG] || 0;
+            }
+          }
+        });
+        baseTambahan[lvl][0] = poolK;
+        baseTambahan[lvl][1] = poolRp;
       });
     }
     
