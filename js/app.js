@@ -6474,17 +6474,22 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     if (!slide) return;
     const target = targetHospital();
     if (!target) return;
-    const result = computeScenario();
-    
-    const existingCases = result.existing[CASES];
-    const projectedCases = result.projected[CASES];
-    const deltaCases = result.delta[CASES];
-    const pctCases = existingCases ? (deltaCases / existingCases) * 100 : 0;
-    
-    const existingIna = result.existing[INA];
-    const projectedIdrg = result.projected[IDRG];
-    const deltaRev = projectedIdrg - existingIna;
-    const pctRev = existingIna ? (deltaRev / existingIna) * 100 : 0;
+    // Gunakan dynamicSimRecap (sumber yang sama dengan tabel simulasi per-layanan)
+    const recap = window.dynamicSimRecap || [];
+    if (recap.length === 0) return; // belum ada data
+
+    let existingCases = 0, projectedCases = 0;
+    let existingIna = 0, projectedIdrg = 0;
+    recap.forEach(r => {
+      existingCases  += r.baselineCases  || 0;
+      existingIna    += r.baselineIna    || 0;
+      projectedCases += r.projectedCases || 0;
+      projectedIdrg  += r.projectedIdrg  || 0;
+    });
+    const deltaCases = projectedCases - existingCases;
+    const pctCases   = existingCases ? (deltaCases / existingCases) * 100 : 0;
+    const deltaRev   = projectedIdrg - existingIna;
+    const pctRev     = existingIna   ? (deltaRev   / existingIna)   * 100 : 0;
     
     const fmtSign = val => val > 0 ? "▲" : val < 0 ? "▼" : "";
     
@@ -9400,8 +9405,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     renderLogicalRecapSlide();
     renderSimulatorSlide();
     renderCompetitionSlide();
-    renderSummarySlide();
     renderDynamicServiceSlides();
+    renderSummarySlide(); // dipindah setelah dynamicSimRecap terisi
     populateSlideDots();
     
     // Kembalikan fokus
