@@ -7660,8 +7660,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
           <th rowspan="2" style="border:1px solid #fff;padding:5px;background:#16aa98;color:#fff;">Total Pendapatan Pasca iDRG &amp; RBKP (Rp M)</th>
           <th colspan="4" style="border:1px solid #fff;padding:5px;background:#46ae7e;color:#fff;">Net +/- Pasca iDRG &amp; RBKP (vs INACBG)</th>
         </tr><tr>
-          <th style="background:#46ae7e;color:#fff;padding:4px;">Persentase</th><th style="background:#46ae7e;color:#fff;padding:4px;">Jumlah Kasus</th><th style="background:#46ae7e;color:#fff;padding:4px;">Tambahan (Rp M)</th>
-          <th style="background:#cc0000;color:#fff;padding:4px;">Persentase</th><th style="background:#cc0000;color:#fff;padding:4px;">Jumlah Kasus</th><th style="background:#cc0000;color:#fff;padding:4px;">Pengurangan (Rp M)</th>
+          <th style="background:#46ae7e;color:#fff;padding:4px;">Persentase</th><th style="background:#46ae7e;color:#fff;padding:4px;">Jumlah Kasus</th><th style="background:#46ae7e;color:#fff;padding:4px;">Tambahan iDRG (Rp M)</th>
+          <th style="background:#cc0000;color:#fff;padding:4px;">Persentase</th><th style="background:#cc0000;color:#fff;padding:4px;">Jumlah Kasus</th><th style="background:#cc0000;color:#fff;padding:4px;">Pengurangan iDRG (Rp M)</th>
           <th style="background:#46ae7e;color:#fff;padding:4px;">+/- Kasus</th><th style="background:#46ae7e;color:#fff;padding:4px;">% thd total kasus</th><th style="background:#46ae7e;color:#fff;padding:4px;">+/- Pendapatan (Rp M)</th><th style="background:#46ae7e;color:#fff;padding:4px;">% +/- Pendapatan</th>
         </tr></thead><tbody>${[results[0]].map((result) => {
           const deltaCases = result.projectedCases - baselineCases;
@@ -8189,10 +8189,10 @@ document.getElementById("globalSimulationSlide").innerHTML = `
                     <tr>
                       <th style="background:#4ade80;color:#064e3b;padding:4px 2px;font-size:10px;border:1px solid #cbd5e1;">Persentase</th>
                       <th style="background:#4ade80;color:#064e3b;padding:4px 2px;font-size:10px;border:1px solid #cbd5e1;">Jumlah Kasus</th>
-                      <th style="background:#4ade80;color:#064e3b;padding:4px 2px;font-size:10px;border:1px solid #cbd5e1;">Tambahan (Rp M)</th>
+                      <th style="background:#4ade80;color:#064e3b;padding:4px 2px;font-size:10px;border:1px solid #cbd5e1;">Tambahan iDRG (Rp M)</th>
                       <th style="background:#f87171;color:#450a0a;padding:4px 2px;font-size:10px;border:1px solid #cbd5e1;">Persentase</th>
                       <th style="background:#f87171;color:#450a0a;padding:4px 2px;font-size:10px;border:1px solid #cbd5e1;">Jumlah Kasus</th>
-                      <th style="background:#f87171;color:#450a0a;padding:4px 2px;font-size:10px;border:1px solid #cbd5e1;">Pengurangan (Rp M)</th>
+                      <th style="background:#f87171;color:#450a0a;padding:4px 2px;font-size:10px;border:1px solid #cbd5e1;">Pengurangan iDRG (Rp M)</th>
                       <th style="background:#1e293b;color:#f8fafc;padding:4px 2px;font-size:10px;border:1px solid #cbd5e1;">+/- Kasus</th>
                       <th style="background:#1e293b;color:#f8fafc;padding:4px 2px;font-size:10px;border:1px solid #cbd5e1;">% thd total kasus</th>
                       <th style="background:#1e293b;color:#f8fafc;padding:4px 2px;font-size:10px;border:1px solid #cbd5e1;">+/- Pendapatan (Rp M)</th>
