@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Quattrocento+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Quattrocento+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
 :root {
   --teal-deep: #087e83;
@@ -1646,13 +1646,13 @@ body.simulator-app {
 .service-reference .service-result-table table { table-layout:fixed; font-size:13px !important; min-width:1050px; }
 .service-reference .service-result-table th { border:1px solid #999 !important; font-size:14px; line-height:1.4; padding:7px 4px !important; overflow-wrap:break-word; }
 .service-reference .service-result-table th:first-child[rowspan] { width:15%; }
-.service-reference .service-result-table td { border:1px solid #999 !important; padding:8px 5px !important; background:white !important; min-width:0 !important; height:200px; font-size:14px !important; }
+.service-reference .service-result-table td { border:1px solid #999 !important; padding:8px 5px !important; background:white !important; min-width:0 !important; height:auto; font-size:14px !important; }
 .service-reference .service-result-table td:first-child { font-size:13px !important; }
 .service-reference .service-result-table td:first-child div { font-size:13px !important; }
 .service-reference .per-service-dynamic-pct { width:48px !important; max-width:100%; font-size:12px; }
 .service-reference .service-side-callout { position:relative; display:flex; align-items:center; justify-content:center; text-align:center; align-self:stretch; margin-left:56px; width:140px; min-width:140px; max-width:140px; box-sizing:border-box; padding:12px; background:#55b0bd; color:#fff; font-size:17px; font-weight:900; line-height:1.25; flex-shrink:0; }
-.service-reference .service-side-callout::before { content:"}"; position:absolute; right:calc(100% + 12px); top:50%; transform:translateY(-52%) scaleX(.72); color:#287c82; font-family:Georgia,serif; font-size:132px; font-weight:400; line-height:.7; }
-.service-reference .service-side-callout-implementation::before { font-size:235px; }
+.service-reference .service-side-callout::before { content:"}"; position:absolute; right:calc(100% + 12px); top:50%; transform:translateY(-52%) scaleX(.72); color:#287c82; font-family:Georgia,serif; font-size:100px; font-weight:400; line-height:.7; }
+.service-reference .service-side-callout-implementation::before { font-size:160px; }
 .service-reference .service-recommendation-label { background:#b92317 !important; color:#fff !important; font-size:20px !important; }
 .service-recommendations { display:grid; grid-template-columns:125px 1fr 1fr 1.1fr; color:#08777d; background:#efefef; border:1px solid #bbb; font-size:12px; line-height:1.35; }
 .service-recommendations > strong { display:flex; align-items:center; justify-content:center; color:white; background:#087f85; font-size:17px; }
