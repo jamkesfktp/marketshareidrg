@@ -2,7 +2,11 @@
 const fs = require('node:fs');
 const vm = require('node:vm');
 const assert = require('node:assert/strict');
-const master = JSON.parse(fs.readFileSync('data/competencies-2026-09-03.json', 'utf8'));
+const masterPath = process.argv.find(arg => arg.startsWith('--master='))?.slice('--master='.length)
+  || 'data/competencies-2026-10-01.json';
+const reportPath = process.argv.find(arg => arg.startsWith('--report='))?.slice('--report='.length)
+  || 'data/competency-update-2026-10-01-report.json';
+const master = JSON.parse(fs.readFileSync(masterPath, 'utf8'));
 const window = {};
 vm.runInNewContext(fs.readFileSync('js/data.js', 'utf8'), { window });
 const datasets = window.marketSimulatorDatasets;
@@ -50,6 +54,6 @@ for (const [key, dataset] of Object.entries(datasets)) {
 }
 if (process.argv.includes('--write')) {
   fs.writeFileSync('js/data.js', 'window.marketSimulatorDatasets = ' + JSON.stringify(datasets) + ';\nwindow.marketSimulatorData = window.marketSimulatorDatasets["okt_jun"];\n');
-  fs.writeFileSync('data/competency-update-2026-09-03-report.json', JSON.stringify(reports, null, 2) + '\n');
+  fs.writeFileSync(reportPath, JSON.stringify(reports, null, 2) + '\n');
 }
 console.log(JSON.stringify(Object.fromEntries(Object.entries(reports).map(([key,r]) => [key,{...r,unmatched:r.unmatched.length,changes:r.changes.slice(0,3)}])), null, 2));
