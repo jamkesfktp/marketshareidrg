@@ -29,7 +29,15 @@ const rules = (level) => level === 1
   : { tambah: [1, 2, 3, 4], kurang: [] };
 const severityMetric = (entry, level) => entry.severity[level];
 const state = { serviceScenarios: { [service]: [{ tambah_1: 10, tambah_2: 10, tambah_3: 10, tambah_4: 10, kurang_2: 100, kurang_3: 100, kurang_4: 100 }] } };
-const data = { regional: { services: { [service]: regional } }, hospitals: [] };
+const competitorService = {
+  competency: 0,
+  total: metric(90, 9000),
+  severity: { 1: metric(36, 3600), 2: metric(27, 2700), 3: metric(18, 1800), 4: metric(9, 900) }
+};
+const data = {
+  regional: { services: { [service]: regional } },
+  hospitals: [{ code: 'C', services: { [service]: competitorService } }]
+};
 
 const dasarTarget = { code: 'T', services: { [service]: serviceData(1) } };
 const paripurnaTarget = { code: 'T', services: { [service]: serviceData(4) } };
