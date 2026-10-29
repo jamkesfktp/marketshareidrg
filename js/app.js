@@ -1,8 +1,8 @@
 ﻿(function marketShareSimulator() {
   "use strict";
 
-  const allDatasets = window.marketSimulatorDatasets || { "okt_jun": window.marketSimulatorData };
-  let activeDatasetKey = "okt_jun";
+  const allDatasets = window.marketSimulatorDatasets || { "okt_oct": window.marketSimulatorData };
+  let activeDatasetKey = "okt_oct";
   let originalData = allDatasets[activeDatasetKey] || window.marketSimulatorData;
   let data = allDatasets[activeDatasetKey] || window.marketSimulatorData;
   if (!data) throw new Error("Dataset simulator tidak tersedia.");
@@ -40,11 +40,11 @@
   };
 
   const DATASET_PERIODS = {
-    "okt_jun": {
-      key: "okt_jun",
-      label: "Uji Coba Okt 2025 - Jun 2026 (8 Bulan - 111,76 Jt Kasus)",
-      chip: "Uji Coba Okt 2025 - Jun 2026 (8 Bulan)",
-      desc: "Master CSV: spending_okt_jun_v3_gabungan.csv"
+    "okt_oct": {
+      key: "okt_oct",
+      label: "Data 15 Okt 2025 - 15 Okt 2026 (BigQuery)",
+      chip: "Data 15 Okt 2025 - 15 Okt 2026",
+      desc: "Sumber BigQuery 15 Okt 2025–15 Okt 2026; kasus dipetakan dari kode DRG. Data ini tidak memuat tingkat kompetensi/keparahan klaim."
     },
     "jan_des": {
       key: "jan_des",
@@ -61,12 +61,19 @@
     "1370_noaf": { index: 5, label: "iDRG 1370 - Tanpa AF (Base)", chip: "iDRG 1370 (Tanpa AF)", desc: "Tarif dasar iDRG 1.370 tanpa penyesuaian AF" },
     "1370_juknis": { index: 6, label: "iDRG 1370 - Juknis Top-Up", chip: "iDRG 1370 (Juknis Top-Up)", desc: "Model 1.370 DRG skema Juknis Top-Up" },
     "1363_full": { index: 7, label: "iDRG 1363 - AF + AFreg + AFkep (Default)", chip: "iDRG 1363 (AF + AFreg + AFkep)", desc: "Model 1.363 DRG dengan penyesuaian AF + AFreg + AFkep" },
-    "1363_af": { index: 8, label: "iDRG 1363 - AF Saja (Tarif 2025)", chip: "iDRG 1363 (AF Saja)", desc: "Tarif iDRG 1.363 tahun 2025 dengan penyesuaian AF saja" }
+    "1363_af": { index: 8, label: "iDRG 1363 - AF Saja (Tarif 2025)", chip: "iDRG 1363 (AF Saja)", desc: "Tarif iDRG 1.363 tahun 2025 dengan penyesuaian AF saja" },
+    "cw_adj_nbr_new": { index: 9, label: "CW × Adj CW × NBR Baru", chip: "CW × Adj CW × NBR Baru", desc: "Tarif baru: CW × Adj CW × NBR Baru" },
+    "cw_adj_nbr_old": { index: 10, label: "CW × Adj CW × NBR Lama", chip: "CW × Adj CW × NBR Lama", desc: "Tarif lama: CW × Adj CW × NBR Lama" },
+    "cw_nbr_new": { index: 11, label: "CW × NBR Baru", chip: "CW × NBR Baru", desc: "Tarif dasar baru: CW × NBR Baru" },
+    "cw_nbr_old": { index: 12, label: "CW × NBR Lama", chip: "CW × NBR Lama", desc: "Tarif dasar lama: CW × NBR Lama" }
   };
-  const DEFAULT_TARIFF_BY_DATASET = { "okt_jun": "1370_af", "jan_des": "1363_af" };
+  const DEFAULT_TARIFF_BY_DATASET = { "okt_oct": "cw_adj_nbr_new", "jan_des": "1363_af" };
 
   function updateActiveTariff(scenarioKey) {
-    const resolvedKey = TARIFF_SCENARIOS[scenarioKey] ? scenarioKey : (DEFAULT_TARIFF_BY_DATASET[activeDatasetKey] || "1370_af");
+    const customScenarios = new Set(["cw_adj_nbr_new", "cw_adj_nbr_old", "cw_nbr_new", "cw_nbr_old"]);
+    const isCustomDataset = activeDatasetKey === "okt_oct";
+    const isAllowed = (key) => !!TARIFF_SCENARIOS[key] && (isCustomDataset ? customScenarios.has(key) : !customScenarios.has(key));
+    const resolvedKey = isAllowed(scenarioKey) ? scenarioKey : (DEFAULT_TARIFF_BY_DATASET[activeDatasetKey] || "cw_adj_nbr_new");
     const sc = TARIFF_SCENARIOS[resolvedKey];
     state.activeTariffScenario = resolvedKey;
     IDRG = sc.index;
@@ -79,7 +86,10 @@
     if (descEl) descEl.textContent = sc.desc;
 
     const selectEl = document.getElementById("tariffScenarioSelect");
-    if (selectEl && selectEl.value !== resolvedKey) selectEl.value = resolvedKey;
+    if (selectEl) {
+      [...selectEl.options].forEach((option) => { option.hidden = !isAllowed(option.value); });
+      if (selectEl.value !== resolvedKey) selectEl.value = resolvedKey;
+    }
   }
 
   function switchDatasetPeriod(datasetKey) {
@@ -94,7 +104,7 @@
       data.services.sort();
     }
 
-    const pInfo = DATASET_PERIODS[datasetKey] || DATASET_PERIODS["okt_jun"];
+    const pInfo = DATASET_PERIODS[datasetKey] || DATASET_PERIODS["okt_oct"];
     const periodLabelEl = document.getElementById("activePeriodLabel");
     if (periodLabelEl) periodLabelEl.textContent = pInfo.chip;
 
@@ -187,7 +197,7 @@
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 
-  const VECTOR_LENGTH = 9;
+  const VECTOR_LENGTH = 13;
   const createZeroMetric = () => Array(VECTOR_LENGTH).fill(0);
 
   function addVectors(target, source) {
@@ -615,7 +625,7 @@
     document.getElementById("existingSlide").innerHTML = `
       <div class="existing-report-kpis">
         <article class="existing-report-kpi kpi-cases"><span>Total Kasus:</span><strong>${formatNumber(target.total[CASES])}</strong><em>Jumlah kasus eklaim</em></article>
-        <article class="existing-report-kpi kpi-ina"><span>Pendapatan INA-CBG:</span><strong>${formatMoney(target.total[INA])}</strong><em>${activeDatasetKey === "jan_des" ? "Data tahun 2025" : "Data uji coba 8 bulan"}</em></article>
+        <article class="existing-report-kpi kpi-ina"><span>Pendapatan INA-CBG:</span><strong>${formatMoney(target.total[INA])}</strong><em>${activeDatasetKey === "jan_des" ? "Data tahun 2025" : "Data 15 Okt 2025–15 Okt 2026"}</em></article>
         <article class="existing-report-kpi kpi-idrg"><span>Pendapatan iDRG:</span><strong>${formatMoney(target.total[IDRG])}</strong><em>${TARIFF_SCENARIOS[state.activeTariffScenario]?.chip || "Tarif iDRG aktif"}</em></article>
         <article class="existing-report-kpi kpi-difference ${delta < 0 ? "is-loss" : "is-gain"}"><span>Selisih Pendapatan:</span><strong>${formatMoney(delta)}</strong><em>iDRG − INA-CBG</em></article>
         <article class="existing-report-kpi kpi-percentage ${delta < 0 ? "is-loss" : "is-gain"}"><span>Persentase:</span><strong>${formatPercent(deltaPercent)}</strong><em>Dari pendapatan INA-CBG</em></article>
@@ -2220,7 +2230,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const datasetKey = window.tariffScatterUi.dataset;
     const scatterSource = datasetKey === "jan_des" ? window.scatter2025Data : source;
     const periodLabel = datasetKey === "jan_des" ? "Januari–Desember 2025" : "15 Okt 2025–14 Juni 2026";
-    const casesSourceFile = datasetKey === "jan_des" ? "spending_jan_des_v11_gabungan.csv" : "spending_okt_jun_v3_gabungan.csv";
+      const casesSourceFile = datasetKey === "jan_des" ? "spending_jan_des_v11_gabungan.csv" : "bq-results-20261029-044944-1793249396242.csv";
     let root = document.getElementById("tariffScatterWorkspace");
     if (!root) {
       root = document.createElement("section");
@@ -7466,7 +7476,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     document.getElementById("scenarioSlide").innerHTML = `
       <div class="existing-report-kpis" style="margin-bottom: 15px;">
         <article class="existing-report-kpi kpi-cases"><span>Total Kasus:</span><strong>${formatNumber(target.total[CASES])}</strong><em>Jumlah kasus eklaim</em></article>
-        <article class="existing-report-kpi kpi-ina"><span>Pendapatan INA-CBG:</span><strong>${formatMoney(target.total[INA])}</strong><em>${activeDatasetKey === "jan_des" ? "Data tahun 2025" : "Data uji coba 8 bulan"}</em></article>
+        <article class="existing-report-kpi kpi-ina"><span>Pendapatan INA-CBG:</span><strong>${formatMoney(target.total[INA])}</strong><em>${activeDatasetKey === "jan_des" ? "Data tahun 2025" : "Data 15 Okt 2025–15 Okt 2026"}</em></article>
         <article class="existing-report-kpi kpi-idrg"><span>Pendapatan iDRG:</span><strong>${formatMoney(target.total[IDRG])}</strong><em>${TARIFF_SCENARIOS[state.activeTariffScenario]?.chip || "Tarif iDRG aktif"}</em></article>
         <article class="existing-report-kpi kpi-difference ${deltaIdrg < 0 ? "is-loss" : "is-gain"}"><span>Selisih Pendapatan:</span><strong>${formatMoney(deltaIdrg)}</strong><em>iDRG - INA CBGs</em></article>
         <article class="existing-report-kpi kpi-percentage ${deltaIdrg < 0 ? "is-loss" : "is-gain"}"><span>Persentase:</span><strong>${formatPercent(deltaPercentIdrg)}</strong><em>Dari pendapatan INA-CBG</em></article>
@@ -11067,11 +11077,15 @@ document.getElementById("globalSimulationSlide").innerHTML = `
       "1370_juknis": "iDRG 1370 - Juknis Top-Up",
       "1363_full": "iDRG 1363 - AF + AFreg + AFkep (Default)",
       "1363_af": "iDRG 1363 - AF Saja (Tarif 2025)",
+      "cw_adj_nbr_new": "CW × Adj CW × NBR Baru",
+      "cw_adj_nbr_old": "CW × Adj CW × NBR Lama",
+      "cw_nbr_new": "CW × NBR Baru",
+      "cw_nbr_old": "CW × NBR Lama",
     };
     const tariffLabel = TARIFF_LABELS[tariffKey] || tariffKey;
 
-    const datasetKey = (typeof activeDatasetKey !== "undefined" ? activeDatasetKey : "okt_jun");
-    const DATASET_LABELS = { "okt_jun": "Uji Coba Okt 2025 - Jun 2026 (8 Bulan)", "jan_des": "Data Tahun 2025 (Jan - Des)" };
+    const datasetKey = (typeof activeDatasetKey !== "undefined" ? activeDatasetKey : "okt_oct");
+    const DATASET_LABELS = { "okt_oct": "Data 15 Okt 2025 - 15 Okt 2026", "jan_des": "Data Tahun 2025 (Jan - Des)" };
     const datasetLabel = DATASET_LABELS[datasetKey] || datasetKey;
 
     let filterDesc = "Tidak ada filter (Semua RS regional)";

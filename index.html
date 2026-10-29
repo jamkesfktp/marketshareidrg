@@ -496,10 +496,10 @@
           <span>ðŸ“…</span> Periode / Sumber Data
         </span>
         <select id="datasetPeriodSelect" class="tariff-scenario-select" aria-label="Pilih Periode / Dataset" style="width: 100%; box-sizing: border-box; padding: 7px 10px; border-radius: 8px; border: 1.5px solid #2563eb; background: #ffffff; font-weight: 750; font-size: 12px; color: #0f172a; cursor: pointer; outline: none; transition: all 0.2s;">
-          <option value="okt_jun" selected>Uji Coba Okt 2025 - Jun 2026 (8 Bulan - 111,76 Jt Kasus)</option>
+          <option value="okt_oct" selected>Data 15 Okt 2025 - 15 Okt 2026 (BigQuery)</option>
           <option value="jan_des">Data Tahun 2025 (Jan - Des / 12 Bulan)</option>
         </select>
-        <div id="datasetPeriodDesc" style="font-size: 10.5px; color: #64748b; margin-top: 4px; line-height: 1.35;">Master CSV: spending_okt_jun_v3_gabungan.csv</div>
+        <div id="datasetPeriodDesc" style="font-size: 10.5px; color: #64748b; margin-top: 4px; line-height: 1.35;">Sumber BigQuery: bq-results-20261029-044944-1793249396242.csv</div>
       </div>
 
       <!-- Filter Skenario Tarif iDRG -->
@@ -515,6 +515,10 @@
           <option value="1370_juknis">iDRG 1370 - Juknis Top-Up</option>
           <option value="1363_full">iDRG 1363 - AF + AFreg + AFkep</option>
           <option value="1363_af">iDRG 1363 - AF Saja (Tarif 2025)</option>
+          <option value="cw_adj_nbr_new">CW × Adj CW × NBR Baru</option>
+          <option value="cw_adj_nbr_old">CW × Adj CW × NBR Lama</option>
+          <option value="cw_nbr_new">CW × NBR Baru</option>
+          <option value="cw_nbr_old">CW × NBR Lama</option>
         </select>
         <div id="tariffScenarioDesc" style="font-size: 10.5px; color: #64748b; margin-top: 4px; line-height: 1.35;">Model 1.370 DRG dengan penyesuaian AF saja</div>
       </div>
