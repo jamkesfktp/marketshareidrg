@@ -3,8 +3,8 @@ const readline = require('readline');
 const path = require('path');
 const XLSX = require('xlsx');
 
-const csvOktJunPath = 'C:\\Backup Riki\\Drive D\\Analsisi Uji Coba\\spending_okt_jun_v3_gabungan.csv';
-const csvJanDesPath = 'C:\\Backup Riki\\Drive D\\Analsisi Uji Coba\\spending_jan_des_v11_gabungan.csv';
+const csvOktJunPath = 'C:\\Users\\PUSBIKES-KEMKES\\Downloads\\TARIF\\Data Spending\\spending_okt_jun_v3_gabungan.csv';
+const csvJanDesPath = 'C:\\Users\\PUSBIKES-KEMKES\\Downloads\\TARIF\\Data Spending\\spending_jan_des_v11_gabungan.csv';
 const excelCompetencyPath = 'C:\\Backup Riki\\Dokumen\\Market Share\\RS Online - Monitoring Kompetensi dan olah tarikan 03 September 2026 (1).xlsx';
 const outputPath = path.join(__dirname, 'js', 'data.js');
 
@@ -39,7 +39,7 @@ function parseLevel(val) {
 
 // 9-element metric vector:
 // [0: CASES, 1: INA, 2: 1370_FULL, 3: 1370_AFREG, 4: 1370_AF, 5: 1370_NOAF, 6: 1370_JUKNIS, 7: 1363_FULL, 8: 1363_AF]
-const VECTOR_LEN = 9;
+const VECTOR_LEN = 12;
 function createZeroVector() {
   return new Array(VECTOR_LEN).fill(0);
 }
@@ -49,6 +49,31 @@ function addVectors(target, source) {
     target[i] += source[i];
   }
 }
+
+function parseIndonesianNumber(value) {
+  const text = String(value ?? '').trim().replace(/\s/g, '');
+  if (!text || text === '-') return 0;
+  return Number(text.includes(',') ? text.replace(/\./g, '').replace(',', '.') : text.replace(/\./g, '')) || 0;
+}
+
+function loadNewTariffs() {
+  const file = path.join(__dirname, 'data', 'spending-tariffs.tsv');
+  const lines = fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, '').split(/\r?\n/);
+  const result = new Map();
+  for (const line of lines.slice(1)) {
+    if (!line.trim()) continue;
+    const r = line.split('\t');
+    const ptd = String(r[0] || '').trim();
+    const drg = String(r[3] || '').trim();
+    if (!ptd || !drg) continue;
+    const cw = parseIndonesianNumber(r[7]);
+    const adj = parseIndonesianNumber(r[9]);
+    const nbrNew = parseIndonesianNumber(r[10]);
+    result.set(`${ptd}:${drg}`, { cwAdjNew: cw * adj * nbrNew, cwAdjOld: cw * adj * (ptd === '1' ? 8037060 : 461474), cwNew: cw * nbrNew });
+  }
+  return result;
+}
+const newTariffs = loadNewTariffs();
 
 function loadCompetencyMap() {
   // Validated master preserves explicit zero levels and all 24 source services.
@@ -258,6 +283,11 @@ function processCsv(csvPath, isJanDes, hospCompetencies) {
       const idrg1370_juknis = parseFloat(row[col1370Juknis]) || 0;
       const idrg1363_full = parseFloat(row[col1363Full]) || 0;
       const idrg1363_af = parseFloat(row[col1363Af]) || 0;
+      const drgCode = String(row[22] || '').trim();
+      const tariff = newTariffs.get(`${String(row[12] || '').trim()}:${drgCode}`);
+      const customNew = tariff ? cases * tariff.cwAdjNew : 0;
+      const customOld = tariff ? cases * tariff.cwAdjOld : 0;
+      const customBase = tariff ? cases * tariff.cwNew : 0;
 
       const rowVector = [
         cases,
@@ -268,7 +298,10 @@ function processCsv(csvPath, isJanDes, hospCompetencies) {
         idrg1370_noaf,
         idrg1370_juknis,
         idrg1363_full,
-        idrg1363_af
+        idrg1363_af,
+        customNew,
+        customOld,
+        customBase
       ];
 
       addVectors(h.total, rowVector);
@@ -380,7 +413,10 @@ function processCsv(csvPath, isJanDes, hospCompetencies) {
             "1370_noaf": { index: 5, label: "iDRG 1370 - Tanpa AF (Base)", chip: "iDRG 1370 (Tanpa AF)", desc: "Tarif dasar iDRG 1.370 tanpa penyesuaian AF" },
             "1370_juknis": { index: 6, label: "iDRG 1370 - Juknis Top-Up", chip: "iDRG 1370 (Juknis Top-Up)", desc: "Model 1.370 DRG skema Juknis Top-Up" },
             "1363_full": { index: 7, label: "iDRG 1363 - AF + AFreg + AFkep", chip: "iDRG 1363 (AF + AFreg + AFkep)", desc: "Model 1.363 DRG dengan AF + AFreg + AFkep" },
-            "1363_af": { index: 8, label: "iDRG 1363 - AF Saja", chip: "iDRG 1363 (AF Saja)", desc: "Tarif iDRG 1.363 tahun 2025 dengan penyesuaian AF saja" }
+            "1363_af": { index: 8, label: "iDRG 1363 - AF Saja", chip: "iDRG 1363 (AF Saja)", desc: "Tarif iDRG 1.363 tahun 2025 dengan penyesuaian AF saja" },
+            "cw_adj_nbr_new": { index: 9, label: "CW × Adj CW × NBR Baru", chip: "CW × Adj CW × NBR Baru", desc: "Tarif baru dihitung dari CW × Adj CW × NBR Baru" },
+            "cw_adj_nbr_old": { index: 10, label: "CW × Adj CW × NBR Lama", chip: "CW × Adj CW × NBR Lama", desc: "Tarif lama dihitung dari CW × Adj CW × NBR lama sesuai PTD" },
+            "cw_nbr_new": { index: 11, label: "CW × NBR Baru", chip: "CW × NBR Baru", desc: "Tarif dasar baru dihitung dari CW × NBR Baru" }
           }
         },
         severityLabels: {
