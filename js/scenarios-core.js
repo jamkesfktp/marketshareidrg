@@ -3,15 +3,17 @@
   // mode: 'regional_all' (default) = sisa regional - target
   //       'kelasatas'               = serap Dasar/Madya dari RS kompetitor kelas LEBIH TINGGI
   window.computeServiceScenarios = function(service, target, data, state, CASES, INA, IDRG, severityMetricFn, getLevelRulesFn, mode, getCompetencyFn) {
-    const targetSvcRef = target.services[service];
-    const regionalSvc = data.regional.services[service];
+    const targetSvcRef = target?.services?.[service] || null;
+    const regionalSvc = data?.regional?.services?.[service] || null;
     const targetCompetency = targetSvcRef ? (targetSvcRef.competency || 0) : 0;
     const scenarios = state.serviceScenarios && state.serviceScenarios[service];
   
     // get target level rules
     const rules = getLevelRulesFn(targetCompetency, service);
     
-    const targetKasusArr = targetSvcRef ? targetSvcRef.total : [0,0,0];
+    // A service can be present as a temporary competency-only object when the
+    // target hospital has no mapped cases for it. Treat its missing totals as 0.
+    const targetKasusArr = Array.isArray(targetSvcRef?.total) ? targetSvcRef.total : [0,0,0];
     const existingKasus = targetKasusArr[CASES] || 0;
     const existingIna = targetKasusArr[INA] || 0;
     const existingIdrg = targetKasusArr[IDRG] || 0;
