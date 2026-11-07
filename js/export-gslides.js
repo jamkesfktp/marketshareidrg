@@ -269,7 +269,7 @@
     var cityInfo = filters.selectedCities && filters.selectedCities.length ? filters.selectedCities.join(", ") : 
       (filters.selectedProvinces && filters.selectedProvinces.length ? 
         Array.from(new Set(
-          window.marketSimulatorDatasets[document.getElementById('datasetSelect')?.value || 'okt_jun'].hospitals
+          window.marketSimulatorDatasets[document.getElementById('datasetSelect')?.value || 'okt_oct'].hospitals
           .filter(h => filters.selectedProvinces.includes(h.province))
           .map(h => h.city)
         )).sort().join(", ") 

@@ -1,4 +1,5 @@
 node_modules/
+js/data.js
 outputs/
 scratch/
 err.log

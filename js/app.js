@@ -42,9 +42,9 @@
   const DATASET_PERIODS = {
     "okt_oct": {
       key: "okt_oct",
-      label: "Data 15 Okt 2025 - 15 Okt 2026 (BigQuery)",
+      label: "Data 15 Okt 2025 - 15 Okt 2026 (Grouper 2026)",
       chip: "Data 15 Okt 2025 - 15 Okt 2026",
-      desc: "Sumber BigQuery 15 Okt 2025–15 Okt 2026; kasus dipetakan dari kode DRG. Data ini tidak memuat tingkat kompetensi/keparahan klaim."
+      desc: "Sumber spending_okt_okt_grouper2026_kompetensi_v0_gabungan.csv; memuat kompetensi, jumlah kasus, dan Tarif INA-CBG."
     },
     "jan_des": {
       key: "jan_des",
@@ -67,13 +67,49 @@
     "cw_nbr_new": { index: 11, label: "CW × NBR Baru", chip: "CW × NBR Baru", desc: "Tarif dasar baru: CW × NBR Baru" },
     "cw_nbr_old": { index: 12, label: "CW × NBR Lama", chip: "CW × NBR Lama", desc: "Tarif dasar lama: CW × NBR Lama" }
   };
-  const DEFAULT_TARIFF_BY_DATASET = { "okt_oct": "cw_adj_nbr_new", "jan_des": "1363_af" };
+  TARIFF_SCENARIOS.cw_nbr_adj_a = { index: 9, label: "Skenario A · CW × NBR A × Adj Factor", chip: "Skenario A · CW × NBR A × Adj Factor", desc: "Tarif per DRG = CW Asli × NBR A × Adj Factor" };
+  TARIFF_SCENARIOS.cw_nbr_adj_b = { index: 10, label: "Skenario B · CW × NBR B × Adj Factor", chip: "Skenario B · CW × NBR B × Adj Factor", desc: "Tarif per DRG = CW Asli × NBR B × Adj Factor" };
+  const DEFAULT_TARIFF_BY_DATASET = { "okt_oct": "cw_nbr_adj_a", "jan_des": "cw_nbr_adj_a" };
+  const NBR_DEFAULTS = data.meta?.nbrScenarioDefaults || { A: { RI: 8333041, RJ: 424629 }, B: { RI: 8037060, RJ: 461474 } };
+  function loadNBRValues() {
+    try {
+      const saved = JSON.parse(localStorage.getItem("marketShare.nbrScenarioValues") || "null");
+      if (saved && ["A", "B"].every(key => ["RI", "RJ"].every(service => Number.isFinite(Number(saved[key]?.[service])) && Number(saved[key][service]) >= 0))) {
+        return { A: { RI: Number(saved.A.RI), RJ: Number(saved.A.RJ) }, B: { RI: Number(saved.B.RI), RJ: Number(saved.B.RJ) } };
+      }
+    } catch (_) { /* Use the source defaults when browser storage is unavailable. */ }
+    return { A: { ...NBR_DEFAULTS.A }, B: { ...NBR_DEFAULTS.B } };
+  }
+  function recalculateTariffVector(vector) {
+    if (!Array.isArray(vector) || vector.length < 15) return;
+    vector[9] = (vector[13] || 0) * state.nbrValues.A.RI + (vector[14] || 0) * state.nbrValues.A.RJ;
+    vector[10] = (vector[13] || 0) * state.nbrValues.B.RI + (vector[14] || 0) * state.nbrValues.B.RJ;
+  }
+  function recalculateTariffEntity(entity) {
+    if (!entity || typeof entity !== "object") return;
+    recalculateTariffVector(entity.total);
+    recalculateTariffVector(entity.unclassified);
+    Object.values(entity.severity || {}).forEach(recalculateTariffVector);
+    Object.values(entity.services || {}).forEach(recalculateTariffEntity);
+  }
+  function recalculateAllTariffs() {
+    Object.values(allDatasets).forEach(dataset => {
+      if (!dataset || !Array.isArray(dataset.hospitals)) return;
+      recalculateTariffEntity(dataset.regional);
+      dataset.hospitals.forEach(recalculateTariffEntity);
+      Object.values(dataset.scatterServices || {}).forEach(segments => segments.forEach(segment => {
+        const ptd = String(dataset.idrgTariffs?.[segment[0]]?.ptd || "");
+        const nbrRI = ptd === "1";
+        const basis = Number(segment[11]) || 0;
+        segment[9] = basis * (nbrRI ? state.nbrValues.A.RI : state.nbrValues.A.RJ);
+        segment[10] = basis * (nbrRI ? state.nbrValues.B.RI : state.nbrValues.B.RJ);
+      }));
+    });
+  }
 
   function updateActiveTariff(scenarioKey) {
-    const customScenarios = new Set(["cw_adj_nbr_new", "cw_adj_nbr_old", "cw_nbr_new", "cw_nbr_old"]);
-    const isCustomDataset = activeDatasetKey === "okt_oct";
-    const isAllowed = (key) => !!TARIFF_SCENARIOS[key] && (isCustomDataset ? customScenarios.has(key) : !customScenarios.has(key));
-    const resolvedKey = isAllowed(scenarioKey) ? scenarioKey : (DEFAULT_TARIFF_BY_DATASET[activeDatasetKey] || "cw_adj_nbr_new");
+    const isAllowed = key => key === "cw_nbr_adj_a" || key === "cw_nbr_adj_b";
+    const resolvedKey = isAllowed(scenarioKey) ? scenarioKey : DEFAULT_TARIFF_BY_DATASET[activeDatasetKey];
     const sc = TARIFF_SCENARIOS[resolvedKey];
     state.activeTariffScenario = resolvedKey;
     IDRG = sc.index;
@@ -92,6 +128,17 @@
     }
   }
 
+  function updateDatasetPeriodDescription() {
+    const periodDescEl = document.getElementById("datasetPeriodDesc");
+    if (!periodDescEl) return;
+    const pInfo = DATASET_PERIODS[activeDatasetKey] || DATASET_PERIODS["okt_oct"];
+    const unmatched = Number(data.meta?.unmatchedTariffCases) || 0;
+    const coverage = unmatched
+      ? `${new Intl.NumberFormat("id-ID").format(unmatched)} kasus belum memiliki padanan CW; nilai simulasi tidak mencakup kasus tersebut.`
+      : "Semua kasus memiliki padanan CW.";
+    periodDescEl.textContent = `${pInfo.desc} · ${coverage}`;
+  }
+
   function switchDatasetPeriod(datasetKey) {
     if (!allDatasets[datasetKey]) return;
     activeDatasetKey = datasetKey;
@@ -108,8 +155,7 @@
     const periodLabelEl = document.getElementById("activePeriodLabel");
     if (periodLabelEl) periodLabelEl.textContent = pInfo.chip;
 
-    const periodDescEl = document.getElementById("datasetPeriodDesc");
-    if (periodDescEl) periodDescEl.textContent = pInfo.desc;
+    updateDatasetPeriodDescription();
 
     const periodSelectEl = document.getElementById("datasetPeriodSelect");
     if (periodSelectEl && periodSelectEl.value !== datasetKey) periodSelectEl.value = datasetKey;
@@ -156,6 +202,7 @@
     targetCodes: defaultTarget ? [defaultTarget] : [],
     activeSlide: 0,
     activeTariffScenario: DEFAULT_TARIFF_BY_DATASET[activeDatasetKey],
+    nbrValues: loadNBRValues(),
     selectedService: data.services.includes("JIWA") ? "JIWA" : data.services[0],
     selectedSeverity: 4,
     targetShare: 50,
@@ -169,7 +216,9 @@
     competencyOverrides: {},
     competencyUpgrade: { service: "ALL", targetLevel: 2, captureMultiplier: 100, retention: 100 },
   };
+  recalculateAllTariffs();
   updateActiveTariff(state.activeTariffScenario);
+  updateDatasetPeriodDescription();
 
   let liveRenderTimer = null;
   function scheduleLiveRender(render, delay = 280) {
@@ -197,7 +246,7 @@
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 
-  const VECTOR_LENGTH = 13;
+  const VECTOR_LENGTH = 15;
   const createZeroMetric = () => Array(VECTOR_LENGTH).fill(0);
 
   function addVectors(target, source) {
@@ -2225,12 +2274,12 @@ document.getElementById("globalSimulationSlide").innerHTML = `
   }
 
   function renderTariffScatterWorkspace() {
-    const source = window.idrgMapData;
     window.tariffScatterUi = { dataset: "jan_des", ...(window.tariffScatterUi || {}) };
-    const datasetKey = window.tariffScatterUi.dataset;
-    const scatterSource = datasetKey === "jan_des" ? window.scatter2025Data : source;
-    const periodLabel = datasetKey === "jan_des" ? "Januari–Desember 2025" : "15 Okt 2025–14 Juni 2026";
-      const casesSourceFile = datasetKey === "jan_des" ? "spending_jan_des_v11_gabungan.csv" : "bq-results-20261029-044944-1793249396242.csv";
+    const datasetKey = allDatasets[window.tariffScatterUi.dataset] ? window.tariffScatterUi.dataset : "jan_des";
+    window.tariffScatterUi.dataset = datasetKey;
+    const scatterSource = allDatasets[datasetKey];
+    const periodLabel = DATASET_PERIODS[datasetKey]?.chip || datasetKey;
+    const casesSourceFile = scatterSource?.meta?.sourceFile || "sumber data aplikasi";
     let root = document.getElementById("tariffScatterWorkspace");
     if (!root) {
       root = document.createElement("section");
@@ -2240,28 +2289,27 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     }
     if (!scatterSource?.scatterServices) { root.innerHTML = '<div class="scatter-empty">Data tarif aktual scatter belum tersedia. Muat ulang halaman tanpa cache (Ctrl+F5) untuk mengambil bundel data terbaru.</div>'; return; }
     if (!window.Chart) { root.innerHTML = '<div class="scatter-empty">Modul Chart.js belum termuat. Muat ulang halaman tanpa cache (Ctrl+F5).</div>'; return; }
-    window.tariffScatterUi = { dataSource: "existing", service: "ALL", region: "ALL", hospitalClass: "ALL", rawatClass: "ALL", ownership: "ALL", ptd: "ALL", threshold: 6, ...(window.tariffScatterUi || {}) };
+    window.tariffScatterUi = { service: "ALL", region: "ALL", hospitalClass: "ALL", rawatClass: "ALL", ownership: "ALL", ptd: "ALL", threshold: 6, ...(window.tariffScatterUi || {}) };
     const ui = window.tariffScatterUi;
-    const useAf10 = ui.dataSource === "af10";
-    const useAf19 = ui.dataSource === "af19";
     const services = Object.keys(scatterSource.scatterServices).sort();
     const matchesSegment = (segment) => (ui.ownership === "ALL" || segment[2] === ui.ownership) && (ui.hospitalClass === "ALL" || segment[3] === ui.hospitalClass) && (ui.rawatClass === "ALL" || segment[4] === ui.rawatClass) && (ui.region === "ALL" || segment[5] === ui.region);
-    const scenarioMetricIndex = useAf19 ? 11 : { "1370_full": 8, "1370_afreg": 9, "1370_af": 10, "1370_noaf": 11, "1370_juknis": 12, "1363_full": 13, "1363_af": 14 }[state.activeTariffScenario || "1363_full"] || 13;
-    const scatterScenarioLabel = useAf19 ? "AF 19% (AF = 1)" : useAf10 ? "AF 10% (AF 10%.xlsx)" : TARIFF_SCENARIOS[state.activeTariffScenario || "1363_full"]?.chip || "iDRG 1363";
+    const scenarioMetricIndex = state.activeTariffScenario === "cw_nbr_adj_b" ? 10 : 9;
+    const scatterScenarioLabel = TARIFF_SCENARIOS[state.activeTariffScenario]?.chip || "Skenario A · CW × NBR A × Adj Factor";
     const selectedServices = ui.service === "ALL" ? services : [ui.service];
     const aggregate = new Map();
     selectedServices.forEach((service) => (scatterSource.scatterServices[service] || []).forEach((segment) => {
       if (!matchesSegment(segment)) return;
-      if (ui.ptd !== "ALL" && String(source.idrgTariffs?.[segment[0]]?.ptd || "") !== ui.ptd) return;
-      const cases = Number(segment[6]) || 0, inaTotal = Number(segment[7]) || 0, idrgTotal = useAf10 ? cases * window.scatterAf10Data.tariffs[segment[0]].tariff : Number(segment[scenarioMetricIndex]) || 0;
-      if (!cases || !inaTotal || (!useAf10 && !idrgTotal)) return;
-      const item = aggregate.get(segment[0]) || { code: segment[0], description: segment[1] || source.idrgTariffs?.[segment[0]]?.description || segment[0], cases: 0, inaTotal: 0, idrgTotal: 0, services: new Set() };
+      if (ui.ptd !== "ALL" && String(scatterSource.idrgTariffs?.[segment[0]]?.ptd || "") !== ui.ptd) return;
+      const cases = Number(segment[6]) || 0, inaTotal = Number(segment[7]) || 0;
+      const idrgTotal = Number(segment[scenarioMetricIndex]) || 0;
+      if (!cases || !inaTotal || !idrgTotal) return;
+      const item = aggregate.get(segment[0]) || { code: segment[0], description: segment[1] || scatterSource.idrgTariffs?.[segment[0]]?.description || segment[0], cases: 0, inaTotal: 0, idrgTotal: 0, services: new Set() };
       item.cases += cases; item.inaTotal += inaTotal; item.idrgTotal += idrgTotal; item.services.add(service); aggregate.set(segment[0], item);
     }));
     const points = [...aggregate.values()].map((item) => { const ina = item.inaTotal / item.cases, idrg = item.idrgTotal / item.cases, delta = (item.idrgTotal - item.inaTotal) / item.inaTotal * 100; return { x: item.cases, y: Math.sign(delta) * Math.log10(1 + Math.abs(delta) / 10), realY: delta, code: item.code, description: item.description, ina, idrg, cases: item.cases, services: [...item.services].join(", "), segment: delta < 0 ? "negative" : delta <= ui.threshold ? "within" : "high" }; }).filter((item) => Number.isFinite(item.realY)).sort((a,b) => Math.abs(b.realY) - Math.abs(a.realY));
     const topPoints = [...points.filter(p=>p.realY>=0).sort((a,b)=>b.realY-a.realY).slice(0,5), ...points.filter(p=>p.realY<0).sort((a,b)=>a.realY-b.realY).slice(0,5)];
     const selectOptions = (values, selected, allLabel) => `<option value="ALL" ${selected === "ALL" ? "selected" : ""}>${allLabel}</option>${values.map((value) => `<option value="${value}" ${selected === value ? "selected" : ""}>${value}</option>`).join("")}`;
-    root.innerHTML = `<div class="scatter-shell"><header><div><span>ANALISIS TARIF AKTUAL PER KASUS</span><h1>Scatter Plot Selisih Tarif iDRG terhadap INA-CBG</h1><p>${useAf19 ? "Cost Weight × National Baserate × 1 · volume kasus dan INA-CBG tetap" : useAf10 ? "Tarif AF 10% dari Excel · volume kasus dan INA-CBG tetap" : "Total nilai klaim ÷ jumlah kasus"} · ${escapeHtml(scatterScenarioLabel)} · periode ${periodLabel}.</p><p>Dataset jumlah kasus: ${casesSourceFile} · kolom jml_kasus.</p></div><div><button id="scatterSave" type="button">⬇ Simpan Gambar + Deskripsi</button><button id="scatterClose" type="button" aria-label="Tutup">×</button></div></header><section class="scatter-controls"><label>Dataset jumlah kasus<select id="scatterDataset"><option value="jan_des" ${datasetKey === "jan_des" ? "selected" : ""}>Tahun 2025 (Jan–Des) — Default</option><option value="okt_jun" ${datasetKey === "okt_jun" ? "selected" : ""}>Uji Coba Okt 2025–Jun 2026</option></select></label><label>Sumber data tarif<select id="scatterDataSource"><option value="existing" ${!useAf10 && !useAf19 ? "selected" : ""}>Data awal (skenario tarif aktif)</option><option value="af10" ${useAf10 ? "selected" : ""} ${!window.scatterAf10Data ? "disabled" : ""}>AF 10% (AF 10%.xlsx)</option><option value="af19" ${useAf19 ? "selected" : ""}>AF 19% (AF = 1)</option></select></label><label>Kelompok layanan<select id="scatterService">${selectOptions(services,ui.service,"ALL Layanan")}</select></label><label>Jenis Rawat (PTD)<select id="scatterPtd">${selectOptions(["1","2"],ui.ptd,"ALL Jenis Rawat").replace(">1<",">Rawat Inap<").replace(">2<",">Rawat Jalan<")}</select></label><label>Regional<select id="scatterRegion">${selectOptions(["R1","R2","R3","R4","R5"],ui.region,"ALL Regional")}</select></label><label>Kelas RS<select id="scatterHospitalClass">${selectOptions(["A","B","C","D","RS KHUSUS"],ui.hospitalClass,"ALL Kelas RS")}</select></label><label>Kelas rawat<select id="scatterRawatClass">${selectOptions(["KELAS0","KELAS1","KELAS2","KELAS3"],ui.rawatClass,"ALL Kelas Rawat")}</select></label><label>Kepemilikan<select id="scatterOwnership">${selectOptions(["PEMERINTAH","SWASTA"],ui.ownership,"ALL Kepemilikan")}</select></label><label>Threshold positif<input id="scatterThreshold" type="number" min="0" max="100" step="1" value="${ui.threshold}"><span>%</span></label></section><main><section class="scatter-chart-panel"><div class="scatter-legend"><span><i class="high"></i>Di atas threshold</span><span><i class="within"></i>Di dalam threshold</span><span><i class="negative"></i>Selisih negatif</span><b>${formatNumber(points.length)} DRG</b></div><div class="scatter-canvas-wrap"><canvas id="tariffScatterChart" aria-label="Scatter plot volume kasus dan selisih tarif"></canvas></div></section><aside class="scatter-detail"><div id="scatterSelectedDetail"><span>PILIH TITIK</span><h2>Klik titik scatter plot</h2><p>Detail kode, deskripsi, volume, dan rata-rata aktual per kasus akan ditampilkan di sini.</p></div><h3>Outlier utama</h3><div class="scatter-outlier-list">${topPoints.map((point,index) => `<button type="button" data-scatter-code="${escapeHtml(point.code)}"><b>${index+1}</b><span><strong>${escapeHtml(point.code)}</strong><small>${escapeHtml(point.description)}</small></span><em>${point.realY >= 0 ? "+" : ""}${point.realY.toFixed(1)}%</em></button>`).join("") || '<p>Regenerasi data diperlukan atau tidak ada data pada filter ini.</p>'}</div></aside></main></div>`;
+    root.innerHTML = `<div class="scatter-shell"><header><div><span>ANALISIS TARIF AKTUAL PER KASUS</span><h1>Scatter Plot Selisih Tarif iDRG terhadap INA-CBG</h1><p>CW Asli × Adj Factor × NBR · ${escapeHtml(scatterScenarioLabel)} · periode ${periodLabel}.</p><p>Dataset jumlah kasus: ${casesSourceFile} · kolom jml_kasus.</p></div><div><button id="scatterSave" type="button">⬇ Simpan Gambar + Deskripsi</button><button id="scatterClose" type="button" aria-label="Tutup">×</button></div></header><section class="scatter-controls"><label>Dataset jumlah kasus<select id="scatterDataset"><option value="jan_des" ${datasetKey === "jan_des" ? "selected" : ""}>Tahun 2025 (Jan–Des) — Default</option><option value="okt_oct" ${datasetKey === "okt_oct" ? "selected" : ""}>15 Okt 2025–15 Okt 2026</option></select></label><label>Kelompok layanan<select id="scatterService">${selectOptions(services,ui.service,"ALL Layanan")}</select></label><label>Jenis Rawat (PTD)<select id="scatterPtd">${selectOptions(["1","2"],ui.ptd,"ALL Jenis Rawat").replace(">1<",">Rawat Inap<").replace(">2<",">Rawat Jalan<")}</select></label><label>Regional<select id="scatterRegion">${selectOptions(["R1","R2","R3","R4","R5"],ui.region,"ALL Regional")}</select></label><label>Kelas RS<select id="scatterHospitalClass">${selectOptions(["A","B","C","D","RS KHUSUS"],ui.hospitalClass,"ALL Kelas RS")}</select></label><label>Kelas rawat<select id="scatterRawatClass">${selectOptions(["KELAS0","KELAS1","KELAS2","KELAS3"],ui.rawatClass,"ALL Kelas Rawat")}</select></label><label>Kepemilikan<select id="scatterOwnership">${selectOptions(["PEMERINTAH","SWASTA"],ui.ownership,"ALL Kepemilikan")}</select></label><label>Threshold positif<input id="scatterThreshold" type="number" min="0" max="100" step="1" value="${ui.threshold}"><span>%</span></label></section><main><section class="scatter-chart-panel"><div class="scatter-legend"><span><i class="high"></i>Di atas threshold</span><span><i class="within"></i>Di dalam threshold</span><span><i class="negative"></i>Selisih negatif</span><b>${formatNumber(points.length)} DRG</b></div><div class="scatter-canvas-wrap"><canvas id="tariffScatterChart" aria-label="Scatter plot volume kasus dan selisih tarif"></canvas></div></section><aside class="scatter-detail"><div id="scatterSelectedDetail"><span>PILIH TITIK</span><h2>Klik titik scatter plot</h2><p>Detail kode, deskripsi, volume, dan rata-rata aktual per kasus akan ditampilkan di sini.</p></div><h3>Outlier utama</h3><div class="scatter-outlier-list">${topPoints.map((point,index) => `<button type="button" data-scatter-code="${escapeHtml(point.code)}"><b>${index+1}</b><span><strong>${escapeHtml(point.code)}</strong><small>${escapeHtml(point.description)}</small></span><em>${point.realY >= 0 ? "+" : ""}${point.realY.toFixed(1)}%</em></button>`).join("") || '<p>Regenerasi data diperlukan atau tidak ada data pada filter ini.</p>'}</div></aside></main></div>`;
     const datasets = [{ key:"high",label:"Di atas threshold",color:"#d86652" },{ key:"within",label:"Di dalam threshold",color:"#e8c84e" },{ key:"negative",label:"Selisih negatif",color:"#5c9dca" }].map((group) => ({ label:group.label, data:points.filter((point)=>point.segment===group.key), backgroundColor:group.color, borderColor:group.color, pointRadius:2, pointHoverRadius:6 }));
     const chartCanvas = root.querySelector("#tariffScatterChart");
     const zonePlugin = { id:"scatterZones", beforeDraw(chart) { const {ctx,chartArea,scales}=chart;if(!chartArea)return;const zero=scales.y.getPixelForValue(0),threshold=scales.y.getPixelForValue(Math.sign(ui.threshold)*Math.log10(1+Math.abs(ui.threshold)/10));ctx.save();ctx.fillStyle="#fff5f3";ctx.fillRect(chartArea.left,chartArea.top,chartArea.width,Math.max(0,threshold-chartArea.top));ctx.fillStyle="#fffbea";ctx.fillRect(chartArea.left,threshold,chartArea.width,Math.max(0,zero-threshold));ctx.fillStyle="#eff7fc";ctx.fillRect(chartArea.left,zero,chartArea.width,Math.max(0,chartArea.bottom-zero));ctx.restore();}, afterDatasetsDraw(chart){const {ctx,scales,chartArea}=chart;ctx.save();[0,ui.threshold].forEach((value,index)=>{const y=scales.y.getPixelForValue(Math.sign(value)*Math.log10(1+Math.abs(value)/10));ctx.strokeStyle=index?"#c43125":"#162d31";ctx.lineWidth=index?2:3;ctx.setLineDash(index?[9,7]:[]);ctx.beginPath();ctx.moveTo(chartArea.left,y);ctx.lineTo(chartArea.right,y);ctx.stroke();});const drawn=[];topPoints.forEach((point)=>{const x=scales.x.getPixelForValue(point.x);let y=scales.y.getPixelForValue(point.y)-8;if(x<chartArea.left||x>chartArea.right||y+8<chartArea.top||y+8>chartArea.bottom)return;ctx.font="600 10px Arial";const txt=`${point.code} · ${point.description.slice(0,36)}`;const w=ctx.measureText(txt).width;ctx.textAlign=x>chartArea.right-230?"right":"left";const tx=x+(ctx.textAlign==="right"?-8-w:8);for(let i=0;i<6;i++){if(!drawn.some(b=>tx<b.x+b.w+4&&tx+w+4>b.x&&y<b.y+10&&y>b.y-10))break;y-=12;}drawn.push({x:tx,y:y,w:w});ctx.fillStyle=point.segment==="high"?"#d86652":point.segment==="within"?"#e8c84e":"#5c9dca";ctx.fillText(txt,x+(ctx.textAlign==="right"?-8:8),y);});ctx.restore();} };
@@ -2270,10 +2318,10 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     function showDetail(point){root.querySelector("#scatterSelectedDetail").innerHTML=`<span>DETAIL TITIK SCATTER</span><h2>${escapeHtml(point.code)}</h2><p>${escapeHtml(point.description)}</p><dl><div><dt>Volume</dt><dd>${formatNumber(point.cases)} kasus</dd></div><div><dt>Rata-rata INA-CBG</dt><dd>${moneyFormat(point.ina)}</dd></div><div><dt>Rata-rata iDRG</dt><dd>${moneyFormat(point.idrg)}</dd></div><div><dt>Selisih</dt><dd class="${point.realY>=0?"positive":"negative"}">${point.realY>=0?"▲ ":"▼ "}${Math.abs(point.realY).toFixed(2)}%</dd></div></dl><small>Layanan: ${escapeHtml(point.services)}</small>`;}
     root.querySelectorAll("[data-scatter-code]").forEach((button)=>button.addEventListener("click",()=>{const point=points.find((item)=>item.code===button.dataset.scatterCode);if(point)showDetail(point);}));
     const rerender = () => { chart.destroy(); renderTariffScatterWorkspace(); };
-    [["scatterDataset","dataset"],["scatterDataSource","dataSource"],["scatterService","service"],["scatterPtd","ptd"],["scatterRegion","region"],["scatterHospitalClass","hospitalClass"],["scatterRawatClass","rawatClass"],["scatterOwnership","ownership"]].forEach(([id,key])=>root.querySelector(`#${id}`)?.addEventListener("change",(event)=>{ui[key]=event.target.value;rerender();}));
+    [["scatterDataset","dataset"],["scatterService","service"],["scatterPtd","ptd"],["scatterRegion","region"],["scatterHospitalClass","hospitalClass"],["scatterRawatClass","rawatClass"],["scatterOwnership","ownership"]].forEach(([id,key])=>root.querySelector(`#${id}`)?.addEventListener("change",(event)=>{ui[key]=event.target.value;rerender();}));
     root.querySelector("#scatterThreshold")?.addEventListener("change",(event)=>{ui.threshold=Math.max(0,Number(event.target.value)||0);rerender();});
     root.querySelector("#scatterClose")?.addEventListener("click",()=>{chart.destroy();root.remove();});
-    root.querySelector("#scatterSave")?.addEventListener("click",()=>{const output=document.createElement("canvas");output.width=1800;output.height=1320;const ctx=output.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,output.width,output.height);ctx.fillStyle="#07575b";ctx.font="bold 36px Arial";ctx.fillText("Analisis Selisih Tarif iDRG terhadap INA-CBG",45,55);ctx.font="18px Arial";ctx.fillStyle="#52615f";ctx.fillText(`${periodLabel} · ${scatterScenarioLabel} · ${ui.service === "ALL" ? "ALL Layanan" : ui.service} · PTD ${ui.ptd === "1" ? "Rawat Inap" : ui.ptd === "2" ? "Rawat Jalan" : "ALL"} · ${ui.region} · ${ui.hospitalClass} · ${ui.rawatClass} · ${ui.ownership}`,45,88);ctx.drawImage(chartCanvas,45,115,1710,850);ctx.fillStyle="#07575b";ctx.font="bold 23px Arial";ctx.fillText("Deskripsi outlier utama · rata-rata aktual per kasus",45,1010);ctx.font="16px Arial";topPoints.forEach((point,index)=>{ctx.fillStyle=point.segment==="high"?"#d86652":point.segment==="within"?"#e8c84e":"#5c9dca";ctx.fillText(`${index+1}. ${point.code} · ${point.realY>=0?"▲ ":"▼ "}${Math.abs(point.realY).toFixed(1)}% · ${formatNumber(point.cases)} kasus`,55,1045+index*24);ctx.fillText(point.description.slice(0,120),390,1045+index*24);});const link=document.createElement("a");link.download=`Scatter_Tarif_iDRG_${datasetKey}_${useAf19 ? "AF19" : useAf10 ? "AF10" : "Awal"}_${new Date().toISOString().slice(0,10)}.png`;link.href=output.toDataURL("image/png");link.click();});
+    root.querySelector("#scatterSave")?.addEventListener("click",()=>{const output=document.createElement("canvas");output.width=1800;output.height=1320;const ctx=output.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,output.width,output.height);ctx.fillStyle="#07575b";ctx.font="bold 36px Arial";ctx.fillText("Analisis Selisih Tarif iDRG terhadap INA-CBG",45,55);ctx.font="18px Arial";ctx.fillStyle="#52615f";ctx.fillText(`${periodLabel} · ${scatterScenarioLabel} · ${ui.service === "ALL" ? "ALL Layanan" : ui.service} · PTD ${ui.ptd === "1" ? "Rawat Inap" : ui.ptd === "2" ? "Rawat Jalan" : "ALL"} · ${ui.region} · ${ui.hospitalClass} · ${ui.rawatClass} · ${ui.ownership}`,45,88);ctx.drawImage(chartCanvas,45,115,1710,850);ctx.fillStyle="#07575b";ctx.font="bold 23px Arial";ctx.fillText("Deskripsi outlier utama · rata-rata aktual per kasus",45,1010);ctx.font="16px Arial";topPoints.forEach((point,index)=>{ctx.fillStyle=point.segment==="high"?"#d86652":point.segment==="within"?"#e8c84e":"#5c9dca";ctx.fillText(`${index+1}. ${point.code} · ${point.realY>=0?"▲ ":"▼ "}${Math.abs(point.realY).toFixed(1)}% · ${formatNumber(point.cases)} kasus`,55,1045+index*24);ctx.fillText(point.description.slice(0,120),390,1045+index*24);});const link=document.createElement("a");link.download=`Scatter_Tarif_iDRG_${datasetKey}_${state.activeTariffScenario}_${new Date().toISOString().slice(0,10)}.png`;link.href=output.toDataURL("image/png");link.click();});
   }
 
   window.showTariffScatterWorkspace = function() { renderTariffScatterWorkspace(); };
@@ -10831,7 +10879,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     if (muhammadiyahToggle) muhammadiyahToggle.checked = false;
     const excludeLevelZeroToggle = document.getElementById("excludeUnmappedToggle");
     if (excludeLevelZeroToggle) excludeLevelZeroToggle.checked = false;
-    updateActiveTariff("1363_af");
+    updateActiveTariff("cw_nbr_adj_a");
     applyFilters();
     updateButtonLabels();
   }
@@ -10878,6 +10926,22 @@ document.getElementById("globalSimulationSlide").innerHTML = `
   document.getElementById("tariffScenarioSelect")?.addEventListener("change", (e) => {
     updateActiveTariff(e.target.value);
     renderAll();
+  });
+  document.querySelectorAll("[data-nbr-scenario][data-nbr-service]").forEach(input => {
+    input.value = state.nbrValues[input.dataset.nbrScenario]?.[input.dataset.nbrService] ?? "";
+    input.addEventListener("change", () => {
+      const scenario = input.dataset.nbrScenario;
+      const service = input.dataset.nbrService;
+      const value = Number(input.value);
+      if (!Number.isFinite(value) || value < 0) {
+        input.value = state.nbrValues[scenario][service];
+        return;
+      }
+      state.nbrValues[scenario][service] = value;
+      try { localStorage.setItem("marketShare.nbrScenarioValues", JSON.stringify(state.nbrValues)); } catch (_) { /* The current page still uses the changed rates. */ }
+      recalculateAllTariffs();
+      applyFilters();
+    });
   });
   document.getElementById("globalSimTambahSelect")?.addEventListener("change", (e) => {
     window.globalSimScenarios = null;
@@ -10957,7 +11021,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
 //       const selectedProvinces = getChecked(document.getElementById("provDropdown"));
 //       const selectedCities = getChecked(document.getElementById("cityDropdown"));
 //       const isMuhammadiyahOnly = document.getElementById("muhammadiyahFilterToggle")?.checked || false;
-//       const activeDatasetPeriod = document.getElementById("datasetPeriodSelect")?.value || "okt_jun";
+//       const activeDatasetPeriod = document.getElementById("datasetPeriodSelect")?.value || "okt_oct";
 //       const activeTariff = document.getElementById("tariffScenarioSelect")?.value || "af_afreg_afkep";
 // 
 //       const mapImageData = await captureSvgToPng("svgMapContainer");
@@ -11070,6 +11134,8 @@ document.getElementById("globalSimulationSlide").innerHTML = `
 
     const tariffKey = state.activeTariffScenario || "1363_full";
     const TARIFF_LABELS = {
+      "cw_nbr_adj_a": "Skenario A · CW × NBR A × Adj Factor",
+      "cw_nbr_adj_b": "Skenario B · CW × NBR B × Adj Factor",
       "1370_full": "iDRG 1370 - AF + AFreg + AFkep",
       "1370_afreg": "iDRG 1370 - AF + AFreg",
       "1370_af": "iDRG 1370 - AF Saja",

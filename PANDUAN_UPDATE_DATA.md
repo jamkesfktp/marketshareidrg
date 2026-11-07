@@ -1,141 +1,29 @@
-## Pembaruan kompetensi 3 September 2026
+# Memperbarui data spending
 
-Sumber terbaru: `RS Online - Monitoring Kompetensi dan olah tarikan 03 September 2026 (1).xlsx`, sheet `Tarik` (3.314 RS × 24 layanan). Master tervalidasi disimpan pada `data/competencies-2026-09-03.json`, termasuk tanggal sumber dan SHA-256 workbook.
+## Sumber data
 
-Untuk memperbarui kompetensi tanpa membangun ulang klaim:
+- 2025 (Januari–Desember): `C:\Users\PUSBIKES-KEMKES\Downloads\TARIF\Data Spending\spending_jan_des_v11_gabungan.csv`
+- Uji coba (15 Oktober 2025–15 Oktober 2026): `C:\Users\PUSBIKES-KEMKES\Downloads\TARIF\spending_okt_okt_grouper2026_kompetensi_v0_gabungan.csv`
 
-1. Jalankan `extract_competencies.py <file.xlsx> 2026-09-03 data/competencies-2026-09-03.json` memakai Python dengan openpyxl.
-2. Jalankan `node update_competencies.cjs` untuk memeriksa perubahan, lalu `node update_competencies.cjs --write` untuk menerapkan.
-3. Periksa `data/competency-update-2026-09-03-report.json` dan perbarui versi cache data/app pada kedua halaman masuk.
+## Rumus tarif
 
-Pencocokan memakai kode RS, bukan nama. Status Tidak Kompeten menjadi 0; Forensik dipetakan ke FORENSIK DAN MEDIKOLEGAL. Entri layanan yang belum ada ditambahkan dengan metrik klaim nol. Fasilitas tanpa kecocokan dipertahankan dan dicatat sebagai pengecualian; tidak dinyatakan memiliki pembaruan kompetensi. Semua metrik klaim RS dan regional diverifikasi tetap sama. Builder dua periode menggunakan master tervalidasi yang sama.
+Setiap skenario dihitung dengan `CW Asli × Adj Factor × NBR`. Nilai dasar NBR yang disediakan:
 
-Pembaruan awal: uji coba 2.777 RS cocok, 458 tidak cocok, 669 tingkat berubah dan 5.009 entri ditambahkan; tahunan 2.725 RS cocok, 465 tidak cocok, 656 tingkat berubah dan 4.385 entri ditambahkan. Angka entri tambahan mencakup status Tidak Kompeten.
+| Skenario | Rawat Inap (RI) | Rawat Jalan (RJ) |
+| --- | ---: | ---: |
+| NBR A | Rp8.333.041 | Rp424.629 |
+| NBR B | Rp8.037.060 | Rp461.474 |
 
-# 📖 Panduan Lengkap Pembaruan Data & Konfigurasi Simulator
-## Simulator Market Share iDRG & INA-CBG Kemenkes RI
+Nilai RI dan RJ dapat diubah dari aplikasi. Perubahan tersimpan di browser tersebut dan langsung menghitung ulang kedua periode.
 
-Dokumen ini berisi panduan resmi langkah demi langkah untuk memperbarui database aplikasi (*Market Share Simulator*), konfigurasi filter grup rumah sakit khusus (seperti RS Muhammadiyah / Aisyiyah), serta tata cara rebuild data transaksi klaim dan kompetensi RS Online.
+## Membangun data aplikasi
 
----
-
-## 📁 1. File Sumber Data yang Digunakan
-
-Aplikasi mendukung **multi-periode/dataset** secara simultan melalui filter antarmuka:
-
-| No | Nama Dataset / Periode | Lokasi / Nama File Default | Deskripsi Data |
-|---|---|---|---|
-| 1 | **Periode 8 Bulan (Uji Coba)** | `C:\Backup Riki\Drive D\Analsisi Uji Coba\spending_okt_jun_v3_gabungan.csv` *(±8,52 GB)* | Berisi 13.947.907 baris transaksi klaim riil (111,76 juta kasus, 3.235 RS, 24 layanan, 6 skenario tarif iDRG). |
-| 2 | **Periode 1 Tahun Penuh (Jan - Des)** | `C:\Backup Riki\Drive D\Analsisi Uji Coba\spending_jan_des_v11_gabungan.csv` *(±3,60 GB)* | Berisi 6.540.369 baris transaksi klaim agregat 12 bulan penuh (3.190 RS, 24 layanan, 6 skenario tarif iDRG). |
-| 3 | **Data Kompetensi RS Online** | `C:\Backup Riki\Download\RS Online - Monitoring Kompetensi dan olah tarikan 30 Juli 2026.xlsx` | Berisi data strata kompetensi RS (Dasar, Madya, Utama, Paripurna) untuk 24 layanan di sheet `Tarik`. |
-
----
-
-## ⚡ 2. Langkah Pembaruan Data Sekali Eksekusi (*All-in-One*)
-
-Aplikasi telah dilengkapi skrip kompilasi otomatis berkecepatan tinggi: **`build_dual_datasets.js`**.
-
-Skrip ini secara otomatis:
-1. Melakukan *streaming processing* pada kedua file CSV (total 12 GB+) secara efisien tanpa membuat memori RAM penuh.
-2. Mengekstrak dan menyusun **6 varian skenario tarif iDRG**:
-   - `iDRG 1370 - AF + AFreg + AFkep` *(Default / Standar Kemenkes)*
-   - `iDRG 1370 - AF + AFreg`
-   - `iDRG 1370 - AF Saja`
-   - `iDRG 1370 - Tanpa AF (Base)`
-   - `iDRG 1370 - Juknis Top-Up`
-   - `iDRG 1363 - AF + AFreg + AFkep`
-3. Menggabungkan (*merge*) data kompetensi RS Online untuk seluruh 24 layanan secara otomatis.
-4. Menghasilkan bundel dataset siap pakai: **`js/data.js`**.
-
-### 🚀 Cara Menjalankan Rebuild:
-1. Buka Terminal / PowerShell / Command Prompt.
-2. Masuk ke direktori proyek `rbk-market-share`:
-   ```powershell
-   cd "c:\Backup Riki\Dokumen\Market Share\rbk-market-share"
-   ```
-3. Jika lokasi file CSV atau Excel berubah, sesuaikan path pada baris teratas `build_dual_datasets.js`:
-   ```javascript
-   const csvOktJunPath = 'C:\\lokasi_baru\\spending_okt_jun_v3_gabungan.csv';
-   const csvJanDesPath = 'C:\\lokasi_baru\\spending_jan_des_v11_gabungan.csv';
-   const excelCompetencyPath = 'C:\\lokasi_baru\\RS Online - Monitoring Kompetensi.xlsx';
-   ```
-4. Jalankan perintah:
-   ```powershell
-   node build_dual_datasets.js
-   ```
-5. Tunggu hingga proses selesai (muncul pesan: `✅ All datasets compiled successfully!`).
-
----
-
-## 🏥 3. Konfigurasi Khusus Grup RS Muhammadiyah & 'Aisyiyah (RSMA)
-
-Aplikasi memiliki fitur pemetaan dan filter eksekutif khusus **131 RS Jejaring Resmi Muhammadiyah & 'Aisyiyah (RSMA)** yang bersumber langsung dari data resmi Persyarikatan (`Data RSMA.xlsx`).
-
-Semua faskes RSMA resmi telah dipetakan presisi dengan data registrasi **Kemenkes RS Online** dan kode rumah sakit (7 digit):
-
-```javascript
-// Lokasi: rbk-market-share/js/app.js
-const RSMA_MASTER_REGISTRY = [
-  { no: 1, name: "RSU Muhammadiyah Sumatera Utara", email: "...", code: "1275885", ... },
-  { no: 2, name: "RSU ‘Aisyiyah Padang", email: "...", code: "1371112", ... },
-  ...
-  { no: 131, name: "RS UMS AR Fachrudin", email: "...", code: "3372255", ... }
-];
-
-const MUHAMMADIYAH_HOSPITAL_CODES = new Set(RSMA_MASTER_REGISTRY.map(r => r.code).filter(Boolean));
-```
-
-Fasilitas dan fitur yang terintegrasi:
-- **Slide 8 (Peta Sebaran & Profil Eksekutif RSMA)**: Visualisasi geografis interaktif 131 RSMA (123 RS terdata transaksi klaim di 17 provinsi), ringkasan portofolio INA vs iDRG, distribusi strata/kelas, dan filter fokus wilayah (Jateng, Jatim, DIY, Jabar, Luar Jawa).
-- **Slide 9 (Analisis Rinci & Master Registry RSMA)**: Memuat 4 tab analitik lengkap:
-  1. *Rincian Per RS* (123 RS terdata klaim beserta status kompetensi & simulasi delta).
-  2. *Rincian 24 Kelompok Layanan* (agregasi kasus, potensi portofolio, dan distribusi level kompetensi).
-  3. *Sebaran 17 Provinsi* (kinerja dan kontributor terbesar per wilayah regional).
-  4. *Master Registry RSMA* (daftar utuh 131 faskes resmi beserta email kontak persyarikatan dan status klaim uji coba).
-- **Global Filter & Shortcut**: Sidebar checkbox dan tombol shortcut **"RS Jejaring Muhammadiyah"** menyaring simulator secara instan ke jejaring RSMA.
-
----
-
-## 🔄 4. Update Versi Cache Buster (Penting!)
-
-Agar browser pengguna langsung membaca file data dan kode aplikasi baru tanpa tertahan cache browser lama:
-
-1. Buka file `index.html` dan `index.php`.
-2. Naikkan nomor versi pada tag `<script>` paling bawah:
-   ```html
-   <script src="js/data.js?v=2026081512"></script>
-   <script src="js/app.js?v=2026081512"></script>
-   ```
-
----
-
-## 📤 5. Publikasi & Sinkronisasi ke GitHub
-
-Setelah file `js/data.js` atau `js/app.js` terupdate dan diuji di browser lokal, simpan dan kirim perubahan ke repositori GitHub:
+Jalankan dari direktori utama aplikasi:
 
 ```powershell
-cd "c:\Backup Riki\Dokumen\Market Share"
-git add rbk-market-share/js/data.js rbk-market-share/index.html rbk-market-share/index.php rbk-market-share/js/app.js rbk-market-share/PANDUAN_UPDATE_DATA.md
-git commit -m "chore: update data dan konfigurasi simulator"
-git push origin main
+node build_formula_datasets.js
 ```
 
----
+Proses membaca CSV secara bertahap, memeriksa jumlah kolom setiap baris, lalu menghasilkan `js/data.json.gz`. Aplikasi memuat dan membuka kompresi berkas ini saat halaman dibuka. Jangan masukkan CSV sumber atau berkas data mentah tak terkompresi ke Git.
 
-## 🛠️ 6. Verifikasi Data Setelah Update
-
-Untuk memastikan kedua dataset sudah terkompilasi dengan sempurna:
-
-```powershell
-node -e "const d = window.marketSimulatorDatasets || JSON.parse(require('fs').readFileSync('js/data.js', 'utf8').replace(/^window\.marketSimulatorDatasets\s*=\s*/, '').replace(/;\s*window\.marketSimulatorData.*$/, '')); console.log('Datasets loaded:', Object.keys(d)); console.log('Okt-Jun RS count:', d.okt_jun.hospitals.length); console.log('Jan-Des RS count:', d.jan_des.hospitals.length);"
-```
-
-
-## Dataset Scatter Plot
-
-Scatter Plot memiliki pilihan periode tersendiri: **Tahun 2025 (Jan–Des)** sebagai default dan **Uji Coba Okt 2025–Jun 2026**. Pilihan sumber tarif (data awal, AF 10%, AF 19% dengan AF = 1) tidak mengubah periode atau jumlah kasus.
-
-- Tahun 2025: `spending_jan_des_v11_gabungan.csv`, kolom `jml_kasus`. Bangun ulang dengan `node build_scatter_2025.js`; hasilnya `js/scatter-2025-data.js`.
-- Uji coba: `spending_okt_jun_v3_gabungan.csv`, kolom `jml_kasus`, pada `scatterServices` dalam `js/idrg-map-data.js` (builder: `build_idrg_map_data.js`).
-- Agregasi berdasarkan kode iDRG 1370, layanan, kepemilikan, kelas RS, kelas rawat, dan regional. Nol kasus tidak ditampilkan sebagai titik pada sumbu volume logaritmik.
-- Validasi pergantian periode/tarif: `node check-scatter-af10.js`.
+Ringkasan hasil proses dicetak di konsol, termasuk jumlah kasus yang cocok dengan tabel CW, yang tidak cocok, baris dilewati, dan baris rusak. Jika ditemukan baris dengan jumlah kolom tidak sesuai, proses berhenti tanpa menerbitkan dataset baru.

@@ -128,7 +128,7 @@
             </div>
           <div style="display: flex; align-items: center; gap: 10px; margin-left: auto;">
             <div id="activePeriodChip" style="background: #eff6ff; color: #1d4ed8; border: 1.5px solid #bfdbfe; font-size: 11.5px; font-weight: 800; padding: 4px 10px; border-radius: 8px; display: flex; align-items: center; gap: 5px; white-space: nowrap; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-              <span>ðŸ“…</span> <span id="activePeriodLabel">Uji Coba Okt 2025 - Jun 2026 (8 Bulan)</span>
+              <span>ðŸ“…</span> <span id="activePeriodLabel">15 Okt 2025 - 15 Okt 2026</span>
             </div>
             <div id="activeTariffChip" style="background: #f0fdf4; color: #166534; border: 1.5px solid #bbf7d0; font-size: 11.5px; font-weight: 800; padding: 4px 10px; border-radius: 8px; display: flex; align-items: center; gap: 5px; white-space: nowrap; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
               <span>ðŸ’³</span> <span id="activeTariffLabel">iDRG 1370 (AF Saja)</span>
@@ -496,10 +496,10 @@
           <span>ðŸ“…</span> Periode / Sumber Data
         </span>
         <select id="datasetPeriodSelect" class="tariff-scenario-select" aria-label="Pilih Periode / Dataset" style="width: 100%; box-sizing: border-box; padding: 7px 10px; border-radius: 8px; border: 1.5px solid #2563eb; background: #ffffff; font-weight: 750; font-size: 12px; color: #0f172a; cursor: pointer; outline: none; transition: all 0.2s;">
-          <option value="okt_oct" selected>Data 15 Okt 2025 - 15 Okt 2026 (BigQuery)</option>
+          <option value="okt_oct" selected>Data 15 Okt 2025 - 15 Okt 2026 (Grouper 2026)</option>
           <option value="jan_des">Data Tahun 2025 (Jan - Des / 12 Bulan)</option>
         </select>
-        <div id="datasetPeriodDesc" style="font-size: 10.5px; color: #64748b; margin-top: 4px; line-height: 1.35;">Sumber BigQuery: bq-results-20261029-044944-1793249396242.csv</div>
+        <div id="datasetPeriodDesc" style="font-size: 10.5px; color: #64748b; margin-top: 4px; line-height: 1.35;">Sumber: spending_okt_okt_grouper2026_kompetensi_v0_gabungan.csv</div>
       </div>
 
       <!-- Filter Skenario Tarif iDRG -->
@@ -508,19 +508,23 @@
           <span>ðŸ’³</span> Skenario Tarif iDRG
         </span>
         <select id="tariffScenarioSelect" class="tariff-scenario-select" aria-label="Pilih skenario tarif iDRG" style="width: 100%; box-sizing: border-box; padding: 7px 10px; border-radius: 8px; border: 1.5px solid #0d9488; background: #ffffff; font-weight: 750; font-size: 12px; color: #0f172a; cursor: pointer; outline: none; transition: all 0.2s;">
-          <option value="1370_full">iDRG 1370 - AF + AFreg + AFkep</option>
-          <option value="1370_afreg">iDRG 1370 - AF + AFreg</option>
-          <option value="1370_af" selected>iDRG 1370 - AF Saja (Default Uji Coba)</option>
-          <option value="1370_noaf">iDRG 1370 - Tanpa AF (Base)</option>
-          <option value="1370_juknis">iDRG 1370 - Juknis Top-Up</option>
-          <option value="1363_full">iDRG 1363 - AF + AFreg + AFkep</option>
-          <option value="1363_af">iDRG 1363 - AF Saja (Tarif 2025)</option>
-          <option value="cw_adj_nbr_new">CW × Adj CW × NBR Baru</option>
-          <option value="cw_adj_nbr_old">CW × Adj CW × NBR Lama</option>
-          <option value="cw_nbr_new">CW × NBR Baru</option>
-          <option value="cw_nbr_old">CW × NBR Lama</option>
+          <option value="cw_nbr_adj_a" selected>Skenario A · CW × NBR A × Adj Factor</option>
+          <option value="cw_nbr_adj_b">Skenario B · CW × NBR B × Adj Factor</option>
         </select>
-        <div id="tariffScenarioDesc" style="font-size: 10.5px; color: #64748b; margin-top: 4px; line-height: 1.35;">Model 1.370 DRG dengan penyesuaian AF saja</div>
+        <div id="tariffScenarioDesc" style="font-size: 10.5px; color: #64748b; margin-top: 4px; line-height: 1.35;">Tarif per DRG = CW Asli × NBR A × Adj Factor</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px;">
+          <div style="padding:7px;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:7px;">
+            <b style="font-size:10px;color:#047857;">NBR A · acuan baru</b>
+            <label style="display:block;margin-top:5px;font-size:10px;color:#334155;">Rawat Inap <input data-nbr-scenario="A" data-nbr-service="RI" type="number" min="0" step="1" style="width:100%;box-sizing:border-box;margin-top:2px;padding:4px;border:1px solid #cbd5e1;border-radius:5px;"></label>
+            <label style="display:block;margin-top:4px;font-size:10px;color:#334155;">Rawat Jalan <input data-nbr-scenario="A" data-nbr-service="RJ" type="number" min="0" step="1" style="width:100%;box-sizing:border-box;margin-top:2px;padding:4px;border:1px solid #cbd5e1;border-radius:5px;"></label>
+          </div>
+          <div style="padding:7px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:7px;">
+            <b style="font-size:10px;color:#1d4ed8;">NBR B · acuan lama</b>
+            <label style="display:block;margin-top:5px;font-size:10px;color:#334155;">Rawat Inap <input data-nbr-scenario="B" data-nbr-service="RI" type="number" min="0" step="1" style="width:100%;box-sizing:border-box;margin-top:2px;padding:4px;border:1px solid #cbd5e1;border-radius:5px;"></label>
+            <label style="display:block;margin-top:4px;font-size:10px;color:#334155;">Rawat Jalan <input data-nbr-scenario="B" data-nbr-service="RJ" type="number" min="0" step="1" style="width:100%;box-sizing:border-box;margin-top:2px;padding:4px;border:1px solid #cbd5e1;border-radius:5px;"></label>
+          </div>
+        </div>
+        <div style="font-size:9.5px;color:#64748b;margin-top:5px;line-height:1.35;">Ubah NBR di atas untuk memperbarui perbandingan di semua periode. Rumus memakai CW Asli dan Adj Factor dari tabel tarif.</div>
       </div>
 
       <!-- Pengaturan Skenario Simulasi Global -->
@@ -602,24 +606,7 @@
       </div>
     </div>
   </aside>
-  <script src="js/data.js?v=20261001-competencies"></script>
-  <script src="js/xlsx.bundle.js"></script>
-  <script src="js/chart.umd.min.js?v=202608220900"></script>
-  <script src="js/dom-to-pptx.bundle.js?v=20260928-preserve-row-height"></script>
-  <script src="js/pptxgen.bundle.js"></script>
-  <script src="js/scenarios-core.js?v=202611020001"></script>
-  <script src="js/competency-upgrade.js?v=20260910"></script>
-  <script src="js/competency-upgrade-excel.js?v=20260910"></script>
-  <script src="js/export-gslides.js?v=202608180005"></script>
-  <script src="js/audit-excel.js?v=202608180005"></script>
-  <script src="js/global-sim-excel.js?v=202608210836"></script>
-  <script src="js/dynamic-market-excel.js?v=20260910-simulation-insights"></script>
-  <script src="js/idrg-map-data.js?v=202608282330"></script>
-  <script src="js/scatter-2025-data.js?v=20260908"></script>
-  <script src="js/scatter-af10-data.js?v=20260908"></script>
-  <script src="js/service-insights.js?v=20260918-layout-fix"></script>
-  <script src="js/table-copy.js?v=20260910-no-highlight"></script>
-  <script src="js/app.js?v=20260928-pptx-full-height"></script>
+  <script src="js/data-loader.js?v=20261107-nbr-formula"></script>
   <script>
   (function initAuth() {
     const overlay = document.getElementById('loginOverlay');
