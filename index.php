@@ -20,13 +20,13 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
     <div class="app-boot-card">
       <img src="img/logo-kemenkes.png" alt="Kementerian Kesehatan RI">
       <strong>Menyiapkan Simulator Market Share</strong>
-      <p>Memuat data dan menyiapkan seluruh analisisâ€¦</p>
+      <p>Memuat data dan menyiapkan seluruh analisis…</p>
       <div class="app-boot-progress" aria-hidden="true"></div>
     </div>
   </div>
   <main class="viewport-stage" aria-label="Simulator market share regional rumah sakit">
     <button id="sidebarOpenBtn" style="display: none; position: absolute; right: 20px; top: 20px; z-index: 100; background: white; border: 1px solid #cbd5e1; padding: 8px 12px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; font-weight: 600; font-size: 13px; color: #1e293b;">
-      <span style="margin-right: 6px;">âš™ï¸</span> Buka Pengaturan
+      <span style="margin-right: 6px;">⚙️</span> Buka Pengaturan
     </button>
     <div class="deck-scaler" id="deckScaler">
       <div class="deck-shell">
@@ -46,12 +46,12 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
                 <div class="search-select-dropdown" id="targetHospitalDropdown"></div>
               </div>
             <button id="muhammadiyahGroupNavBtn" type="button" title="Buka Analisis Group RS Muhammadiyah & Aisyiyah" style="margin-left: 8px; background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; border-radius: 8px; padding: 7px 13px; font-size: 11.5px; font-weight: 750; display: flex; align-items: center; gap: 5px; cursor: pointer; box-shadow: 0 2px 4px rgba(5, 150, 105, 0.25); transition: all 0.2s ease;">
-              <span>ðŸ¥</span> Group Muhammadiyah
+              <span>🏥</span> Group Muhammadiyah
             </button>
-            <button id="idrgMapNavBtn" type="button" title="Buka Peta Reklasifikasi INA-CBG ke iDRG" style="margin-left:6px;background:linear-gradient(135deg,#0f766e,#d4c83f);color:white;border:none;border-radius:8px;padding:7px 13px;font-size:11.5px;font-weight:800;display:flex;align-items:center;gap:5px;cursor:pointer;box-shadow:0 2px 4px rgba(15,118,110,.25);"><span>ðŸ§­</span> PETA iDRG</button>
+            <button id="idrgMapNavBtn" type="button" title="Buka Peta Reklasifikasi INA-CBG ke iDRG" style="margin-left:6px;background:linear-gradient(135deg,#0f766e,#d4c83f);color:white;border:none;border-radius:8px;padding:7px 13px;font-size:11.5px;font-weight:800;display:flex;align-items:center;gap:5px;cursor:pointer;box-shadow:0 2px 4px rgba(15,118,110,.25);"><span>🧭</span> PETA iDRG</button>
             <div class="custom-multi" style="position: relative; display: inline-block;">
               <button id="nationalMirroringNavBtn" type="button" title="Buka Data Mirroring Nasional iDRG (7 Slide)" style="margin-left: 6px; background: linear-gradient(135deg, #0d9488, #0284c7); color: white; border: none; border-radius: 8px; padding: 7px 13px; font-size: 11.5px; font-weight: 750; display: flex; align-items: center; gap: 5px; cursor: pointer; box-shadow: 0 2px 4px rgba(13, 148, 136, 0.25); transition: all 0.2s ease;">
-                <span>ðŸ“Š</span> Data Mirroring Nasional <span style="font-size: 9px; margin-left: 2px;">â–¼</span>
+                <span>📊</span> Data Mirroring Nasional <span style="font-size: 9px; margin-left: 2px;">▼</span>
               </button>
               <div id="nationalMirroringDropdown" class="multi-select-dropdown" style="width: 330px; padding: 6px 0; background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); z-index: 1000;">
                 <div style="padding: 6px 14px; font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; border-bottom: 1px solid #f1f5f9; letter-spacing: 0.5px;">
@@ -91,14 +91,14 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
             </div>
           <div style="display: flex; align-items: center; gap: 10px; margin-left: auto;">
             <div id="activePeriodChip" style="background: #eff6ff; color: #1d4ed8; border: 1.5px solid #bfdbfe; font-size: 11.5px; font-weight: 800; padding: 4px 10px; border-radius: 8px; display: flex; align-items: center; gap: 5px; white-space: nowrap; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-              <span>ðŸ“…</span> <span id="activePeriodLabel">15 Okt 2025 - 15 Okt 2026</span>
+              <span>📅</span> <span id="activePeriodLabel">15 Okt 2025 - 15 Okt 2026</span>
             </div>
             <div id="activeTariffChip" style="background: #f0fdf4; color: #166534; border: 1.5px solid #bbf7d0; font-size: 11.5px; font-weight: 800; padding: 4px 10px; border-radius: 8px; display: flex; align-items: center; gap: 5px; white-space: nowrap; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-              <span>ðŸ’³</span> <span id="activeTariffLabel">iDRG 1370 (AF Saja)</span>
+              <span>💳</span> <span id="activeTariffLabel">iDRG 1370 (AF Saja)</span>
             </div>
             <div class="target-meta" id="targetMeta" aria-live="polite" style="border-left: none; padding-left: 0; text-align: right; margin-left: 0;"></div>
             <div style="display: flex; align-items: center; gap: 8px; border-left: 1px solid #cbd5e1; padding-left: 12px;">
-              <span style="font-size: 12px; font-weight: 600; color: #334155;">ðŸ‘¤ <?php echo $loggedInUser; ?></span>
+              <span style="font-size: 12px; font-weight: 600; color: #334155;">👤 <?php echo $loggedInUser; ?></span>
               <a href="logout.php" style="color: #dc2626; background: #fee2e2; border: 1px solid #fca5a5; font-size: 11px; font-weight: 700; text-decoration: none; padding: 4px 10px; border-radius: 6px; transition: all 0.2s ease;">Keluar</a>
             </div>
           </div>
@@ -126,7 +126,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
                 <div style="display: flex; gap: 18px; align-items: center; font-size: 12px; font-weight: 700;">
                   <span style="display: flex; align-items: center; gap: 6px;"><span style="display: inline-block; width: 7px; height: 7px; background: #16a34a; border-radius: 50%;"></span> RS Muhammadiyah/Aisyiyah</span>
                   <span style="display: flex; align-items: center; gap: 6px;"><span style="display: inline-block; width: 6px; height: 6px; background: #0284c7; border-radius: 50%;"></span> RS Regional Lainnya</span>
-                  <span style="display: flex; align-items: center; gap: 6px;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: #dc2626; color: #ffffff; border-radius: 6px; font-size: 12px; font-weight: 900; box-shadow: 0 2px 4px rgba(220,38,38,0.35);">ðŸ¥</span> <strong>RS Target Terpilih</strong></span>
+                  <span style="display: flex; align-items: center; gap: 6px;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: #dc2626; color: #ffffff; border-radius: 6px; font-size: 12px; font-weight: 900; box-shadow: 0 2px 4px rgba(220,38,38,0.35);">🏥</span> <strong>RS Target Terpilih</strong></span>
                 </div>
               </div>
               <div id="svgMapContainer" style="width: 100%; flex: 1; min-height: 480px; border-radius: 12px; border: 1px solid #cbd5e1; background: #e0f2fe; position: relative; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.06);"></div>
@@ -143,7 +143,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
 
           <section class="slide" data-slide="3" aria-labelledby="slide2Title" hidden>
             <div class="slide-heading">
-              <div><p class="eyebrow">Market regional global</p><h1 id="slide2Title">Peta Kasus Regional Menurut Tingkat Keparahan</h1><p>Dâ€“Mâ€“Uâ€“P berasal dari kolom Tingkat Keparahan Kasus (Klaim).</p></div>
+              <div><p class="eyebrow">Market regional global</p><h1 id="slide2Title">Peta Kasus Regional Menurut Tingkat Keparahan</h1><p>D–M–U–P berasal dari kolom Tingkat Keparahan Kasus (Klaim).</p></div>
               <span class="slide-chip">Regional</span>
             </div>
             <div id="regionalSlide" class="slide-content"></div>
@@ -186,7 +186,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
             <div class="existing-report-title" style="display: flex; justify-content: space-between; align-items: center;">
               <div>
                 <h1 id="muhammadiyahMapSlideTitle" style="display: flex; align-items: center; gap: 8px;">
-                  <span style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: #059669; color: white; border-radius: 7px; font-size: 16px;">ðŸ—ºï¸</span>
+                  <span style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: #059669; color: white; border-radius: 7px; font-size: 16px;">🗺️</span>
                   Peta Sebaran &amp; Profil Eksekutif Group RS Muhammadiyah
                 </h1>
                 <p style="margin: 3px 0 0; color: #64748b; font-size: 12.5px; font-weight: 600;">Sebaran Presisi 131 RS Jejaring Muhammadiyah &amp; 'Aisyiyah (123 RS Terdata Klaim) di 17 Provinsi Â· Paparan Pimpinan Kemenkes RI</p>
@@ -200,7 +200,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
             <div class="existing-report-title" style="display: flex; justify-content: space-between; align-items: center;">
               <div>
                 <h1 id="muhammadiyahSlideTitle" style="display: flex; align-items: center; gap: 8px;">
-                  <span style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: #059669; color: white; border-radius: 7px; font-size: 16px;">ðŸ¢</span>
+                  <span style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: #059669; color: white; border-radius: 7px; font-size: 16px;">🏢</span>
                   Analisis Rinci &amp; Tabel Group RS Muhammadiyah &amp; Aisyiyah
                 </h1>
                 <p style="margin: 3px 0 0; color: #64748b; font-size: 12.5px; font-weight: 600;">Evaluasi Kinerja 131 RS Jejaring Resmi Muhammadiyah &amp; 'Aisyiyah (Data RSMA.xlsx) Â· Data Uji Coba iDRG</p>
@@ -397,15 +397,15 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
         </div>
 
         <nav class="deck-controls" aria-label="Navigasi slide">
-          <button id="previousSlide" type="button" aria-label="Slide sebelumnya">â† Sebelum</button>
+          <button id="previousSlide" type="button" aria-label="Slide sebelumnya">← Sebelum</button>
           <div class="slide-dots" id="slideDots" aria-label="Daftar slide"></div>
           <span class="deck-counter" id="slideCounter">1 / 8</span>
           <div style="display: flex; gap: 8px;">
-            <button id="exportPptx" class="export-pptx-button" type="button" style="background:#1a73e8; font-size:10px; padding:4px 8px;">â¬¡ PPTX</button>
-            <button id="exportGSlidesBtn" class="export-pptx-button" type="button" style="background: #1a73e8; font-size: 10px; padding: 4px 8px;">â¬¡ GSlides</button>
-            <button id="exportExcelBtn" class="export-pptx-button export-excel-button" type="button" style="background:#1a73e8; font-size:10px; padding:4px 8px;">â¬¡ Excel</button>
+            <button id="exportPptx" class="export-pptx-button" type="button" style="background:#1a73e8; font-size:10px; padding:4px 8px;">⬡ PPTX</button>
+            <button id="exportGSlidesBtn" class="export-pptx-button" type="button" style="background: #1a73e8; font-size: 10px; padding: 4px 8px;">⬡ GSlides</button>
+            <button id="exportExcelBtn" class="export-pptx-button export-excel-button" type="button" style="background:#1a73e8; font-size:10px; padding:4px 8px;">⬡ Excel</button>
           </div>
-          <button id="nextSlide" type="button" aria-label="Slide berikutnya">Berikut â†’</button>
+          <button id="nextSlide" type="button" aria-label="Slide berikutnya">Berikut →</button>
           <span id="exportStatus" class="sr-only" aria-live="polite"></span>
         </nav>
       </div>
@@ -417,13 +417,13 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
         <h2>Pengaturan & Filter</h2>
         <p>Sesuaikan cakupan regional</p>
       </div>
-      <button id="sidebarToggleBtn" style="background: none; border: none; cursor: pointer; font-size: 18px; color: #64748b; padding: 4px;" title="Tutup Panel Filter">Ã—</button>
+      <button id="sidebarToggleBtn" style="background: none; border: none; cursor: pointer; font-size: 18px; color: #64748b; padding: 4px;" title="Tutup Panel Filter">×</button>
     </div>
     <div class="sidebar-content">
       <!-- Filter Periode / Sumber Data -->
       <div class="target-picker filter-picker" style="background: #f8fafc; padding: 10px 12px; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom: 6px;">
         <span style="font-size: 12px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 5px; margin-bottom: 6px;">
-          <span>ðŸ“…</span> Periode / Sumber Data
+          <span>📅</span> Periode / Sumber Data
         </span>
         <select id="datasetPeriodSelect" class="tariff-scenario-select" aria-label="Pilih Periode / Dataset" style="width: 100%; box-sizing: border-box; padding: 7px 10px; border-radius: 8px; border: 1.5px solid #2563eb; background: #ffffff; font-weight: 750; font-size: 12px; color: #0f172a; cursor: pointer; outline: none; transition: all 0.2s;">
           <option value="okt_oct" selected>Data 15 Okt 2025 - 15 Okt 2026 (Grouper 2026)</option>
@@ -435,7 +435,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
       <!-- Filter Skenario Tarif iDRG -->
       <div class="target-picker filter-picker" style="background: #f8fafc; padding: 10px 12px; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom: 6px;">
         <span style="font-size: 12px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 5px; margin-bottom: 6px;">
-          <span>ðŸ’³</span> Skenario Tarif iDRG
+          <span>💳</span> Skenario Tarif iDRG
         </span>
         <select id="tariffScenarioSelect" class="tariff-scenario-select" aria-label="Pilih skenario tarif iDRG" style="width: 100%; box-sizing: border-box; padding: 7px 10px; border-radius: 8px; border: 1.5px solid #0d9488; background: #ffffff; font-weight: 750; font-size: 12px; color: #0f172a; cursor: pointer; outline: none; transition: all 0.2s;">
           <option value="cw_nbr_adj_a" selected>Skenario A · CW × NBR A × Adj Factor</option>
@@ -460,8 +460,8 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
       <!-- Pengaturan Skenario Simulasi Global -->
       <div class="target-picker filter-picker" style="background: #fdf2f8; padding: 10px 12px; border-radius: 10px; border: 1px solid #fbcfe8; margin-bottom: 6px;">
         <span style="font-size: 12px; font-weight: 800; color: #be185d; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-          <span style="display:flex; align-items:center; gap:5px;"><span>âš™ï¸</span> Parameter Simulasi Global</span>
-          <button id="btnDownloadGlobalSim" aria-label="Download Audit Perhitungan (CSV)" style="background: #be185d; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">ðŸ“¥ Data Excel (CSV)</button>
+          <span style="display:flex; align-items:center; gap:5px;"><span>⚙️</span> Parameter Simulasi Global</span>
+          <button id="btnDownloadGlobalSim" aria-label="Download Audit Perhitungan (CSV)" style="background: #be185d; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">📥 Data Excel (CSV)</button>
         </span>
         
         <div style="margin-bottom: 8px;">
@@ -480,7 +480,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
             <option value="kurang_up">Lepas Utama & Paripurna (dari Eksisting RS Target)</option>
           </select>
         </div>
-        <button id="btnOpenDynamicMarket" type="button" style="width: 100%; margin-top: 9px; border: 0; border-radius: 7px; padding: 8px 10px; background: linear-gradient(135deg,#7c3aed,#2563eb); color: #fff; font-size: 11px; font-weight: 800; cursor: pointer; box-shadow: 0 2px 5px rgba(79,70,229,.25);">âš¡ Buka Simulasi Dinamis</button>
+        <button id="btnOpenDynamicMarket" type="button" style="width: 100%; margin-top: 9px; border: 0; border-radius: 7px; padding: 8px 10px; background: linear-gradient(135deg,#7c3aed,#2563eb); color: #fff; font-size: 11px; font-weight: 800; cursor: pointer; box-shadow: 0 2px 5px rgba(79,70,229,.25);">⚡ Buka Simulasi Dinamis</button>
       </div>
 
       <div class="target-picker filter-picker custom-multi">
