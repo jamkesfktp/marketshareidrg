@@ -44,12 +44,14 @@
       key: "okt_oct",
       label: "Data 15 Okt 2025 - 15 Okt 2026 (Grouper 2026)",
       chip: "Data 15 Okt 2025 - 15 Okt 2026",
+      periodDisplay: "15 Okt 2025 - 15 Okt 2026",
       desc: "Sumber spending_okt_okt_grouper2026_kompetensi_v0_gabungan.csv; memuat kompetensi, jumlah kasus, dan Tarif INA-CBG."
     },
     "jan_des": {
       key: "jan_des",
       label: "Data Tahun 2025 (Jan - Des / 12 Bulan)",
       chip: "Data Tahun 2025 (Jan - Des)",
+      periodDisplay: "Januari - Desember 2025",
       desc: "Master CSV: spending_jan_des_v11_gabungan.csv"
     }
   };
@@ -128,7 +130,23 @@
     }
   }
 
+  function updateDatasetPeriodBadges() {
+    const period = DATASET_PERIODS[activeDatasetKey]?.periodDisplay || DATASET_PERIODS["okt_oct"].periodDisplay;
+    document.querySelectorAll(".existing-period-badge").forEach((badge) => {
+      [...badge.childNodes].filter((node) => node.nodeType === Node.TEXT_NODE && node.textContent.includes("Data Mirroring"))
+        .forEach((node) => { node.textContent = node.textContent.replace(/Data Mirroring(?: Uji Coba)? iDRG/g, "Data Spending iDRG"); });
+      const periodNode = badge.querySelector("strong, span");
+      if (periodNode && periodNode.textContent.trim().toLowerCase().startsWith("periode")) {
+        periodNode.textContent = `periode ${period}`;
+      }
+    });
+    document.querySelectorAll(".service-period").forEach((badge) => {
+      badge.innerHTML = `Data Spending iDRG<br>periode ${period}`;
+    });
+  }
+
   function updateDatasetPeriodDescription() {
+    updateDatasetPeriodBadges();
     const periodDescEl = document.getElementById("datasetPeriodDesc");
     if (!periodDescEl) return;
     const pInfo = DATASET_PERIODS[activeDatasetKey] || DATASET_PERIODS["okt_oct"];
@@ -8073,7 +8091,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
             <header class="service-report-header">
               <h1 id="dynamicSlide${idx}Title">Simulasi Market Share - ${escapeHtml(service)}</h1>
               <div style="text-align:right;flex-shrink:0;min-width:290px;">
-                <div class="service-period" style="display:inline-block;white-space:nowrap;margin-bottom:6px;">Data Mirroring Uji Coba iDRG<br>periode 15 Okt 2025 - 14 Juni 2026</div><br>
+                <div class="service-period" style="display:inline-block;white-space:nowrap;margin-bottom:6px;">Data Spending iDRG<br>periode ${DATASET_PERIODS[activeDatasetKey].periodDisplay}</div><br>
                 <div class="service-header-mirroring">Mirroring Inacbg dg<br>iDRG+KRIS</div>
               </div>
             </header>
@@ -8082,7 +8100,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
               <div style="display:flex;gap:0;align-items:stretch;margin-bottom:10px;width:100%;box-sizing:border-box;">
                 <div class="service-summary" style="flex:1;display:flex;flex-wrap:nowrap;gap:10px;min-width:0;width:calc(100% - 150px);">
                   <div style="flex:1;width:19%;box-sizing:border-box;background-color:#f5f5f5;padding:14px 16px;display:flex;flex-direction:column;gap:4px;border-radius:2px;"><strong style="font-size:14px;color:#333;font-weight:700;">Total Kasus:</strong><b style="font-size:38px;font-weight:800;line-height:1.2;color:#128c89;white-space:nowrap;">${formatNumber(targetKasus)}</b><span style="font-size:13px;color:#777;font-weight:500;">Jumlah kasus eklaim</span></div>
-                  <div style="flex:1;width:19%;box-sizing:border-box;background-color:#f5f5f5;padding:14px 16px;display:flex;flex-direction:column;gap:4px;border-radius:2px;"><strong style="font-size:14px;color:#333;font-weight:700;">Pendapatan INA CBGs:</strong><b style="font-size:38px;font-weight:800;line-height:1.2;color:#d97706;white-space:nowrap;">${formatMoneyM(targetExistingService[INA])}</b><span style="font-size:13px;color:#777;font-weight:500;">Dari data 8 bulan</span></div>
+                  <div style="flex:1;width:19%;box-sizing:border-box;background-color:#f5f5f5;padding:14px 16px;display:flex;flex-direction:column;gap:4px;border-radius:2px;"><strong style="font-size:14px;color:#333;font-weight:700;">Pendapatan INA CBGs:</strong><b style="font-size:38px;font-weight:800;line-height:1.2;color:#d97706;white-space:nowrap;">${formatMoneyM(targetExistingService[INA])}</b><span style="font-size:13px;color:#777;font-weight:500;">Data periode terpilih</span></div>
                   <div style="flex:1;width:19%;box-sizing:border-box;background-color:#f5f5f5;padding:14px 16px;display:flex;flex-direction:column;gap:4px;border-radius:2px;"><strong style="font-size:14px;color:#333;font-weight:700;">Pendapatan iDRG:</strong><b style="font-size:38px;font-weight:800;line-height:1.2;color:#bba62b;white-space:nowrap;">${formatMoneyM(targetExistingService[IDRG])}</b><span style="font-size:13px;color:#777;font-weight:500;">Klaim uji coba iDRG</span></div>
                   <div style="flex:1;width:19%;box-sizing:border-box;background-color:#f5f5f5;padding:14px 16px;display:flex;flex-direction:column;gap:4px;border-radius:2px;"><strong style="font-size:14px;color:#333;font-weight:700;">Selisih Pendapatan:</strong><b style="font-size:38px;font-weight:800;line-height:1.2;white-space:nowrap;">${signed(revenueDelta, formatMoneyM(Math.abs(revenueDelta)))}</b><span style="font-size:13px;color:#777;font-weight:500;">iDRG - INA CBGs</span></div>
                   <div style="flex:1;width:19%;box-sizing:border-box;background-color:#f5f5f5;padding:14px 16px;display:flex;flex-direction:column;gap:4px;border-radius:2px;"><strong style="font-size:14px;color:#333;font-weight:700;">Persentase:</strong><b style="font-size:38px;font-weight:800;line-height:1.2;white-space:nowrap;">${targetExistingService[INA] ? signed(revenueDelta, formatPercent(Math.abs(revenueDelta / targetExistingService[INA]))) : '\u2014'}</b><span style="font-size:13px;color:#777;font-weight:500;">Dari Pendapatan INACBG</span></div>
@@ -8458,7 +8476,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
         <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
           <div style="font-size: 13px; font-weight: 700; color: #718096; margin-bottom: 8px;">Pendapatan INA CBGs:</div>
           <div style="font-size: 28px; font-weight: 900; color: #dd6b20; line-height: 1.1;">${formatMoney(totalIna)}</div>
-          <div style="font-size: 11px; color: #a0aec0; margin-top: 6px;">Dari data 8 bulan</div>
+          <div style="font-size: 11px; color: #a0aec0; margin-top: 6px;">Data periode terpilih</div>
         </div>
 
         <!-- Card 3: iDRG -->

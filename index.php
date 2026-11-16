@@ -108,7 +108,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
           <section class="slide existing-detail-slide target-summary-slide is-active" data-slide="0" aria-labelledby="summarySlideTitle">
             <div class="existing-report-title">
               <h1 id="summarySlideTitle">Ringkasan Kasus &amp; Pendapatan RS Target</h1>
-              <div class="existing-period-badge">Data Mirroring Uji Coba iDRG<br><strong>periode 15 Okt 2025 - 14 Juni 2026</strong></div>
+              <div class="existing-period-badge">Data Spending iDRG<br><strong>periode 15 Okt 2025 - 15 Okt 2026</strong></div>
             </div>
             <div id="targetSummarySlide" class="existing-report-content" style="padding: 15px 25px; display: flex; flex-direction: column; gap: 15px;"></div>
           </section>
@@ -116,7 +116,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
           <section class="slide map-detail-slide" data-slide="1" aria-labelledby="mapSlideTitle" hidden>
             <div class="existing-report-title">
               <h1 id="mapSlideTitle">Peta Sebaran RS Regional &amp; Jejaring</h1>
-              <div class="existing-period-badge">Data Mirroring Uji Coba iDRG<br><strong>periode 15 Okt 2025 - 14 Juni 2026</strong></div>
+              <div class="existing-period-badge">Data Spending iDRG<br><strong>periode 15 Okt 2025 - 15 Okt 2026</strong></div>
             </div>
             <div class="map-slide-content" style="padding: 15px 25px; display: flex; flex-direction: column; gap: 12px; height: calc(100% - 65px);">
               <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 18px; display: flex; justify-content: space-between; align-items: center;">
@@ -136,7 +136,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
           <section class="slide existing-detail-slide" data-slide="2" aria-labelledby="slide1Title" hidden>
             <div class="existing-report-title">
               <h1 id="slide1Title">Kasus Eksisting Per Layanan</h1>
-              <div class="existing-period-badge">Data Mirroring Uji Coba iDRG<br><strong>periode 15 Okt 2025 - 14 Juni 2026</strong></div>
+              <div class="existing-period-badge">Data Spending iDRG<br><strong>periode 15 Okt 2025 - 15 Okt 2026</strong></div>
             </div>
             <div id="existingSlide" class="existing-report-content"></div>
           </section>
@@ -160,7 +160,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
           <section class="slide existing-detail-slide comparison-detail-slide" data-slide="5" aria-labelledby="comparisonSlideTitle" hidden>
             <div class="existing-report-title">
               <h1 id="comparisonSlideTitle">Perbandingan Kasus Per Layanan</h1>
-              <div class="existing-period-badge">Data Mirroring Uji Coba iDRG<br><strong>periode 15 Okt 2025 - 14 Juni 2026</strong></div>
+              <div class="existing-period-badge">Data Spending iDRG<br><strong>periode 15 Okt 2025 - 15 Okt 2026</strong></div>
             </div>
             <div id="comparisonSlide" class="existing-report-content"></div>
           </section>
@@ -168,7 +168,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
           <section class="slide existing-detail-slide regional-cases-detail-slide" data-slide="6" aria-labelledby="regionalCasesSlideTitle" hidden>
             <div class="existing-report-title">
               <h1 id="regionalCasesSlideTitle">Kasus Regional Per Layanan</h1>
-              <div class="existing-period-badge">Data Mirroring Uji Coba iDRG<br><strong>periode 15 Okt 2025 - 14 Juni 2026</strong></div>
+              <div class="existing-period-badge">Data Spending iDRG<br><strong>periode 15 Okt 2025 - 15 Okt 2026</strong></div>
             </div>
             <div id="regionalCasesSlide" class="existing-report-content"></div>
           </section>
@@ -177,7 +177,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
           <section class="slide existing-detail-slide regional-profile-detail-slide" data-slide="7" aria-labelledby="regionalProfileSlideTitle" hidden>
             <div class="existing-report-title">
               <h1 id="regionalProfileSlideTitle">Profil &amp; Kasus Regional</h1>
-              <div class="existing-period-badge">Data Mirroring Uji Coba iDRG<br><strong>periode 15 Okt 2025 - 14 Juni 2026</strong></div>
+              <div class="existing-period-badge">Data Spending iDRG<br><strong>periode 15 Okt 2025 - 15 Okt 2026</strong></div>
             </div>
             <div id="regionalProfileSlide" class="regional-profile-content"></div>
           </section>
@@ -191,7 +191,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
                 </h1>
                 <p style="margin: 3px 0 0; color: #64748b; font-size: 12.5px; font-weight: 600;">Sebaran Presisi 131 RS Jejaring Muhammadiyah &amp; 'Aisyiyah (123 RS Terdata Klaim) di 17 Provinsi Â· Paparan Pimpinan Kemenkes RI</p>
               </div>
-              <div class="existing-period-badge">Data Mirroring Uji Coba iDRG<br><strong>periode 15 Okt 2025 - 14 Juni 2026</strong></div>
+              <div class="existing-period-badge">Data Spending iDRG<br><strong>periode 15 Okt 2025 - 15 Okt 2026</strong></div>
             </div>
             <div id="muhammadiyahMapSlide" class="muhammadiyah-map-content" style="padding: 8px 18px; display: flex; flex-direction: column; gap: 8px; height: calc(100% - 62px); overflow: hidden;"></div>
           </section>
@@ -205,7 +205,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
                 </h1>
                 <p style="margin: 3px 0 0; color: #64748b; font-size: 12.5px; font-weight: 600;">Evaluasi Kinerja 131 RS Jejaring Resmi Muhammadiyah &amp; 'Aisyiyah (Data RSMA.xlsx) Â· Data Uji Coba iDRG</p>
               </div>
-              <div class="existing-period-badge">Data Mirroring Uji Coba iDRG<br><strong>periode 15 Okt 2025 - 14 Juni 2026</strong></div>
+              <div class="existing-period-badge">Data Spending iDRG<br><strong>periode 15 Okt 2025 - 15 Okt 2026</strong></div>
             </div>
             <div id="muhammadiyahGroupSlide" class="muhammadiyah-group-content" style="padding: 8px 18px; display: flex; flex-direction: column; gap: 8px; height: calc(100% - 62px); overflow: hidden;"></div>
           </section>
@@ -217,7 +217,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
                 <p style="color: rgba(255,255,255,0.8); font-size: 13px; margin: 2px 0 0 0;">Proyeksi pergeseran kasus dan pendapatan berdasarkan market kompetitor</p>
               </div>
               <div class="existing-period-badge" style="background-color: #e74c3c; color: white; border-radius: 99px; padding: 5px 14px; text-align: center; font-size: 12px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-                Data Mirroring Uji Coba iDRG<br><span style="font-weight: 400;">periode 15 Okt 2025 - 14 Juni 2026</span>
+                Data Spending iDRG<br><span style="font-weight: 400;">periode 15 Okt 2025 - 15 Okt 2026</span>
               </div>
             </div>
             <div id="globalSimulationSlide" class="existing-report-content" style="display: block; padding: 16px 24px; height: calc(100% - 65px); overflow-y: auto; background-color: #ffffff;"></div>
@@ -230,7 +230,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
                 <p style="color: rgba(255,255,255,0.8); font-size: 13px; margin: 2px 0 0 0;">(Lintas Kompetensi Layanan)</p>
               </div>
               <div class="existing-period-badge" style="background-color: #e74c3c; color: white; border-radius: 99px; padding: 5px 14px; text-align: center; font-size: 12px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-                Data Mirroring Uji Coba iDRG<br><span style="font-weight: 400;">periode 15 Okt 2025 - 14 Juni 2026</span>
+                Data Spending iDRG<br><span style="font-weight: 400;">periode 15 Okt 2025 - 15 Okt 2026</span>
               </div>
             </div>
             <div id="competencyTableSlide" class="existing-report-content" style="display: block; padding: 16px 24px; height: calc(100% - 65px); overflow-y: auto; background-color: #ffffff;"></div>
@@ -254,7 +254,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
             <div class="existing-report-title" style="background-color: #16a085; border-bottom: 6px solid #f1c40f; padding: 10px 24px; display: flex; justify-content: space-between; align-items: center; position: relative;">
               <h1 id="nationalRawatTypeSlideTitle" style="color: white; font-size: 22px; font-weight: 700; margin: 0; letter-spacing: 0.5px;">Jumlah Data Masuk menurut Jenis Rawat</h1>
               <div class="existing-period-badge" style="background-color: #e74c3c; color: white; border-radius: 99px; padding: 5px 14px; text-align: center; font-size: 12px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.2); position: absolute; right: 24px; top: 10px; transform: translateY(-10%); line-height: 1.2;">
-                Data Mirroring Uji Coba iDRG<br><span style="font-weight: 400;">periode 15 Okt 2025 - 14 Juni 2026</span>
+                Data Spending iDRG<br><span style="font-weight: 400;">periode 15 Okt 2025 - 15 Okt 2026</span>
               </div>
             </div>
             <div id="nationalRawatTypeSlide" class="existing-report-content" style="padding: 16px 24px; height: calc(100% - 55px); overflow-y: auto; background-color: #ffffff;"></div>
@@ -265,7 +265,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
             <div class="existing-report-title" style="background-color: #16a085; border-bottom: 6px solid #f1c40f; padding: 10px 24px; display: flex; justify-content: space-between; align-items: center; position: relative;">
               <h1 id="nationalSpendingClassSlideTitle" style="color: white; font-size: 22px; font-weight: 700; margin: 0; letter-spacing: 0.5px;">Simulasi Spending iDRG Nasional per Kelas RS</h1>
               <div class="existing-period-badge" style="background-color: #e74c3c; color: white; border-radius: 99px; padding: 5px 14px; text-align: center; font-size: 12px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.2); position: absolute; right: 24px; top: 10px; transform: translateY(-10%); line-height: 1.2;">
-                Data Mirroring Uji Coba iDRG<br><span style="font-weight: 400;">periode 15 Okt 2025 - 14 Juni 2026</span>
+                Data Spending iDRG<br><span style="font-weight: 400;">periode 15 Okt 2025 - 15 Okt 2026</span>
               </div>
             </div>
             <div id="nationalSpendingClassSlide" class="existing-report-content" style="padding: 14px 20px; height: calc(100% - 55px); overflow-y: auto; background-color: #ffffff;"></div>
@@ -276,7 +276,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
             <div class="existing-report-title" style="background-color: #16a085; border-bottom: 6px solid #f1c40f; padding: 10px 24px; display: flex; justify-content: space-between; align-items: center; position: relative;">
               <h1 id="nationalRawatInapSlideTitle" style="color: white; font-size: 22px; font-weight: 700; margin: 0; letter-spacing: 0.5px;">Data Masuk Berdasarkan Kasus Rawat Inap</h1>
               <div class="existing-period-badge" style="background-color: #e74c3c; color: white; border-radius: 99px; padding: 5px 14px; text-align: center; font-size: 12px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.2); position: absolute; right: 24px; top: 10px; transform: translateY(-10%); line-height: 1.2;">
-                Data Mirroring Uji Coba iDRG<br><span style="font-weight: 400;">periode 15 Okt 2025 - 14 Juni 2026</span>
+                Data Spending iDRG<br><span style="font-weight: 400;">periode 15 Okt 2025 - 15 Okt 2026</span>
               </div>
             </div>
             <div id="nationalRawatInapSlide" class="existing-report-content" style="padding: 16px 24px; height: calc(100% - 55px); overflow-y: auto; background-color: #ffffff;"></div>
@@ -287,7 +287,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
             <div class="existing-report-title" style="background-color: #16a085; border-bottom: 6px solid #f1c40f; padding: 10px 24px; display: flex; justify-content: space-between; align-items: center; position: relative;">
               <h1 id="nationalSeveritySlideTitle" style="color: white; font-size: 22px; font-weight: 700; margin: 0; letter-spacing: 0.5px;">Perbandingan Tingkat Keparahan Rawat Inap</h1>
               <div class="existing-period-badge" style="background-color: #e74c3c; color: white; border-radius: 99px; padding: 5px 14px; text-align: center; font-size: 12px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.2); position: absolute; right: 24px; top: 10px; transform: translateY(-10%); line-height: 1.2;">
-                Data Mirroring Uji Coba iDRG<br><span style="font-weight: 400;">periode 15 Okt 2025 - 14 Juni 2026</span>
+                Data Spending iDRG<br><span style="font-weight: 400;">periode 15 Okt 2025 - 15 Okt 2026</span>
               </div>
             </div>
             <div id="nationalSeveritySlide" class="existing-report-content" style="padding: 16px 24px; height: calc(100% - 55px); overflow-y: auto; background-color: #ffffff;"></div>
@@ -298,7 +298,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
             <div class="existing-report-title" style="background-color: #16a085; border-bottom: 6px solid #f1c40f; padding: 10px 24px; display: flex; justify-content: space-between; align-items: center; position: relative;">
               <h1 id="nationalRawatJalanSlideTitle" style="color: white; font-size: 22px; font-weight: 700; margin: 0; letter-spacing: 0.5px;">Data Masuk Berdasarkan Kasus Rawat Jalan</h1>
               <div class="existing-period-badge" style="background-color: #e74c3c; color: white; border-radius: 99px; padding: 5px 14px; text-align: center; font-size: 12px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.2); position: absolute; right: 24px; top: 10px; transform: translateY(-10%); line-height: 1.2;">
-                Data Mirroring Uji Coba iDRG<br><span style="font-weight: 400;">periode 15 Okt 2025 - 14 Juni 2026</span>
+                Data Spending iDRG<br><span style="font-weight: 400;">periode 15 Okt 2025 - 15 Okt 2026</span>
               </div>
             </div>
             <div id="nationalRawatJalanSlide" class="existing-report-content" style="padding: 16px 24px; height: calc(100% - 55px); overflow-y: auto; background-color: #ffffff;"></div>
@@ -309,7 +309,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
             <div class="existing-report-title" style="background-color: #16a085; border-bottom: 6px solid #f1c40f; padding: 10px 24px; display: flex; justify-content: space-between; align-items: center; position: relative;">
               <h1 id="nationalQ5440SlideTitle" style="color: white; font-size: 22px; font-weight: 700; margin: 0; letter-spacing: 0.5px;">Distribusi Q-5-44-0 (Rawat Jalan)</h1>
               <div class="existing-period-badge" style="background-color: #e74c3c; color: white; border-radius: 99px; padding: 5px 14px; text-align: center; font-size: 12px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.2); position: absolute; right: 24px; top: 10px; transform: translateY(-10%); line-height: 1.2;">
-                Data Mirroring Uji Coba iDRG<br><span style="font-weight: 400;">periode 15 Okt 2025 - 14 Juni 2026</span>
+                Data Spending iDRG<br><span style="font-weight: 400;">periode 15 Okt 2025 - 15 Okt 2026</span>
               </div>
             </div>
             <div id="nationalQ5440Slide" class="existing-report-content" style="padding: 14px 22px; height: calc(100% - 55px); overflow-y: auto; background-color: #ffffff;"></div>
@@ -320,7 +320,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
             <div class="existing-report-title" style="background-color: #16a085; border-bottom: 6px solid #f1c40f; padding: 10px 24px; display: flex; justify-content: space-between; align-items: center; position: relative;">
               <h1 id="icdCompetencySlideTitle" style="color: white; font-size: 22px; font-weight: 700; margin: 0; letter-spacing: 0.5px;">Profil &amp; Kasus Regional Berdasarkan Kompetensi ICD</h1>
               <div class="existing-period-badge" style="background-color: #e74c3c; color: white; border-radius: 99px; padding: 5px 14px; text-align: center; font-size: 12px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.2); position: absolute; right: 24px; top: 10px; transform: translateY(-10%); line-height: 1.2;">
-                Data Mirroring Uji Coba iDRG<br><span style="font-weight: 400;">periode 15 Okt 2025 - 14 Juni 2026</span>
+                Data Spending iDRG<br><span style="font-weight: 400;">periode 15 Okt 2025 - 15 Okt 2026</span>
               </div>
             </div>
             <div id="icdCompetencySlide" class="existing-report-content" style="padding: 12px 20px; display: flex; flex-direction: column; gap: 8px; height: calc(100% - 55px); overflow-y: auto; background-color: #ffffff;"></div>

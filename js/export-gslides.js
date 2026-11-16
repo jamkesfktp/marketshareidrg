@@ -166,7 +166,7 @@
       });
     }
     slide.addShape("rect", { x: W - 3.1, y: 0.08, w: 2.85, h: 0.52, fill: { color: C.redD }, line: { color: C.redD } });
-    slide.addText((rightBadgeText || "Data Mirroring Uji Coba iDRG") + "\n" + dateStr, {
+    slide.addText((rightBadgeText || "Data Spending iDRG") + "\n" + dateStr, {
       x: W - 3.1, y: 0.08, w: 2.85, h: 0.52, fontSize: 6.5, color: C.white, align: "center", valign: "middle", fontFace: "Century Gothic"
     });
   }
@@ -254,7 +254,7 @@
     slide.addText("SIMULATOR MARKET SHARE REGIONAL", {
       x: 0.6, y: 1.3, w: W - 1.2, h: 0.8, fontSize: 28, bold: true, color: C.white, align: "center", fontFace: "Century Gothic"
     });
-    slide.addText("Data Mirroring Uji Coba iDRG vs INA-CBG", {
+    slide.addText("Data Spending iDRG vs INA-CBG", {
       x: 0.6, y: 2.1, w: W - 1.2, h: 0.4, fontSize: 13, color: "94a3b8", align: "center", fontFace: "Century Gothic"
     });
 
@@ -277,7 +277,7 @@
     var groupInfo = filters.isMuhammadiyahOnly ? "Khusus RS Muhammadiyah / Aisyiyah" : "Semua Kategori RS";
 
     var infoText = "Wilayah: " + provInfo + " (" + cityInfo + ")  •  " + groupInfo + " (" + hospCount + " RS Terpilih)\n" +
-                   "Periode Data: " + (filters.activeDatasetPeriod === "jan_des" ? "1 Tahun Penuh (Jan - Des)" : "Uji Coba 8 Bulan (15 Okt 2025 - 14 Jun 2026)") +
+                   "Periode Data: " + (filters.activeDatasetPeriod === "jan_des" ? "Januari - Desember 2025" : "15 Okt 2025 - 15 Okt 2026") +
                    "  •  Skenario Tarif: " + (filters.activeTariff || "AF + AFreg + AFkep");
 
     slide.addShape("rect", { x: 1.5, y: 3.8, w: W - 3.0, h: 0.9, fill: { color: "1e293b" }, line: { color: "334155", pt: 0.75 } });
@@ -1580,6 +1580,7 @@
   
   function buildFinalSummarySlide(pptx, appState) {
     var data = appState.data, target = appState.target || {}, CASES = appState.CASES, INA = appState.INA, IDRG = appState.IDRG;
+    var periodDisplay = appState.activeDataset === "jan_des" ? "Januari - Desember 2025" : "15 Okt 2025 - 15 Okt 2026";
     var slide = pptx.addSlide();
     slide.background = { color: "ffffff" };
 
@@ -1595,7 +1596,7 @@
       x: 10, y: 0.1, w: 3.2, h: 0.7, r: 0.35,
       fill: { color: "c43236" }
     });
-    slide.addText("Data Mirroring Uji Coba iDRG\nperiode 15 Okt 2025 - 14 Juni 2026", {
+    slide.addText("Data Spending iDRG\nperiode " + periodDisplay, {
       x: 10, y: 0.1, w: 3.2, h: 0.7,
       color: "ffffff", fontSize: 10, bold: true, align: "center", valign: "middle"
     });
