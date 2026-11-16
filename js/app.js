@@ -7,10 +7,13 @@
   let data = allDatasets[activeDatasetKey] || window.marketSimulatorData;
   if (!data) throw new Error("Dataset simulator tidak tersedia.");
 
-  if (data.services && !data.services.includes('FORENSIK DAN MEDIKOLEGAL')) {
-    data.services.push('FORENSIK DAN MEDIKOLEGAL');
-    data.services.sort();
+  function normalizeServiceList(dataset) {
+    if (!Array.isArray(dataset?.services)) return;
+    dataset.services = [...new Set(dataset.services.filter(service => String(service).trim().toUpperCase() !== "BELUM MAPPING"))];
+    if (!dataset.services.includes("FORENSIK DAN MEDIKOLEGAL")) dataset.services.push("FORENSIK DAN MEDIKOLEGAL");
+    dataset.services.sort((a, b) => a.localeCompare(b, "id"));
   }
+  normalizeServiceList(data);
 
   const CASES = 0;
   const INA = 1;
@@ -164,10 +167,7 @@
     originalData = allDatasets[datasetKey];
     data = allDatasets[datasetKey];
 
-    if (data && data.services && !data.services.includes('FORENSIK DAN MEDIKOLEGAL')) {
-      data.services.push('FORENSIK DAN MEDIKOLEGAL');
-      data.services.sort();
-    }
+    normalizeServiceList(data);
 
     const pInfo = DATASET_PERIODS[datasetKey] || DATASET_PERIODS["okt_oct"];
     const periodLabelEl = document.getElementById("activePeriodLabel");
@@ -767,7 +767,7 @@
           <div class="service-market-grid">
             ${data.services.map((service) => { const item = regionalService(service); return `<div class="service-market-row"><span>${escapeHtml(formatService(service))}</span><strong>${formatNumber(item.total[CASES])}</strong><em>${formatMoney(item.total[IDRG])}</em></div>`; }).join("")}
           </div>
-          <p class="source-note">Total regional direkonsiliasi dengan seluruh baris sumber. Kasus “0. Belum ada komp. ICD” masuk total layanan, namun tidak dimasukkan ke salah satu tingkat D–M–U–P.</p>
+          <p class="source-note">Total regional direkonsiliasi dengan seluruh baris sumber. Kasus “Belum ada kompetensi ICD” tetap masuk total regional, tetapi dipisahkan dari 24 layanan dan tingkat D–M–U–P.</p>
         </article>
       </div>`;
   }
