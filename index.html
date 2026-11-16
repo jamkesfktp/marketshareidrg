@@ -510,6 +510,7 @@
         <select id="tariffScenarioSelect" class="tariff-scenario-select" aria-label="Pilih skenario tarif iDRG" style="width: 100%; box-sizing: border-box; padding: 7px 10px; border-radius: 8px; border: 1.5px solid #0d9488; background: #ffffff; font-weight: 750; font-size: 12px; color: #0f172a; cursor: pointer; outline: none; transition: all 0.2s;">
           <option value="cw_nbr_adj_a" selected>Skenario A · CW × NBR A × Adj Factor</option>
           <option value="cw_nbr_adj_b">Skenario B · CW × NBR B × Adj Factor</option>
+          <option value="cw_nbr_adj_c">Skenario C · CW × NBR C × Adj Factor</option>
         </select>
         <div id="tariffScenarioDesc" style="font-size: 10.5px; color: #64748b; margin-top: 4px; line-height: 1.35;">Tarif per DRG = CW Asli × NBR A × Adj Factor</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px;">
@@ -522,6 +523,11 @@
             <b style="font-size:10px;color:#1d4ed8;">NBR B · acuan lama</b>
             <label style="display:block;margin-top:5px;font-size:10px;color:#334155;">Rawat Inap <input data-nbr-scenario="B" data-nbr-service="RI" type="number" min="0" step="1" style="width:100%;box-sizing:border-box;margin-top:2px;padding:4px;border:1px solid #cbd5e1;border-radius:5px;"></label>
             <label style="display:block;margin-top:4px;font-size:10px;color:#334155;">Rawat Jalan <input data-nbr-scenario="B" data-nbr-service="RJ" type="number" min="0" step="1" style="width:100%;box-sizing:border-box;margin-top:2px;padding:4px;border:1px solid #cbd5e1;border-radius:5px;"></label>
+          </div>
+          <div style="padding:7px;background:#fff7ed;border:1px solid #fed7aa;border-radius:7px;">
+            <b style="font-size:10px;color:#c2410c;">NBR C</b>
+            <label style="display:block;margin-top:5px;font-size:10px;color:#334155;">Rawat Inap <input data-nbr-scenario="C" data-nbr-service="RI" type="number" min="0" step="1" style="width:100%;box-sizing:border-box;margin-top:2px;padding:4px;border:1px solid #cbd5e1;border-radius:5px;"></label>
+            <label style="display:block;margin-top:4px;font-size:10px;color:#334155;">Rawat Jalan <input data-nbr-scenario="C" data-nbr-service="RJ" type="number" min="0" step="1" style="width:100%;box-sizing:border-box;margin-top:2px;padding:4px;border:1px solid #cbd5e1;border-radius:5px;"></label>
           </div>
         </div>
         <div style="font-size:9.5px;color:#64748b;margin-top:5px;line-height:1.35;">Ubah NBR di atas untuk memperbarui perbandingan di semua periode. Rumus memakai CW Asli dan Adj Factor dari tabel tarif.</div>

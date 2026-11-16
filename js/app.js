@@ -9,7 +9,6 @@
 
   function normalizeServiceList(dataset) {
     if (!Array.isArray(dataset?.services)) return;
-    dataset.services = [...new Set(dataset.services.filter(service => String(service).trim().toUpperCase() !== "BELUM MAPPING"))];
     if (!dataset.services.includes("FORENSIK DAN MEDIKOLEGAL")) dataset.services.push("FORENSIK DAN MEDIKOLEGAL");
     dataset.services.sort((a, b) => a.localeCompare(b, "id"));
   }
@@ -74,21 +73,30 @@
   };
   TARIFF_SCENARIOS.cw_nbr_adj_a = { index: 9, label: "Skenario A · CW × NBR A × Adj Factor", chip: "Skenario A · CW × NBR A × Adj Factor", desc: "Tarif per DRG = CW Asli × NBR A × Adj Factor" };
   TARIFF_SCENARIOS.cw_nbr_adj_b = { index: 10, label: "Skenario B · CW × NBR B × Adj Factor", chip: "Skenario B · CW × NBR B × Adj Factor", desc: "Tarif per DRG = CW Asli × NBR B × Adj Factor" };
+  TARIFF_SCENARIOS.cw_nbr_adj_c = { index: 12, label: "Skenario C · CW × NBR C × Adj Factor", chip: "Skenario C · CW × NBR C × Adj Factor", desc: "Tarif per DRG = CW Asli × NBR C × Adj Factor" };
   const DEFAULT_TARIFF_BY_DATASET = { "okt_oct": "cw_nbr_adj_a", "jan_des": "cw_nbr_adj_a" };
-  const NBR_DEFAULTS = data.meta?.nbrScenarioDefaults || { A: { RI: 8333041, RJ: 424629 }, B: { RI: 8037060, RJ: 461474 } };
+  const NBR_DEFAULTS = {
+    A: data.meta?.nbrScenarioDefaults?.A || { RI: 8333041, RJ: 424629 },
+    B: data.meta?.nbrScenarioDefaults?.B || { RI: 8037060, RJ: 461474 },
+    C: data.meta?.nbrScenarioDefaults?.C || { RI: 8375163, RJ: 427145 }
+  };
   function loadNBRValues() {
     try {
       const saved = JSON.parse(localStorage.getItem("marketShare.nbrScenarioValues") || "null");
-      if (saved && ["A", "B"].every(key => ["RI", "RJ"].every(service => Number.isFinite(Number(saved[key]?.[service])) && Number(saved[key][service]) >= 0))) {
-        return { A: { RI: Number(saved.A.RI), RJ: Number(saved.A.RJ) }, B: { RI: Number(saved.B.RI), RJ: Number(saved.B.RJ) } };
+      if (saved) {
+        return Object.fromEntries(["A", "B", "C"].map(key => [key, Object.fromEntries(["RI", "RJ"].map(service => {
+          const value = Number(saved[key]?.[service]);
+          return [service, Number.isFinite(value) && value >= 0 ? value : NBR_DEFAULTS[key][service]];
+        }))]));
       }
     } catch (_) { /* Use the source defaults when browser storage is unavailable. */ }
-    return { A: { ...NBR_DEFAULTS.A }, B: { ...NBR_DEFAULTS.B } };
+    return Object.fromEntries(["A", "B", "C"].map(key => [key, { ...NBR_DEFAULTS[key] }]));
   }
   function recalculateTariffVector(vector) {
     if (!Array.isArray(vector) || vector.length < 15) return;
     vector[9] = (vector[13] || 0) * state.nbrValues.A.RI + (vector[14] || 0) * state.nbrValues.A.RJ;
     vector[10] = (vector[13] || 0) * state.nbrValues.B.RI + (vector[14] || 0) * state.nbrValues.B.RJ;
+    vector[12] = (vector[13] || 0) * state.nbrValues.C.RI + (vector[14] || 0) * state.nbrValues.C.RJ;
   }
   function recalculateTariffEntity(entity) {
     if (!entity || typeof entity !== "object") return;
@@ -108,12 +116,13 @@
         const basis = Number(segment[11]) || 0;
         segment[9] = basis * (nbrRI ? state.nbrValues.A.RI : state.nbrValues.A.RJ);
         segment[10] = basis * (nbrRI ? state.nbrValues.B.RI : state.nbrValues.B.RJ);
+        segment[12] = basis * (nbrRI ? state.nbrValues.C.RI : state.nbrValues.C.RJ);
       }));
     });
   }
 
   function updateActiveTariff(scenarioKey) {
-    const isAllowed = key => key === "cw_nbr_adj_a" || key === "cw_nbr_adj_b";
+    const isAllowed = key => key === "cw_nbr_adj_a" || key === "cw_nbr_adj_b" || key === "cw_nbr_adj_c";
     const resolvedKey = isAllowed(scenarioKey) ? scenarioKey : DEFAULT_TARIFF_BY_DATASET[activeDatasetKey];
     const sc = TARIFF_SCENARIOS[resolvedKey];
     state.activeTariffScenario = resolvedKey;
@@ -196,12 +205,17 @@
   }
   
   let hospitalByCode = new Map();
+  let competentServiceNames = new Set();
   let hospitalClassCounts = {};
   let dataStateVersion = 0;
   let targetAggregateCache = { codesRef: null, version: -1, value: null };
   
   function updateDataState() {
     hospitalByCode = new Map(data.hospitals.map((hospital) => [hospital.code, hospital]));
+    const hasCompetencyData = data.hospitals.some((hospital) => Object.values(hospital.services || {}).some((service) => Number(service.competency) > 0));
+    competentServiceNames = new Set(hasCompetencyData
+      ? data.services.filter((service) => data.hospitals.some((hospital) => getCompetency(hospital, service) > 0))
+      : data.services);
     hospitalClassCounts = ["A", "B", "C", "D"].reduce((counts, className) => {
       counts[className] = data.hospitals.filter((hospital) => String(hospital.class || "").trim().toUpperCase() === className).length;
       return counts;
@@ -480,6 +494,13 @@
     return 0;
   }
 
+  function getTableServicesForTarget(hospital) {
+    const targetHasCompetencyData = data.services.some((service) => getCompetency(hospital, service) > 0);
+    return targetHasCompetencyData
+      ? data.services.filter((service) => getCompetency(hospital, service) > 0)
+      : [...competentServiceNames];
+  }
+
   function canServeLevel(competency, level) {
     return level >= 1 && level <= 4 && competency >= 1 && competency <= 4 && (competency === level || competency === level + 1);
   }
@@ -682,7 +703,7 @@
     const severityTotals = Object.fromEntries(severityRanks.map((rank) => [rank,
       sumMetrics(data.services.map((service) => severityMetric(target.services?.[service], rank))),
     ]));
-    const rankedServices = data.services
+    const rankedServices = getTableServicesForTarget(target)
       .map((service) => ({ service, total: metric(target.services?.[service]?.total) }))
       .sort((a, b) => b.total[CASES] - a.total[CASES] || a.service.localeCompare(b.service));
     const displayCases = (value) => value ? formatNumber(value) : "—";
@@ -765,9 +786,9 @@
         <article class="panel">
           <div class="panel-heading"><h2>Market regional berdasarkan layanan</h2><span>Kasus dan iDRG</span></div>
           <div class="service-market-grid">
-            ${data.services.map((service) => { const item = regionalService(service); return `<div class="service-market-row"><span>${escapeHtml(formatService(service))}</span><strong>${formatNumber(item.total[CASES])}</strong><em>${formatMoney(item.total[IDRG])}</em></div>`; }).join("")}
+            ${data.services.filter((service) => competentServiceNames.has(service)).map((service) => { const item = regionalService(service); return `<div class="service-market-row"><span>${escapeHtml(formatService(service))}</span><strong>${formatNumber(item.total[CASES])}</strong><em>${formatMoney(item.total[IDRG])}</em></div>`; }).join("")}
           </div>
-          <p class="source-note">Total regional direkonsiliasi dengan seluruh baris sumber. Kasus “Belum ada kompetensi ICD” tetap masuk total regional, tetapi dipisahkan dari 24 layanan dan tingkat D–M–U–P.</p>
+          <p class="source-note">Total regional direkonsiliasi dengan seluruh baris sumber. Kasus tanpa kompetensi ICD tetap masuk total regional, tetapi tidak dihitung pada tingkat D–M–U–P.</p>
         </article>
       </div>`;
   }
@@ -777,6 +798,7 @@
     if (!slide) return;
     const target = targetHospital();
     const result = computeAddressable();
+    const targetHasCompetencyData = data.services.some((service) => getCompetency(target, service) > 0);
     document.getElementById("slide3Subtitle").textContent = `Kompetensi ${target.name} menentukan tingkat keparahan yang mampu dilayani.`;
     slide.innerHTML = `
       <div class="kpi-grid addressable-kpis">
@@ -787,7 +809,7 @@
       </div>
       <article class="panel addressable-table-panel">
         <div class="table-wrap addressable-table-wrap"><table class="compact-table addressable-matrix-table"><colgroup><col class="addressable-service-col"><col class="addressable-competency-col"><col class="addressable-capability-col"><col class="addressable-number-col"><col class="addressable-number-col"><col class="addressable-number-col"><col class="addressable-money-col"><col class="addressable-competitor-col"></colgroup><thead><tr><th>Layanan</th><th>Kompetensi target</th><th>Keparahan yang mampu dilayani</th><th class="num">Kasus regional eligible</th><th class="num">Eksisting eligible</th><th class="num">External pool</th><th class="num">iDRG external</th><th class="num">Kompetitor setara</th></tr></thead><tbody>
-          ${result.rows.map((row) => `<tr class="${row.competency ? "" : "is-disabled"}"><td class="service-name">${escapeHtml(formatService(row.service))}</td><td>${levelBadge(row.competency)}</td><td>${capabilityCells(row.competency)}</td><td class="num">${formatNumber(row.eligibleRegional[CASES])}</td><td class="num">${formatNumber(row.eligibleExisting[CASES])}</td><td class="num">${formatNumber(row.external[CASES])}</td><td class="num">${formatTableMoney(row.external[IDRG])}</td><td class="num">${formatNumber(row.competitors)}</td></tr>`).join("")}
+          ${result.rows.filter((row) => !targetHasCompetencyData || row.competency > 0).map((row) => `<tr><td class="service-name">${escapeHtml(formatService(row.service))}</td><td>${levelBadge(row.competency)}</td><td>${capabilityCells(row.competency)}</td><td class="num">${formatNumber(row.eligibleRegional[CASES])}</td><td class="num">${formatNumber(row.eligibleExisting[CASES])}</td><td class="num">${formatNumber(row.external[CASES])}</td><td class="num">${formatTableMoney(row.external[IDRG])}</td><td class="num">${formatNumber(row.competitors)}</td></tr>`).join("")}
         </tbody></table></div>
       </article>`;
   }
@@ -827,7 +849,7 @@
             <tr>${severityRanks.map((rank) => `<th class="comparison-target" style="border-left: 2px solid #007b83;">Kasus RS</th><th class="comparison-other">Kasus Regional</th><th class="comparison-target">iDRG RS</th><th class="comparison-other">iDRG Regional</th>`).join("")}</tr>
           </thead>
           <tbody>
-            ${data.services.map((service, index) => {
+            ${getTableServicesForTarget(target).map((service, index) => {
               const targetItem = target.services?.[service];
               const competency = getCompetency(target, service);
               
@@ -882,7 +904,7 @@
             <tr>${severityRanks.map((rank) => `<th class="comparison-other" style="border-left: 2px solid #007b83;">Kasus Regional</th><th class="comparison-other">iDRG Regional</th>`).join("")}<th class="comparison-other" style="border-left: 2px solid #007b83;">Total Kasus</th><th class="comparison-other">Total iDRG</th></tr>
           </thead>
           <tbody>
-            ${data.services.map((service, index) => {
+            ${getTableServicesForTarget(target).map((service, index) => {
               const item = regionalService(service);
               const target = targetHospital();
               const competency = getCompetency(target, service);
@@ -2311,7 +2333,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const ui = window.tariffScatterUi;
     const services = Object.keys(scatterSource.scatterServices).sort();
     const matchesSegment = (segment) => (ui.ownership === "ALL" || segment[2] === ui.ownership) && (ui.hospitalClass === "ALL" || segment[3] === ui.hospitalClass) && (ui.rawatClass === "ALL" || segment[4] === ui.rawatClass) && (ui.region === "ALL" || segment[5] === ui.region);
-    const scenarioMetricIndex = state.activeTariffScenario === "cw_nbr_adj_b" ? 10 : 9;
+    const scenarioMetricIndex = ({ cw_nbr_adj_a: 9, cw_nbr_adj_b: 10, cw_nbr_adj_c: 12 })[state.activeTariffScenario] || 9;
     const scatterScenarioLabel = TARIFF_SCENARIOS[state.activeTariffScenario]?.chip || "Skenario A · CW × NBR A × Adj Factor";
     const selectedServices = ui.service === "ALL" ? services : [ui.service];
     const aggregate = new Map();
@@ -11154,6 +11176,7 @@ document.getElementById("globalSimulationSlide").innerHTML = `
     const TARIFF_LABELS = {
       "cw_nbr_adj_a": "Skenario A · CW × NBR A × Adj Factor",
       "cw_nbr_adj_b": "Skenario B · CW × NBR B × Adj Factor",
+      "cw_nbr_adj_c": "Skenario C · CW × NBR C × Adj Factor",
       "1370_full": "iDRG 1370 - AF + AFreg + AFkep",
       "1370_afreg": "iDRG 1370 - AF + AFreg",
       "1370_af": "iDRG 1370 - AF Saja",
