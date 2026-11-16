@@ -524,7 +524,7 @@ $loggedInUser = htmlspecialchars(isset($_SESSION['username']) ? $_SESSION['usern
       </div>
     </div>
   </aside>
-  <script src="js/data-loader.js?v=20261107-nbr-formula"></script>
+  <script src="js/data-loader.js?v=20261116-nbr-c-and-service-filter"></script>
 </body>
 </html>
 

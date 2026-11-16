@@ -872,6 +872,7 @@
   }
 
   function renderRegionalCasesSlide() {
+    const target = targetHospital();
     const regionalTotal = metric(data.regional.total);
     const delta = regionalTotal[IDRG] - regionalTotal[INA];
     const deltaPercent = regionalTotal[INA] ? delta / regionalTotal[INA] : 0;
@@ -906,7 +907,6 @@
           <tbody>
             ${getTableServicesForTarget(target).map((service, index) => {
               const item = regionalService(service);
-              const target = targetHospital();
               const competency = getCompetency(target, service);
               
               const combinedCells = severityRanks.map(rank => {

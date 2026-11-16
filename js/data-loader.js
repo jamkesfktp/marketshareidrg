@@ -20,7 +20,7 @@
     "js/idrg-map-data.js?v=20261107-clean-scatter",
     "js/service-insights.js?v=20260918-layout-fix",
     "js/table-copy.js?v=20260910-no-highlight",
-    "js/app.js?v=20261107-nbr-formula"
+    "js/app.js?v=20261116-nbr-c-and-service-filter"
   ];
 
   function appendScript(src) {
